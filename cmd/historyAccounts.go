@@ -22,8 +22,8 @@ import (
 // historyAccountsCmd represents the historyAccounts command
 var historyAccountsCmd = &cobra.Command{
 	Use:   "historyAccounts",
-	Short: "Exports a mapping between account id and a numeric id",
-	Long:  `Exports a mapping between account id and a numeric id. This mapping is beneficial for constructing the history of the ledger.`,
+	Short: "Exports a collection of mappings between account id and a numeric id",
+	Long:  `Exports a collection of mappings between account id and a numeric id. These mappings are beneficial for constructing the history of the ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		/*
 			Functionality planning:
