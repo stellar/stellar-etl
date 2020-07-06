@@ -26,14 +26,15 @@ func init() {
 	/*
 		Needed flags:
 			TODO: determine if providing ledger sequence number or timestamp is preferable (possibly could do both)
+				*: If we do both, do not require both end-time and end-ledger; only need one or the other
 
 			start-time: the time for the beginning of the period to export; default to genesis ledger's creation time
-			end-time: the time for the end of the period to export (required)
+			end-time: the time for the end of the period to export (*required)
 
 			start-ledger: the ledger sequence number for the beginning of the export period
-			end-ledger: the ledger sequence number for the end of the export range (required)
+			end-ledger: the ledger sequence number for the end of the export range (*required)
 
-			limit: maximum number of ledgers to export;
+			limit: maximum number of operations to export
 				Default to 300,000 as there are 60 ledgers in a 5 minute period, each with 50 transactions, and each transaction can have up to 100 operations
 
 			output-file: filename of the output file
