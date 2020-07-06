@@ -6,15 +6,15 @@ import (
 
 // operationsCmd represents the operations command
 var operationsCmd = &cobra.Command{
-	Use:   "operations",
+	Use:   "export_operations",
 	Short: "Exports the operations data over a specified range",
-	Long:  `Exports the operations data over a specified range. Operations are the components of transactions.  `,
+	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		/*
 			Functionality planning:
 			1. Read in start and end ledger numbers/timestamps
 				1b. If timestamps are received, convert them to ledger sequence numbers
-			2. Convert data from ingestion into an array of Operation structs with length equal to the limit
+			2. Convert data from ingestion into a Go slice of Operation structs (length should at most be the limit)
 				2b. Conversion will probably involve extracting the operations from the transactions that occurred over the time-frame
 			3. Serialize array and output it to a file
 		*/
@@ -37,6 +37,6 @@ func init() {
 			output-file: filename of the output file
 
 		Extra flags that may be useful:
-			serialize-method: the method for serialization of the output data (JSON, XRD, etc)
+			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
 	*/
 }
