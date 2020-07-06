@@ -8,7 +8,7 @@ import (
 var tradesCmd = &cobra.Command{
 	Use:   "export_trades",
 	Short: "Exports the trade data",
-	Long:  `Exports ledger data within the specified range to an output file`,
+	Long:  `Exports trade data within the specified range to an output file`,
 	Run: func(cmd *cobra.Command, args []string) {
 		/*
 			Functionality planning:
