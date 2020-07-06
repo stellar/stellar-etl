@@ -16,7 +16,7 @@ var operationsCmd = &cobra.Command{
 				1b. If timestamps are received, convert them to ledger sequence numbers
 			2. Convert data from ingestion into a Go slice of Operation structs (length should at most be the limit)
 				2b. Conversion will probably involve extracting the operations from the transactions that occurred over the time-frame
-			3. Serialize array and output it to a file
+			3. Serialize slice and output it to a file
 		*/
 	},
 }
@@ -33,7 +33,9 @@ func init() {
 			start-ledger: the ledger sequence number for the beginning of the export period
 			end-ledger: the ledger sequence number for the end of the export range (required)
 
-			limit: maximum number of ledgers to export; default to 60 (5 ledgers per second over our 5 minute update period)
+			limit: maximum number of ledgers to export;
+				Default to 300,000 as there are 60 ledgers in a 5 minute period, each with 50 transactions, and each transaction can have up to 100 operations
+
 			output-file: filename of the output file
 
 		Extra flags that may be useful:
