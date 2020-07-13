@@ -15,8 +15,8 @@ var ledgersCmd = &cobra.Command{
 			1. Read in start and end ledger numbers/timestamps
 				1b. If timestamps are received, convert them to ledger sequence numbers
 			2. Get each ledger in the range from the ingestion system
-			3. For each ledger received, make a corresponding Ledger struct in the output slice
-			4. Serialize array and output it to a file
+			3. For each ledger received, make a corresponding Ledger struct in the output slice (slice has a max length of limit)
+			4. Serialize slice and output it to a file
 		*/
 	},
 }
