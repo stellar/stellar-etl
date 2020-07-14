@@ -12,11 +12,13 @@ type LedgerOutput struct {
 	//base 64 encoding of the ledger header
 	LedgerHeader []byte
 
-	TransactionCount           int32
-	OperationCount             int
+	TransactionCount int32
+	//counts only operations that were a part of successful transactions
+	OperationCount             int32
 	SuccessfulTransactionCount int32
 	FailedTransactionCount     int32
-
+	//counts all operations, even those that are part of failed transactions
+	TxSetOperationCount string
 	//UTC timestamp
 	ClosedAt time.Time
 
