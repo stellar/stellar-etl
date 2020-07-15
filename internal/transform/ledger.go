@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,18 +8,18 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//ConvertLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
-func ConvertLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
+//TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
+func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
 	ledger, ok := inputLedgerMeta.GetV0()
 	if !ok {
-		return LedgerOutput{}, errors.New("Could not access the version 0 information for the provided ledger")
+		return LedgerOutput{}, fmt.Errorf("Could not access the v0 information for given ledger")
 	}
 	ledgerHeaderHistory := ledger.LedgerHeader
 	ledgerHeader := ledgerHeaderHistory.Header
 
 	outputSequence := int32(ledgerHeader.LedgerSeq)
 	if outputSequence < 0 {
-		return LedgerOutput{}, errors.New("The sequence is a negative value")
+		return LedgerOutput{}, fmt.Errorf("Ledger sequence %d is negative", outputSequence)
 	}
 
 	outputLedgerHash := utils.HashToHexString(ledgerHeaderHistory.Hash)
@@ -44,34 +43,34 @@ func ConvertLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
 
 	outputTotalCoins := int64(ledgerHeader.TotalCoins)
 	if outputTotalCoins < 0 {
-		return LedgerOutput{}, errors.New("The total number of coins is a negative value")
+		return LedgerOutput{}, fmt.Errorf("The total number of coins (%d) is negative for ledger %d", outputTotalCoins, outputSequence)
 	}
 
 	outputFeePool := int64(ledgerHeader.FeePool)
 	if outputFeePool < 0 {
-		return LedgerOutput{}, errors.New("The fee pool is a negative value")
+		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d", outputFeePool, outputSequence)
 	}
 
 	outputBaseFee := int32(ledgerHeader.BaseFee)
 	if outputBaseFee < 0 {
-		return LedgerOutput{}, errors.New("The base fee is a negative value")
+		return LedgerOutput{}, fmt.Errorf("The base fee (%d) is negative for ledger %d", outputBaseFee, outputSequence)
 	}
 
 	outputBaseReserve := int32(ledgerHeader.BaseReserve)
 	if outputBaseReserve < 0 {
-		return LedgerOutput{}, errors.New("The base reserve is a negative value")
+		return LedgerOutput{}, fmt.Errorf("The base reserve (%d) is negative for ledger %d", outputBaseReserve, outputSequence)
 	}
 
 	outputMaxTxSetSize := int32(ledgerHeader.MaxTxSetSize)
 	if outputMaxTxSetSize < 0 {
-		return LedgerOutput{}, errors.New("The maximum transaction set size is a negative value")
+		return LedgerOutput{}, fmt.Errorf("The max transaction set size (%d) is negative for ledger %d", outputMaxTxSetSize, outputSequence)
 	} else if outputMaxTxSetSize < outputTransactionCount {
-		return LedgerOutput{}, errors.New("The transaction count is greater than the maximum transaction set size")
+		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d)", outputTransactionCount, outputMaxTxSetSize)
 	}
 
 	outputProtocolVersion := int32(ledgerHeader.LedgerVersion)
 	if outputProtocolVersion < 0 {
-		return LedgerOutput{}, errors.New("The protocol version is a negative value")
+		return LedgerOutput{}, fmt.Errorf("The protocol version (%d) is negative for ledger %d", outputProtocolVersion, outputSequence)
 	}
 
 	transformedLedger := LedgerOutput{
@@ -98,21 +97,23 @@ func ConvertLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
 	return transformedLedger, nil
 }
 
-func extractCounts(lcm xdr.LedgerCloseMetaV0) (int32, int32, int32, int32, string, error) {
+func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
 	transactions := lcm.TxSet.Txs
 	results := lcm.TxProcessing
 	txCount := len(transactions)
 	if txCount != len(results) {
-		return 0, 0, 0, 0, "", errors.New("The number of transactions and results are different")
+		err = fmt.Errorf("The number of transactions and results are different (%d != %d)", txCount, len(results))
+		return
 	}
-	var operationCount, successTxCount, failedTxCount, txSetOperationCount int32
+	txSetOperationCounter := int32(0)
 	for i := 0; i < txCount; i++ {
 		operationResults, ok := results[i].Result.OperationResults()
 		if !ok {
-			return 0, 0, 0, 0, "", fmt.Errorf("Could not access operation results for result %d", i)
+			err = fmt.Errorf("Could not access operation results for result %d", i)
+			return
 		}
 		numberOfOps := int32(len(operationResults))
-		txSetOperationCount += numberOfOps
+		txSetOperationCounter += numberOfOps
 
 		if results[i].Result.Successful() {
 			successTxCount++
@@ -122,6 +123,7 @@ func extractCounts(lcm xdr.LedgerCloseMetaV0) (int32, int32, int32, int32, strin
 		}
 
 	}
-
-	return int32(txCount) - failedTxCount, operationCount, successTxCount, failedTxCount, strconv.FormatInt(int64(txSetOperationCount), 10), nil
+	transactionCount = int32(txCount) - failedTxCount
+	txSetOperationCount = strconv.FormatInt(int64(txSetOperationCounter), 10)
+	return
 }
