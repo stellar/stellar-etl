@@ -13,15 +13,33 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 	ledgerHeader := lhe.Header
 	outputTransactionHash := utils.HashToHexString(transaction.Result.TransactionHash)
 	outputLedgerSequence := int32(ledgerHeader.LedgerSeq)
+	if outputLedgerSequence < 0 {
+		return TransactionOutput{}, fmt.Errorf("Ledger sequence %d is negative", outputLedgerSequence)
+	}
 	outputApplicationOrder := int32(transaction.Index)
+	if outputApplicationOrder < 0 {
+		return TransactionOutput{}, fmt.Errorf("The application order (%d) is negative for ledger %d", outputApplicationOrder, outputLedgerSequence)
+	}
 	outputAccount, err := utils.GetAccountAddressFromMuxedAccount(transaction.Envelope.SourceAccount())
 	if err != nil {
 		return TransactionOutput{}, err
 	}
 	outputAccountSequence := int32(transaction.Envelope.SeqNum())
+	if outputAccountSequence < 0 {
+		return TransactionOutput{}, fmt.Errorf("The account sequence number (%d) is negative for ledger %d; transaction %d", outputAccountSequence, outputLedgerSequence, outputApplicationOrder)
+	}
 	outputMaxFee := int64(transaction.Envelope.Fee())
+	if outputMaxFee < 0 {
+		return TransactionOutput{}, fmt.Errorf("The fee (%d) is negative for ledger %d; transaction %d", outputMaxFee, outputLedgerSequence, outputApplicationOrder)
+	}
 	outputFeeCharged := int64(transaction.Result.Result.FeeCharged)
+	if outputFeeCharged < 0 {
+		return TransactionOutput{}, fmt.Errorf("The fee charged (%d) is negative for ledger %d; transaction %d", outputFeeCharged, outputLedgerSequence, outputApplicationOrder)
+	}
 	outputOperationCount := int32(len(transaction.Envelope.Operations()))
+	if outputOperationCount < 0 {
+		return TransactionOutput{}, fmt.Errorf("The operation count (%d) is negative for ledger %d; transaction %d", outputOperationCount, outputLedgerSequence, outputApplicationOrder)
+	}
 	outputCreatedAt, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
 		return TransactionOutput{}, err
