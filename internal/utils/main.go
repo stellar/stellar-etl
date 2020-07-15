@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -36,4 +38,54 @@ func GetAccountAddressFromMuxedAccount(account xdr.MuxedAccount) (string, error)
 	providedID := account.ToAccountId()
 	pointerToID := &providedID
 	return pointerToID.GetAddress()
+}
+
+//CreateSampleTx creates a transaction with a single operation (BumpSequence), the min base fee, and infinite timebounds
+func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
+	kp, err := keypair.Random()
+	PanicOnError(err)
+
+	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount: &sourceAccount,
+			Operations: []txnbuild.Operation{
+				&txnbuild.BumpSequence{
+					BumpTo: int64(sequence),
+				},
+			},
+			BaseFee:    txnbuild.MinBaseFee,
+			Timebounds: txnbuild.NewInfiniteTimeout(),
+		},
+	)
+	PanicOnError(err)
+
+	env, err := tx.TxEnvelope()
+	PanicOnError(err)
+	return env
+}
+
+//CreateSampleResultMeta creates Transaction results with the desired success flag and number of sub operation results
+func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.TransactionResultMeta {
+	resultCode := xdr.TransactionResultCodeTxFailed
+	if successful {
+		resultCode = xdr.TransactionResultCodeTxSuccess
+	}
+	operationResults := []xdr.OperationResult{}
+	for i := 0; i < subOperationCount; i++ {
+		operationResults = append(operationResults, xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr:   &xdr.OperationResultTr{},
+		})
+	}
+	return xdr.TransactionResultMeta{
+		Result: xdr.TransactionResultPair{
+			Result: xdr.TransactionResult{
+				Result: xdr.TransactionResultResult{
+					Code:    resultCode,
+					Results: &operationResults,
+				},
+			},
+		},
+	}
 }

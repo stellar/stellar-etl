@@ -2,7 +2,7 @@ package transform
 
 import "time"
 
-//LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledger
+//LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
 	Sequence int32 //sequence number of the ledger
 
@@ -35,13 +35,14 @@ type LedgerOutput struct {
 	*/
 }
 
+//TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
 	TransactionHash  string
 	LedgerSequence   int32
 	ApplicationOrder int32
 
 	Account         string
-	AccountSequence int32
+	AccountSequence int64
 
 	MaxFee     int64
 	FeeCharged int64
