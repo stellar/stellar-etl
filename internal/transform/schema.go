@@ -4,23 +4,21 @@ import "time"
 
 //LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledger
 type LedgerOutput struct {
-	//sequence number of the ledger
-	Sequence int32
+	Sequence int32 //sequence number of the ledger
 
 	LedgerHash         string
 	PreviousLedgerHash string
-	//base 64 encoding of the ledger header
-	LedgerHeader []byte
+	LedgerHeader       []byte //base 64 encoding of the ledger header
 
 	TransactionCount int32
-	//counts only operations that were a part of successful transactions
-	OperationCount             int32
+
+	OperationCount             int32 //counts only operations that were a part of successful transactions
 	SuccessfulTransactionCount int32
 	FailedTransactionCount     int32
-	//counts all operations, even those that are part of failed transactions
-	TxSetOperationCount string
-	//UTC timestamp
-	ClosedAt time.Time
+
+	TxSetOperationCount string //counts all operations, even those that are part of failed transactions
+
+	ClosedAt time.Time //UTC timestamp
 
 	TotalCoins      int64
 	FeePool         int64
