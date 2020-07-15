@@ -36,3 +36,29 @@ type LedgerOutput struct {
 			ImporterVersion int32 //version of the ingestion system
 	*/
 }
+
+type TransactionOutput struct {
+	TransactionHash  string
+	LedgerSequence   int32
+	ApplicationOrder int32
+
+	Account         string
+	AccountSequence int32
+
+	MaxFee     int64
+	FeeCharged int64
+
+	OperationCount int32
+	CreatedAt      time.Time
+
+	MemoType string
+	Memo     string
+
+	TimeBounds string
+	Successful bool
+
+	/*
+		TODO: implement
+			updated_at time.Time //timestamp of table entry update time
+	*/
+}

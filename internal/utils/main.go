@@ -30,3 +30,10 @@ func TimePointToUTCTimeStamp(providedTime xdr.TimePoint) (time.Time, error) {
 	}
 	return time.Unix(intTime, 0).UTC(), nil
 }
+
+//GetAccountAddressFromMuxedAccount takes in a muxed account and returns the address of the account
+func GetAccountAddressFromMuxedAccount(account xdr.MuxedAccount) (string, error) {
+	providedID := account.ToAccountId()
+	pointerToID := &providedID
+	return pointerToID.GetAddress()
+}
