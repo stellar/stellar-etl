@@ -14,6 +14,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	if !ok {
 		return LedgerOutput{}, fmt.Errorf("Could not access the v0 information for given ledger")
 	}
+
 	ledgerHeaderHistory := ledger.LedgerHeader
 	ledgerHeader := ledgerHeaderHistory.Header
 
@@ -29,6 +30,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	if err != nil {
 		return LedgerOutput{}, err
 	}
+
 	outputLedgerHeader := []byte(hashedLedgerHeader)
 
 	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(ledger)
@@ -74,25 +76,22 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	}
 
 	transformedLedger := LedgerOutput{
-		Sequence:           outputSequence,
-		LedgerHash:         outputLedgerHash,
-		PreviousLedgerHash: outputPreviousHash,
-		LedgerHeader:       outputLedgerHeader,
-
+		Sequence:                   outputSequence,
+		LedgerHash:                 outputLedgerHash,
+		PreviousLedgerHash:         outputPreviousHash,
+		LedgerHeader:               outputLedgerHeader,
 		TransactionCount:           outputTransactionCount,
 		OperationCount:             outputOperationCount,
 		SuccessfulTransactionCount: outputSuccessfulCount,
 		FailedTransactionCount:     outputFailedCount,
 		TxSetOperationCount:        outputTxSetOperationCount,
-
-		ClosedAt: outputCloseTime,
-
-		TotalCoins:      outputTotalCoins,
-		FeePool:         outputFeePool,
-		BaseFee:         outputBaseFee,
-		BaseReserve:     outputBaseReserve,
-		MaxTxSetSize:    outputMaxTxSetSize,
-		ProtocolVersion: outputProtocolVersion,
+		ClosedAt:                   outputCloseTime,
+		TotalCoins:                 outputTotalCoins,
+		FeePool:                    outputFeePool,
+		BaseFee:                    outputBaseFee,
+		BaseReserve:                outputBaseReserve,
+		MaxTxSetSize:               outputMaxTxSetSize,
+		ProtocolVersion:            outputProtocolVersion,
 	}
 	return transformedLedger, nil
 }
@@ -105,6 +104,7 @@ func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operation
 		err = fmt.Errorf("The number of transactions and results are different (%d != %d)", txCount, len(results))
 		return
 	}
+
 	txSetOperationCounter := int32(0)
 	for i := 0; i < txCount; i++ {
 		operationResults, ok := results[i].Result.OperationResults()
@@ -112,6 +112,7 @@ func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operation
 			err = fmt.Errorf("Could not access operation results for result %d", i)
 			return
 		}
+
 		numberOfOps := int32(len(operationResults))
 		txSetOperationCounter += numberOfOps
 

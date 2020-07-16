@@ -4,28 +4,22 @@ import "time"
 
 //LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
-	Sequence int32 //sequence number of the ledger
-
-	LedgerHash         string
-	PreviousLedgerHash string
-	LedgerHeader       []byte //base 64 encoding of the ledger header
-
-	TransactionCount int32
-
-	OperationCount             int32 //counts only operations that were a part of successful transactions
-	SuccessfulTransactionCount int32
-	FailedTransactionCount     int32
-
-	TxSetOperationCount string //counts all operations, even those that are part of failed transactions
-
-	ClosedAt time.Time //UTC timestamp
-
-	TotalCoins      int64
-	FeePool         int64
-	BaseFee         int32
-	BaseReserve     int32
-	MaxTxSetSize    int32
-	ProtocolVersion int32
+	Sequence                   int32     `json:"sequence"` //sequence number of the ledger
+	LedgerHash                 string    `json:"ledger_hash"`
+	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
+	LedgerHeader               []byte    `json:"ledger_header"` //base 64 encoding of the ledger header
+	TransactionCount           int32     `json:"transaction_count"`
+	OperationCount             int32     `json:"operation_count"` //counts only operations that were a part of successful transactions
+	SuccessfulTransactionCount int32     `json:"successful_transaction_count"`
+	FailedTransactionCount     int32     `json:"failed_transaction_count"`
+	TxSetOperationCount        string    `json:"tx_set_operation_count"` //counts all operations, even those that are part of failed transactions
+	ClosedAt                   time.Time `json:"closed_at"`              //UTC timestamp
+	TotalCoins                 int64     `json:"total_coins"`
+	FeePool                    int64     `json:"fee_pool"`
+	BaseFee                    int32     `json:"base_fee"`
+	BaseReserve                int32     `json:"base_reserve"`
+	MaxTxSetSize               int32     `json:"max_tx_set_size"`
+	ProtocolVersion            int32     `json:"protocol_version"`
 
 	/*
 		TODO: implement these three fields
