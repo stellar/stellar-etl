@@ -18,31 +18,38 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 	if outputLedgerSequence < 0 {
 		return TransactionOutput{}, fmt.Errorf("Ledger sequence %d is negative", outputLedgerSequence)
 	}
+
 	outputApplicationOrder := int32(transaction.Index)
 	if outputApplicationOrder < 0 {
 		return TransactionOutput{}, fmt.Errorf("The application order (%d) is negative for ledger %d", outputApplicationOrder, outputLedgerSequence)
 	}
+
 	outputAccount, err := utils.GetAccountAddressFromMuxedAccount(transaction.Envelope.SourceAccount())
 	if err != nil {
 		return TransactionOutput{}, err
 	}
+
 	outputAccountSequence := transaction.Envelope.SeqNum()
 	if outputAccountSequence < 0 {
 		return TransactionOutput{}, fmt.Errorf("The account sequence number (%d) is negative for ledger %d; transaction %d", outputAccountSequence, outputLedgerSequence, outputApplicationOrder)
 	}
+
 	outputMaxFee := int64(transaction.Envelope.Fee())
 	if outputMaxFee < 0 {
 		return TransactionOutput{}, fmt.Errorf("The fee (%d) is negative for ledger %d; transaction %d", outputMaxFee, outputLedgerSequence, outputApplicationOrder)
 	}
+
 	outputFeeCharged := int64(transaction.Result.Result.FeeCharged)
 	if outputFeeCharged < 0 {
 		return TransactionOutput{}, fmt.Errorf("The fee charged (%d) is negative for ledger %d; transaction %d", outputFeeCharged, outputLedgerSequence, outputApplicationOrder)
 	}
+
 	outputOperationCount := int32(len(transaction.Envelope.Operations()))
 	outputCreatedAt, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
 		return TransactionOutput{}, err
 	}
+
 	memoObject := transaction.Envelope.Memo()
 	outputMemoContents := ""
 	switch xdr.MemoType(memoObject.Type) {
@@ -57,6 +64,7 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 		hash := memoObject.MustRetHash()
 		outputMemoContents = base64.StdEncoding.EncodeToString(hash[:])
 	}
+
 	outputMemoType := memoObject.Type.String()
 	timeBound := transaction.Envelope.TimeBounds()
 	outputTimeBounds := ""
@@ -65,28 +73,25 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 			return TransactionOutput{}, fmt.Errorf("The max time is earlier than the min time (%d < %d) for ledger %d; transaction %d",
 				timeBound.MaxTime, timeBound.MinTime, outputLedgerSequence, outputApplicationOrder)
 		}
+
 		outputTimeBounds = fmt.Sprintf("[%d, %d)", timeBound.MinTime, timeBound.MaxTime)
 	}
+
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
 		TransactionHash:  outputTransactionHash,
 		LedgerSequence:   outputLedgerSequence,
 		ApplicationOrder: outputApplicationOrder,
-
-		Account:         outputAccount,
-		AccountSequence: outputAccountSequence,
-
-		MaxFee:     outputMaxFee,
-		FeeCharged: outputFeeCharged,
-
-		OperationCount: outputOperationCount,
-		CreatedAt:      outputCreatedAt,
-
-		MemoType: outputMemoType,
-		Memo:     outputMemoContents,
-
-		TimeBounds: outputTimeBounds,
-		Successful: outputSuccessful,
+		Account:          outputAccount,
+		AccountSequence:  outputAccountSequence,
+		MaxFee:           outputMaxFee,
+		FeeCharged:       outputFeeCharged,
+		OperationCount:   outputOperationCount,
+		CreatedAt:        outputCreatedAt,
+		MemoType:         outputMemoType,
+		Memo:             outputMemoContents,
+		TimeBounds:       outputTimeBounds,
+		Successful:       outputSuccessful,
 	}
 	return transformedTransaction, nil
 }

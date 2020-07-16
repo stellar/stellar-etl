@@ -37,24 +37,19 @@ type LedgerOutput struct {
 
 //TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
-	TransactionHash  string
-	LedgerSequence   int32
-	ApplicationOrder int32
-
-	Account         string
-	AccountSequence int64
-
-	MaxFee     int64
-	FeeCharged int64
-
-	OperationCount int32
-	CreatedAt      time.Time
-
-	MemoType string
-	Memo     string
-
-	TimeBounds string
-	Successful bool
+	TransactionHash  string    `json:"transaction_hash"`
+	LedgerSequence   int32     `json:"ledger_sequence"`
+	ApplicationOrder int32     `json:"application_order"`
+	Account          string    `json:"account"`
+	AccountSequence  int64     `json:"account_sequence"`
+	MaxFee           int64     `json:"max_fee"`
+	FeeCharged       int64     `json:"fee_charged"`
+	OperationCount   int32     `json:"operation_count"`
+	CreatedAt        time.Time `json:"created_at"`
+	MemoType         string    `json:"memo_type"`
+	Memo             string    `json:"memo"`
+	TimeBounds       string    `json:"time_bounds"`
+	Successful       bool      `json:"successful"`
 
 	/*
 		TODO: implement
