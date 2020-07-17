@@ -22,7 +22,7 @@ type LedgerOutput struct {
 	ProtocolVersion            int32     `json:"protocol_version"`
 
 	/*
-		TODO: implement these three fields
+		TODO implement these three fields
 			CreatedAt time.Time //timestamp of table entry creation time
 			UpdatedAt time.Time //timestamp of table entry update time
 			ImporterVersion int32 //version of the ingestion system
@@ -46,7 +46,81 @@ type TransactionOutput struct {
 	Successful       bool      `json:"successful"`
 
 	/*
-		TODO: implement
+		TODO implement
 			updated_at time.Time //timestamp of table entry update time
 	*/
+}
+
+//OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
+type OperationOutput struct {
+	SourceAccount    string  `json:"source_account"`
+	Type             int32   `json:"type"`
+	ApplicationOrder int32   `json:"application_order"`
+	OperationDetails Details `json:"details"`
+	/*
+		TODO implement
+			TransactionID int64 // history table mapping that connect operations to their parent transaction
+	*/
+}
+
+//Details is a struct that provides additional information about operations in a way that aligns with the details struct in the BigQuery table history_operations
+type Details struct {
+	Account            string        `json:"account"`
+	Amount             float64       `json:"amount"`
+	AssetCode          string        `json:"asset_code"`
+	AssetIssuer        string        `json:"asset_issuer"`
+	AssetType          string        `json:"asset_type"`
+	Authorize          bool          `json:"authorize"`
+	BuyingAssetCode    string        `json:"buying_asset_code"`
+	BuyingAssetIssuer  string        `json:"buying_asset_issuer"`
+	BuyingAssetType    string        `json:"buying_asset_type"`
+	From               string        `json:"from"`
+	Funder             string        `json:"funder"`
+	HighThreshold      int32         `json:"high_threshold"`
+	HomeDomain         string        `json:"home_domain"`
+	InflationDest      string        `json:"inflation_dest"`
+	Into               string        `json:"into"`
+	Limit              float64       `json:"limit"`
+	LowThreshold       int32         `json:"low_threshold"`
+	MasterKeyWeight    int32         `json:"master_key_weight"`
+	MedThreshold       int32         `json:"med_threshold"`
+	Name               string        `json:"name"`
+	OfferID            int64         `json:"offer_id"`
+	Path               []AssetOutput `json:"path"`
+	Price              float64       `json:"price"`
+	PriceR             Price         `json:"price_r"`
+	SellingAssetCode   string        `json:"selling_asset_code"`
+	SellingAssetIssuer string        `json:"selling_asset_issuer"`
+	SellingAssetType   string        `json:"selling_asset_type"`
+	SetFlags           []int32       `json:"set_flags"`
+	SetFlagsString     []string      `json:"set_flags_s"`
+	SignerKey          string        `json:"signer_key"`
+	SignerWeight       int32         `json:"signer_weight"`
+	SourceAmount       float64       `json:"source_amount"`
+	SourceAssetCode    string        `json:"source_asset_code"`
+	SourceAssetIssuer  string        `json:"source_asset_issuer"`
+	SourceAssetType    string        `json:"source_asset_type"`
+	SourceMax          float64       `json:"source_max"`
+	StartingBalance    float64       `json:"starting_balance"`
+	To                 string        `json:"to"`
+	Trustee            string        `json:"trustee"`
+	Trustor            string        `json:"trustor"`
+	Value              string        `json:"value"`
+	ClearFlags         []int32       `json:"clear_flags"`
+	ClearFlagsString   []string      `json:"clear_flags_s"`
+	DestinationMin     string        `json:"destination_min"`
+	BumpTo             string        `json:"bump_to"`
+}
+
+//Price represents the price of an asset as a fraction
+type Price struct {
+	Numerator   int32 `json:"n"`
+	Denominator int32 `json:"d"`
+}
+
+//AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
+type AssetOutput struct {
+	AssetCode   string `json:"asset_code"`
+	AssetIssuer string `json:"asset_issuer"`
+	AssetType   string `json:"asset_type"`
 }
