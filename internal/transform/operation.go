@@ -49,7 +49,7 @@ func getOperationSourceAccount(operation xdr.Operation, transaction ingestio.Led
 
 func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asset, prefix string) error {
 	var assetType, issuer, code string
-	err := asset.Extract(&assetType, &issuer, &code)
+	err := asset.Extract(&assetType, &code, &issuer)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		op := operation.Body.MustCreateAccountOp()
 		outputDetails.Funder = sourceAccountAddress
 		outputDetails.Account = op.Destination.Address()
-		outputDetails.StartingBalance = float64(op.StartingBalance)
+		outputDetails.StartingBalance = utils.ConvertStroopValueToReal(op.StartingBalance)
 
 	case xdr.OperationTypePayment:
 		op := operation.Body.MustPaymentOp()
@@ -143,7 +143,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 
 		outputDetails.To = toAccountAddress
-		outputDetails.Amount = float64(op.Amount)
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
 		err = addAssetDetailsToOperationDetails(&outputDetails, op.Asset, "")
 		if err != nil {
 			return Details{}, err
@@ -158,15 +158,15 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 		outputDetails.To = toAccountAddress
 
-		outputDetails.Amount = float64(op.DestAmount)
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.DestAmount)
 		outputDetails.SourceAmount = float64(0)
-		outputDetails.SourceMax = float64(op.SendMax)
+		outputDetails.SourceMax = utils.ConvertStroopValueToReal(op.SendMax)
 		addAssetDetailsToOperationDetails(&outputDetails, op.DestAsset, "")
 		addAssetDetailsToOperationDetails(&outputDetails, op.SendAsset, "source")
 
 		if transaction.Result.Successful() {
 			result := currentOperationResult.MustTr().MustPathPaymentStrictReceiveResult()
-			outputDetails.SourceAmount = float64(result.SendAmount())
+			outputDetails.SourceAmount = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
 
 		var path = []AssetOutput{}
@@ -194,14 +194,14 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		outputDetails.To = toAccountAddress
 
 		outputDetails.Amount = float64(0)
-		outputDetails.SourceAmount = float64(op.SendAmount)
+		outputDetails.SourceAmount = utils.ConvertStroopValueToReal(op.SendAmount)
 		outputDetails.DestinationMin = amount.String(op.DestMin)
 		addAssetDetailsToOperationDetails(&outputDetails, op.DestAsset, "")
 		addAssetDetailsToOperationDetails(&outputDetails, op.SendAsset, "source")
 
 		if transaction.Result.Successful() {
 			result := currentOperationResult.MustTr().MustPathPaymentStrictSendResult()
-			outputDetails.Amount = float64(result.DestAmount())
+			outputDetails.Amount = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
 
 		var path = []AssetOutput{}
@@ -223,7 +223,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 	case xdr.OperationTypeManageBuyOffer:
 		op := operation.Body.MustManageBuyOfferOp()
 		outputDetails.OfferID = int64(op.OfferId)
-		outputDetails.Amount = float64(op.BuyAmount)
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.BuyAmount)
 		parsedPrice, err := strconv.ParseFloat(op.Price.String(), 64)
 		if err != nil {
 			return Details{}, err
@@ -240,7 +240,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 	case xdr.OperationTypeManageSellOffer:
 		op := operation.Body.MustManageSellOfferOp()
 		outputDetails.OfferID = int64(op.OfferId)
-		outputDetails.Amount = float64(op.Amount)
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
 		parsedPrice, err := strconv.ParseFloat(op.Price.String(), 64)
 		if err != nil {
 			return Details{}, err
@@ -253,10 +253,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 		addAssetDetailsToOperationDetails(&outputDetails, op.Buying, "buying")
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
-		
+
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		op := operation.Body.MustCreatePassiveSellOfferOp()
-		outputDetails.Amount = float64(op.Amount)
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
 		parsedPrice, err := strconv.ParseFloat(op.Price.String(), 64)
 		if err != nil {
 			return Details{}, err
@@ -315,7 +315,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		addAssetDetailsToOperationDetails(&outputDetails, op.Line, "")
 		outputDetails.Trustor = sourceAccountAddress
 		outputDetails.Trustee = outputDetails.AssetIssuer
-		outputDetails.Limit = float64(op.Limit)
+		outputDetails.Limit = utils.ConvertStroopValueToReal(op.Limit)
 
 	case xdr.OperationTypeAllowTrust:
 		op := operation.Body.MustAllowTrustOp()

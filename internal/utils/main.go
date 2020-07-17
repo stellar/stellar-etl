@@ -65,6 +65,11 @@ func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
 	return env
 }
 
+//ConvertStroopValueToReal converts a value in stroops, the smallest amount unit, into real units
+func ConvertStroopValueToReal(input xdr.Int64) float64 {
+	return float64(input) * float64(0.0000001)
+}
+
 //CreateSampleResultMeta creates Transaction results with the desired success flag and number of sub operation results
 func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.TransactionResultMeta {
 	resultCode := xdr.TransactionResultCodeTxFailed
