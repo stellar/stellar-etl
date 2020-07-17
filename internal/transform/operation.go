@@ -31,7 +31,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 	transformedOperation := OperationOutput{
 		SourceAccount:    outputSourceAccount,
 		Type:             outputOperationType,
-		ApplicationOrder: operationIndex,
+		ApplicationOrder: operationIndex + 1,
 		OperationDetails: outputDetails,
 	}
 
@@ -253,6 +253,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 		addAssetDetailsToOperationDetails(&outputDetails, op.Buying, "buying")
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
+		
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		op := operation.Body.MustCreatePassiveSellOfferOp()
 		outputDetails.Amount = float64(op.Amount)

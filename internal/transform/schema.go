@@ -105,7 +105,7 @@ type Details struct {
 	To                 string        `json:"to"`
 	Trustee            string        `json:"trustee"`
 	Trustor            string        `json:"trustor"`
-	Value              string        `json:"value"`
+	Value              string        `json:"value"` //base64 encoding of bytes
 	ClearFlags         []int32       `json:"clear_flags"`
 	ClearFlagsString   []string      `json:"clear_flags_s"`
 	DestinationMin     string        `json:"destination_min"`
