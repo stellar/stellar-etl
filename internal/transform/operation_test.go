@@ -3,50 +3,12 @@ package transform
 import (
 	"encoding/base64"
 	"fmt"
-	"io"
 	"testing"
 
 	ingestio "github.com/stellar/go/exp/ingest/io"
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
-
-func createTestArchiveBackend() *ledgerbackend.HistoryArchiveBackend {
-	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
-	backend, err := ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
-	utils.PanicOnError(err)
-	return backend
-}
-func TestLive(t *testing.T) {
-	/*
-		21585418 for account creation; 21585418 for payment; 22490180 for path receive
-		22490168 for manage sell (2nd one); 22490175 for create passive; 29353599 for set options
-		22490190 for change trust; 30659243 for manage buy (4th one); 30540921 for path send
-	*/
-	sequenceNumber := uint32(30540921)
-	backend := createTestArchiveBackend()
-	txReader, err := ingestio.NewLedgerTransactionReader(backend, network.PublicNetworkPassphrase, sequenceNumber)
-	utils.PanicOnError(err)
-	for {
-		tx, err := txReader.Read()
-		if err == io.EOF {
-			break
-		}
-		utils.PanicOnError(err)
-		envelope := tx.Envelope
-		for index, op := range envelope.Operations() {
-			if op.Body.Type == xdr.OperationTypePathPaymentStrictSend && tx.Result.Successful() {
-				fmt.Println(op)
-			}
-			convertedOp, err := TransformOperation(op, int32(index), tx)
-			utils.PanicOnError(err)
-			fmt.Println(convertedOp.Type)
-		}
-	}
-}
 
 func TestTransformOperation(t *testing.T) {
 	type operationInput struct {
