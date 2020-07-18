@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/hex"
 	"errors"
+	"math/big"
 	"time"
 
 	"github.com/stellar/go/keypair"
@@ -67,7 +68,8 @@ func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
 
 //ConvertStroopValueToReal converts a value in stroops, the smallest amount unit, into real units
 func ConvertStroopValueToReal(input xdr.Int64) float64 {
-	return float64(input) * float64(0.0000001)
+	output, _ := big.NewRat(int64(input), int64(10000000)).Float64()
+	return output
 }
 
 //CreateSampleResultMeta creates Transaction results with the desired success flag and number of sub operation results

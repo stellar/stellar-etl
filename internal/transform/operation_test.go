@@ -263,9 +263,9 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeAllowTrust,
 				AllowTrustOp: &xdr.AllowTrustOp{
-					Trustor:   hardCodedSourceAccount.ToAccountId(),
+					Trustor:   hardCodedDestAccount.ToAccountId(),
 					Asset:     hardCodedTrustAsset,
-					Authorize: xdr.Uint32(0),
+					Authorize: xdr.Uint32(1),
 				},
 			},
 		},
@@ -359,7 +359,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 				PathPaymentStrictReceiveResult: &xdr.PathPaymentStrictReceiveResult{
 					Code: xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess,
 					Success: &xdr.PathPaymentStrictReceiveResultSuccess{
-						Last: xdr.SimplePaymentResult{Amount: 8951495900},
+						Last: xdr.SimplePaymentResult{Amount: 8946764349},
 					},
 				},
 			},
@@ -455,12 +455,14 @@ func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOu
 			SourceAccount:    hardCodedSourceAccountAddress,
 
 			OperationDetails: Details{
-				From:         hardCodedSourceAccountAddress,
-				To:           hardCodedDestAccountAddress,
-				SourceAmount: 894.6764349,
-				SourceMax:    895.14959,
-				Amount:       895.14959,
-				Path:         []AssetOutput{hardCodedAssetOutput},
+				From:            hardCodedSourceAccountAddress,
+				To:              hardCodedDestAccountAddress,
+				SourceAmount:    894.6764349,
+				SourceMax:       895.14959,
+				Amount:          895.14959,
+				SourceAssetType: "native",
+				AssetType:       "native",
+				Path:            []AssetOutput{hardCodedAssetOutput},
 			},
 		},
 		OperationOutput{
@@ -502,16 +504,18 @@ func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOu
 			ApplicationOrder: 7,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			OperationDetails: Details{
-				InflationDest:   hardCodedDestAccountAddress,
-				ClearFlags:      []int32{1, 2},
-				SetFlags:        []int32{4},
-				MasterKeyWeight: 3,
-				LowThreshold:    1,
-				MedThreshold:    3,
-				HighThreshold:   5,
-				HomeDomain:      "2019=DRA;n-test",
-				SignerKey:       "A",
-				SignerWeight:    1,
+				InflationDest:    hardCodedDestAccountAddress,
+				ClearFlags:       []int32{1, 2},
+				ClearFlagsString: []string{"auth_required", "auth_revocable"},
+				SetFlags:         []int32{4},
+				SetFlagsString:   []string{"auth_immutable"},
+				MasterKeyWeight:  3,
+				LowThreshold:     1,
+				MedThreshold:     3,
+				HighThreshold:    5,
+				HomeDomain:       "2019=DRA;n-test",
+				SignerKey:        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				SignerWeight:     1,
 			},
 		},
 		OperationOutput{
@@ -534,10 +538,10 @@ func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOu
 			OperationDetails: Details{
 				Trustee:     hardCodedSourceAccountAddress,
 				Trustor:     hardCodedDestAccountAddress,
-				Authorize:   false,
+				Authorize:   true,
 				AssetCode:   "USDT",
 				AssetType:   "credit_alphanum4",
-				AssetIssuer: hardCodedDestAccountAddress,
+				AssetIssuer: hardCodedSourceAccountAddress,
 			},
 		},
 		OperationOutput{
@@ -577,7 +581,7 @@ func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOu
 			ApplicationOrder: 14,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			OperationDetails: Details{
-				Price:  0.34968230309,
+				Price:  0.3496823,
 				Amount: 765.4501001,
 				PriceR: Price{
 					Numerator:   635863285,

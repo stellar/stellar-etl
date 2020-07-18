@@ -48,7 +48,7 @@ func getOperationSourceAccount(operation xdr.Operation, transaction ingestio.Led
 }
 
 func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asset, prefix string) error {
-	var assetType, issuer, code string
+	var assetType, code, issuer string
 	err := asset.Extract(&assetType, &code, &issuer)
 	if err != nil {
 		return err
@@ -86,7 +86,27 @@ func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asse
 	}
 	return nil
 }
-func addOperationFlagToOperationDetails(operationDetails Details, flag int32, prefix string) {
+func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
+	if len(initialPath) == 0 {
+		return nil
+	}
+	var path = []AssetOutput{}
+	for _, pathAsset := range initialPath {
+		var assetType, code, issuer string
+		err := pathAsset.Extract(&assetType, &code, &issuer)
+		if err != nil {
+			return nil
+		}
+
+		path = append(path, AssetOutput{
+			AssetType:   assetType,
+			AssetIssuer: issuer,
+			AssetCode:   code,
+		})
+	}
+	return path
+}
+func addOperationFlagToOperationDetails(operationDetails *Details, flag int32, prefix string) {
 	var intFlags []int32
 	var stringFlags []string
 
@@ -156,8 +176,8 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		if err != nil {
 			return Details{}, err
 		}
-		outputDetails.To = toAccountAddress
 
+		outputDetails.To = toAccountAddress
 		outputDetails.Amount = utils.ConvertStroopValueToReal(op.DestAmount)
 		outputDetails.SourceAmount = float64(0)
 		outputDetails.SourceMax = utils.ConvertStroopValueToReal(op.SendMax)
@@ -169,20 +189,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 			outputDetails.SourceAmount = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
 
-		var path = []AssetOutput{}
-		for _, pathAsset := range op.Path {
-			var assetType, issuer, code string
-			err := pathAsset.Extract(&assetType, &issuer, &code)
-			if err != nil {
-				return Details{}, err
-			}
-			path = append(path, AssetOutput{
-				AssetType:   assetType,
-				AssetIssuer: issuer,
-				AssetCode:   code,
-			})
-		}
-		outputDetails.Path = path
+		outputDetails.Path = convertPathToAssetOutput(op.Path)
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		op := operation.Body.MustPathPaymentStrictSendOp()
@@ -191,8 +198,8 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		if err != nil {
 			return Details{}, err
 		}
-		outputDetails.To = toAccountAddress
 
+		outputDetails.To = toAccountAddress
 		outputDetails.Amount = float64(0)
 		outputDetails.SourceAmount = utils.ConvertStroopValueToReal(op.SendAmount)
 		outputDetails.DestinationMin = amount.String(op.DestMin)
@@ -204,21 +211,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 			outputDetails.Amount = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
 
-		var path = []AssetOutput{}
-		for _, pathAsset := range op.Path {
-			var assetType, issuer, code string
-			err := pathAsset.Extract(&assetType, &issuer, &code)
-			if err != nil {
-				return Details{}, err
-			}
-
-			path = append(path, AssetOutput{
-				AssetType:   assetType,
-				AssetIssuer: issuer,
-				AssetCode:   code,
-			})
-		}
-		outputDetails.Path = path
+		outputDetails.Path = convertPathToAssetOutput(op.Path)
 
 	case xdr.OperationTypeManageBuyOffer:
 		op := operation.Body.MustManageBuyOfferOp()
@@ -278,11 +271,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 
 		if op.SetFlags != nil && *op.SetFlags > 0 {
-			addOperationFlagToOperationDetails(outputDetails, int32(*op.SetFlags), "set")
+			addOperationFlagToOperationDetails(&outputDetails, int32(*op.SetFlags), "set")
 		}
 
 		if op.ClearFlags != nil && *op.ClearFlags > 0 {
-			addOperationFlagToOperationDetails(outputDetails, int32(*op.ClearFlags), "clear")
+			addOperationFlagToOperationDetails(&outputDetails, int32(*op.ClearFlags), "clear")
 		}
 
 		if op.MasterWeight != nil {
@@ -322,7 +315,8 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		addAssetDetailsToOperationDetails(&outputDetails, op.Asset.ToAsset(sourceAccount.ToAccountId()), "")
 		outputDetails.Trustee = sourceAccountAddress
 		outputDetails.Trustor = op.Trustor.Address()
-		outputDetails.Authorize = xdr.TrustLineFlags(op.Authorize).IsAuthorized()
+		shouldAuth := xdr.TrustLineFlags(op.Authorize).IsAuthorized()
+		outputDetails.Authorize = shouldAuth
 
 	case xdr.OperationTypeAccountMerge:
 		aid := operation.Body.MustDestination().ToAccountId()
