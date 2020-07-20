@@ -58,9 +58,9 @@ type AccountOutput struct {
 	BuyingLiabilities    int64  `json:"buying_liabilities"`
 	SellingLiabilities   int64  `json:"selling_liabilities"`
 	SequenceNumber       int64  `json:"sequence_number"`
-	NumSubentries        int32  `json:"num_subentries"`
+	NumSubentries        uint32 `json:"num_subentries"`
 	InflationDestination string `json:"inflation_destination"`
-	Flags                int32  `json:"flags"`
+	Flags                uint32 `json:"flags"`
 	HomeDomain           string `json:"home_domain"`
 	MasterWeight         int32  `json:"master_weight"`
 	ThresholdLow         int32  `json:"threshold_low"`

@@ -23,10 +23,12 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 		return AccountOutput{}, fmt.Errorf("Balance is negative (%d) for account: %s", outputBalance, outputID)
 	}
 
-	accountExtentionInfo, V1Found := accountEntry.Ext.GetV1()
+	//The V1 struct is the first version of the extender from accountEntry. It contains information on liabilities, and in the future
+	//more extensions may contain extra information
+	accountExtensionInfo, V1Found := accountEntry.Ext.GetV1()
 	var outputBuyingLiabilities, outputSellingLiabilities int64
 	if V1Found {
-		liabilities := accountExtentionInfo.Liabilities
+		liabilities := accountExtensionInfo.Liabilities
 		outputBuyingLiabilities, outputSellingLiabilities = int64(liabilities.Buying), int64(liabilities.Selling)
 		if outputBuyingLiabilities < 0 {
 			return AccountOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for account: %s", outputBuyingLiabilities, outputID)
@@ -42,7 +44,7 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 		return AccountOutput{}, fmt.Errorf("Account sequence number is negative (%d) for account: %s", outputSequenceNumber, outputID)
 	}
 
-	outputNumSubentries := int32(accountEntry.NumSubEntries)
+	outputNumSubentries := uint32(accountEntry.NumSubEntries)
 	if outputNumSubentries < 0 {
 		return AccountOutput{}, fmt.Errorf("Subentries count is negative (%d) for account: %s", outputNumSubentries, outputID)
 	}
@@ -56,7 +58,7 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 		}
 	}
 
-	outputFlags := int32(accountEntry.Flags)
+	outputFlags := uint32(accountEntry.Flags)
 	if outputFlags < 0 {
 		return AccountOutput{}, fmt.Errorf("Flags are negative (%d)for account: %s", outputFlags, outputID)
 	}
