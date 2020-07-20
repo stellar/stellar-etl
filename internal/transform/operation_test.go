@@ -21,7 +21,11 @@ func TestTransformOperation(t *testing.T) {
 		wantOutput OperationOutput
 		wantErr    error
 	}
-	genericInput := operationInput{genericOperation, 1, genericLedgerTransaction}
+	genericInput := operationInput{
+		operation:   genericOperation,
+		index:       1,
+		transaction: genericLedgerTransaction,
+	}
 
 	negativeOpTypeInput := genericInput
 	negativeOpTypeEnvelope := genericEnvelope

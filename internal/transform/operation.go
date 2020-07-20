@@ -106,21 +106,21 @@ func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
 	}
 	return path
 }
-func addOperationFlagToOperationDetails(operationDetails *Details, flag int32, prefix string) {
+func addOperationFlagToOperationDetails(operationDetails *Details, flag uint32, prefix string) {
 	var intFlags []int32
 	var stringFlags []string
 
-	if (flag & int32(xdr.AccountFlagsAuthRequiredFlag)) > 0 {
+	if (int64(flag) & int64(xdr.AccountFlagsAuthRequiredFlag)) > 0 {
 		intFlags = append(intFlags, int32(xdr.AccountFlagsAuthRequiredFlag))
 		stringFlags = append(stringFlags, "auth_required")
 	}
 
-	if (flag & int32(xdr.AccountFlagsAuthRevocableFlag)) > 0 {
+	if (int64(flag) & int64(xdr.AccountFlagsAuthRevocableFlag)) > 0 {
 		intFlags = append(intFlags, int32(xdr.AccountFlagsAuthRevocableFlag))
 		stringFlags = append(stringFlags, "auth_revocable")
 	}
 
-	if (flag & int32(xdr.AccountFlagsAuthImmutableFlag)) > 0 {
+	if (int64(flag) & int64(xdr.AccountFlagsAuthImmutableFlag)) > 0 {
 		intFlags = append(intFlags, int32(xdr.AccountFlagsAuthImmutableFlag))
 		stringFlags = append(stringFlags, "auth_immutable")
 	}
@@ -139,7 +139,11 @@ func addOperationFlagToOperationDetails(operationDetails *Details, flag int32, p
 func extractOperationDetails(operation xdr.Operation, transaction ingestio.LedgerTransaction, operationIndex int32) (Details, error) {
 	outputDetails := Details{}
 	sourceAccount := getOperationSourceAccount(operation, transaction)
-	sourceAccountAddress, _ := utils.GetAccountAddressFromMuxedAccount(sourceAccount)
+	sourceAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(sourceAccount)
+	if err != nil {
+		return Details{}, err
+	}
+
 	operationType := operation.Body.Type
 	allOperationResults, ok := transaction.Result.OperationResults()
 	if !ok {
@@ -149,13 +153,21 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 	currentOperationResult := allOperationResults[operationIndex]
 	switch operationType {
 	case xdr.OperationTypeCreateAccount:
-		op := operation.Body.MustCreateAccountOp()
+		op, ok := operation.Body.GetCreateAccountOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access CreateAccount info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.Funder = sourceAccountAddress
 		outputDetails.Account = op.Destination.Address()
 		outputDetails.StartingBalance = utils.ConvertStroopValueToReal(op.StartingBalance)
 
 	case xdr.OperationTypePayment:
-		op := operation.Body.MustPaymentOp()
+		op, ok := operation.Body.GetPaymentOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access Payment info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.From = sourceAccountAddress
 		toAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(op.Destination)
 		if err != nil {
@@ -170,7 +182,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 
 	case xdr.OperationTypePathPaymentStrictReceive:
-		op := operation.Body.MustPathPaymentStrictReceiveOp()
+		op, ok := operation.Body.GetPathPaymentStrictReceiveOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access PathPaymentStrictReceive info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.From = sourceAccountAddress
 		toAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(op.Destination)
 		if err != nil {
@@ -179,20 +195,30 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 
 		outputDetails.To = toAccountAddress
 		outputDetails.Amount = utils.ConvertStroopValueToReal(op.DestAmount)
-		outputDetails.SourceAmount = float64(0)
 		outputDetails.SourceMax = utils.ConvertStroopValueToReal(op.SendMax)
 		addAssetDetailsToOperationDetails(&outputDetails, op.DestAsset, "")
 		addAssetDetailsToOperationDetails(&outputDetails, op.SendAsset, "source")
 
 		if transaction.Result.Successful() {
-			result := currentOperationResult.MustTr().MustPathPaymentStrictReceiveResult()
+			resultBody, ok := currentOperationResult.GetTr()
+			if !ok {
+				return Details{}, fmt.Errorf("Could not access result body for this operation (index %d)", operationIndex)
+			}
+			result, ok := resultBody.GetPathPaymentStrictReceiveResult()
+			if !ok {
+				return Details{}, fmt.Errorf("Could not access PathPaymentStrictReceive result info for this operation (index %d)", operationIndex)
+			}
 			outputDetails.SourceAmount = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
 
 		outputDetails.Path = convertPathToAssetOutput(op.Path)
 
 	case xdr.OperationTypePathPaymentStrictSend:
-		op := operation.Body.MustPathPaymentStrictSendOp()
+		op, ok := operation.Body.GetPathPaymentStrictSendOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access PathPaymentStrictSend info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.From = sourceAccountAddress
 		toAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(op.Destination)
 		if err != nil {
@@ -200,21 +226,31 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 
 		outputDetails.To = toAccountAddress
-		outputDetails.Amount = float64(0)
 		outputDetails.SourceAmount = utils.ConvertStroopValueToReal(op.SendAmount)
 		outputDetails.DestinationMin = amount.String(op.DestMin)
 		addAssetDetailsToOperationDetails(&outputDetails, op.DestAsset, "")
 		addAssetDetailsToOperationDetails(&outputDetails, op.SendAsset, "source")
 
 		if transaction.Result.Successful() {
-			result := currentOperationResult.MustTr().MustPathPaymentStrictSendResult()
+			resultBody, ok := currentOperationResult.GetTr()
+			if !ok {
+				return Details{}, fmt.Errorf("Could not access result body for this operation (index %d)", operationIndex)
+			}
+			result, ok := resultBody.GetPathPaymentStrictSendResult()
+			if !ok {
+				return Details{}, fmt.Errorf("Could not access GetPathPaymentStrictSendResult result info for this operation (index %d)", operationIndex)
+			}
 			outputDetails.Amount = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
 
 		outputDetails.Path = convertPathToAssetOutput(op.Path)
 
 	case xdr.OperationTypeManageBuyOffer:
-		op := operation.Body.MustManageBuyOfferOp()
+		op, ok := operation.Body.GetManageBuyOfferOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access ManageBuyOffer info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.OfferID = int64(op.OfferId)
 		outputDetails.Amount = utils.ConvertStroopValueToReal(op.BuyAmount)
 		parsedPrice, err := strconv.ParseFloat(op.Price.String(), 64)
@@ -231,7 +267,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
 
 	case xdr.OperationTypeManageSellOffer:
-		op := operation.Body.MustManageSellOfferOp()
+		op, ok := operation.Body.GetManageSellOfferOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access ManageSellOffer info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.OfferID = int64(op.OfferId)
 		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
 		parsedPrice, err := strconv.ParseFloat(op.Price.String(), 64)
@@ -248,7 +288,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
 
 	case xdr.OperationTypeCreatePassiveSellOffer:
-		op := operation.Body.MustCreatePassiveSellOfferOp()
+		op, ok := operation.Body.GetCreatePassiveSellOfferOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access CreatePassiveSellOffer info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
 		parsedPrice, err := strconv.ParseFloat(op.Price.String(), 64)
 		if err != nil {
@@ -264,34 +308,37 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
 
 	case xdr.OperationTypeSetOptions:
-		op := operation.Body.MustSetOptionsOp()
+		op, ok := operation.Body.GetSetOptionsOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access GetSetOptions info for this operation (index %d)", operationIndex)
+		}
 
 		if op.InflationDest != nil {
 			outputDetails.InflationDest = op.InflationDest.Address()
 		}
 
 		if op.SetFlags != nil && *op.SetFlags > 0 {
-			addOperationFlagToOperationDetails(&outputDetails, int32(*op.SetFlags), "set")
+			addOperationFlagToOperationDetails(&outputDetails, uint32(*op.SetFlags), "set")
 		}
 
 		if op.ClearFlags != nil && *op.ClearFlags > 0 {
-			addOperationFlagToOperationDetails(&outputDetails, int32(*op.ClearFlags), "clear")
+			addOperationFlagToOperationDetails(&outputDetails, uint32(*op.ClearFlags), "clear")
 		}
 
 		if op.MasterWeight != nil {
-			outputDetails.MasterKeyWeight = int32(*op.MasterWeight)
+			outputDetails.MasterKeyWeight = uint32(*op.MasterWeight)
 		}
 
 		if op.LowThreshold != nil {
-			outputDetails.LowThreshold = int32(*op.LowThreshold)
+			outputDetails.LowThreshold = uint32(*op.LowThreshold)
 		}
 
 		if op.MedThreshold != nil {
-			outputDetails.MedThreshold = int32(*op.MedThreshold)
+			outputDetails.MedThreshold = uint32(*op.MedThreshold)
 		}
 
 		if op.HighThreshold != nil {
-			outputDetails.HighThreshold = int32(*op.HighThreshold)
+			outputDetails.HighThreshold = uint32(*op.HighThreshold)
 		}
 
 		if op.HomeDomain != nil {
@@ -300,18 +347,26 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 
 		if op.Signer != nil {
 			outputDetails.SignerKey = op.Signer.Key.Address()
-			outputDetails.SignerWeight = int32(op.Signer.Weight)
+			outputDetails.SignerWeight = uint32(op.Signer.Weight)
 		}
 
 	case xdr.OperationTypeChangeTrust:
-		op := operation.Body.MustChangeTrustOp()
+		op, ok := operation.Body.GetChangeTrustOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access GetChangeTrust info for this operation (index %d)", operationIndex)
+		}
+
 		addAssetDetailsToOperationDetails(&outputDetails, op.Line, "")
 		outputDetails.Trustor = sourceAccountAddress
 		outputDetails.Trustee = outputDetails.AssetIssuer
 		outputDetails.Limit = utils.ConvertStroopValueToReal(op.Limit)
 
 	case xdr.OperationTypeAllowTrust:
-		op := operation.Body.MustAllowTrustOp()
+		op, ok := operation.Body.GetAllowTrustOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access AllowTrust info for this operation (index %d)", operationIndex)
+		}
+
 		addAssetDetailsToOperationDetails(&outputDetails, op.Asset.ToAsset(sourceAccount.ToAccountId()), "")
 		outputDetails.Trustee = sourceAccountAddress
 		outputDetails.Trustor = op.Trustor.Address()
@@ -319,14 +374,27 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		outputDetails.Authorize = shouldAuth
 
 	case xdr.OperationTypeAccountMerge:
-		aid := operation.Body.MustDestination().ToAccountId()
+		destinationAccount, ok := operation.Body.GetDestination()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access Destination info for this operation (index %d)", operationIndex)
+		}
+
+		destinationAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(destinationAccount)
+		if err != nil {
+			return Details{}, err
+		}
+
 		outputDetails.Account = sourceAccountAddress
-		outputDetails.Into = aid.Address()
+		outputDetails.Into = destinationAccountAddress
 
 	case xdr.OperationTypeInflation:
-		// inflation is deprecated
+		// Inflation operations don't have information that affects the details struct
 	case xdr.OperationTypeManageData:
-		op := operation.Body.MustManageDataOp()
+		op, ok := operation.Body.GetManageDataOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access GetManageData info for this operation (index %d)", operationIndex)
+		}
+
 		outputDetails.Name = string(op.DataName)
 		if op.DataValue != nil {
 			outputDetails.Value = base64.StdEncoding.EncodeToString(*op.DataValue)
@@ -335,7 +403,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 		}
 
 	case xdr.OperationTypeBumpSequence:
-		op := operation.Body.MustBumpSequenceOp()
+		op, ok := operation.Body.GetBumpSequenceOp()
+		if !ok {
+			return Details{}, fmt.Errorf("Could not access BumpSequence info for this operation (index %d)", operationIndex)
+		}
 		outputDetails.BumpTo = fmt.Sprintf("%d", op.BumpTo)
 
 	default:

@@ -76,14 +76,14 @@ type Details struct {
 	BuyingAssetType    string        `json:"buying_asset_type"`
 	From               string        `json:"from"`
 	Funder             string        `json:"funder"`
-	HighThreshold      int32         `json:"high_threshold"`
+	HighThreshold      uint32        `json:"high_threshold"`
 	HomeDomain         string        `json:"home_domain"`
 	InflationDest      string        `json:"inflation_dest"`
 	Into               string        `json:"into"`
 	Limit              float64       `json:"limit"`
-	LowThreshold       int32         `json:"low_threshold"`
-	MasterKeyWeight    int32         `json:"master_key_weight"`
-	MedThreshold       int32         `json:"med_threshold"`
+	LowThreshold       uint32        `json:"low_threshold"`
+	MasterKeyWeight    uint32        `json:"master_key_weight"`
+	MedThreshold       uint32        `json:"med_threshold"`
 	Name               string        `json:"name"`
 	OfferID            int64         `json:"offer_id"`
 	Path               []AssetOutput `json:"path"`
@@ -95,7 +95,7 @@ type Details struct {
 	SetFlags           []int32       `json:"set_flags"`
 	SetFlagsString     []string      `json:"set_flags_s"`
 	SignerKey          string        `json:"signer_key"`
-	SignerWeight       int32         `json:"signer_weight"`
+	SignerWeight       uint32        `json:"signer_weight"`
 	SourceAmount       float64       `json:"source_amount"`
 	SourceAssetCode    string        `json:"source_asset_code"`
 	SourceAssetIssuer  string        `json:"source_asset_issuer"`
