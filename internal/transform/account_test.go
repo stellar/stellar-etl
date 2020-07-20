@@ -75,12 +75,6 @@ func TestTransformAccount(t *testing.T) {
 			AccountOutput{}, fmt.Errorf("Account sequence number is negative (-3) for account: %s", genericAccountAddress),
 		},
 		{
-			wrapAccountEntry(xdr.AccountEntry{
-				AccountId: genericAccountID,
-			}, -4),
-			AccountOutput{}, fmt.Errorf("Last modified ledger number is negative (-4) for account: %s", genericAccountAddress),
-		},
-		{
 			hardCodedInput,
 			hardCodedOutput, nil,
 		},
@@ -151,7 +145,7 @@ func prepareHardcodedAccountTestOutput() AccountOutput {
 		SellingLiabilities:   1500,
 		SequenceNumber:       117801117454198833,
 		NumSubentries:        141,
-		InflationDestination: "",
+		InflationDestination: "GAOEOQMXDDXPVJC3HDFX6LZFKANJ4OOLQOD2MNXJ7PGAY5FEO4BRRAQU",
 		Flags:                4,
 		HomeDomain:           "examplehome.com",
 		MasterWeight:         2,
