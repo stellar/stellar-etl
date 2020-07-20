@@ -11,6 +11,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var genericSourceAccount, _ = xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{}))
+var genericOperation = xdr.Operation{
+	SourceAccount: &genericSourceAccount,
+	Body: xdr.OperationBody{
+		Type:           xdr.OperationTypeBumpSequence,
+		BumpSequenceOp: &xdr.BumpSequenceOp{},
+	},
+}
+var genericEnvelope = xdr.TransactionV1Envelope{
+	Tx: xdr.Transaction{
+		SourceAccount: genericSourceAccount,
+		Memo:          xdr.Memo{},
+		Operations: []xdr.Operation{
+			genericOperation,
+		},
+	},
+}
+var genericLedgerTransaction = ingestio.LedgerTransaction{
+	Index: 1,
+	Envelope: xdr.TransactionEnvelope{
+		Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+		V1:   &genericEnvelope,
+	},
+	Result: utils.CreateSampleResultMeta(true, 10).Result,
+}
+var genericLedgerHeaderHistoryEntry = xdr.LedgerHeaderHistoryEntry{}
+
 func TestTransformTransaction(t *testing.T) {
 	type inputStruct struct {
 		transaction   ingestio.LedgerTransaction
@@ -21,34 +48,7 @@ func TestTransformTransaction(t *testing.T) {
 		wantOutput TransactionOutput
 		wantErr    error
 	}
-	genericSourceAccount, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{}))
-	assert.NoError(t, err)
-	genericEnvelope := xdr.TransactionV1Envelope{
-		Tx: xdr.Transaction{
-			SourceAccount: genericSourceAccount,
-			Memo:          xdr.Memo{},
-			Operations: []xdr.Operation{
-				xdr.Operation{
-					SourceAccount: &genericSourceAccount,
-					Body: xdr.OperationBody{
-						Type:           xdr.OperationTypeBumpSequence,
-						BumpSequenceOp: &xdr.BumpSequenceOp{},
-					},
-				},
-			},
-		},
-	}
-	genericInput := inputStruct{
-		ingestio.LedgerTransaction{
-			Index: 1,
-			Envelope: xdr.TransactionEnvelope{
-				Type: xdr.EnvelopeTypeEnvelopeTypeTx,
-				V1:   &genericEnvelope,
-			},
-			Result: utils.CreateSampleResultMeta(true, 10).Result,
-		},
-		xdr.LedgerHeaderHistoryEntry{},
-	}
+	genericInput := inputStruct{genericLedgerTransaction, genericLedgerHeaderHistoryEntry}
 	negativeSeqInput := genericInput
 	negativeSeqEnvelope := genericEnvelope
 	negativeSeqEnvelope.Tx.SeqNum = xdr.SequenceNumber(-1)
@@ -125,10 +125,12 @@ func prepareHardcodedTransactionTestInput() (transaction ingestio.LedgerTransact
 	if err != nil {
 		return
 	}
+	
 	hardCodedOperationSourceAccount, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{0x1c, 0x47, 0x41, 0x97, 0x18, 0xee, 0xfa, 0xa4, 0x5b, 0x38, 0xcb, 0x7f, 0x2f, 0x25, 0x50, 0x1a, 0x9e, 0x39, 0xcb, 0x83, 0x87, 0xa6, 0x36, 0xe9, 0xfb, 0xcc, 0xc, 0x74, 0xa4, 0x77, 0x3, 0x18}))
 	if err != nil {
 		return
 	}
+
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
 	transaction = ingestio.LedgerTransaction{
