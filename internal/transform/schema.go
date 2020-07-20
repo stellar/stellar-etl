@@ -50,3 +50,21 @@ type TransactionOutput struct {
 			updated_at time.Time //timestamp of table entry update time
 	*/
 }
+
+//AccountOutput is a representation of an account that aligns with the BigQuery table accounts
+type AccountOutput struct {
+	AccountID            string `json:"account_id"`
+	Balance              int64  `json:"balance"`
+	BuyingLiabilities    int64  `json:"buying_liabilities"`
+	SellingLiabilities   int64  `json:"selling_liabilities"`
+	SequenceNumber       int64  `json:"sequence_number"`
+	NumSubentries        int32  `json:"num_subentries"`
+	InflationDestination string `json:"inflation_destination"`
+	Flags                int32  `json:"flags"`
+	HomeDomain           string `json:"home_domain"`
+	MasterWeight         int32  `json:"master_weight"`
+	ThresholdLow         int32  `json:"threshold_low"`
+	ThresholdMedium      int32  `json:"threshold_medium"`
+	ThresholdHigh        int32  `json:"threshold_high"`
+	LastModifiedLedger   int64  `json:"Last_modified_ledger"`
+}
