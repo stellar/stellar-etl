@@ -9,10 +9,8 @@ import (
 
 //TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
-	outputOfferDeleted := false
 	ledgerEntry := ledgerChange.Post
 	if ledgerChange.LedgerEntryChangeType() == xdr.LedgerEntryChangeTypeLedgerEntryRemoved {
-		outputOfferDeleted = true
 		ledgerEntry = ledgerChange.Pre
 	}
 
@@ -85,7 +83,6 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 		Price:              outputPrice,
 		Flags:              outputFlags,
 		LastModifiedLedger: outputLastModifiedLedger,
-		Deleted:            outputOfferDeleted,
 	}
 	return transformedOffer, nil
 }

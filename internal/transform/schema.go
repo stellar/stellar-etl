@@ -155,5 +155,9 @@ type OfferOutput struct {
 	Price              float64 `json:"aspriceset_code"`
 	Flags              uint32  `json:"flags"`
 	LastModifiedLedger int64   `json:"last_modified_ledger"`
-	Deleted            bool    `json:"deleted"`
+	/*
+		TODO implement
+			Deleted bool `json:"deleted"` // need to see operation that deletes offer to know what this value should be
+	*/
+
 }
