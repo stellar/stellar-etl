@@ -67,6 +67,8 @@ type AccountOutput struct {
 	ThresholdMedium      int32  `json:"threshold_medium"`
 	ThresholdHigh        int32  `json:"threshold_high"`
 	LastModifiedLedger   int64  `json:"Last_modified_ledger"`
+}
+
 //OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
 type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
