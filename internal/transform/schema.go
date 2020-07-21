@@ -142,3 +142,18 @@ type AssetOutput struct {
 	AssetIssuer string `json:"asset_issuer"`
 	AssetType   string `json:"asset_type"`
 }
+
+//OfferOutput is a representation of an offer that aligns with the BigQuery table offers
+type OfferOutput struct {
+	SellerID           string  `json:"seller_id"`
+	OfferID            int64   `json:"offer_id"`
+	SellingAsset       string  `json:"selling_asset"`
+	BuyingAsset        string  `json:"buying_asset"`
+	Amount             int64   `json:"amount"`
+	PriceN             int32   `json:"pricen"`
+	PriceD             int32   `json:"priced"`
+	Price              float64 `json:"aspriceset_code"`
+	Flags              uint32  `json:"flags"`
+	LastModifiedLedger int64   `json:"last_modified_ledger"`
+	Deleted            bool    `json:"deleted"`
+}
