@@ -14,6 +14,10 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 		ledgerEntry = ledgerChange.Pre
 	}
 
+	if ledgerEntry == nil {
+		return OfferOutput{}, fmt.Errorf("Ledger entry is nil")
+	}
+
 	offerEntry, offerFound := ledgerEntry.Data.GetOffer()
 	if !offerFound {
 		return OfferOutput{}, fmt.Errorf("Could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
@@ -23,7 +27,8 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 	if err != nil {
 		return OfferOutput{}, err
 	}
-	outputOfferID := int64(offerEntry.OfferId) //neg
+
+	outputOfferID := int64(offerEntry.OfferId)
 	if outputOfferID < 0 {
 		return OfferOutput{}, fmt.Errorf("OfferID is negative (%d) for offer from account: %s", outputOfferID, outputSellerID)
 	}

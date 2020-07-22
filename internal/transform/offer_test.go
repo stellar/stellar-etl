@@ -117,6 +117,7 @@ func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) 
 	if err != nil {
 		return
 	}
+
 	hardCodedBuyingAsset := xdr.Asset{
 		Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
 		AlphaNum4: &xdr.AssetAlphaNum4{
@@ -124,6 +125,7 @@ func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) 
 			Issuer:    hardCodedAssetIssuer,
 		},
 	}
+
 	ledgerChange = ingestio.Change{
 		Type: xdr.LedgerEntryTypeOffer,
 		Pre:  nil,
