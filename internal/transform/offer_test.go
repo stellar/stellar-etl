@@ -15,10 +15,6 @@ func TestTransformOffer(t *testing.T) {
 		wantOutput OfferOutput
 		wantErr    error
 	}
-	genericAccountID, err := xdr.NewAccountId(xdr.PublicKeyTypePublicKeyTypeEd25519, xdr.Uint256([32]byte{}))
-	assert.NoError(t, err)
-	genericAccountAddress, err := genericAccountID.GetAddress()
-	assert.NoError(t, err)
 
 	hardCodedInput, err := prepareHardcodedOfferTestInput()
 	assert.NoError(t, err)
@@ -108,24 +104,6 @@ func wrapOfferEntry(offerEntry xdr.OfferEntry, lastModified int) ingestio.Change
 }
 
 func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) {
-	hardCodedAccountID, err := xdr.NewAccountId(xdr.PublicKeyTypePublicKeyTypeEd25519, xdr.Uint256([32]byte{9, 13, 119, 101, 93, 2, 49, 146, 108, 232, 96, 108, 62, 49, 254, 143, 121, 165, 44, 237, 34, 197, 125, 11, 184, 24, 88, 236, 241, 192, 185, 158}))
-	if err != nil {
-		return
-	}
-
-	hardCodedAssetIssuer, err := xdr.NewAccountId(xdr.PublicKeyTypePublicKeyTypeEd25519, xdr.Uint256([32]byte{234, 172, 104, 212, 208, 227, 123, 76, 36, 194, 83, 105, 22, 232, 48, 115, 95, 3, 45, 13, 107, 42, 28, 143, 202, 59, 197, 162, 94, 8, 62, 58}))
-	if err != nil {
-		return
-	}
-
-	hardCodedBuyingAsset := xdr.Asset{
-		Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-		AlphaNum4: &xdr.AssetAlphaNum4{
-			AssetCode: xdr.AssetCode4([4]byte{66, 82, 76, 0}),
-			Issuer:    hardCodedAssetIssuer,
-		},
-	}
-
 	ledgerChange = ingestio.Change{
 		Type: xdr.LedgerEntryTypeOffer,
 		Pre:  nil,
@@ -134,13 +112,11 @@ func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) 
 			Data: xdr.LedgerEntryData{
 				Type: xdr.LedgerEntryTypeOffer,
 				Offer: &xdr.OfferEntry{
-					SellerId: hardCodedAccountID,
+					SellerId: hardCodedAccountOneID,
 					OfferId:  260678439,
-					Selling: xdr.Asset{
-						Type: xdr.AssetTypeAssetTypeNative,
-					},
-					Buying: hardCodedBuyingAsset,
-					Amount: 2628450327,
+					Selling:  hardCodedNativeAsset,
+					Buying:   hardCodedETHAsset,
+					Amount:   2628450327,
 					Price: xdr.Price{
 						N: 920936891,
 						D: 1790879058,
@@ -155,10 +131,10 @@ func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) 
 
 func prepareHardcodedOfferTestOutput() OfferOutput {
 	return OfferOutput{
-		SellerID:           "GAEQ253FLUBDDETM5BQGYPRR72HXTJJM5URMK7ILXAMFR3HRYC4Z43IR",
+		SellerID:           hardCodedAccountOneAddress,
 		OfferID:            260678439,
 		SellingAsset:       "AAAAAA==",
-		BuyingAsset:        "AAAAAUJSTAAAAAAA6qxo1NDje0wkwlNpFugwc18DLQ1rKhyPyjvFol4IPjo=",
+		BuyingAsset:        "AAAAAUVUSAAAAAAAZ8wAhkw7iRaMaq/gvDRwntAhxQVy4vmIYTQiCCwiKXI=",
 		Amount:             2628450327,
 		PriceN:             920936891,
 		PriceD:             1790879058,
