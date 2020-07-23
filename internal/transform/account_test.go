@@ -14,10 +14,6 @@ func TestTransformAccount(t *testing.T) {
 		wantOutput AccountOutput
 		wantErr    error
 	}
-	genericAccountID, err := xdr.NewAccountId(xdr.PublicKeyTypePublicKeyTypeEd25519, xdr.Uint256([32]byte{}))
-	assert.NoError(t, err)
-	genericAccountAddress, err := genericAccountID.GetAddress()
-	assert.NoError(t, err)
 
 	hardCodedInput, err := prepareHardcodedAccountTestInput()
 	assert.NoError(t, err)
@@ -98,27 +94,16 @@ func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) xdr.Ledge
 }
 
 func prepareHardcodedAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
-	hardCodedAccount, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{0x88, 0xe1, 0xa6, 0xb4, 0xa5, 0x71, 0x52, 0x8f, 0xaa, 0x9f, 0x26, 0xe2, 0xe, 0x6c, 0xbc, 0x3f, 0xe7, 0x3c, 0xae, 0x80, 0xb4, 0x46, 0x63, 0xc, 0x5b, 0xef, 0x1, 0x52, 0xaf, 0x70, 0x7d, 0x78}))
-	if err != nil {
-		return
-	}
-
-	hardCodedInflationDest, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{0x1c, 0x47, 0x41, 0x97, 0x18, 0xee, 0xfa, 0xa4, 0x5b, 0x38, 0xcb, 0x7f, 0x2f, 0x25, 0x50, 0x1a, 0x9e, 0x39, 0xcb, 0x83, 0x87, 0xa6, 0x36, 0xe9, 0xfb, 0xcc, 0xc, 0x74, 0xa4, 0x77, 0x3, 0x18}))
-	hardCodedInflationDestID := hardCodedInflationDest.ToAccountId()
-	if err != nil {
-		return
-	}
-
 	ledgerEntry = xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 30705278,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeAccount,
 			Account: &xdr.AccountEntry{
-				AccountId:     hardCodedAccount.ToAccountId(),
+				AccountId:     hardCodedAccountOneID,
 				Balance:       10959979,
 				SeqNum:        117801117454198833,
 				NumSubEntries: 141,
-				InflationDest: &hardCodedInflationDestID,
+				InflationDest: &hardCodedAccountTwoID,
 				Flags:         4,
 				HomeDomain:    "examplehome.com",
 				Thresholds:    xdr.Thresholds([4]byte{2, 1, 3, 5}),
@@ -139,13 +124,13 @@ func prepareHardcodedAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error)
 
 func prepareHardcodedAccountTestOutput() AccountOutput {
 	return AccountOutput{
-		AccountID:            "GCEODJVUUVYVFD5KT4TOEDTMXQ76OPFOQC2EMYYMLPXQCUVPOB6XRWPQ",
+		AccountID:            hardCodedAccountOneAddress,
 		Balance:              10959979,
 		BuyingLiabilities:    1000,
 		SellingLiabilities:   1500,
 		SequenceNumber:       117801117454198833,
 		NumSubentries:        141,
-		InflationDestination: "GAOEOQMXDDXPVJC3HDFX6LZFKANJ4OOLQOD2MNXJ7PGAY5FEO4BRRAQU",
+		InflationDestination: hardCodedAccountTwoAddress,
 		Flags:                4,
 		HomeDomain:           "examplehome.com",
 		MasterWeight:         2,
