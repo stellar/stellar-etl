@@ -174,5 +174,24 @@ type OfferOutput struct {
 		TODO implement
 			Deleted bool `json:"deleted"` // need to see operation that deletes offer to know what this value should be
 	*/
+}
 
+//TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
+type TradeOutput struct {
+	Order                 int32     `json:"order"`
+	LedgerClosedAt        time.Time `json:"ledger_closed_at"`
+	OfferID               int64     `json:"offer_id"`
+	BaseAccountAddress    string    `json:"base_account_address"`
+	BaseAssetCode         string    `json:"base_asset_code"`
+	BaseAssetIssuer       string    `json:"base_asset_issuer"`
+	BaseAssetType         string    `json:"base_asset_type"`
+	BaseAmount            int64     `json:"base_amount"`
+	BaseOfferID           int64     `json:"base_offer_id"`
+	CounterAccountAddress string    `json:"counter_account_address"`
+	CounterAssetCode      string    `json:"counter_asset_code"`
+	CounterAssetIssuer    string    `json:"counter_asset_issuer"`
+	CounterAssetType      string    `json:"counter_asset_type"`
+	CounterAmount         int64     `json:"counter_amount"`
+	BaseIsSeller          bool      `json:"base_is_seller"`
+	CounterOfferID        int64     `json:"counter_offer_id"`
 }

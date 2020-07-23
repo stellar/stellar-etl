@@ -15,8 +15,7 @@ func TestTransformTrustline(t *testing.T) {
 		wantErr    error
 	}
 
-	hardCodedInput, err := prepareHardcodedTrustlineTestInput()
-	assert.NoError(t, err)
+	hardCodedInput := prepareHardcodedTrustlineTestInput()
 	hardCodedOutput := prepareHardcodedTrustlineTestOutput()
 	tests := []transformTest{
 		{
@@ -54,8 +53,8 @@ func TestTransformTrustline(t *testing.T) {
 	}
 }
 
-func prepareHardcodedTrustlineTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
-	ledgerEntry = xdr.LedgerEntry{
+func prepareHardcodedTrustlineTestInput() xdr.LedgerEntry {
+	return xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 24229503,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeTrustline,
@@ -77,7 +76,6 @@ func prepareHardcodedTrustlineTestInput() (ledgerEntry xdr.LedgerEntry, err erro
 			},
 		},
 	}
-	return
 }
 
 func prepareHardcodedTrustlineTestOutput() TrustlineOutput {
