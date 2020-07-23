@@ -51,6 +51,24 @@ type TransactionOutput struct {
 	*/
 }
 
+//AccountOutput is a representation of an account that aligns with the BigQuery table accounts
+type AccountOutput struct {
+	AccountID            string `json:"account_id"`
+	Balance              int64  `json:"balance"`
+	BuyingLiabilities    int64  `json:"buying_liabilities"`
+	SellingLiabilities   int64  `json:"selling_liabilities"`
+	SequenceNumber       int64  `json:"sequence_number"`
+	NumSubentries        uint32 `json:"num_subentries"`
+	InflationDestination string `json:"inflation_destination"`
+	Flags                uint32 `json:"flags"`
+	HomeDomain           string `json:"home_domain"`
+	MasterWeight         int32  `json:"master_weight"`
+	ThresholdLow         int32  `json:"threshold_low"`
+	ThresholdMedium      int32  `json:"threshold_medium"`
+	ThresholdHigh        int32  `json:"threshold_high"`
+	LastModifiedLedger   int64  `json:"Last_modified_ledger"`
+}
+
 //OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
 type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
@@ -123,4 +141,23 @@ type AssetOutput struct {
 	AssetCode   string `json:"asset_code"`
 	AssetIssuer string `json:"asset_issuer"`
 	AssetType   string `json:"asset_type"`
+}
+
+//OfferOutput is a representation of an offer that aligns with the BigQuery table offers
+type OfferOutput struct {
+	SellerID           string  `json:"seller_id"`
+	OfferID            int64   `json:"offer_id"`
+	SellingAsset       string  `json:"selling_asset"`
+	BuyingAsset        string  `json:"buying_asset"`
+	Amount             int64   `json:"amount"`
+	PriceN             int32   `json:"pricen"`
+	PriceD             int32   `json:"priced"`
+	Price              float64 `json:"aspriceset_code"`
+	Flags              uint32  `json:"flags"`
+	LastModifiedLedger int64   `json:"last_modified_ledger"`
+	/*
+		TODO implement
+			Deleted bool `json:"deleted"` // need to see operation that deletes offer to know what this value should be
+	*/
+
 }
