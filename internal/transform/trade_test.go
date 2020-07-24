@@ -7,6 +7,7 @@ import (
 
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +23,31 @@ func TestTransformTrade(t *testing.T) {
 		wantErr    error
 	}
 
-	hardCodedInputTransaction := prepareHardcodedTradeTestInput()
-	hardCodedOutputArray := prepareHardcodedTradeTestOutput()
+	hardCodedInputTransaction := makeTradeTestInput()
+	hardCodedOutputArray := makeTradeTestOutput()
 
 	genericInput := tradeInput{
 		index:       0,
 		transaction: genericLedgerTransaction,
 		closeTime:   genericCloseTime,
+	}
+
+	wrongTypeInput := genericInput
+	wrongTypeInput.transaction = ingestio.LedgerTransaction{
+		Index: 1,
+		Envelope: xdr.TransactionEnvelope{
+			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+			V1: &xdr.TransactionV1Envelope{
+				Tx: xdr.Transaction{
+					SourceAccount: genericSourceAccount,
+					Memo:          xdr.Memo{},
+					Operations: []xdr.Operation{
+						genericBumpOperation,
+					},
+				},
+			},
+		},
+		Result: utils.CreateSampleResultMeta(true, 1).Result,
 	}
 
 	resultOutOfRangeInput := genericInput
@@ -124,12 +143,7 @@ func TestTransformTrade(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			//the generic input has a bump sequence operation, which does not result in trades
-			tradeInput{
-				index:       0,
-				transaction: genericLedgerTransaction,
-				closeTime:   genericCloseTime,
-			},
+			wrongTypeInput,
 			[]TradeOutput{}, fmt.Errorf("Operation of type OperationTypeBumpSequence at index 0 does not result in trades"),
 		},
 		{
@@ -192,24 +206,24 @@ func wrapOperationsResultsSlice(results []xdr.OperationResult, successful bool) 
 	}
 }
 
-func prepareHardcodedTradeTestInput() (inputTransaction ingestio.LedgerTransaction) {
+func makeTradeTestInput() (inputTransaction ingestio.LedgerTransaction) {
 	inputTransaction = genericLedgerTransaction
 	inputEnvelope := genericBumpOperationEnvelope
 
-	inputEnvelope.Tx.SourceAccount = hardCodedAccountThree
+	inputEnvelope.Tx.SourceAccount = testAccount3
 	offerOne := xdr.ClaimOfferAtom{
-		SellerId:     hardCodedAccountOneID,
+		SellerId:     testAccount1ID,
 		OfferId:      97684906,
-		AssetSold:    hardCodedETHAsset,
-		AssetBought:  hardCodedUSDTAsset,
+		AssetSold:    ethAsset,
+		AssetBought:  usdtAsset,
 		AmountSold:   13300347,
 		AmountBought: 12634,
 	}
 	offerTwo := xdr.ClaimOfferAtom{
-		SellerId:     hardCodedAccountThreeID,
+		SellerId:     testAccount3ID,
 		OfferId:      86106895,
-		AssetSold:    hardCodedUSDTAsset,
-		AssetBought:  hardCodedNativeAsset,
+		AssetSold:    usdtAsset,
+		AssetBought:  nativeAsset,
 		AmountSold:   17339680,
 		AmountBought: 57798933,
 	}
@@ -238,7 +252,7 @@ func prepareHardcodedTradeTestInput() (inputTransaction ingestio.LedgerTransacti
 			},
 		},
 		xdr.Operation{
-			SourceAccount: &hardCodedAccountThree,
+			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type:                       xdr.OperationTypePathPaymentStrictReceive,
 				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
@@ -327,19 +341,19 @@ func prepareHardcodedTradeTestInput() (inputTransaction ingestio.LedgerTransacti
 	return
 }
 
-func prepareHardcodedTradeTestOutput() [][]TradeOutput {
+func makeTradeTestOutput() [][]TradeOutput {
 	offerOneOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
 		OfferID:               97684906,
-		BaseAccountAddress:    hardCodedAccountOneAddress,
+		BaseAccountAddress:    testAccount1Address,
 		BaseAssetCode:         "ETH",
-		BaseAssetIssuer:       hardCodedAccountThreeAddress,
+		BaseAssetIssuer:       testAccount3Address,
 		BaseAssetType:         "credit_alphanum4",
 		BaseAmount:            13300347,
-		CounterAccountAddress: hardCodedAccountThreeAddress,
+		CounterAccountAddress: testAccount3Address,
 		CounterAssetCode:      "USDT",
-		CounterAssetIssuer:    hardCodedAccountFourAddress,
+		CounterAssetIssuer:    testAccount4Address,
 		CounterAssetType:      "credit_alphanum4",
 		CounterAmount:         12634,
 		BaseIsSeller:          true,
@@ -350,12 +364,12 @@ func prepareHardcodedTradeTestOutput() [][]TradeOutput {
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
 		OfferID:               86106895,
-		BaseAccountAddress:    hardCodedAccountThreeAddress,
+		BaseAccountAddress:    testAccount3Address,
 		BaseAssetCode:         "USDT",
-		BaseAssetIssuer:       hardCodedAccountFourAddress,
+		BaseAssetIssuer:       testAccount4Address,
 		BaseAssetType:         "credit_alphanum4",
 		BaseAmount:            17339680,
-		CounterAccountAddress: hardCodedAccountThreeAddress,
+		CounterAccountAddress: testAccount3Address,
 		CounterAssetCode:      "",
 		CounterAssetIssuer:    "",
 		CounterAssetType:      "native",
