@@ -143,6 +143,21 @@ type AssetOutput struct {
 	AssetType   string `json:"asset_type"`
 }
 
+//TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
+type TrustlineOutput struct {
+	LedgerKey          string `json:"ledger_key"`
+	AccountID          string `json:"account_id"`
+	AssetCode          string `json:"asset_code"`
+	AssetIssuer        string `json:"asset_issuer"`
+	AssetType          int32  `json:"asset_type"`
+	Balance            int64  `json:"balance"`
+	TrustlineLimit     int64  `json:"trust_line_limit"`
+	BuyingLiabilities  int64  `json:"buying_liabilities"`
+	SellingLiabilities int64  `json:"selling_liabilities"`
+	Flags              uint32 `json:"flags"`
+	LastModifiedLedger uint32 `json:"Last_modified_ledger"`
+}
+
 //OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
 	SellerID           string  `json:"seller_id"`

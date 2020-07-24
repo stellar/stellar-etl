@@ -51,9 +51,9 @@ func TestTransformOperation(t *testing.T) {
 			fmt.Errorf("Unknown operation type: "),
 		},
 	}
-	hardCodedInputTransaction, err := prepareHardcodedOperationTestInput()
+	hardCodedInputTransaction, err := makeOperationTestInput()
 	assert.NoError(t, err)
-	hardCodedOutputArray := prepareHardcodedOperationTestOutputs()
+	hardCodedOutputArray := makeOperationTestOutputs()
 
 	for i, op := range hardCodedInputTransaction.Envelope.Operations() {
 		tests = append(tests, transformTest{
@@ -70,32 +70,15 @@ func TestTransformOperation(t *testing.T) {
 	}
 }
 
-//creates a single transaction that contains one of every operation type
-func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTransaction, err error) {
+// Creates a single transaction that contains one of every operation type
+func makeOperationTestInput() (inputTransaction ingestio.LedgerTransaction, err error) {
 	inputTransaction = genericLedgerTransaction
 	inputEnvelope := genericEnvelope
-	hardCodedSourceAccount, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{0x67, 0xcc, 0x0, 0x86, 0x4c, 0x3b, 0x89, 0x16, 0x8c, 0x6a, 0xaf, 0xe0, 0xbc, 0x34, 0x70, 0x9e, 0xd0, 0x21, 0xc5, 0x5, 0x72, 0xe2, 0xf9, 0x88, 0x61, 0x34, 0x22, 0x8, 0x2c, 0x22, 0x29, 0x72}))
-	if err != nil {
-		return
-	}
 
-	hardCodedDestAccount, err := xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{0x6b, 0x58, 0xdd, 0x6c, 0x68, 0x93, 0xb, 0x6d, 0x3, 0x1d, 0xc5, 0xbb, 0xfa, 0xe2, 0x3e, 0xfa, 0x1e, 0xc3, 0xf0, 0xbb, 0x58, 0xc2, 0xbc, 0x8d, 0x93, 0x8d, 0x47, 0xc1, 0xdf, 0xb3, 0xbe, 0x73}))
-	if err != nil {
-		return
-	}
+	inputEnvelope.Tx.SourceAccount = testAccount3
+	hardCodedInflationDest := testAccount4ID
 
-	inputEnvelope.Tx.SourceAccount = hardCodedSourceAccount
-	hardCodedAsset := xdr.Asset{
-		Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-		AlphaNum4: &xdr.AssetAlphaNum4{
-			AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x44, 0x54}),
-			Issuer:    hardCodedDestAccount.ToAccountId(),
-		},
-	}
-	hardCodedNativeAsset := xdr.MustNewNativeAsset()
-	hardCodedInflationDest := hardCodedDestAccount.ToAccountId()
-
-	hardCodedTrustAsset, err := hardCodedAsset.ToAllowTrustOpAsset("USDT")
+	hardCodedTrustAsset, err := usdtAsset.ToAllowTrustOpAsset("USDT")
 	if err != nil {
 		return
 	}
@@ -126,7 +109,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 				Type: xdr.OperationTypeCreateAccount,
 				CreateAccountOp: &xdr.CreateAccountOp{
 					StartingBalance: 25000000,
-					Destination:     hardCodedDestAccount.ToAccountId(),
+					Destination:     testAccount4ID,
 				},
 			},
 		},
@@ -135,8 +118,8 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePayment,
 				PaymentOp: &xdr.PaymentOp{
-					Destination: hardCodedDestAccount,
-					Asset:       hardCodedAsset,
+					Destination: testAccount4,
+					Asset:       usdtAsset,
 					Amount:      350000000,
 				},
 			},
@@ -146,23 +129,23 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePayment,
 				PaymentOp: &xdr.PaymentOp{
-					Destination: hardCodedDestAccount,
-					Asset:       hardCodedNativeAsset,
+					Destination: testAccount4,
+					Asset:       nativeAsset,
 					Amount:      350000000,
 				},
 			},
 		},
 		xdr.Operation{
-			SourceAccount: &hardCodedSourceAccount,
+			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictReceive,
 				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
-					SendAsset:   hardCodedNativeAsset,
+					SendAsset:   nativeAsset,
 					SendMax:     8951495900,
-					Destination: hardCodedDestAccount,
-					DestAsset:   hardCodedNativeAsset,
+					Destination: testAccount4,
+					DestAsset:   nativeAsset,
 					DestAmount:  8951495900,
-					Path:        []xdr.Asset{hardCodedAsset},
+					Path:        []xdr.Asset{usdtAsset},
 				},
 			},
 		},
@@ -171,8 +154,8 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageSellOffer,
 				ManageSellOfferOp: &xdr.ManageSellOfferOp{
-					Selling: hardCodedAsset,
-					Buying:  hardCodedNativeAsset,
+					Selling: usdtAsset,
+					Buying:  nativeAsset,
 					Amount:  765860000,
 					Price: xdr.Price{
 						N: 128523,
@@ -187,8 +170,8 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeCreatePassiveSellOffer,
 				CreatePassiveSellOfferOp: &xdr.CreatePassiveSellOfferOp{
-					Selling: hardCodedNativeAsset,
-					Buying:  hardCodedAsset,
+					Selling: nativeAsset,
+					Buying:  usdtAsset,
 					Amount:  631595000,
 					Price: xdr.Price{
 						N: 99583200,
@@ -219,7 +202,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeChangeTrust,
 				ChangeTrustOp: &xdr.ChangeTrustOp{
-					Line:  hardCodedAsset,
+					Line:  usdtAsset,
 					Limit: xdr.Int64(500000000000000000),
 				},
 			},
@@ -229,7 +212,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeAllowTrust,
 				AllowTrustOp: &xdr.AllowTrustOp{
-					Trustor:   hardCodedDestAccount.ToAccountId(),
+					Trustor:   testAccount4ID,
 					Asset:     hardCodedTrustAsset,
 					Authorize: xdr.Uint32(1),
 				},
@@ -239,7 +222,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type:        xdr.OperationTypeAccountMerge,
-				Destination: &hardCodedDestAccount,
+				Destination: &testAccount4,
 			},
 		},
 		xdr.Operation{
@@ -272,8 +255,8 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferOp: &xdr.ManageBuyOfferOp{
-					Selling:   hardCodedAsset,
-					Buying:    hardCodedNativeAsset,
+					Selling:   usdtAsset,
+					Buying:    nativeAsset,
 					BuyAmount: 7654501001,
 					Price: xdr.Price{
 						N: 635863285,
@@ -288,12 +271,12 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictSend,
 				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{
-					SendAsset:   hardCodedNativeAsset,
+					SendAsset:   nativeAsset,
 					SendAmount:  1598182,
-					Destination: hardCodedDestAccount,
-					DestAsset:   hardCodedNativeAsset,
+					Destination: testAccount4,
+					DestAsset:   nativeAsset,
 					DestMin:     4280460538,
-					Path:        []xdr.Asset{hardCodedAsset},
+					Path:        []xdr.Asset{usdtAsset},
 				},
 			},
 		},
@@ -302,10 +285,10 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictSend,
 				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{
-					SendAsset:   hardCodedNativeAsset,
+					SendAsset:   nativeAsset,
 					SendAmount:  1598182,
-					Destination: hardCodedDestAccount,
-					DestAsset:   hardCodedNativeAsset,
+					Destination: testAccount4,
+					DestAsset:   nativeAsset,
 					DestMin:     4280460538,
 					Path:        nil,
 				},
@@ -317,7 +300,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 		xdr.OperationResult{},
 		xdr.OperationResult{},
 		xdr.OperationResult{},
-		//need a true result for path payment receive
+		// There needs to be a true result for path payment receive and send
 		xdr.OperationResult{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
@@ -370,14 +353,9 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 	return
 }
 
-func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOutput) {
-	hardCodedSourceAccountAddress := "GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN"
-	hardCodedDestAccountAddress := "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA"
-	hardCodedAssetOutput := AssetOutput{
-		AssetType:   "credit_alphanum4",
-		AssetCode:   "USDT",
-		AssetIssuer: hardCodedDestAccountAddress,
-	}
+func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
+	hardCodedSourceAccountAddress := testAccount3Address
+	hardCodedDestAccountAddress := testAccount4Address
 	transformedOperations = []OperationOutput{
 		OperationOutput{
 			SourceAccount:    hardCodedSourceAccountAddress,
@@ -428,7 +406,7 @@ func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOu
 				Amount:          895.14959,
 				SourceAssetType: "native",
 				AssetType:       "native",
-				Path:            []AssetOutput{hardCodedAssetOutput},
+				Path:            []AssetOutput{usdtAssetOutput},
 			},
 		},
 		OperationOutput{
@@ -570,7 +548,7 @@ func prepareHardcodedOperationTestOutputs() (transformedOperations []OperationOu
 				SourceAmount:    0.1598182,
 				DestinationMin:  "428.0460538",
 				Amount:          433.4043858,
-				Path:            []AssetOutput{hardCodedAssetOutput},
+				Path:            []AssetOutput{usdtAssetOutput},
 				SourceAssetType: "native",
 				AssetType:       "native",
 			},

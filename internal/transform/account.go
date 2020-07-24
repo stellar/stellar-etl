@@ -60,7 +60,7 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 
 	outputFlags := uint32(accountEntry.Flags)
 	if outputFlags < 0 {
-		return AccountOutput{}, fmt.Errorf("Flags are negative (%d)for account: %s", outputFlags, outputID)
+		return AccountOutput{}, fmt.Errorf("Flags are negative (%d) for account: %s", outputFlags, outputID)
 	}
 
 	outputHomeDomain := string(accountEntry.HomeDomain)
