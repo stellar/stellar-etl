@@ -17,10 +17,10 @@ func TestTransformLedger(t *testing.T) {
 		wantOutput LedgerOutput
 		wantErr    error
 	}
-	hardCodedLedger, err := prepareHardcodedLedgerTestInput()
+	hardCodedLedger, err := makeLedgerTestInput()
 	assert.NoError(t, err)
 
-	hardCodedOutput, err := prepareHardcodedLedgerTestOutput()
+	hardCodedOutput, err := makeLedgerTestOutput()
 	assert.NoError(t, err)
 
 	tests := []transformTest{
@@ -59,7 +59,7 @@ func TestTransformLedger(t *testing.T) {
 	}
 }
 
-func prepareHardcodedLedgerTestOutput() (output LedgerOutput, err error) {
+func makeLedgerTestOutput() (output LedgerOutput, err error) {
 	correctTime, err := time.Parse("2006-1-2 15:04:05 MST", "2020-07-12 20:09:07 UTC")
 	if err != nil {
 		return
@@ -89,7 +89,7 @@ func prepareHardcodedLedgerTestOutput() (output LedgerOutput, err error) {
 	return
 }
 
-func prepareHardcodedLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
+func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
 			utils.CreateSampleTx(0),

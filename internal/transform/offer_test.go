@@ -16,9 +16,9 @@ func TestTransformOffer(t *testing.T) {
 		wantErr    error
 	}
 
-	hardCodedInput, err := prepareHardcodedOfferTestInput()
+	hardCodedInput, err := makeOfferTestInput()
 	assert.NoError(t, err)
-	hardCodedOutput := prepareHardcodedOfferTestOutput()
+	hardCodedOutput := makeOfferTestOutput()
 
 	tests := []transformTest{
 		{
@@ -103,7 +103,7 @@ func wrapOfferEntry(offerEntry xdr.OfferEntry, lastModified int) ingestio.Change
 	}
 }
 
-func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) {
+func makeOfferTestInput() (ledgerChange ingestio.Change, err error) {
 	ledgerChange = ingestio.Change{
 		Type: xdr.LedgerEntryTypeOffer,
 		Pre:  nil,
@@ -112,10 +112,10 @@ func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) 
 			Data: xdr.LedgerEntryData{
 				Type: xdr.LedgerEntryTypeOffer,
 				Offer: &xdr.OfferEntry{
-					SellerId: hardCodedAccountOneID,
+					SellerId: testAccount1ID,
 					OfferId:  260678439,
-					Selling:  hardCodedNativeAsset,
-					Buying:   hardCodedETHAsset,
+					Selling:  nativeAsset,
+					Buying:   ethAsset,
 					Amount:   2628450327,
 					Price: xdr.Price{
 						N: 920936891,
@@ -129,9 +129,9 @@ func prepareHardcodedOfferTestInput() (ledgerChange ingestio.Change, err error) 
 	return
 }
 
-func prepareHardcodedOfferTestOutput() OfferOutput {
+func makeOfferTestOutput() OfferOutput {
 	return OfferOutput{
-		SellerID:           hardCodedAccountOneAddress,
+		SellerID:           testAccount1Address,
 		OfferID:            260678439,
 		SellingAsset:       "AAAAAA==",
 		BuyingAsset:        "AAAAAUVUSAAAAAAAZ8wAhkw7iRaMaq/gvDRwntAhxQVy4vmIYTQiCCwiKXI=",

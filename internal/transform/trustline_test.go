@@ -15,8 +15,9 @@ func TestTransformTrustline(t *testing.T) {
 		wantErr    error
 	}
 
-	hardCodedInput := prepareHardcodedTrustlineTestInput()
-	hardCodedOutput := prepareHardcodedTrustlineTestOutput()
+	hardCodedInput, err := makeTrustlineTestInput()
+	assert.NoError(t, err)
+	hardCodedOutput := makeTrustlineTestOutput()
 	tests := []transformTest{
 		{
 			xdr.LedgerEntry{
@@ -29,14 +30,14 @@ func TestTransformTrustline(t *testing.T) {
 		{
 			wrapTrustlineEntry(xdr.TrustLineEntry{
 				Balance:   -1,
-				Asset:     hardCodedNativeAsset,
+				Asset:     nativeAsset,
 				AccountId: genericAccountID,
 			}, 0),
 			TrustlineOutput{}, fmt.Errorf("Balance is negative (-1) for trustline"),
 		},
 		{
 			wrapTrustlineEntry(xdr.TrustLineEntry{
-				Asset: hardCodedNativeAsset,
+				Asset: nativeAsset,
 			}, 0),
 			TrustlineOutput{}, fmt.Errorf("Error running MarshalBinaryCompress when calculating ledger key"),
 		},
@@ -53,14 +54,14 @@ func TestTransformTrustline(t *testing.T) {
 	}
 }
 
-func prepareHardcodedTrustlineTestInput() xdr.LedgerEntry {
-	return xdr.LedgerEntry{
+func makeTrustlineTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
+	ledgerEntry = xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 24229503,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeTrustline,
 			TrustLine: &xdr.TrustLineEntry{
-				AccountId: hardCodedAccountOneID,
-				Asset:     hardCodedETHAsset,
+				AccountId: testAccount1ID,
+				Asset:     ethAsset,
 				Balance:   6203000,
 				Limit:     9000000000000000000,
 				Flags:     1,
@@ -76,14 +77,15 @@ func prepareHardcodedTrustlineTestInput() xdr.LedgerEntry {
 			},
 		},
 	}
+	return
 }
 
-func prepareHardcodedTrustlineTestOutput() TrustlineOutput {
+func makeTrustlineTestOutput() TrustlineOutput {
 	return TrustlineOutput{
 		LedgerKey:          "AAAAAQAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAFFVEgAAAAAAGfMAIZMO4kWjGqv4Lw0cJ7QIcUFcuL5iGE0IggsIily",
-		AccountID:          hardCodedAccountOneAddress,
+		AccountID:          testAccount1Address,
 		AssetType:          1,
-		AssetIssuer:        hardCodedAccountThreeAddress,
+		AssetIssuer:        testAccount3Address,
 		AssetCode:          "ETH",
 		Balance:            6203000,
 		TrustlineLimit:     9000000000000000000,
