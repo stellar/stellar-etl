@@ -78,7 +78,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 	inputEnvelope.Tx.SourceAccount = hardCodedAccountThree
 	hardCodedInflationDest := hardCodedAccountFourID
 
-	hardCodedTrustAsset, err := hardCodedUDSTAsset.ToAllowTrustOpAsset("USDT")
+	hardCodedTrustAsset, err := hardCodedUSDTAsset.ToAllowTrustOpAsset("USDT")
 	if err != nil {
 		return
 	}
@@ -119,7 +119,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 				Type: xdr.OperationTypePayment,
 				PaymentOp: &xdr.PaymentOp{
 					Destination: hardCodedAccountFour,
-					Asset:       hardCodedUDSTAsset,
+					Asset:       hardCodedUSDTAsset,
 					Amount:      350000000,
 				},
 			},
@@ -145,7 +145,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 					Destination: hardCodedAccountFour,
 					DestAsset:   hardCodedNativeAsset,
 					DestAmount:  8951495900,
-					Path:        []xdr.Asset{hardCodedUDSTAsset},
+					Path:        []xdr.Asset{hardCodedUSDTAsset},
 				},
 			},
 		},
@@ -154,7 +154,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageSellOffer,
 				ManageSellOfferOp: &xdr.ManageSellOfferOp{
-					Selling: hardCodedUDSTAsset,
+					Selling: hardCodedUSDTAsset,
 					Buying:  hardCodedNativeAsset,
 					Amount:  765860000,
 					Price: xdr.Price{
@@ -171,7 +171,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 				Type: xdr.OperationTypeCreatePassiveSellOffer,
 				CreatePassiveSellOfferOp: &xdr.CreatePassiveSellOfferOp{
 					Selling: hardCodedNativeAsset,
-					Buying:  hardCodedUDSTAsset,
+					Buying:  hardCodedUSDTAsset,
 					Amount:  631595000,
 					Price: xdr.Price{
 						N: 99583200,
@@ -202,7 +202,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeChangeTrust,
 				ChangeTrustOp: &xdr.ChangeTrustOp{
-					Line:  hardCodedUDSTAsset,
+					Line:  hardCodedUSDTAsset,
 					Limit: xdr.Int64(500000000000000000),
 				},
 			},
@@ -255,7 +255,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferOp: &xdr.ManageBuyOfferOp{
-					Selling:   hardCodedUDSTAsset,
+					Selling:   hardCodedUSDTAsset,
 					Buying:    hardCodedNativeAsset,
 					BuyAmount: 7654501001,
 					Price: xdr.Price{
@@ -276,7 +276,7 @@ func prepareHardcodedOperationTestInput() (inputTransaction ingestio.LedgerTrans
 					Destination: hardCodedAccountFour,
 					DestAsset:   hardCodedNativeAsset,
 					DestMin:     4280460538,
-					Path:        []xdr.Asset{hardCodedUDSTAsset},
+					Path:        []xdr.Asset{hardCodedUSDTAsset},
 				},
 			},
 		},

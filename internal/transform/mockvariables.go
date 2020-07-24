@@ -74,7 +74,7 @@ var hardCodedAccountFourAddress = "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUP
 
 // a selection of hardcoded assets and their AssetOutput representations
 
-var hardCodedUDSTAsset = xdr.Asset{
+var hardCodedUSDTAsset = xdr.Asset{
 	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
 	AlphaNum4: &xdr.AssetAlphaNum4{
 		AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x44, 0x54}),

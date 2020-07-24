@@ -194,4 +194,6 @@ type TradeOutput struct {
 	CounterAmount         int64     `json:"counter_amount"`
 	BaseIsSeller          bool      `json:"base_is_seller"`
 	CounterOfferID        int64     `json:"counter_offer_id"`
+	PriceN                int64     `json:"price_n"`
+	PriceD                int64     `json:"price_d"`
 }
