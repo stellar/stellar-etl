@@ -15,9 +15,9 @@ func TestTransformAccount(t *testing.T) {
 		wantErr    error
 	}
 
-	hardCodedInput, err := prepareHardcodedAccountTestInput()
+	hardCodedInput, err := makeAccountTestInput()
 	assert.NoError(t, err)
-	hardCodedOutput := prepareHardcodedAccountTestOutput()
+	hardCodedOutput := makeAccountTestOutput()
 
 	tests := []transformTest{
 		{
@@ -93,17 +93,17 @@ func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) xdr.Ledge
 	}
 }
 
-func prepareHardcodedAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
+func makeAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
 	ledgerEntry = xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 30705278,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeAccount,
 			Account: &xdr.AccountEntry{
-				AccountId:     hardCodedAccountOneID,
+				AccountId:     testAccount1ID,
 				Balance:       10959979,
 				SeqNum:        117801117454198833,
 				NumSubEntries: 141,
-				InflationDest: &hardCodedAccountTwoID,
+				InflationDest: &testAccount2ID,
 				Flags:         4,
 				HomeDomain:    "examplehome.com",
 				Thresholds:    xdr.Thresholds([4]byte{2, 1, 3, 5}),
@@ -122,15 +122,15 @@ func prepareHardcodedAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error)
 	return
 }
 
-func prepareHardcodedAccountTestOutput() AccountOutput {
+func makeAccountTestOutput() AccountOutput {
 	return AccountOutput{
-		AccountID:            hardCodedAccountOneAddress,
+		AccountID:            testAccount1Address,
 		Balance:              10959979,
 		BuyingLiabilities:    1000,
 		SellingLiabilities:   1500,
 		SequenceNumber:       117801117454198833,
 		NumSubentries:        141,
-		InflationDestination: hardCodedAccountTwoAddress,
+		InflationDestination: testAccount2Address,
 		Flags:                4,
 		HomeDomain:           "examplehome.com",
 		MasterWeight:         2,

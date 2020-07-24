@@ -37,10 +37,10 @@ func TestTransformTransaction(t *testing.T) {
 	badFeeChargedInput := genericInput
 	badFeeChargedInput.transaction.Result.Result.FeeCharged = -1
 
-	hardCodedTransaction, hardCodedLedgerHeader, err := prepareHardcodedTransactionTestInput()
+	hardCodedTransaction, hardCodedLedgerHeader, err := makeTransactionTestInput()
 	assert.NoError(t, err)
 	hardCodedInput := inputStruct{hardCodedTransaction, hardCodedLedgerHeader}
-	hardCodedOutput, err := prepareHardcodedTransactionTestOutput()
+	hardCodedOutput, err := makeTransactionTestOutput()
 	assert.NoError(t, err)
 
 	tests := []transformTest{
@@ -73,13 +73,13 @@ func TestTransformTransaction(t *testing.T) {
 	}
 }
 
-func prepareHardcodedTransactionTestOutput() (output TransactionOutput, err error) {
+func makeTransactionTestOutput() (output TransactionOutput, err error) {
 	correctTime, err := time.Parse("2006-1-2 15:04:05 MST", "2020-07-09 05:28:42 UTC")
 	output = TransactionOutput{
 		TransactionHash:  "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 		LedgerSequence:   30521816,
 		ApplicationOrder: 1,
-		Account:          hardCodedAccountOneAddress,
+		Account:          testAccount1Address,
 		AccountSequence:  112351890582290871,
 		MaxFee:           90000,
 		FeeCharged:       300,
@@ -92,7 +92,7 @@ func prepareHardcodedTransactionTestOutput() (output TransactionOutput, err erro
 	}
 	return
 }
-func prepareHardcodedTransactionTestInput() (transaction ingestio.LedgerTransaction, historyHeader xdr.LedgerHeaderHistoryEntry, err error) {
+func makeTransactionTestInput() (transaction ingestio.LedgerTransaction, historyHeader xdr.LedgerHeaderHistoryEntry, err error) {
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
 	transaction = ingestio.LedgerTransaction{
@@ -101,7 +101,7 @@ func prepareHardcodedTransactionTestInput() (transaction ingestio.LedgerTransact
 			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
 			V1: &xdr.TransactionV1Envelope{
 				Tx: xdr.Transaction{
-					SourceAccount: hardCodedAccountOne,
+					SourceAccount: testAccount1,
 					SeqNum:        112351890582290871,
 					Memo: xdr.Memo{
 						Type: xdr.MemoTypeMemoText,
@@ -114,7 +114,7 @@ func prepareHardcodedTransactionTestInput() (transaction ingestio.LedgerTransact
 					},
 					Operations: []xdr.Operation{
 						xdr.Operation{
-							SourceAccount: &hardCodedAccountTwo,
+							SourceAccount: &testAccount2,
 							Body: xdr.OperationBody{
 								Type:                       xdr.OperationTypePathPaymentStrictReceive,
 								PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
