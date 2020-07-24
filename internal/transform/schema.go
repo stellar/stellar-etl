@@ -186,14 +186,25 @@ type TradeOutput struct {
 	BaseAssetIssuer       string    `json:"base_asset_issuer"`
 	BaseAssetType         string    `json:"base_asset_type"`
 	BaseAmount            int64     `json:"base_amount"`
-	BaseOfferID           int64     `json:"base_offer_id"`
 	CounterAccountAddress string    `json:"counter_account_address"`
 	CounterAssetCode      string    `json:"counter_asset_code"`
 	CounterAssetIssuer    string    `json:"counter_asset_issuer"`
 	CounterAssetType      string    `json:"counter_asset_type"`
 	CounterAmount         int64     `json:"counter_amount"`
 	BaseIsSeller          bool      `json:"base_is_seller"`
-	CounterOfferID        int64     `json:"counter_offer_id"`
 	PriceN                int64     `json:"price_n"`
 	PriceD                int64     `json:"price_d"`
+	/*
+		TODO: Figure out how to get base and counter offer id
+			BaseOfferID           int64     `json:"base_offer_id"`
+			CounterOfferID        int64     `json:"counter_offer_id"`
+
+			BaseOfferID is the same as the OfferID
+			CounterOfferID:
+				if entry.BuyOfferExists {
+						buyOfferID = EncodeOfferId(uint64(entry.BuyOfferID), CoreOfferIDType)
+					} else {
+						buyOfferID = EncodeOfferId(uint64(entry.HistoryOperationID), TOIDType)
+				}
+	*/
 }

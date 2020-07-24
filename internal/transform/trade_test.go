@@ -2,69 +2,13 @@ package transform
 
 import (
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
 	ingestio "github.com/stellar/go/exp/ingest/io"
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
-
-type OfferIDType uint64
-
-const (
-	CoreOfferIDType OfferIDType = 0
-	TOIDType        OfferIDType = 1
-
-	mask uint64 = 0xC000000000000000
-)
-
-func encodeOfferId(id uint64, typ OfferIDType) int64 {
-	// First ensure the bits we're going to change are 0s
-	if id&mask != 0 {
-		panic("Value too big to encode")
-	}
-	return int64(id | uint64(typ)<<62)
-}
-func TestLive(t *testing.T) {
-	//30715263 has deleted stuff
-	sequence := uint32(30522175) //30522111, 30522175, 30715263, 30715199, 24229503, 24560308
-	//30522175 has prob with sell order
-	archiveURL := "http://history.stellar.org/prd/core-live/core_live_001"
-	backend, err := ledgerbackend.NewHistoryArchiveBackendFromURL(archiveURL)
-	assert.NoError(t, err)
-	txReader, err := ingestio.NewLedgerTransactionReader(backend, network.PublicNetworkPassphrase, sequence)
-	assert.NoError(t, err)
-	tradeOps := map[xdr.OperationType]bool{
-		//xdr.OperationTypeManageBuyOffer: true,
-		xdr.OperationTypeManageSellOffer: true,
-		/*xdr.OperationTypeCreatePassiveSellOffer:   true,
-		xdr.OperationTypePathPaymentStrictSend:    true,
-		xdr.OperationTypePathPaymentStrictReceive: true,*/
-	}
-	for { // buy / sell - sell offer
-		// sell / buy - managebuyoffer
-		tx, err := txReader.Read()
-		if err == io.EOF {
-			break
-		}
-		assert.NoError(t, err)
-		envelope := tx.Envelope
-		for opIndex, op := range envelope.Operations() {
-			if tradeOps[op.Body.Type] {
-				converted, err := TransformTrade(int32(opIndex), tx, genericCloseTime)
-				if err == nil && len(converted) > 0 {
-					fmt.Println(converted)
-				}
-			}
-		}
-	}
-
-	txReader.Close()
-}
 
 func TestTransformTrade(t *testing.T) {
 	type tradeInput struct {
@@ -393,14 +337,12 @@ func prepareHardcodedTradeTestOutput() [][]TradeOutput {
 		BaseAssetIssuer:       hardCodedAccountThreeAddress,
 		BaseAssetType:         "credit_alphanum4",
 		BaseAmount:            13300347,
-		BaseOfferID:           0,
 		CounterAccountAddress: hardCodedAccountThreeAddress,
 		CounterAssetCode:      "USDT",
 		CounterAssetIssuer:    hardCodedAccountFourAddress,
 		CounterAssetType:      "credit_alphanum4",
 		CounterAmount:         12634,
 		BaseIsSeller:          true,
-		CounterOfferID:        0,
 		PriceN:                12634,
 		PriceD:                13300347,
 	}
@@ -413,14 +355,12 @@ func prepareHardcodedTradeTestOutput() [][]TradeOutput {
 		BaseAssetIssuer:       hardCodedAccountFourAddress,
 		BaseAssetType:         "credit_alphanum4",
 		BaseAmount:            17339680,
-		BaseOfferID:           0,
 		CounterAccountAddress: hardCodedAccountThreeAddress,
 		CounterAssetCode:      "",
 		CounterAssetIssuer:    "",
 		CounterAssetType:      "native",
 		CounterAmount:         57798933,
 		BaseIsSeller:          true,
-		CounterOfferID:        0,
 		PriceN:                57798933,
 		PriceD:                17339680,
 	}

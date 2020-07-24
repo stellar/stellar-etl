@@ -83,18 +83,6 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 
 		outputBaseIsSeller := true
 
-		/*
-			todo:
-			1. figure out how to get base and counter offer id
-				base id is the same as the offerid
-				counter id:
-					if entry.BuyOfferExists {
-							buyOfferID = EncodeOfferId(uint64(entry.BuyOfferID), CoreOfferIDType)
-						} else {
-							buyOfferID = EncodeOfferId(uint64(entry.HistoryOperationID), TOIDType)
-					}
-		*/
-
 		trade := TradeOutput{
 			Order:                 outputOrder,
 			LedgerClosedAt:        outputLedgerClosedAt,
@@ -117,53 +105,6 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 		transformedTrades = append(transformedTrades, trade)
 	}
 	return transformedTrades, nil
-}
-
-func extractPrice(op xdr.Operation, operationIndex int32) (n int64, d int64, err error) {
-	operationType := op.Body.Type
-	var price xdr.Price
-	switch operationType {
-	case xdr.OperationTypeManageBuyOffer:
-		opBody, ok := op.Body.GetManageBuyOfferOp()
-		if !ok {
-			err = fmt.Errorf("Could not get %s body for operation at index %d", operationType, operationIndex)
-			return
-		}
-
-		price = opBody.Price
-	case xdr.OperationTypeManageSellOffer:
-		opBody, ok := op.Body.GetManageSellOfferOp()
-		if !ok {
-			err = fmt.Errorf("Could not get %s body for operation at index %d", operationType, operationIndex)
-			return
-		}
-		price = opBody.Price
-	case xdr.OperationTypeCreatePassiveSellOffer:
-		opBody, ok := op.Body.GetCreatePassiveSellOfferOp()
-		if !ok {
-			err = fmt.Errorf("Could not get %s body for operation at index %d", operationType, operationIndex)
-			return
-		}
-
-		price = opBody.Price
-	default:
-		err = fmt.Errorf("Operation of type %s at index %d does not have a price", operationType, operationIndex)
-		return
-	}
-
-	// Invert the price because offers internally stored as buy offers while in a trade we have reversed the order.
-	// The base account is the seller, so prices need to reflect sell price instead of buy price
-	price.Invert()
-	n, d = int64(price.N), int64(price.D)
-	if n < 0 {
-		err = fmt.Errorf("Price numerator is non-positive (%d) for operation at index %d", n, operationIndex)
-	}
-
-	if d <= 0 {
-		err = fmt.Errorf("Price denominator is non-positive (%d) for operation at index %d", d, operationIndex)
-	}
-
-	return
 }
 
 func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimOfferAtom, err error) {
@@ -196,6 +137,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 			err = fmt.Errorf("Could not get %sSuccess for operation at index %d", operationType, operationIndex)
 			return
 		}
+
 		claimedOffers = success.OffersClaimed
 	case xdr.OperationTypeManageSellOffer:
 		offerResult, ok := operationTr.GetManageSellOfferResult()
