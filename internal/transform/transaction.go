@@ -14,15 +14,9 @@ import (
 func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeaderHistoryEntry) (TransactionOutput, error) {
 	ledgerHeader := lhe.Header
 	outputTransactionHash := utils.HashToHexString(transaction.Result.TransactionHash)
-	outputLedgerSequence := int32(ledgerHeader.LedgerSeq)
-	if outputLedgerSequence < 0 {
-		return TransactionOutput{}, fmt.Errorf("Ledger sequence %d is negative", outputLedgerSequence)
-	}
+	outputLedgerSequence := uint32(ledgerHeader.LedgerSeq)
 
-	outputApplicationOrder := int32(transaction.Index)
-	if outputApplicationOrder < 0 {
-		return TransactionOutput{}, fmt.Errorf("The application order (%d) is negative for ledger %d", outputApplicationOrder, outputLedgerSequence)
-	}
+	outputApplicationOrder := uint32(transaction.Index)
 
 	outputAccount, err := utils.GetAccountAddressFromMuxedAccount(transaction.Envelope.SourceAccount())
 	if err != nil {
@@ -31,10 +25,10 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 
 	outputAccountSequence := transaction.Envelope.SeqNum()
 	if outputAccountSequence < 0 {
-		return TransactionOutput{}, fmt.Errorf("The account sequence number (%d) is negative for ledger %d; transaction %d", outputAccountSequence, outputLedgerSequence, outputApplicationOrder)
+		return TransactionOutput{}, fmt.Errorf("The account's sequence number (%d) is negative for ledger %d; transaction %d", outputAccountSequence, outputLedgerSequence, outputApplicationOrder)
 	}
 
-	outputMaxFee := int64(transaction.Envelope.Fee())
+	outputMaxFee := transaction.Envelope.Fee()
 	if outputMaxFee < 0 {
 		return TransactionOutput{}, fmt.Errorf("The fee (%d) is negative for ledger %d; transaction %d", outputMaxFee, outputLedgerSequence, outputApplicationOrder)
 	}

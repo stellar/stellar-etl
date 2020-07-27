@@ -68,14 +68,8 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 	}
 
 	outputFlags := uint32(offerEntry.Flags)
-	if outputFlags < 0 {
-		return OfferOutput{}, fmt.Errorf("Flags are negative (%d)for account: %s", outputFlags, outputSellerID)
-	}
 
-	outputLastModifiedLedger := int64(ledgerEntry.LastModifiedLedgerSeq)
-	if outputLastModifiedLedger < 0 {
-		return OfferOutput{}, fmt.Errorf("Last modified ledger number is negative (%d) for account: %s", outputLastModifiedLedger, outputSellerID)
-	}
+	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
 	transformedOffer := OfferOutput{
 		SellerID:           outputSellerID,
