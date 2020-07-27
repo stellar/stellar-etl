@@ -70,10 +70,7 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 	outputThreshMed := int32(accountEntry.ThresholdMedium())
 	outputThreshHigh := int32(accountEntry.ThresholdHigh())
 
-	outputLastModifiedLedger := int64(ledgerEntry.LastModifiedLedgerSeq)
-	if outputLastModifiedLedger < 0 {
-		return AccountOutput{}, fmt.Errorf("Last modified ledger number is negative (%d) for account: %s", outputLastModifiedLedger, outputID)
-	}
+	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
 	transformedAccount := AccountOutput{
 		AccountID:            outputID,

@@ -4,7 +4,7 @@ import "time"
 
 //LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
-	Sequence                   int32     `json:"sequence"` //sequence number of the ledger
+	Sequence                   uint32    `json:"sequence"` //sequence number of the ledger
 	LedgerHash                 string    `json:"ledger_hash"`
 	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
 	LedgerHeader               []byte    `json:"ledger_header"` //base 64 encoding of the ledger header
@@ -16,10 +16,10 @@ type LedgerOutput struct {
 	ClosedAt                   time.Time `json:"closed_at"`              //UTC timestamp
 	TotalCoins                 int64     `json:"total_coins"`
 	FeePool                    int64     `json:"fee_pool"`
-	BaseFee                    int32     `json:"base_fee"`
-	BaseReserve                int32     `json:"base_reserve"`
-	MaxTxSetSize               int32     `json:"max_tx_set_size"`
-	ProtocolVersion            int32     `json:"protocol_version"`
+	BaseFee                    uint32    `json:"base_fee"`
+	BaseReserve                uint32    `json:"base_reserve"`
+	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
+	ProtocolVersion            uint32    `json:"protocol_version"`
 
 	/*
 		TODO implement these three fields
@@ -32,11 +32,11 @@ type LedgerOutput struct {
 //TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
 	TransactionHash  string    `json:"transaction_hash"`
-	LedgerSequence   int32     `json:"ledger_sequence"`
-	ApplicationOrder int32     `json:"application_order"`
+	LedgerSequence   uint32    `json:"ledger_sequence"`
+	ApplicationOrder uint32    `json:"application_order"`
 	Account          string    `json:"account"`
 	AccountSequence  int64     `json:"account_sequence"`
-	MaxFee           int64     `json:"max_fee"`
+	MaxFee           uint32    `json:"max_fee"`
 	FeeCharged       int64     `json:"fee_charged"`
 	OperationCount   int32     `json:"operation_count"`
 	CreatedAt        time.Time `json:"created_at"`
@@ -66,7 +66,7 @@ type AccountOutput struct {
 	ThresholdLow         int32  `json:"threshold_low"`
 	ThresholdMedium      int32  `json:"threshold_medium"`
 	ThresholdHigh        int32  `json:"threshold_high"`
-	LastModifiedLedger   int64  `json:"Last_modified_ledger"`
+	LastModifiedLedger   uint32 `json:"Last_modified_ledger"`
 }
 
 //OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations

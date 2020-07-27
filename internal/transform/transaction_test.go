@@ -47,7 +47,7 @@ func TestTransformTransaction(t *testing.T) {
 		transformTest{
 			negativeSeqInput,
 			TransactionOutput{},
-			fmt.Errorf("The account sequence number (-1) is negative for ledger 0; transaction 1"),
+			fmt.Errorf("The account's sequence number (-1) is negative for ledger 0; transaction 1"),
 		},
 		{
 			badFeeChargedInput,

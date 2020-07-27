@@ -18,10 +18,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	ledgerHeaderHistory := ledger.LedgerHeader
 	ledgerHeader := ledgerHeaderHistory.Header
 
-	outputSequence := int32(ledgerHeader.LedgerSeq)
-	if outputSequence < 0 {
-		return LedgerOutput{}, fmt.Errorf("Ledger sequence %d is negative", outputSequence)
-	}
+	outputSequence := uint32(ledgerHeader.LedgerSeq)
 
 	outputLedgerHash := utils.HashToHexString(ledgerHeaderHistory.Hash)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
@@ -53,27 +50,16 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d", outputFeePool, outputSequence)
 	}
 
-	outputBaseFee := int32(ledgerHeader.BaseFee)
-	if outputBaseFee < 0 {
-		return LedgerOutput{}, fmt.Errorf("The base fee (%d) is negative for ledger %d", outputBaseFee, outputSequence)
-	}
+	outputBaseFee := uint32(ledgerHeader.BaseFee)
 
-	outputBaseReserve := int32(ledgerHeader.BaseReserve)
-	if outputBaseReserve < 0 {
-		return LedgerOutput{}, fmt.Errorf("The base reserve (%d) is negative for ledger %d", outputBaseReserve, outputSequence)
-	}
+	outputBaseReserve := uint32(ledgerHeader.BaseReserve)
 
-	outputMaxTxSetSize := int32(ledgerHeader.MaxTxSetSize)
-	if outputMaxTxSetSize < 0 {
-		return LedgerOutput{}, fmt.Errorf("The max transaction set size (%d) is negative for ledger %d", outputMaxTxSetSize, outputSequence)
-	} else if outputMaxTxSetSize < outputTransactionCount {
+	outputMaxTxSetSize := uint32(ledgerHeader.MaxTxSetSize)
+	if int64(outputMaxTxSetSize) < int64(outputTransactionCount) {
 		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d)", outputTransactionCount, outputMaxTxSetSize)
 	}
 
-	outputProtocolVersion := int32(ledgerHeader.LedgerVersion)
-	if outputProtocolVersion < 0 {
-		return LedgerOutput{}, fmt.Errorf("The protocol version (%d) is negative for ledger %d", outputProtocolVersion, outputSequence)
-	}
+	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,

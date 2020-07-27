@@ -31,7 +31,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 	transformedOperation := OperationOutput{
 		SourceAccount:    outputSourceAccount,
 		Type:             outputOperationType,
-		ApplicationOrder: operationIndex + 1,
+		ApplicationOrder: operationIndex + 1, // Application order is 1-indexed
 		OperationDetails: outputDetails,
 	}
 
@@ -86,6 +86,7 @@ func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asse
 	}
 	return nil
 }
+
 func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
 	if len(initialPath) == 0 {
 		return nil
@@ -106,6 +107,7 @@ func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
 	}
 	return path
 }
+
 func addOperationFlagToOperationDetails(operationDetails *Details, flag uint32, prefix string) {
 	var intFlags []int32
 	var stringFlags []string
