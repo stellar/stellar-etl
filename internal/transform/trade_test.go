@@ -160,7 +160,7 @@ func TestTransformTrade(t *testing.T) {
 		},
 		{
 			failedResultInput,
-			[]TradeOutput{}, fmt.Errorf("Could not get OperationTypeManageBuyOfferSuccess for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("Could not get ManageOfferSuccess for operation at index 0"),
 		},
 		{
 			negBaseAmountInput,

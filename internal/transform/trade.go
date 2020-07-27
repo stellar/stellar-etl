@@ -126,85 +126,80 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 	switch operationType {
 	case xdr.OperationTypeManageBuyOffer:
-		offerResult, ok := operationTr.GetManageBuyOfferResult()
-		if !ok {
-			err = fmt.Errorf("Could not get %sResult for operation at index %d", operationType, operationIndex)
+		var buyOfferResult xdr.ManageBuyOfferResult
+		if buyOfferResult, ok = operationTr.GetManageBuyOfferResult(); !ok {
+			err = fmt.Errorf("Could not get ManageBuyOfferResult for operation at index %d", operationIndex)
 			return
 		}
 
-		success, ok := offerResult.GetSuccess()
-		if !ok {
-			err = fmt.Errorf("Could not get %sSuccess for operation at index %d", operationType, operationIndex)
+		if success, ok := buyOfferResult.GetSuccess(); ok {
+			claimedOffers = success.OffersClaimed
 			return
 		}
 
-		claimedOffers = success.OffersClaimed
+		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
+
 	case xdr.OperationTypeManageSellOffer:
-		offerResult, ok := operationTr.GetManageSellOfferResult()
-		if !ok {
-			err = fmt.Errorf("Could not get %sResult for operation at index %d", operationType, operationIndex)
+		var sellOfferResult xdr.ManageSellOfferResult
+		if sellOfferResult, ok = operationTr.GetManageSellOfferResult(); !ok {
+			err = fmt.Errorf("Could not get ManageSellOfferResult for operation at index %d", operationIndex)
 			return
-
 		}
 
-		success, ok := offerResult.GetSuccess()
-		if !ok {
-			err = fmt.Errorf("Could not get %sSuccess for operation at index %d", operationType, operationIndex)
+		if success, ok := sellOfferResult.GetSuccess(); ok {
+			claimedOffers = success.OffersClaimed
 			return
-
 		}
 
-		claimedOffers = success.OffersClaimed
+		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
+
 	case xdr.OperationTypeCreatePassiveSellOffer:
-		offerResult, ok := operationTr.GetCreatePassiveSellOfferResult()
-		if !ok {
-			err = fmt.Errorf("Could not get %sResult for operation at index %d", operationType, operationIndex)
+		var passiveSellResult xdr.ManageSellOfferResult
+		if passiveSellResult, ok = operationTr.GetCreatePassiveSellOfferResult(); !ok {
+			err = fmt.Errorf("Could not get CreatePassiveSellOfferResult for operation at index %d", operationIndex)
 			return
-
 		}
 
-		success, ok := offerResult.GetSuccess()
-		if !ok {
-			err = fmt.Errorf("Could not get %sSuccess for operation at index %d", operationType, operationIndex)
+		if success, ok := passiveSellResult.GetSuccess(); ok {
+			claimedOffers = success.OffersClaimed
 			return
-
 		}
 
-		claimedOffers = success.OffersClaimed
+		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
+
 	case xdr.OperationTypePathPaymentStrictSend:
-		offerResult, ok := operationTr.GetPathPaymentStrictSendResult()
-		if !ok {
-			err = fmt.Errorf("Could not get %sResult for operation at index %d", operationType, operationIndex)
+		var pathSendResult xdr.PathPaymentStrictSendResult
+		if pathSendResult, ok = operationTr.GetPathPaymentStrictSendResult(); !ok {
+			err = fmt.Errorf("Could not get PathPaymentStrictSendResult for operation at index %d", operationIndex)
 			return
-
 		}
 
-		success, ok := offerResult.GetSuccess()
-		if !ok {
-			err = fmt.Errorf("Could not get %sSuccess for operation at index %d", operationType, operationIndex)
+		success, ok := pathSendResult.GetSuccess()
+		if ok {
+			claimedOffers = success.Offers
 			return
-
 		}
 
-		claimedOffers = success.Offers
+		err = fmt.Errorf("Could not get PathPaymentStrictSendSuccess for operation at index %d", operationIndex)
+
 	case xdr.OperationTypePathPaymentStrictReceive:
-		offerResult, ok := operationTr.GetPathPaymentStrictReceiveResult()
-		if !ok {
-			err = fmt.Errorf("Could not get %sResult for operation at index %d", operationType, operationIndex)
-			return
-
-		}
-
-		success, ok := offerResult.GetSuccess()
-		if !ok {
-			err = fmt.Errorf("Could not get %sSuccess for operation at index %d", operationType, operationIndex)
+		var pathReceiveResult xdr.PathPaymentStrictReceiveResult
+		if pathReceiveResult, ok = operationTr.GetPathPaymentStrictReceiveResult(); !ok {
+			err = fmt.Errorf("Could not get PathPaymentStrictReceiveResult for operation at index %d", operationIndex)
 			return
 		}
 
-		claimedOffers = success.Offers
+		if success, ok := pathReceiveResult.GetSuccess(); ok {
+			claimedOffers = success.Offers
+			return
+		}
+
+		err = fmt.Errorf("Could not get GetPathPaymentStrictReceiveSuccess for operation at index %d", operationIndex)
+
 	default:
 		err = fmt.Errorf("Operation of type %s at index %d does not result in trades", operationType, operationIndex)
 		return
 	}
+
 	return
 }
