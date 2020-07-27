@@ -361,6 +361,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			SourceAccount:    hardCodedSourceAccountAddress,
 			Type:             0,
 			ApplicationOrder: 1,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Account:         hardCodedDestAccountAddress,
 				Funder:          hardCodedSourceAccountAddress,
@@ -371,7 +372,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             1,
 			ApplicationOrder: 2,
 			SourceAccount:    hardCodedSourceAccountAddress,
-
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				From:        hardCodedSourceAccountAddress,
 				To:          hardCodedDestAccountAddress,
@@ -385,7 +386,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             1,
 			ApplicationOrder: 3,
 			SourceAccount:    hardCodedSourceAccountAddress,
-
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				From:      hardCodedSourceAccountAddress,
 				To:        hardCodedDestAccountAddress,
@@ -397,7 +398,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             2,
 			ApplicationOrder: 4,
 			SourceAccount:    hardCodedSourceAccountAddress,
-
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				From:            hardCodedSourceAccountAddress,
 				To:              hardCodedDestAccountAddress,
@@ -413,6 +414,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             3,
 			ApplicationOrder: 5,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Price:  0.514092,
 				Amount: 76.586,
@@ -430,6 +432,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             4,
 			ApplicationOrder: 6,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Amount: 63.1595,
 				Price:  0.0791606,
@@ -447,6 +450,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             5,
 			ApplicationOrder: 7,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				InflationDest:    hardCodedDestAccountAddress,
 				ClearFlags:       []int32{1, 2},
@@ -466,6 +470,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             6,
 			ApplicationOrder: 8,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Trustor:     hardCodedSourceAccountAddress,
 				Trustee:     hardCodedDestAccountAddress,
@@ -479,6 +484,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             7,
 			ApplicationOrder: 9,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Trustee:     hardCodedSourceAccountAddress,
 				Trustor:     hardCodedDestAccountAddress,
@@ -492,6 +498,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             8,
 			ApplicationOrder: 10,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Account: hardCodedSourceAccountAddress,
 				Into:    hardCodedDestAccountAddress,
@@ -501,12 +508,14 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             9,
 			ApplicationOrder: 11,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{},
 		},
 		OperationOutput{
 			Type:             10,
 			ApplicationOrder: 12,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Name:  "test",
 				Value: base64.StdEncoding.EncodeToString([]byte{0x76, 0x61, 0x6c, 0x75, 0x65}),
@@ -516,6 +525,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             11,
 			ApplicationOrder: 13,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				BumpTo: "100",
 			},
@@ -524,6 +534,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             12,
 			ApplicationOrder: 14,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				Price:  0.3496823,
 				Amount: 765.4501001,
@@ -542,6 +553,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             13,
 			ApplicationOrder: 15,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				From:            hardCodedSourceAccountAddress,
 				To:              hardCodedDestAccountAddress,
@@ -557,6 +569,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             13,
 			ApplicationOrder: 16,
 			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
 			OperationDetails: Details{
 				From:            hardCodedSourceAccountAddress,
 				To:              hardCodedDestAccountAddress,

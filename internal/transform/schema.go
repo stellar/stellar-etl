@@ -76,10 +76,11 @@ type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
 	Type             int32   `json:"type"`
 	ApplicationOrder int32   `json:"application_order"`
+	TransactionHash  string  `json:"transaction_id"`
 	OperationDetails Details `json:"details"`
 	/*
 		TODO implement
-			TransactionID int64 // history table mapping that connect operations to their parent transaction
+			TransactionID int64 // history table mapping that connect operations to their parent transaction; will replace hash
 			OperationId int64 // use horizon's toid package
 	*/
 }
