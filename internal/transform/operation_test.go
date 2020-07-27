@@ -22,19 +22,19 @@ func TestTransformOperation(t *testing.T) {
 		wantErr    error
 	}
 	genericInput := operationInput{
-		operation:   genericOperation,
+		operation:   genericBumpOperation,
 		index:       1,
 		transaction: genericLedgerTransaction,
 	}
 
 	negativeOpTypeInput := genericInput
-	negativeOpTypeEnvelope := genericEnvelope
+	negativeOpTypeEnvelope := genericBumpOperationEnvelope
 	negativeOpTypeEnvelope.Tx.Operations[0].Body.Type = xdr.OperationType(-1)
 	negativeOpTypeInput.operation.Body.Type = xdr.OperationType(-1)
 	negativeOpTypeInput.transaction.Envelope.V1 = &negativeOpTypeEnvelope
 
 	unknownOpTypeInput := genericInput
-	unknownOpTypeEnvelope := genericEnvelope
+	unknownOpTypeEnvelope := genericBumpOperationEnvelope
 	unknownOpTypeEnvelope.Tx.Operations[0].Body.Type = xdr.OperationType(20)
 	unknownOpTypeInput.operation.Body.Type = xdr.OperationType(20)
 	unknownOpTypeInput.transaction.Envelope.V1 = &unknownOpTypeEnvelope
@@ -73,7 +73,7 @@ func TestTransformOperation(t *testing.T) {
 // Creates a single transaction that contains one of every operation type
 func makeOperationTestInput() (inputTransaction ingestio.LedgerTransaction, err error) {
 	inputTransaction = genericLedgerTransaction
-	inputEnvelope := genericEnvelope
+	inputEnvelope := genericBumpOperationEnvelope
 
 	inputEnvelope.Tx.SourceAccount = testAccount3
 	hardCodedInflationDest := testAccount4ID

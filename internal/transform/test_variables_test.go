@@ -1,6 +1,8 @@
 package transform
 
 import (
+	"time"
+
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -9,19 +11,35 @@ import (
 var genericSourceAccount, _ = xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{}))
 var genericAccountID, _ = xdr.NewAccountId(xdr.PublicKeyTypePublicKeyTypeEd25519, xdr.Uint256([32]byte{}))
 var genericAccountAddress, _ = genericAccountID.GetAddress()
-var genericOperation = xdr.Operation{
+var genericManageBuyOfferOperation = xdr.Operation{
+	SourceAccount: &genericSourceAccount,
+	Body: xdr.OperationBody{
+		Type:             xdr.OperationTypeManageBuyOffer,
+		ManageBuyOfferOp: &xdr.ManageBuyOfferOp{},
+	},
+}
+var genericBumpOperation = xdr.Operation{
 	SourceAccount: &genericSourceAccount,
 	Body: xdr.OperationBody{
 		Type:           xdr.OperationTypeBumpSequence,
 		BumpSequenceOp: &xdr.BumpSequenceOp{},
 	},
 }
-var genericEnvelope = xdr.TransactionV1Envelope{
+var genericBumpOperationEnvelope = xdr.TransactionV1Envelope{
 	Tx: xdr.Transaction{
 		SourceAccount: genericSourceAccount,
 		Memo:          xdr.Memo{},
 		Operations: []xdr.Operation{
-			genericOperation,
+			genericBumpOperation,
+		},
+	},
+}
+var genericManageBuyOfferEnvelope = xdr.TransactionV1Envelope{
+	Tx: xdr.Transaction{
+		SourceAccount: genericSourceAccount,
+		Memo:          xdr.Memo{},
+		Operations: []xdr.Operation{
+			genericManageBuyOfferOperation,
 		},
 	},
 }
@@ -29,11 +47,12 @@ var genericLedgerTransaction = ingestio.LedgerTransaction{
 	Index: 1,
 	Envelope: xdr.TransactionEnvelope{
 		Type: xdr.EnvelopeTypeEnvelopeTypeTx,
-		V1:   &genericEnvelope,
+		V1:   &genericBumpOperationEnvelope,
 	},
 	Result: utils.CreateSampleResultMeta(true, 10).Result,
 }
 var genericLedgerHeaderHistoryEntry = xdr.LedgerHeaderHistoryEntry{}
+var genericCloseTime = time.Unix(0, 0)
 
 // a selection of hardcoded accounts with their IDs and addresses
 var testAccount1Address = "GCEODJVUUVYVFD5KT4TOEDTMXQ76OPFOQC2EMYYMLPXQCUVPOB6XRWPQ"
