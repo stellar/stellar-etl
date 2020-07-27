@@ -160,16 +160,16 @@ type TrustlineOutput struct {
 
 //OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
-	SellerID           string  `json:"seller_id"`
+	SellerID           string  `json:"seller_id"` // Account address of the seller
 	OfferID            int64   `json:"offer_id"`
-	SellingAsset       string  `json:"selling_asset"`
-	BuyingAsset        string  `json:"buying_asset"`
+	SellingAsset       string  `json:"selling_asset"` // Base 64 encoding of the xdr.Asset being sold
+	BuyingAsset        string  `json:"buying_asset"`  // Base 64 encoding of the xdr.Asset being bought
 	Amount             int64   `json:"amount"`
 	PriceN             int32   `json:"pricen"`
 	PriceD             int32   `json:"priced"`
-	Price              float64 `json:"aspriceset_code"`
+	Price              float64 `json:"price"`
 	Flags              uint32  `json:"flags"`
-	LastModifiedLedger int64   `json:"last_modified_ledger"`
+	LastModifiedLedger uint32  `json:"last_modified_ledger"`
 	/*
 		TODO implement
 			Deleted bool `json:"deleted"` // need to see operation that deletes offer to know what this value should be

@@ -45,9 +45,6 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 	}
 
 	outputNumSubentries := uint32(accountEntry.NumSubEntries)
-	if outputNumSubentries < 0 {
-		return AccountOutput{}, fmt.Errorf("Subentries count is negative (%d) for account: %s", outputNumSubentries, outputID)
-	}
 
 	inflationDestAccountID := accountEntry.InflationDest
 	var outputInflationDest string
@@ -59,9 +56,6 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 	}
 
 	outputFlags := uint32(accountEntry.Flags)
-	if outputFlags < 0 {
-		return AccountOutput{}, fmt.Errorf("Flags are negative (%d) for account: %s", outputFlags, outputID)
-	}
 
 	outputHomeDomain := string(accountEntry.HomeDomain)
 
