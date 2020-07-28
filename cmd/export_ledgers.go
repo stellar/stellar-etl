@@ -31,60 +31,57 @@ var ledgersCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		startNum, err := cmd.Flags().GetUint32("start-ledger")
 		if err != nil {
-			logger.Fatal("could not get start sequence number:", err)
+			logger.Fatal("could not get start sequence number: ", err)
 		}
 
 		endNum, err := cmd.Flags().GetUint32("end-ledger")
 		if err != nil {
-			logger.Fatal("could not get start sequence number:", err)
+			logger.Fatal("could not get end sequence number: ", err)
 		}
 
-		limit, err := cmd.Flags().GetInt("limit")
+		limit, err := cmd.Flags().GetUint32("limit")
 		if err != nil {
-			logger.Fatal("could not get start sequence number:", err)
-		}
-
-		if endNum-startNum+1 > uint32(limit) {
-			logger.Fatal("limit too small for range:", fmt.Errorf("Range from %d to %d is too large for limit of %d", startNum, endNum, limit))
+			logger.Fatal("could not get limit: ", err)
 		}
 
 		path, err := cmd.Flags().GetString("output-file")
 		if err != nil {
-			logger.Fatal("could not get filepath:", err)
+			logger.Fatal("could not get output filename: ", err)
 		}
 
 		absolutePath, err := filepath.Abs(path)
 		if err != nil {
-			logger.Fatal("could not get absolute filepath:", err)
+			logger.Fatal("could not get absolute filepath: ", err)
 		}
 
 		err = createOutputFile(absolutePath)
 		if err != nil {
-			logger.Fatal("could not create output file:", err)
+			logger.Fatal("could not create output file: ", err)
 		}
 
 		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
-			logger.Fatal("could not create output file", err)
+			logger.Fatal("could not create output file: ", err)
 		}
 
-		ledgers, err := input.GetLedgers(startNum, endNum)
+		ledgers, err := input.GetLedgers(startNum, endNum, limit)
 		if err != nil {
-			logger.Fatal("could not read ledgers", err)
+			logger.Fatal("could not read ledgers: ", err)
 		}
 
 		for i, lcm := range ledgers {
 			transformed, err := transform.TransformLedger(lcm)
 			if err != nil {
-				logger.Fatal(fmt.Sprintf("could not transform ledger %d", startNum+uint32(i)), err)
+				logger.Fatal(fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i)), err)
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				logger.Fatal(fmt.Sprintf("could not json encode ledger %d", startNum+uint32(i)), err)
+				logger.Fatal(fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i)), err)
 			}
 
 			outFile.Write(marshalled)
+			outFile.WriteString("\n")
 		}
 
 		/*
@@ -102,7 +99,7 @@ func init() {
 	rootCmd.AddCommand(ledgersCmd)
 	ledgersCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
 	ledgersCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	ledgersCmd.Flags().IntP("limit", "l", 60, "Maximum number of ledgers to export")
+	ledgersCmd.Flags().Uint32P("limit", "l", 60, "Maximum number of ledgers to export")
 	ledgersCmd.Flags().StringP("output-file", "o", "exported_ledgers.txt", "Filename of the output file")
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
