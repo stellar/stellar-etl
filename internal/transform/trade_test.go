@@ -247,15 +247,19 @@ func makeTradeTestInput() (inputTransaction ingestio.LedgerTransaction) {
 		xdr.Operation{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
-				Type:                    xdr.OperationTypePathPaymentStrictSend,
-				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{},
+				Type: xdr.OperationTypePathPaymentStrictSend,
+				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{
+					Destination: testAccount1,
+				},
 			},
 		},
 		xdr.Operation{
 			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
-				Type:                       xdr.OperationTypePathPaymentStrictReceive,
-				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+				Type: xdr.OperationTypePathPaymentStrictReceive,
+				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
+					Destination: testAccount1,
+				},
 			},
 		},
 		xdr.Operation{
@@ -393,11 +397,18 @@ func makeTradeTestOutput() [][]TradeOutput {
 	offerTwoOutputSecondPlace := twoPriceIsAmount
 	offerTwoOutputSecondPlace.Order = 1
 
-	return [][]TradeOutput{
+	output := [][]TradeOutput{
 		[]TradeOutput{offerOneOutput},
 		[]TradeOutput{offerTwoOutput},
 		[]TradeOutput{onePriceIsAmount, offerTwoOutputSecondPlace},
 		[]TradeOutput{twoPriceIsAmount, offerOneOutputSecondPlace},
 		[]TradeOutput{},
 	}
+	output[0][0].HistoryOperationBase64 = "AAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+	output[1][0].HistoryOperationBase64 = "AAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+	output[2][0].HistoryOperationBase64 = "AAAAAAAAAA0AAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
+	output[2][1].HistoryOperationBase64 = "AAAAAAAAAA0AAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
+	output[3][0].HistoryOperationBase64 = "AAAAAQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAIAAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
+	output[3][1].HistoryOperationBase64 = "AAAAAQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAIAAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
+	return output
 }

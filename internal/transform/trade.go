@@ -77,6 +77,7 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 		// Final price should be buy / sell
 		outputPriceN, outputPriceD := outputCounterAmount, outputBaseAmount
 
+		outputOperationBase64, err := xdr.MarshalBase64(operation)
 		if err != nil {
 			return []TradeOutput{}, err
 		}
@@ -84,22 +85,23 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 		outputBaseIsSeller := true
 
 		trade := TradeOutput{
-			Order:                 outputOrder,
-			LedgerClosedAt:        outputLedgerClosedAt,
-			OfferID:               outputOfferID,
-			BaseAccountAddress:    outputBaseAccountAddress,
-			BaseAssetType:         outputBaseAssetType,
-			BaseAssetCode:         outputBaseAssetCode,
-			BaseAssetIssuer:       outputBaseAssetIssuer,
-			BaseAmount:            outputBaseAmount,
-			CounterAccountAddress: outputCounterAccountAddress,
-			CounterAssetType:      outputCounterAssetType,
-			CounterAssetCode:      outputCounterAssetCode,
-			CounterAssetIssuer:    outputCounterAssetIssuer,
-			CounterAmount:         outputCounterAmount,
-			BaseIsSeller:          outputBaseIsSeller,
-			PriceN:                outputPriceN,
-			PriceD:                outputPriceD,
+			Order:                  outputOrder,
+			LedgerClosedAt:         outputLedgerClosedAt,
+			OfferID:                outputOfferID,
+			BaseAccountAddress:     outputBaseAccountAddress,
+			BaseAssetType:          outputBaseAssetType,
+			BaseAssetCode:          outputBaseAssetCode,
+			BaseAssetIssuer:        outputBaseAssetIssuer,
+			BaseAmount:             outputBaseAmount,
+			CounterAccountAddress:  outputCounterAccountAddress,
+			CounterAssetType:       outputCounterAssetType,
+			CounterAssetCode:       outputCounterAssetCode,
+			CounterAssetIssuer:     outputCounterAssetIssuer,
+			CounterAmount:          outputCounterAmount,
+			BaseIsSeller:           outputBaseIsSeller,
+			PriceN:                 outputPriceN,
+			PriceD:                 outputPriceD,
+			HistoryOperationBase64: outputOperationBase64,
 		}
 
 		transformedTrades = append(transformedTrades, trade)

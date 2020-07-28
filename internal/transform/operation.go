@@ -28,10 +28,18 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
+	outputTransactionHash := utils.HashToHexString(transaction.Result.TransactionHash)
+	outputBase64, err := xdr.MarshalBase64(operation)
+	if err != nil {
+		return OperationOutput{}, err
+	}
+
 	transformedOperation := OperationOutput{
 		SourceAccount:    outputSourceAccount,
 		Type:             outputOperationType,
 		ApplicationOrder: operationIndex + 1, // Application order is 1-indexed
+		TransactionHash:  outputTransactionHash,
+		OperationBase64:  outputBase64,
 		OperationDetails: outputDetails,
 	}
 
