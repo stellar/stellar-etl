@@ -7,7 +7,7 @@ type LedgerOutput struct {
 	Sequence                   uint32    `json:"sequence"` //sequence number of the ledger
 	LedgerHash                 string    `json:"ledger_hash"`
 	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
-	LedgerHeader               []byte    `json:"ledger_header"` //base 64 encoding of the ledger header
+	LedgerHeader               string    `json:"ledger_header"` //base 64 encoding of the ledger header
 	TransactionCount           int32     `json:"transaction_count"`
 	OperationCount             int32     `json:"operation_count"` //counts only operations that were a part of successful transactions
 	SuccessfulTransactionCount int32     `json:"successful_transaction_count"`

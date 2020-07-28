@@ -23,12 +23,10 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	outputLedgerHash := utils.HashToHexString(ledgerHeaderHistory.Hash)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
 
-	hashedLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
+	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
 	if err != nil {
 		return LedgerOutput{}, err
 	}
-
-	outputLedgerHeader := []byte(hashedLedgerHeader)
 
 	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(ledger)
 	if err != nil {

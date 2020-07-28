@@ -12,22 +12,13 @@ func createBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
 	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
 }
 
-func validateLedgerRange(start uint32, end uint32, backend ledgerbackend.HistoryArchiveBackend) error {
-	if start < 0 {
-		return fmt.Errorf("Start sequence number (%d) is negative", start)
-	}
-
-	if end < 0 {
-		return fmt.Errorf("End sequence number (%d) is negative", end)
-	}
-
+func validateLedgerRange(start, end, limit, latestNum uint32) error {
 	if end < start {
-		return fmt.Errorf("End sequence number is less than end (%d < %d)", end, start)
+		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
 	}
 
-	latestNum, err := backend.GetLatestLedgerSequence()
-	if err != nil {
-		return err
+	if end-start+1 > limit {
+		return fmt.Errorf("Range of [%d, %d] is too large for limit of %d", start, end, limit)
 	}
 
 	if latestNum < start {
@@ -35,20 +26,25 @@ func validateLedgerRange(start uint32, end uint32, backend ledgerbackend.History
 	}
 
 	if latestNum < end {
-		return fmt.Errorf("Latest sequence number is less than start sequence number (%d < %d)", latestNum, end)
+		return fmt.Errorf("Latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
 	}
 
 	return nil
 }
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetLedgers(start uint32, end uint32) ([]xdr.LedgerCloseMeta, error) {
+func GetLedgers(start, end, limit uint32) ([]xdr.LedgerCloseMeta, error) {
 	backend, err := createBackend()
 	if err != nil {
 		return []xdr.LedgerCloseMeta{}, err
 	}
 
-	err = validateLedgerRange(start, end, *backend)
+	latestNum, err := backend.GetLatestLedgerSequence()
+	if err != nil {
+		return []xdr.LedgerCloseMeta{}, err
+	}
+
+	err = validateLedgerRange(start, end, limit, latestNum)
 	if err != nil {
 		return []xdr.LedgerCloseMeta{}, err
 	}
