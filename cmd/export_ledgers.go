@@ -59,6 +59,7 @@ var ledgersCmd = &cobra.Command{
 			logger.Fatal("could not create output file: ", err)
 		}
 
+		// TODO: check the permissions of the file to ensure that it can be written to
 		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
 			logger.Fatal("could not create output file: ", err)
