@@ -88,11 +88,11 @@ func TestExportLedger(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		runCLITest(t, test)
+		runCLITest(t, test, "testdata/ledgers/")
 	}
 }
 
-func runCLITest(t *testing.T, test cliTest) {
+func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
@@ -115,7 +115,7 @@ func runCLITest(t *testing.T, test cliTest) {
 			assert.NoError(t, err)
 			actualString := string(actualOutput)
 
-			wantString, err := getGolden(t, "testdata/"+test.golden, actualString, *update)
+			wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
 			assert.NoError(t, err)
 			assert.Equal(t, wantString, actualString)
 		}
