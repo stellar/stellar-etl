@@ -12,13 +12,9 @@ func createBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
 	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
 }
 
-func validateLedgerRange(start, end, limit, latestNum uint32) error {
+func validateLedgerRange(start, end, latestNum uint32) error {
 	if end < start {
 		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
-	}
-
-	if end-start+1 > limit {
-		return fmt.Errorf("Range of [%d, %d] is too large for limit of %d", start, end, limit)
 	}
 
 	if latestNum < start {
@@ -44,7 +40,7 @@ func GetLedgers(start, end, limit uint32) ([]xdr.LedgerCloseMeta, error) {
 		return []xdr.LedgerCloseMeta{}, err
 	}
 
-	err = validateLedgerRange(start, end, limit, latestNum)
+	err = validateLedgerRange(start, end, latestNum)
 	if err != nil {
 		return []xdr.LedgerCloseMeta{}, err
 	}
@@ -61,6 +57,9 @@ func GetLedgers(start, end, limit uint32) ([]xdr.LedgerCloseMeta, error) {
 		}
 
 		metaSlice = append(metaSlice, ledger)
+		if uint32(len(metaSlice)) >= limit {
+			break
+		}
 	}
 
 	return metaSlice, nil

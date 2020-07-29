@@ -23,31 +23,36 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
+func getBasicFlags(cmd *cobra.Command) (startNum, endNum, limit uint32, path string) {
+	startNum, err := cmd.Flags().GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	endNum, err = cmd.Flags().GetUint32("end-ledger")
+	if err != nil {
+		logger.Fatal("could not get end sequence number: ", err)
+	}
+
+	limit, err = cmd.Flags().GetUint32("limit")
+	if err != nil {
+		logger.Fatal("could not get limit: ", err)
+	}
+
+	path, err = cmd.Flags().GetString("output-file")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+	return
+}
+
 // ledgersCmd represents the ledgers command
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, err := cmd.Flags().GetUint32("start-ledger")
-		if err != nil {
-			logger.Fatal("could not get start sequence number: ", err)
-		}
-
-		endNum, err := cmd.Flags().GetUint32("end-ledger")
-		if err != nil {
-			logger.Fatal("could not get end sequence number: ", err)
-		}
-
-		limit, err := cmd.Flags().GetUint32("limit")
-		if err != nil {
-			logger.Fatal("could not get limit: ", err)
-		}
-
-		path, err := cmd.Flags().GetString("output-file")
-		if err != nil {
-			logger.Fatal("could not get output filename: ", err)
-		}
+		startNum, endNum, limit, path := getBasicFlags(cmd)
 
 		absolutePath, err := filepath.Abs(path)
 		if err != nil {
@@ -62,7 +67,7 @@ var ledgersCmd = &cobra.Command{
 		// TODO: check the permissions of the file to ensure that it can be written to
 		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
-			logger.Fatal("could not create output file: ", err)
+			logger.Fatal("could not open output file: ", err)
 		}
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit)
