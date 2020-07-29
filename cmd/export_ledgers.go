@@ -83,15 +83,6 @@ var ledgersCmd = &cobra.Command{
 			outFile.Write(marshalled)
 			outFile.WriteString("\n")
 		}
-
-		/*
-			Functionality planning:
-			1. Read in start and end ledger numbers/timestamps
-				1b. If timestamps are received, convert them to ledger sequence numbers
-			2. Get each ledger in the range from the ingestion system
-			3. For each ledger received, make a corresponding Ledger struct in the output slice (slice has a max length of limit)
-			4. Serialize slice and output it to a file
-		*/
 	},
 }
 
@@ -103,20 +94,15 @@ func init() {
 	ledgersCmd.Flags().StringP("output-file", "o", "exported_ledgers.txt", "Filename of the output file")
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
-		Needed flags:
-			TODO: determine if providing ledger sequence number or timestamp is preferable (possibly could do both)
-				If we do both, do not require both end-time and end-ledger
-
-			start-time: the time for the beginning of the period to export; default to genesis ledger's creation time
-			end-time: the time for the end of the period to export (required)
-
+		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
 			end-ledger: the ledger sequence number for the end of the export range (required)
 
 			limit: maximum number of ledgers to export; default to 60 (1 ledger per 5 seconds over our 5 minute update period)
 			output-file: filename of the output file
 
-		Extra flags that may be useful:
+		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
+			start and end time as a replacement for start and end sequence numbers
 	*/
 }
