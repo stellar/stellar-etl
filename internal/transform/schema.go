@@ -2,18 +2,18 @@ package transform
 
 import "time"
 
-//LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
+// LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
-	Sequence                   uint32    `json:"sequence"` //sequence number of the ledger
+	Sequence                   uint32    `json:"sequence"` // sequence number of the ledger
 	LedgerHash                 string    `json:"ledger_hash"`
 	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
 	LedgerHeader               string    `json:"ledger_header"` //base 64 encoding of the ledger header
 	TransactionCount           int32     `json:"transaction_count"`
-	OperationCount             int32     `json:"operation_count"` //counts only operations that were a part of successful transactions
+	OperationCount             int32     `json:"operation_count"` // counts only operations that were a part of successful transactions
 	SuccessfulTransactionCount int32     `json:"successful_transaction_count"`
 	FailedTransactionCount     int32     `json:"failed_transaction_count"`
-	TxSetOperationCount        string    `json:"tx_set_operation_count"` //counts all operations, even those that are part of failed transactions
-	ClosedAt                   time.Time `json:"closed_at"`              //UTC timestamp
+	TxSetOperationCount        string    `json:"tx_set_operation_count"` // counts all operations, even those that are part of failed transactions
+	ClosedAt                   time.Time `json:"closed_at"`              // UTC timestamp
 	TotalCoins                 int64     `json:"total_coins"`
 	FeePool                    int64     `json:"fee_pool"`
 	BaseFee                    uint32    `json:"base_fee"`
@@ -22,14 +22,15 @@ type LedgerOutput struct {
 	ProtocolVersion            uint32    `json:"protocol_version"`
 
 	/*
-		TODO implement these three fields
-			CreatedAt time.Time //timestamp of table entry creation time
-			UpdatedAt time.Time //timestamp of table entry update time
-			ImporterVersion int32 //version of the ingestion system
+		TODO implement these four fields
+			CreatedAt time.Time // timestamp of table entry creation time
+			UpdatedAt time.Time // timestamp of table entry update time
+			ImporterVersion int32 // version of the ingestion system
+			LedgerID int64 // use horizon's toid package
 	*/
 }
 
-//TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
+// TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
 	TransactionHash  string    `json:"transaction_hash"`
 	LedgerSequence   uint32    `json:"ledger_sequence"`
@@ -47,13 +48,14 @@ type TransactionOutput struct {
 
 	/*
 		TODO implement
-			updated_at time.Time //timestamp of table entry update time
+			updated_at time.Time // timestamp of table entry update time
+			TransactionID int64 // use horizon's toid package
 	*/
 }
 
-//AccountOutput is a representation of an account that aligns with the BigQuery table accounts
+// AccountOutput is a representation of an account that aligns with the BigQuery table accounts
 type AccountOutput struct {
-	AccountID            string `json:"account_id"`
+	AccountID            string `json:"account_id"` // account address
 	Balance              int64  `json:"balance"`
 	BuyingLiabilities    int64  `json:"buying_liabilities"`
 	SellingLiabilities   int64  `json:"selling_liabilities"`
@@ -69,19 +71,22 @@ type AccountOutput struct {
 	LastModifiedLedger   uint32 `json:"Last_modified_ledger"`
 }
 
-//OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
+// OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
 type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
 	Type             int32   `json:"type"`
 	ApplicationOrder int32   `json:"application_order"`
+	TransactionHash  string  `json:"transaction_id"`
+	OperationBase64  string  `json:"id"`
 	OperationDetails Details `json:"details"`
 	/*
 		TODO implement
-			TransactionID int64 // history table mapping that connect operations to their parent transaction
+			TransactionID int64 // history table mapping that connect operations to their parent transaction; will replace TransactionHash
+			OperationId int64 // use horizon's toid package; replace OperationBase64 with this
 	*/
 }
 
-//Details is a struct that provides additional information about operations in a way that aligns with the details struct in the BigQuery table history_operations
+// Details is a struct that provides additional information about operations in a way that aligns with the details struct in the BigQuery table history_operations
 type Details struct {
 	Account            string        `json:"account"`
 	Amount             float64       `json:"amount"`
@@ -123,27 +128,27 @@ type Details struct {
 	To                 string        `json:"to"`
 	Trustee            string        `json:"trustee"`
 	Trustor            string        `json:"trustor"`
-	Value              string        `json:"value"` //base64 encoding of bytes
+	Value              string        `json:"value"` // base64 encoding of bytes
 	ClearFlags         []int32       `json:"clear_flags"`
 	ClearFlagsString   []string      `json:"clear_flags_s"`
 	DestinationMin     string        `json:"destination_min"`
 	BumpTo             string        `json:"bump_to"`
 }
 
-//Price represents the price of an asset as a fraction
+// Price represents the price of an asset as a fraction
 type Price struct {
 	Numerator   int32 `json:"n"`
 	Denominator int32 `json:"d"`
 }
 
-//AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
+// AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
 type AssetOutput struct {
 	AssetCode   string `json:"asset_code"`
 	AssetIssuer string `json:"asset_issuer"`
 	AssetType   string `json:"asset_type"`
 }
 
-//TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
+// TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
 type TrustlineOutput struct {
 	LedgerKey          string `json:"ledger_key"`
 	AccountID          string `json:"account_id"`
@@ -158,7 +163,7 @@ type TrustlineOutput struct {
 	LastModifiedLedger uint32 `json:"Last_modified_ledger"`
 }
 
-//OfferOutput is a representation of an offer that aligns with the BigQuery table offers
+// OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
 	SellerID           string  `json:"seller_id"` // Account address of the seller
 	OfferID            int64   `json:"offer_id"`
@@ -176,35 +181,38 @@ type OfferOutput struct {
 	*/
 }
 
-//TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
+// TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
 type TradeOutput struct {
-	Order                 int32     `json:"order"`
-	LedgerClosedAt        time.Time `json:"ledger_closed_at"`
-	OfferID               int64     `json:"offer_id"`
-	BaseAccountAddress    string    `json:"base_account_address"`
-	BaseAssetCode         string    `json:"base_asset_code"`
-	BaseAssetIssuer       string    `json:"base_asset_issuer"`
-	BaseAssetType         string    `json:"base_asset_type"`
-	BaseAmount            int64     `json:"base_amount"`
-	CounterAccountAddress string    `json:"counter_account_address"`
-	CounterAssetCode      string    `json:"counter_asset_code"`
-	CounterAssetIssuer    string    `json:"counter_asset_issuer"`
-	CounterAssetType      string    `json:"counter_asset_type"`
-	CounterAmount         int64     `json:"counter_amount"`
-	BaseIsSeller          bool      `json:"base_is_seller"`
-	PriceN                int64     `json:"price_n"`
-	PriceD                int64     `json:"price_d"`
+	Order                  int32     `json:"order"`
+	LedgerClosedAt         time.Time `json:"ledger_closed_at"`
+	OfferID                int64     `json:"offer_id"`
+	BaseAccountAddress     string    `json:"base_account_address"`
+	BaseAssetCode          string    `json:"base_asset_code"`
+	BaseAssetIssuer        string    `json:"base_asset_issuer"`
+	BaseAssetType          string    `json:"base_asset_type"`
+	BaseAmount             int64     `json:"base_amount"`
+	CounterAccountAddress  string    `json:"counter_account_address"`
+	CounterAssetCode       string    `json:"counter_asset_code"`
+	CounterAssetIssuer     string    `json:"counter_asset_issuer"`
+	CounterAssetType       string    `json:"counter_asset_type"`
+	CounterAmount          int64     `json:"counter_amount"`
+	BaseIsSeller           bool      `json:"base_is_seller"`
+	PriceN                 int64     `json:"price_n"`
+	PriceD                 int64     `json:"price_d"`
+	HistoryOperationBase64 string    `json:"history_operation_id"`
 	/*
-		TODO: Figure out how to get base and counter offer id
-			BaseOfferID           int64     `json:"base_offer_id"`
-			CounterOfferID        int64     `json:"counter_offer_id"`
+		TODO:
+			Figure out how to get base and counter offer id
+				BaseOfferID           int64     `json:"base_offer_id"`
+				CounterOfferID        int64     `json:"counter_offer_id"`
 
-			BaseOfferID is the same as the OfferID
-			CounterOfferID:
-				if entry.BuyOfferExists {
-						buyOfferID = EncodeOfferId(uint64(entry.BuyOfferID), CoreOfferIDType)
-					} else {
-						buyOfferID = EncodeOfferId(uint64(entry.HistoryOperationID), TOIDType)
-				}
+				BaseOfferID is the same as the OfferID
+				CounterOfferID:
+					if entry.BuyOfferExists {
+							buyOfferID = EncodeOfferId(uint64(entry.BuyOfferID), CoreOfferIDType)
+						} else {
+							buyOfferID = EncodeOfferId(uint64(entry.HistoryOperationID), TOIDType)
+					}
+			Replace HistoryOperationBase64 with a numeric id that uses horizon's toid package
 	*/
 }
