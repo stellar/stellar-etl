@@ -15,10 +15,18 @@ import (
 )
 
 var executableName = "stellar-etl"
+var testFileName = "test.txt"
 var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
 var latestLedger = getLastSeqNum()
 var update = flag.Bool("update", false, "update the golden files of this test")
 var backend, _ = ledgerbackend.NewHistoryArchiveBackendFromURL(archiveURL)
+
+type cliTest struct {
+	name    string
+	args    []string
+	golden  string
+	wantErr error
+}
 
 func TestMain(m *testing.M) {
 	if err := os.Chdir(".."); err != nil {
@@ -39,27 +47,13 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func TestTransformLedger(t *testing.T) {
-	type cliTest struct {
-		name    string
-		args    []string
-		golden  string
-		wantErr error
-	}
-	var testFileName = "test.txt"
-
+func TestExportLedger(t *testing.T) {
 	tests := []cliTest{
 		{
 			name:    "end before start",
 			args:    []string{"export_ledgers", "-s", "100", "-e", "50", "-o", testFileName},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: End sequence number is less than start (50 < 100)"),
-		},
-		{
-			name:    "range too large",
-			args:    []string{"export_ledgers", "-s", "0", "-e", "100", "-l", "10", "-o", testFileName},
-			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: Range of [0, 100] is too large for limit of 10"),
 		},
 		{
 			name:    "start too large",
@@ -85,38 +79,49 @@ func TestTransformLedger(t *testing.T) {
 			golden:  "10_ledgers.golden",
 			wantErr: nil,
 		},
+		{
+			name:    "range too large",
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", testFileName},
+			golden:  "large_range_ledgers.golden",
+			wantErr: nil,
+		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			dir, err := os.Getwd()
-			assert.NoError(t, err)
-
-			cmd := exec.Command(path.Join(dir, executableName), test.args...)
-			errText, actualError := cmd.CombinedOutput()
-
-			// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
-			// Instead, it's wrapped in other os/system errors
-			// By reading the error text from the logger, we can extract the lower level error that the user would see
-			if test.golden == "" {
-				errorMsg := fmt.Errorf(extractErrorMsg(string(errText)))
-				assert.Equal(t, test.wantErr, errorMsg)
-			}
-
-			// Tests that are designed to fail won't generate an valid output file, and so testing shouldn't look for one
-			if test.golden != "" {
-				assert.Equal(t, test.wantErr, actualError)
-				actualOutput, err := ioutil.ReadFile(testFileName)
-				assert.NoError(t, err)
-				actualString := string(actualOutput)
-
-				wantString, err := getGolden(t, "testdata/"+test.golden, actualString, *update)
-				assert.NoError(t, err)
-				assert.Equal(t, wantString, actualString)
-			}
-			os.Remove(testFileName)
-		})
+		runCLITest(t, test, "testdata/ledgers/")
 	}
+}
+
+// TODO: add a testing flag that outputs to stdout and read from there instead of reading back from a test file
+func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
+	t.Run(test.name, func(t *testing.T) {
+		dir, err := os.Getwd()
+		assert.NoError(t, err)
+
+		cmd := exec.Command(path.Join(dir, executableName), test.args...)
+		errText, actualError := cmd.CombinedOutput()
+
+		// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
+		// Instead, it's wrapped in other os/system errors
+		// By reading the error text from the logger, we can extract the lower level error that the user would see
+		if test.golden == "" {
+			errorMsg := fmt.Errorf(extractErrorMsg(string(errText)))
+			assert.Equal(t, test.wantErr, errorMsg)
+		}
+
+		// Tests that are designed to fail won't generate an valid output file, and so testing shouldn't look for one
+		if test.golden != "" {
+			assert.Equal(t, test.wantErr, actualError)
+			actualOutput, err := ioutil.ReadFile(testFileName)
+			assert.NoError(t, err)
+			actualString := string(actualOutput)
+
+			wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
+			assert.NoError(t, err)
+			assert.Equal(t, wantString, actualString)
+		}
+		os.Remove(testFileName)
+	})
 }
 
 func extractErrorMsg(loggerOutput string) string {
