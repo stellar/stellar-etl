@@ -17,7 +17,7 @@ var transactionsCmd = &cobra.Command{
 	Short: "Exports the transaction data over a specified range.",
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path := getBasicFlags(cmd)
+		startNum, endNum, limit, path := getBasicFlags(cmd.Flags())
 
 		absolutePath, err := filepath.Abs(path)
 		if err != nil {
@@ -32,7 +32,7 @@ var transactionsCmd = &cobra.Command{
 		// TODO: check the permissions of the file to ensure that it can be written to
 		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
-			logger.Fatal("could not open output file: ", err)
+			logger.Fatal("error in output file: ", err)
 		}
 		transactions, err := input.GetTransactions(startNum, endNum, limit)
 		if err != nil {

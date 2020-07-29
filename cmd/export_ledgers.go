@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 )
@@ -23,23 +24,23 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
-func getBasicFlags(cmd *cobra.Command) (startNum, endNum, limit uint32, path string) {
-	startNum, err := cmd.Flags().GetUint32("start-ledger")
+func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path string) {
+	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
 	}
 
-	endNum, err = cmd.Flags().GetUint32("end-ledger")
+	endNum, err = flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
 	}
 
-	limit, err = cmd.Flags().GetUint32("limit")
+	limit, err = flags.GetUint32("limit")
 	if err != nil {
 		logger.Fatal("could not get limit: ", err)
 	}
 
-	path, err = cmd.Flags().GetString("output-file")
+	path, err = flags.GetString("output-file")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
 	}
@@ -52,7 +53,7 @@ var ledgersCmd = &cobra.Command{
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path := getBasicFlags(cmd)
+		startNum, endNum, limit, path := getBasicFlags(cmd.Flags())
 
 		absolutePath, err := filepath.Abs(path)
 		if err != nil {
@@ -67,7 +68,7 @@ var ledgersCmd = &cobra.Command{
 		// TODO: check the permissions of the file to ensure that it can be written to
 		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 		if err != nil {
-			logger.Fatal("could not open output file: ", err)
+			logger.Fatal("error in output file: ", err)
 		}
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit)
