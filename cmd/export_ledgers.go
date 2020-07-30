@@ -40,7 +40,7 @@ func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path s
 		logger.Fatal("could not get limit: ", err)
 	}
 
-	path, err = flags.GetString("output-file")
+	path, err = flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
 	}
@@ -98,7 +98,7 @@ func init() {
 	ledgersCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
 	ledgersCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
 	ledgersCmd.Flags().Uint32P("limit", "l", 60, "Maximum number of ledgers to export")
-	ledgersCmd.Flags().StringP("output-file", "o", "exported_ledgers.txt", "Filename of the output file")
+	ledgersCmd.Flags().StringP("output", "o", "exported_ledgers.txt", "Filename of the output file")
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
