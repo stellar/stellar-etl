@@ -24,7 +24,7 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
-func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum uint32, limit int64, path string, useStdOut bool) {
+func mustBasicFlags(flags *pflag.FlagSet) (startNum, endNum uint32, limit int64, path string, useStdOut bool) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -53,7 +53,7 @@ func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum uint32, limit int64, 
 	return
 }
 
-func getOutFile(path string) *os.File {
+func mustOutFile(path string) *os.File {
 	absolutePath, err := filepath.Abs(path)
 	if err != nil {
 		logger.Fatal("could not get absolute filepath: ", err)
@@ -86,11 +86,11 @@ var ledgersCmd = &cobra.Command{
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdOut := getBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := mustBasicFlags(cmd.Flags())
 
 		var outFile *os.File
 		if !useStdOut {
-			outFile = getOutFile(path)
+			outFile = mustOutFile(path)
 		}
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit)

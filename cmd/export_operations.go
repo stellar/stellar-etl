@@ -15,11 +15,11 @@ var operationsCmd = &cobra.Command{
 	Short: "Exports the operations data over a specified range",
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdOut := getBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := mustBasicFlags(cmd.Flags())
 
 		var outFile *os.File
 		if !useStdOut {
-			outFile = getOutFile(path)
+			outFile = mustOutFile(path)
 		}
 
 		operations, err := input.GetOperations(startNum, endNum, limit)
