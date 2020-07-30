@@ -34,21 +34,24 @@ var transactionsCmd = &cobra.Command{
 		if err != nil {
 			logger.Fatal("error in output file: ", err)
 		}
+
 		transactions, err := input.GetTransactions(startNum, endNum, limit)
 		if err != nil {
 			logger.Fatal("could not read transactions: ", err)
 		}
 
-		for i, transformInput := range transactions {
+		for _, transformInput := range transactions {
 			transformed, err := transform.TransformTransaction(transformInput.Transaction, transformInput.LedgerHistory)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not transform transaction %d in ledger %d: ", transformInput.Transaction.Index, startNum+uint32(i))
+				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
+				errMsg := fmt.Sprintf("could not transform transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq)
 				logger.Fatal(errMsg, err)
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not json encode transaction %d in ledger %d: ", transformInput.Transaction.Index, startNum+uint32(i))
+				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
+				errMsg := fmt.Sprintf("could not json encode transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq)
 				logger.Fatal(errMsg, err)
 			}
 
@@ -63,7 +66,7 @@ func init() {
 	transactionsCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
 	transactionsCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
 	transactionsCmd.Flags().Uint32P("limit", "l", 60000, "Maximum number of transactions to export")
-	transactionsCmd.Flags().StringP("output-file", "o", "exported_transactions.txt", "Filename of the output file")
+	transactionsCmd.Flags().StringP("output", "o", "exported_transactions.txt", "Filename of the output file")
 	transactionsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

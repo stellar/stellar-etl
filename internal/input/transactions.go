@@ -41,7 +41,7 @@ func GetTransactions(start, end, limit uint32) ([]LedgerTransformInput, error) {
 			return []LedgerTransformInput{}, err
 		}
 
-		for {
+		for uint32(len(txSlice)) < limit {
 			tx, err := txReader.Read()
 			if err == io.EOF {
 				break
@@ -50,9 +50,6 @@ func GetTransactions(start, end, limit uint32) ([]LedgerTransformInput, error) {
 				Transaction:   tx,
 				LedgerHistory: lhe,
 			})
-			if uint32(len(txSlice)) >= limit {
-				break
-			}
 		}
 
 		if uint32(len(txSlice)) >= limit {
