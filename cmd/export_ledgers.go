@@ -24,7 +24,7 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
-func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path string, useStdOut bool) {
+func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum uint32, limit int64, path string, useStdOut bool) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -35,7 +35,7 @@ func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path s
 		logger.Fatal("could not get end sequence number: ", err)
 	}
 
-	limit, err = flags.GetUint32("limit")
+	limit, err = flags.GetInt64("limit")
 	if err != nil {
 		logger.Fatal("could not get limit: ", err)
 	}
@@ -73,7 +73,14 @@ func getOutFile(path string) *os.File {
 	return outFile
 }
 
-// ledgersCmd represents the ledgers command
+func addBasicFlags(objectName string, flags *pflag.FlagSet) {
+	flags.Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
+	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
+	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
+	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
+	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+}
+
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data.",
@@ -114,11 +121,7 @@ var ledgersCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(ledgersCmd)
-	ledgersCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
-	ledgersCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	ledgersCmd.Flags().Uint32P("limit", "l", 60, "Maximum number of ledgers to export")
-	ledgersCmd.Flags().StringP("output", "o", "exported_ledgers.txt", "Filename of the output file")
-	ledgersCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+	addBasicFlags("ledgers", ledgersCmd.Flags())
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

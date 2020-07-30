@@ -17,7 +17,7 @@ type LedgerTransformInput struct {
 var publicPassword = network.PublicNetworkPassphrase
 
 // GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetTransactions(start, end, limit uint32) ([]LedgerTransformInput, error) {
+func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, error) {
 	backend, err := createBackend()
 	if err != nil {
 		return []LedgerTransformInput{}, err
@@ -41,18 +41,20 @@ func GetTransactions(start, end, limit uint32) ([]LedgerTransformInput, error) {
 			return []LedgerTransformInput{}, err
 		}
 
-		for uint32(len(txSlice)) < limit {
+		// A negative limit value means that all input should be processed
+		for int64(len(txSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
 			if err == io.EOF {
 				break
 			}
+
 			txSlice = append(txSlice, LedgerTransformInput{
 				Transaction:   tx,
 				LedgerHistory: lhe,
 			})
 		}
 
-		if uint32(len(txSlice)) >= limit {
+		if int64(len(txSlice)) >= limit && limit >= 0 {
 			break
 		}
 	}

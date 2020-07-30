@@ -15,7 +15,7 @@ type OperationTransformInput struct {
 }
 
 // GetOperations returns a slice of operation close metas for the ledgers in the provided range (inclusive on both ends)
-func GetOperations(start, end, limit uint32) ([]OperationTransformInput, error) {
+func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, error) {
 	backend, err := createBackend()
 	if err != nil {
 		return []OperationTransformInput{}, err
@@ -38,7 +38,7 @@ func GetOperations(start, end, limit uint32) ([]OperationTransformInput, error) 
 			return []OperationTransformInput{}, err
 		}
 
-		for uint32(len(opSlice)) < limit {
+		for int64(len(opSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
 			if err == io.EOF {
 				break
@@ -51,12 +51,13 @@ func GetOperations(start, end, limit uint32) ([]OperationTransformInput, error) 
 					Transaction:    tx,
 				})
 
-				if uint32(len(opSlice)) >= limit {
+				if int64(len(opSlice)) >= limit && limit >= 0 {
 					break
 				}
 			}
 		}
-		if uint32(len(opSlice)) >= limit {
+
+		if int64(len(opSlice)) >= limit && limit >= 0 {
 			break
 		}
 	}

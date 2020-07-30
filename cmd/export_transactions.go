@@ -10,7 +10,6 @@ import (
 	"github.com/stellar/stellar-etl/internal/transform"
 )
 
-// transactionsCmd represents the transactions command
 var transactionsCmd = &cobra.Command{
 	Use:   "export_transactions",
 	Short: "Exports the transaction data over a specified range.",
@@ -55,12 +54,9 @@ var transactionsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(transactionsCmd)
-	transactionsCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
-	transactionsCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	transactionsCmd.Flags().Uint32P("limit", "l", 60000, "Maximum number of transactions to export")
-	transactionsCmd.Flags().StringP("output", "o", "exported_transactions.txt", "Filename of the output file")
-	transactionsCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+	addBasicFlags("transactions", transactionsCmd.Flags())
 	transactionsCmd.MarkFlagRequired("end-ledger")
+
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
