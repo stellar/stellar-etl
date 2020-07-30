@@ -15,7 +15,6 @@ import (
 )
 
 var executableName = "stellar-etl"
-var testFileName = "test.txt"
 var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
 var latestLedger = getLastSeqNum()
 var update = flag.Bool("update", false, "update the golden files of this test")
@@ -51,37 +50,37 @@ func TestExportLedger(t *testing.T) {
 	tests := []cliTest{
 		{
 			name:    "end before start",
-			args:    []string{"export_ledgers", "-s", "100", "-e", "50", "-o", testFileName},
+			args:    []string{"export_ledgers", "-s", "100", "-e", "50", "--stdout"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: End sequence number is less than start (50 < 100)"),
 		},
 		{
 			name:    "start too large",
-			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295", "-o", testFileName},
+			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295", "--stdout"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than start sequence number (%d < 4294967295)", latestLedger),
 		},
 		{
 			name:    "end too large",
-			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295", "-o", testFileName},
+			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295", "--stdout"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than end sequence number (%d < 4294967295)", latestLedger),
 		},
 		{
 			name:    "single ledger",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "-o", testFileName},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "--stdout"},
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "10 ledgers",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-o", testFileName},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "--stdout"},
 			golden:  "10_ledgers.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range too large",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", testFileName},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "--stdout"},
 			golden:  "large_range_ledgers.golden",
 			wantErr: nil,
 		},
@@ -99,28 +98,25 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 		assert.NoError(t, err)
 
 		cmd := exec.Command(path.Join(dir, executableName), test.args...)
-		errText, actualError := cmd.CombinedOutput()
+		testOutput, actualError := cmd.CombinedOutput()
 
 		// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
 		// Instead, it's wrapped in other os/system errors
 		// By reading the error text from the logger, we can extract the lower level error that the user would see
 		if test.golden == "" {
-			errorMsg := fmt.Errorf(extractErrorMsg(string(errText)))
+			errorMsg := fmt.Errorf(extractErrorMsg(string(testOutput)))
 			assert.Equal(t, test.wantErr, errorMsg)
 		}
 
-		// Tests that are designed to fail won't generate an valid output file, and so testing shouldn't look for one
+		// Real test output should always be in stdout
 		if test.golden != "" {
 			assert.Equal(t, test.wantErr, actualError)
-			actualOutput, err := ioutil.ReadFile(testFileName)
-			assert.NoError(t, err)
-			actualString := string(actualOutput)
+			actualString := string(testOutput)
 
 			wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
 			assert.NoError(t, err)
 			assert.Equal(t, wantString, actualString)
 		}
-		os.Remove(testFileName)
 	})
 }
 

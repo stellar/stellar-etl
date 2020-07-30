@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -17,22 +16,11 @@ var transactionsCmd = &cobra.Command{
 	Short: "Exports the transaction data over a specified range.",
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path := getBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := getBasicFlags(cmd.Flags())
 
-		absolutePath, err := filepath.Abs(path)
-		if err != nil {
-			logger.Fatal("could not get absolute filepath: ", err)
-		}
-
-		err = createOutputFile(absolutePath)
-		if err != nil {
-			logger.Fatal("could not create output file: ", err)
-		}
-
-		// TODO: check the permissions of the file to ensure that it can be written to
-		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
-		if err != nil {
-			logger.Fatal("error in output file: ", err)
+		var outFile *os.File
+		if !useStdOut {
+			outFile = getOutFile(path)
 		}
 
 		transactions, err := input.GetTransactions(startNum, endNum, limit)
@@ -55,8 +43,12 @@ var transactionsCmd = &cobra.Command{
 				logger.Fatal(errMsg, err)
 			}
 
-			outFile.Write(marshalled)
-			outFile.WriteString("\n")
+			if !useStdOut {
+				outFile.Write(marshalled)
+				outFile.WriteString("\n")
+			} else {
+				fmt.Println(string(marshalled))
+			}
 		}
 	},
 }
@@ -67,6 +59,7 @@ func init() {
 	transactionsCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
 	transactionsCmd.Flags().Uint32P("limit", "l", 60000, "Maximum number of transactions to export")
 	transactionsCmd.Flags().StringP("output", "o", "exported_transactions.txt", "Filename of the output file")
+	transactionsCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 	transactionsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

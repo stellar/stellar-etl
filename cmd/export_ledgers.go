@@ -24,7 +24,7 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
-func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path string) {
+func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path string, useStdOut bool) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -44,7 +44,33 @@ func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path s
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
 	}
+
+	useStdOut, err = flags.GetBool("stdout")
+	if err != nil {
+		logger.Fatal("could not get stdout boolean: ", err)
+	}
+
 	return
+}
+
+func getOutFile(path string) *os.File {
+	absolutePath, err := filepath.Abs(path)
+	if err != nil {
+		logger.Fatal("could not get absolute filepath: ", err)
+	}
+
+	err = createOutputFile(absolutePath)
+	if err != nil {
+		logger.Fatal("could not create output file: ", err)
+	}
+
+	// TODO: check the permissions of the file to ensure that it can be written to
+	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		logger.Fatal("error in output file: ", err)
+	}
+
+	return outFile
 }
 
 // ledgersCmd represents the ledgers command
@@ -53,22 +79,11 @@ var ledgersCmd = &cobra.Command{
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path := getBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := getBasicFlags(cmd.Flags())
 
-		absolutePath, err := filepath.Abs(path)
-		if err != nil {
-			logger.Fatal("could not get absolute filepath: ", err)
-		}
-
-		err = createOutputFile(absolutePath)
-		if err != nil {
-			logger.Fatal("could not create output file: ", err)
-		}
-
-		// TODO: check the permissions of the file to ensure that it can be written to
-		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
-		if err != nil {
-			logger.Fatal("error in output file: ", err)
+		var outFile *os.File
+		if !useStdOut {
+			outFile = getOutFile(path)
 		}
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit)
@@ -87,8 +102,12 @@ var ledgersCmd = &cobra.Command{
 				logger.Fatal(fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i)), err)
 			}
 
-			outFile.Write(marshalled)
-			outFile.WriteString("\n")
+			if !useStdOut {
+				outFile.Write(marshalled)
+				outFile.WriteString("\n")
+			} else {
+				fmt.Println(string(marshalled))
+			}
 		}
 	},
 }
@@ -99,6 +118,7 @@ func init() {
 	ledgersCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
 	ledgersCmd.Flags().Uint32P("limit", "l", 60, "Maximum number of ledgers to export")
 	ledgersCmd.Flags().StringP("output", "o", "exported_ledgers.txt", "Filename of the output file")
+	ledgersCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
