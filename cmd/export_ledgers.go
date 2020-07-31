@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 func createOutputFile(filepath string) error {
@@ -24,81 +24,67 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
-func getBasicFlags(flags *pflag.FlagSet) (startNum, endNum, limit uint32, path string) {
-	startNum, err := flags.GetUint32("start-ledger")
+func mustOutFile(path string) *os.File {
+	absolutePath, err := filepath.Abs(path)
 	if err != nil {
-		logger.Fatal("could not get start sequence number: ", err)
+		cmdLogger.Fatal("could not get absolute filepath: ", err)
 	}
 
-	endNum, err = flags.GetUint32("end-ledger")
+	err = createOutputFile(absolutePath)
 	if err != nil {
-		logger.Fatal("could not get end sequence number: ", err)
+		cmdLogger.Fatal("could not create output file: ", err)
 	}
 
-	limit, err = flags.GetUint32("limit")
+	// TODO: check the permissions of the file to ensure that it can be written to
+	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		logger.Fatal("could not get limit: ", err)
+		cmdLogger.Fatal("error in output file: ", err)
 	}
 
-	path, err = flags.GetString("output-file")
-	if err != nil {
-		logger.Fatal("could not get output filename: ", err)
-	}
-	return
+	return outFile
 }
 
-// ledgersCmd represents the ledgers command
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path := getBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 
-		absolutePath, err := filepath.Abs(path)
-		if err != nil {
-			logger.Fatal("could not get absolute filepath: ", err)
-		}
-
-		err = createOutputFile(absolutePath)
-		if err != nil {
-			logger.Fatal("could not create output file: ", err)
-		}
-
-		// TODO: check the permissions of the file to ensure that it can be written to
-		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
-		if err != nil {
-			logger.Fatal("error in output file: ", err)
+		var outFile *os.File
+		if !useStdOut {
+			outFile = mustOutFile(path)
 		}
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit)
 		if err != nil {
-			logger.Fatal("could not read ledgers: ", err)
+			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
 
 		for i, lcm := range ledgers {
 			transformed, err := transform.TransformLedger(lcm)
 			if err != nil {
-				logger.Fatal(fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i)), err)
+				cmdLogger.Fatal(fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i)), err)
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				logger.Fatal(fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i)), err)
+				cmdLogger.Fatal(fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i)), err)
 			}
 
-			outFile.Write(marshalled)
-			outFile.WriteString("\n")
+			if !useStdOut {
+				outFile.Write(marshalled)
+				outFile.WriteString("\n")
+			} else {
+				fmt.Println(string(marshalled))
+			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(ledgersCmd)
-	ledgersCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
-	ledgersCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	ledgersCmd.Flags().Uint32P("limit", "l", 60, "Maximum number of ledgers to export")
-	ledgersCmd.Flags().StringP("output-file", "o", "exported_ledgers.txt", "Filename of the output file")
+	utils.AddBasicFlags("ledgers", ledgersCmd.Flags())
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

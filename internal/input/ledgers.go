@@ -29,7 +29,7 @@ func validateLedgerRange(start, end, latestNum uint32) error {
 }
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetLedgers(start, end, limit uint32) ([]xdr.LedgerCloseMeta, error) {
+func GetLedgers(start, end uint32, limit int64) ([]xdr.LedgerCloseMeta, error) {
 	backend, err := createBackend()
 	if err != nil {
 		return []xdr.LedgerCloseMeta{}, err
@@ -57,7 +57,7 @@ func GetLedgers(start, end, limit uint32) ([]xdr.LedgerCloseMeta, error) {
 		}
 
 		metaSlice = append(metaSlice, ledger)
-		if uint32(len(metaSlice)) >= limit {
+		if int64(len(metaSlice)) >= limit && limit >= 0 {
 			break
 		}
 	}

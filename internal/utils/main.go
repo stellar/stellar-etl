@@ -6,7 +6,9 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/spf13/pflag"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -95,4 +97,43 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 			},
 		},
 	}
+}
+
+// AddBasicFlags adds the start-ledger, end-ledger, limit, output, and stdout flags to the provided flagset
+func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
+	flags.Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
+	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
+	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
+	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
+	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+}
+
+// MustBasicFlags gets the values of the start-ledger, end-ledger, limit, output, and stdout flags from the flag set. If any do not exist, it stops the program fatally using the logger
+func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32, limit int64, path string, useStdOut bool) {
+	startNum, err := flags.GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	endNum, err = flags.GetUint32("end-ledger")
+	if err != nil {
+		logger.Fatal("could not get end sequence number: ", err)
+	}
+
+	limit, err = flags.GetInt64("limit")
+	if err != nil {
+		logger.Fatal("could not get limit: ", err)
+	}
+
+	path, err = flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	useStdOut, err = flags.GetBool("stdout")
+	if err != nil {
+		logger.Fatal("could not get stdout boolean: ", err)
+	}
+
+	return
 }

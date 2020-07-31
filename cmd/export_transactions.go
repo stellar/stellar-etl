@@ -4,67 +4,60 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-// transactionsCmd represents the transactions command
 var transactionsCmd = &cobra.Command{
 	Use:   "export_transactions",
 	Short: "Exports the transaction data over a specified range.",
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path := getBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 
-		absolutePath, err := filepath.Abs(path)
-		if err != nil {
-			logger.Fatal("could not get absolute filepath: ", err)
+		var outFile *os.File
+		if !useStdOut {
+			outFile = mustOutFile(path)
 		}
 
-		err = createOutputFile(absolutePath)
-		if err != nil {
-			logger.Fatal("could not create output file: ", err)
-		}
-
-		// TODO: check the permissions of the file to ensure that it can be written to
-		outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
-		if err != nil {
-			logger.Fatal("error in output file: ", err)
-		}
 		transactions, err := input.GetTransactions(startNum, endNum, limit)
 		if err != nil {
-			logger.Fatal("could not read transactions: ", err)
+			cmdLogger.Fatal("could not read transactions: ", err)
 		}
 
-		for i, transformInput := range transactions {
+		for _, transformInput := range transactions {
 			transformed, err := transform.TransformTransaction(transformInput.Transaction, transformInput.LedgerHistory)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not transform transaction %d in ledger %d: ", transformInput.Transaction.Index, startNum+uint32(i))
-				logger.Fatal(errMsg, err)
+				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
+				errMsg := fmt.Sprintf("could not transform transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq)
+				cmdLogger.Fatal(errMsg, err)
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not json encode transaction %d in ledger %d: ", transformInput.Transaction.Index, startNum+uint32(i))
-				logger.Fatal(errMsg, err)
+				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
+				errMsg := fmt.Sprintf("could not json encode transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq)
+				cmdLogger.Fatal(errMsg, err)
 			}
 
-			outFile.Write(marshalled)
-			outFile.WriteString("\n")
+			if !useStdOut {
+				outFile.Write(marshalled)
+				outFile.WriteString("\n")
+			} else {
+				fmt.Println(string(marshalled))
+			}
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(transactionsCmd)
-	transactionsCmd.Flags().Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
-	transactionsCmd.Flags().Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	transactionsCmd.Flags().Uint32P("limit", "l", 60000, "Maximum number of transactions to export")
-	transactionsCmd.Flags().StringP("output-file", "o", "exported_transactions.txt", "Filename of the output file")
+	utils.AddBasicFlags("transactions", transactionsCmd.Flags())
 	transactionsCmd.MarkFlagRequired("end-ledger")
+
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
