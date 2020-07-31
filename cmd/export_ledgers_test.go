@@ -29,14 +29,14 @@ type cliTest struct {
 
 func TestMain(m *testing.M) {
 	if err := os.Chdir(".."); err != nil {
-		logger.Error("could not change directory", err)
+		cmdLogger.Error("could not change directory", err)
 		os.Exit(1)
 	}
 
 	// This does the setup for further tests. It generates an executeable that can be run on the command line by other tests
 	buildCmd := exec.Command("go", "build", "-o", executableName)
 	if err := buildCmd.Run(); err != nil {
-		logger.Error("could not build executable", err)
+		cmdLogger.Error("could not build executable", err)
 		os.Exit(1)
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 var operationsCmd = &cobra.Command{
@@ -15,7 +16,7 @@ var operationsCmd = &cobra.Command{
 	Short: "Exports the operations data over a specified range",
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdOut := mustBasicFlags(cmd.Flags())
+		startNum, endNum, limit, path, useStdOut := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdOut {
@@ -24,7 +25,7 @@ var operationsCmd = &cobra.Command{
 
 		operations, err := input.GetOperations(startNum, endNum, limit)
 		if err != nil {
-			logger.Fatal("could not read operations: ", err)
+			cmdLogger.Fatal("could not read operations: ", err)
 		}
 
 		for _, transformInput := range operations {
@@ -32,14 +33,14 @@ var operationsCmd = &cobra.Command{
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				errMsg := fmt.Sprintf("could not transform operation %d in transaction %d: ", transformInput.OperationIndex, txIndex)
-				logger.Fatal(errMsg, err)
+				cmdLogger.Fatal(errMsg, err)
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				errMsg := fmt.Sprintf("could not json encode operation %d in ledger %d: ", transformInput.OperationIndex, txIndex)
-				logger.Fatal(errMsg, err)
+				cmdLogger.Fatal(errMsg, err)
 			}
 
 			if !useStdOut {
@@ -54,7 +55,7 @@ var operationsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(operationsCmd)
-	addBasicFlags("operations", operationsCmd.Flags())
+	utils.AddBasicFlags("operations", operationsCmd.Flags())
 	operationsCmd.MarkFlagRequired("end-ledger")
 
 	/*
