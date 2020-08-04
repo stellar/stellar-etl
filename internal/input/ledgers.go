@@ -3,14 +3,9 @@ package input
 import (
 	"fmt"
 
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
-
-func createBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
-	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
-	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
-}
 
 func validateLedgerRange(start, end, latestNum uint32) error {
 	if end < start {
@@ -30,10 +25,12 @@ func validateLedgerRange(start, end, latestNum uint32) error {
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetLedgers(start, end uint32, limit int64) ([]xdr.LedgerCloseMeta, error) {
-	backend, err := createBackend()
+	backend, err := utils.CreateBackend()
 	if err != nil {
 		return []xdr.LedgerCloseMeta{}, err
 	}
+
+	defer backend.Close()
 
 	latestNum, err := backend.GetLatestLedgerSequence()
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
+	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +18,7 @@ var executableName = "stellar-etl"
 var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
 var latestLedger = getLastSeqNum()
 var update = flag.Bool("update", false, "update the golden files of this test")
-var backend, _ = ledgerbackend.NewHistoryArchiveBackendFromURL(archiveURL)
+var backend, _ = utils.CreateBackend()
 
 type cliTest struct {
 	name    string

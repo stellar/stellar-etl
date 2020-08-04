@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+	"github.com/stellar/go/exp/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
@@ -136,4 +137,10 @@ func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum u
 	}
 
 	return
+}
+
+// CreateBackend creates a history archive backend
+func CreateBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
+	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
+	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
 }
