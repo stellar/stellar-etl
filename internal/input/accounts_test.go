@@ -2,6 +2,7 @@ package input
 
 import (
 	"fmt"
+
 	"testing"
 
 	"github.com/stellar/stellar-etl/internal/transform"

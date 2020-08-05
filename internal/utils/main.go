@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -143,4 +144,26 @@ func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum u
 func CreateBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
 	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
 	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
+}
+
+// GetCheckpointNum gets the ledger sequence number of the checkpoint containing the provided ledger. If the checkpoint does not exist, an error is returned
+func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
+	/*
+		Checkpoints are made "every 64 ledgers", when LCL is one-less-than a multiple
+		of 64. In other words, at LCL=63, 127, 191, 255, etc. or in other other words
+		checkpoint K covers the inclusive ledger range [K*64, ((K+1)*64)-1], and each
+		of those ranges should contain exactly 64 ledgers, with the exception of the
+		first checkpoint, which has only 63 ledgers: there is no ledger 0.
+	*/
+	remainder := (seq + 1) % 64
+	if remainder == 0 {
+		return seq, nil
+	}
+
+	checkpoint := seq + 64 - remainder
+	if checkpoint > maxSeq {
+		return 0, fmt.Errorf("The checkpoint ledger %d is greater than the max ledger number %d", checkpoint, maxSeq)
+	}
+
+	return checkpoint, nil
 }
