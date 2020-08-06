@@ -36,7 +36,7 @@ func GetAccounts(start, end uint32, limit int64) ([]xdr.LedgerEntry, error) {
 	}
 
 	// If the start is set to the genesis ledger, everything is read from the bucket list up to the nearest checkpoint. The limit flag is ignored
-	if start == 0 {
+	if start == 1 {
 		checkpointSeq, err := utils.GetCheckpointNum(end, latestNum)
 		if err != nil {
 			return []xdr.LedgerEntry{}, err

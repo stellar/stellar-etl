@@ -103,7 +103,7 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 
 // AddBasicFlags adds the start-ledger, end-ledger, limit, output, and stdout flags to the provided flagset
 func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
-	flags.Uint32P("start-ledger", "s", 0, "The ledger sequence number for the beginning of the export period")
+	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")

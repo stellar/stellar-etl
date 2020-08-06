@@ -67,6 +67,18 @@ func TestExportLedger(t *testing.T) {
 			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than end sequence number (%d < 4294967295)", latestLedger),
 		},
 		{
+			name:    "start is 0",
+			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295", "--stdout"},
+			golden:  "",
+			wantErr: fmt.Errorf("could not read ledgers: Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+		},
+		{
+			name:    "end is 0",
+			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295", "--stdout"},
+			golden:  "",
+			wantErr: fmt.Errorf("could not read ledgers: End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+		},
+		{
 			name:    "single ledger",
 			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "--stdout"},
 			golden:  "single_ledger.golden",

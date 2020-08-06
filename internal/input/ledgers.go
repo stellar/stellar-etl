@@ -8,6 +8,14 @@ import (
 )
 
 func validateLedgerRange(start, end, latestNum uint32) error {
+	if start == 0 {
+		return fmt.Errorf("Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+	}
+
+	if end == 0 {
+		return fmt.Errorf("End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+	}
+
 	if end < start {
 		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
 	}
