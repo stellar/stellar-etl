@@ -7,7 +7,7 @@ type LedgerOutput struct {
 	Sequence                   uint32    `json:"sequence"` // sequence number of the ledger
 	LedgerHash                 string    `json:"ledger_hash"`
 	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
-	LedgerHeader               string    `json:"ledger_header"` //base 64 encoding of the ledger header
+	LedgerHeader               string    `json:"ledger_header"` // base 64 encoding of the ledger header
 	TransactionCount           int32     `json:"transaction_count"`
 	OperationCount             int32     `json:"operation_count"` // counts only operations that were a part of successful transactions
 	SuccessfulTransactionCount int32     `json:"successful_transaction_count"`
@@ -68,7 +68,7 @@ type AccountOutput struct {
 	ThresholdLow         int32  `json:"threshold_low"`
 	ThresholdMedium      int32  `json:"threshold_medium"`
 	ThresholdHigh        int32  `json:"threshold_high"`
-	LastModifiedLedger   uint32 `json:"Last_modified_ledger"`
+	LastModifiedLedger   uint32 `json:"last_modified_ledger"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -128,7 +128,7 @@ type Details struct {
 	To                 string        `json:"to"`
 	Trustee            string        `json:"trustee"`
 	Trustor            string        `json:"trustor"`
-	Value              string        `json:"value"` // base64 encoding of bytes
+	Value              string        `json:"value"` // base64 encoding of bytes for operations that manage data
 	ClearFlags         []int32       `json:"clear_flags"`
 	ClearFlagsString   []string      `json:"clear_flags_s"`
 	DestinationMin     string        `json:"destination_min"`
@@ -160,7 +160,7 @@ type TrustlineOutput struct {
 	BuyingLiabilities  int64  `json:"buying_liabilities"`
 	SellingLiabilities int64  `json:"selling_liabilities"`
 	Flags              uint32 `json:"flags"`
-	LastModifiedLedger uint32 `json:"Last_modified_ledger"`
+	LastModifiedLedger uint32 `json:"last_modified_ledger"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers

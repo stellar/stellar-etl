@@ -16,10 +16,10 @@ var transactionsCmd = &cobra.Command{
 	Short: "Exports the transaction data over a specified range.",
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdOut := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
-		if !useStdOut {
+		if !useStdout {
 			outFile = mustOutFile(path)
 		}
 
@@ -43,7 +43,7 @@ var transactionsCmd = &cobra.Command{
 				cmdLogger.Fatal(errMsg, err)
 			}
 
-			if !useStdOut {
+			if !useStdout {
 				outFile.Write(marshalled)
 				outFile.WriteString("\n")
 			} else {

@@ -1,10 +1,9 @@
 package input
 
 import (
-	"io"
-
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // OperationTransformInput is a representation of the input for the TransformOperation function
@@ -16,10 +15,12 @@ type OperationTransformInput struct {
 
 // GetOperations returns a slice of operation close metas for the ledgers in the provided range (inclusive on both ends)
 func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, error) {
-	backend, err := createBackend()
+	backend, err := utils.CreateBackend()
 	if err != nil {
 		return []OperationTransformInput{}, err
 	}
+
+	defer backend.Close()
 
 	latestNum, err := backend.GetLatestLedgerSequence()
 	if err != nil {
@@ -40,7 +41,7 @@ func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, e
 
 		for int64(len(opSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
-			if err == io.EOF {
+			if err == ingestio.EOF {
 				break
 			}
 
@@ -57,6 +58,7 @@ func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, e
 			}
 		}
 
+		txReader.Close()
 		if int64(len(opSlice)) >= limit && limit >= 0 {
 			break
 		}

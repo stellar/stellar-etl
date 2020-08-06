@@ -70,7 +70,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		Sequence:           uint32(30578981),
 		LedgerHash:         "26932dc4d84b5fabe9ae744cb43ce4c6daccf98c86a991b2a14945b1adac4d59",
 		PreviousLedgerHash: "f63c15d0eaf48afbd751a4c4dfade54a3448053c47c5a71d622668ae0cc2a208",
-		LedgerHeader:       correctBytes,
+		LedgerHeader:       string(correctBytes),
 		ClosedAt:           correctTime,
 
 		TotalCoins:      1054439020873472865,

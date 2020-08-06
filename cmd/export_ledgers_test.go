@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
+	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +18,7 @@ var executableName = "stellar-etl"
 var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
 var latestLedger = getLastSeqNum()
 var update = flag.Bool("update", false, "update the golden files of this test")
-var backend, _ = ledgerbackend.NewHistoryArchiveBackendFromURL(archiveURL)
+var backend, _ = utils.CreateBackend()
 
 type cliTest struct {
 	name    string
@@ -65,6 +65,18 @@ func TestExportLedger(t *testing.T) {
 			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295", "--stdout"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than end sequence number (%d < 4294967295)", latestLedger),
+		},
+		{
+			name:    "start is 0",
+			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295", "--stdout"},
+			golden:  "",
+			wantErr: fmt.Errorf("could not read ledgers: Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+		},
+		{
+			name:    "end is 0",
+			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295", "--stdout"},
+			golden:  "",
+			wantErr: fmt.Errorf("could not read ledgers: End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
 		},
 		{
 			name:    "single ledger",
