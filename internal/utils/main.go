@@ -111,7 +111,7 @@ func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
 }
 
 // MustBasicFlags gets the values of the start-ledger, end-ledger, limit, output, and stdout flags from the flag set. If any do not exist, it stops the program fatally using the logger
-func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32, limit int64, path string, useStdOut bool) {
+func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32, limit int64, path string, useStdout bool) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -132,7 +132,7 @@ func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum u
 		logger.Fatal("could not get output filename: ", err)
 	}
 
-	useStdOut, err = flags.GetBool("stdout")
+	useStdout, err = flags.GetBool("stdout")
 	if err != nil {
 		logger.Fatal("could not get stdout boolean: ", err)
 	}

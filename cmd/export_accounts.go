@@ -16,10 +16,10 @@ var accountsCmd = &cobra.Command{
 	Short: "Exports the account data.",
 	Long:  `Exports historical account data within the specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdOut := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
-		if !useStdOut {
+		if !useStdout {
 			outFile = mustOutFile(path)
 		}
 
@@ -39,7 +39,7 @@ var accountsCmd = &cobra.Command{
 				cmdLogger.Fatal("could not json encode account", err)
 			}
 
-			if !useStdOut {
+			if !useStdout {
 				outFile.Write(marshalled)
 				outFile.WriteString("\n")
 			} else {
@@ -52,7 +52,7 @@ var accountsCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(accountsCmd)
 	utils.AddBasicFlags("accounts", accountsCmd.Flags())
-	ledgersCmd.MarkFlagRequired("end-ledger")
+	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period

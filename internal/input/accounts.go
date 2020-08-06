@@ -11,9 +11,10 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+var archiveStellarURL = "http://history.stellar.org/prd/core-live/core_live_001"
+
 // GetAccounts returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetAccounts(start, end uint32, limit int64) ([]xdr.LedgerEntry, error) {
-	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
 	archive, err := historyarchive.Connect(
 		archiveStellarURL,
 		historyarchive.ConnectOptions{Context: context.Background()},
@@ -49,6 +50,7 @@ func GetAccounts(start, end uint32, limit int64) ([]xdr.LedgerEntry, error) {
 }
 
 func readFromCaptive(start, end uint32) ([]xdr.LedgerEntry, error) {
+	// TODO: implement this function
 	return []xdr.LedgerEntry{}, nil
 }
 

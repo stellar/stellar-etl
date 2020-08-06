@@ -51,10 +51,10 @@ var ledgersCmd = &cobra.Command{
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdOut := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
-		if !useStdOut {
+		if !useStdout {
 			outFile = mustOutFile(path)
 		}
 
@@ -74,7 +74,7 @@ var ledgersCmd = &cobra.Command{
 				cmdLogger.Fatal(fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i)), err)
 			}
 
-			if !useStdOut {
+			if !useStdout {
 				outFile.Write(marshalled)
 				outFile.WriteString("\n")
 			} else {
