@@ -3,7 +3,6 @@ package input
 import (
 	"context"
 	"fmt"
-	"io"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -64,7 +63,7 @@ func readBucketList(archive *historyarchive.Archive, checkpointSeq uint32, entry
 	entrySlice := []xdr.LedgerEntry{}
 	for {
 		change, err := changeReader.Read()
-		if err == io.EOF {
+		if err == ingestio.EOF {
 			break
 		}
 

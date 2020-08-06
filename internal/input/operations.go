@@ -1,8 +1,6 @@
 package input
 
 import (
-	"io"
-
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -43,7 +41,7 @@ func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, e
 
 		for int64(len(opSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
-			if err == io.EOF {
+			if err == ingestio.EOF {
 				break
 			}
 

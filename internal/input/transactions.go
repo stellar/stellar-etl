@@ -1,8 +1,6 @@
 package input
 
 import (
-	"io"
-
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
@@ -47,7 +45,7 @@ func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, er
 		// A negative limit value means that all input should be processed
 		for int64(len(txSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
-			if err == io.EOF {
+			if err == ingestio.EOF {
 				break
 			}
 
