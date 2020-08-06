@@ -2,7 +2,6 @@ package input
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -41,11 +40,11 @@ func GetAccounts(start, end uint32, limit int64) ([]xdr.LedgerEntry, error) {
 			return []xdr.LedgerEntry{}, err
 		}
 
-		fmt.Printf("Using checkpoint: %d\n", checkpointSeq)
 		return readBucketList(archive, checkpointSeq, xdr.LedgerEntryTypeAccount)
 	}
 
 	// Use captive core to read a range otherwise
+	// TODO: connect to captive core and read from there
 	return readFromCaptive(start, end)
 }
 
