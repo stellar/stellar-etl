@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -14,16 +15,43 @@ import (
 var accountsCmd = &cobra.Command{
 	Use:   "export_accounts",
 	Short: "Exports the account data.",
-	Long:  `Exports historical account data within the specified range to an output file.`,
+	Long: `Exports historical account data within the specified range to an output file.
+			If the starting ledger is 1, the bucket list is used to acquire account data. Otherwise,
+			a captive stellar core instance is used. In this case, the --core-executable and 
+			--core-config flags are required. The stellar-core instance must be version 13.2.0 or greater`,
 	Run: func(cmd *cobra.Command, args []string) {
 		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+
+		// If not starting at the genesis ledger, the core flags are mandatory
+		var execPath, configPath string
+		if startNum != 1 {
+			execPath, configPath = utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+			if execPath == "" {
+				cmdLogger.Fatal("A path to the stellar-core executable is mandatory when not starting at the genesis ledger (ledger 1)")
+			}
+
+			if configPath == "" {
+				cmdLogger.Fatal("A path to a config file for stellar-core is mandatory when not starting at the genesis ledger (ledger 1)")
+			}
+
+			var err error
+			execPath, err = filepath.Abs(execPath)
+			if err != nil {
+				cmdLogger.Fatal("could not get absolute filepath for stellar-core executable: ", err)
+			}
+
+			configPath, err = filepath.Abs(configPath)
+			if err != nil {
+				cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
+			}
+		}
 
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
 		}
 
-		accounts, err := input.GetAccounts(startNum, endNum, limit)
+		accounts, err := input.GetAccounts(startNum, endNum, limit, execPath, configPath)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
@@ -52,6 +80,7 @@ var accountsCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(accountsCmd)
 	utils.AddBasicFlags("accounts", accountsCmd.Flags())
+	utils.AddCoreFlags(accountsCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

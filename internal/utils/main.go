@@ -110,6 +110,12 @@ func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 }
 
+// AddCoreFlags adds the core-executable and core-config flags, which are needed for commands that use captive core
+func AddCoreFlags(flags *pflag.FlagSet) {
+	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
+	flags.StringP("core-config", "c", "", "Filepath to the a config file for stellar-core")
+}
+
 // MustBasicFlags gets the values of the start-ledger, end-ledger, limit, output, and stdout flags from the flag set. If any do not exist, it stops the program fatally using the logger
 func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32, limit int64, path string, useStdout bool) {
 	startNum, err := flags.GetUint32("start-ledger")
@@ -135,6 +141,21 @@ func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum u
 	useStdout, err = flags.GetBool("stdout")
 	if err != nil {
 		logger.Fatal("could not get stdout boolean: ", err)
+	}
+
+	return
+}
+
+// MustCoreFlags gets the values for the core-executable and core-config flags. If any do not exist, it stops the program fatally using the logger
+func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string) {
+	execPath, err := flags.GetString("core-executable")
+	if err != nil {
+		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
+	}
+
+	configPath, err = flags.GetString("core-config")
+	if err != nil {
+		logger.Fatal("could not get path to stellar-core config file, is mandatory when not starting at the genesis ledger (ledger 1): ", err)
 	}
 
 	return
