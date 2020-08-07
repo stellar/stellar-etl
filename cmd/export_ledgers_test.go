@@ -123,7 +123,7 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 		// Real test output should always be in stdout
 		if test.golden != "" {
 			assert.Equal(t, test.wantErr, actualError)
-			actualString := string(testOutput)
+			actualString := removeCoreLogging(string(testOutput))
 
 			wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
 			assert.NoError(t, err)
@@ -136,6 +136,16 @@ func extractErrorMsg(loggerOutput string) string {
 	errIndex := strings.Index(loggerOutput, "msg=") + 5
 	endIndex := strings.Index(loggerOutput[errIndex:], "\"")
 	return loggerOutput[errIndex : errIndex+endIndex]
+}
+
+func removeCoreLogging(loggerOutput string) string {
+	coreLogEnd := "Application destroyed\n"
+	endIndex := strings.LastIndex(loggerOutput, coreLogEnd)
+	if endIndex == -1 {
+		return loggerOutput
+	}
+
+	return loggerOutput[endIndex+len(coreLogEnd) : len(loggerOutput)]
 }
 
 func getLastSeqNum() uint32 {

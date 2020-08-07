@@ -18,6 +18,30 @@ func TestExportAccounts(t *testing.T) {
 			golden:  "bucket_read_off.golden",
 			wantErr: nil,
 		},
+		{
+			name:    "accounts from one ledger",
+			args:    []string{"export_accounts", "-s", "10820015", "-e", "10820015", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
+			golden:  "one_ledger_accs.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "accounts from 10 ledgers",
+			args:    []string{"export_accounts", "-s", "12820015", "-e", "12820025", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
+			golden:  "10_ledgers_accs.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "range too large",
+			args:    []string{"export_accounts", "-s", "12820015", "-e", "12820025", "-l", "5", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
+			golden:  "large_range_accs.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "ledger with no accounts",
+			args:    []string{"export_accounts", "-s", "2", "-e", "2", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
+			golden:  "ledger_no_accs.golden",
+			wantErr: nil,
+		},
 	}
 
 	for _, test := range tests {
