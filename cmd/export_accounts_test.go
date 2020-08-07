@@ -26,13 +26,13 @@ func TestExportAccounts(t *testing.T) {
 		},
 		{
 			name:    "accounts from 10 ledgers",
-			args:    []string{"export_accounts", "-s", "12820015", "-e", "12820025", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
+			args:    []string{"export_accounts", "-s", "17736172", "-e", "17736182", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
 			golden:  "10_ledgers_accs.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range too large",
-			args:    []string{"export_accounts", "-s", "12820015", "-e", "12820025", "-l", "5", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
+			args:    []string{"export_accounts", "-s", "10820000", "-e", "10820015", "-l", "5", "--stdout", "-x", "../stellar-core/src/stellar-core", "-c", "../stellar-core/docs/stellar-core_example.cfg"},
 			golden:  "large_range_accs.golden",
 			wantErr: nil,
 		},

@@ -94,9 +94,9 @@ func readFromCaptive(start, end uint32, limit int64, execPath, configPath string
 
 	compactedChanges := changeCache.GetChanges()
 
-	// Need to keep the limit flag as a cap if it is not negative
+	// Need to keep the limit flag as a cap if limit is not negative and if limit is less than the number of changes
 	entryLimit := int64(len(compactedChanges))
-	if limit >= 0 {
+	if limit >= 0 && limit < entryLimit {
 		entryLimit = limit
 	}
 
