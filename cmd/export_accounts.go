@@ -14,16 +14,19 @@ import (
 var accountsCmd = &cobra.Command{
 	Use:   "export_accounts",
 	Short: "Exports the account data.",
-	Long:  `Exports historical account data within the specified range to an output file.`,
+	Long: `Exports historical account data from the genesis ledger to the provided end-ledger to an output file. 
+The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
+should be used in an initial data dump. In order to get account information within a specified ledger range, see 
+the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		endNum, path, useStdout := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
 		}
 
-		accounts, err := input.GetAccounts(startNum, endNum, limit)
+		accounts, err := input.GetAccountsFromGenesis(endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
@@ -51,18 +54,16 @@ var accountsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(accountsCmd)
-	utils.AddBasicFlags("accounts", accountsCmd.Flags())
+	utils.AddBucketFlags("accounts", accountsCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
-			start-ledger: the ledger sequence number for the beginning of the export period
 			end-ledger: the ledger sequence number for the end of the export range (required)
-
-			limit: maximum number of accounts to export
 			output-file: filename of the output file
+			stdout: if set, output is printed to stdout
 
 		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
-			start and end time as a replacement for start and end sequence numbers
+			 end time as a replacement for end sequence numbers
 	*/
 }

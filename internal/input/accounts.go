@@ -13,8 +13,8 @@ import (
 
 var archiveStellarURL = "http://history.stellar.org/prd/core-live/core_live_001"
 
-// GetAccounts returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetAccounts(start, end uint32, limit int64) ([]xdr.LedgerEntry, error) {
+// GetAccountsFromGenesis returns a slice of ledger close metas for the ledgers starting from the genesis ledger and ending at end (inclusive)
+func GetAccountsFromGenesis(end uint32) ([]xdr.LedgerEntry, error) {
 	archive, err := historyarchive.Connect(
 		archiveStellarURL,
 		historyarchive.ConnectOptions{Context: context.Background()},
@@ -29,29 +29,17 @@ func GetAccounts(start, end uint32, limit int64) ([]xdr.LedgerEntry, error) {
 		return []xdr.LedgerEntry{}, err
 	}
 
-	err = validateLedgerRange(start, end, latestNum)
+	err = validateLedgerRange(1, end, latestNum)
 	if err != nil {
 		return []xdr.LedgerEntry{}, err
 	}
 
-	// If the start is set to the genesis ledger, everything is read from the bucket list up to the nearest checkpoint. The limit flag is ignored
-	if start == 1 {
-		checkpointSeq, err := utils.GetCheckpointNum(end, latestNum)
-		if err != nil {
-			return []xdr.LedgerEntry{}, err
-		}
-
-		return readBucketList(archive, checkpointSeq, xdr.LedgerEntryTypeAccount)
+	checkpointSeq, err := utils.GetCheckpointNum(end, latestNum)
+	if err != nil {
+		return []xdr.LedgerEntry{}, err
 	}
 
-	// Use captive core to read a range otherwise
-	// TODO: connect to captive core and read from there
-	return readFromCaptive(start, end)
-}
-
-func readFromCaptive(start, end uint32) ([]xdr.LedgerEntry, error) {
-	// TODO: implement this function
-	return []xdr.LedgerEntry{}, nil
+	return readBucketList(archive, checkpointSeq, xdr.LedgerEntryTypeAccount)
 }
 
 func readBucketList(archive *historyarchive.Archive, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]xdr.LedgerEntry, error) {
