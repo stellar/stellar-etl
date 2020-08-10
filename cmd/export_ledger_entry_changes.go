@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // exportLedgerEntryChangesCmd represents the exportLedgerEntryChanges command
@@ -49,20 +50,26 @@ be exported.`,
 
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
+	utils.AddBasicFlags("changes", exportLedgerEntryChangesCmd.Flags())
+	exportLedgerEntryChangesCmd.Flags().Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
+	exportLedgerEntryChangesCmd.Flags().BoolP("export-accounts", "a", false, "set in order to export account changes")
+	exportLedgerEntryChangesCmd.Flags().BoolP("export-trustlines", "t", false, "set in order to export trustline changes")
+	exportLedgerEntryChangesCmd.Flags().BoolP("export-offers", "f", false, "set in order to export offer changes")
 
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
 			end-ledger: the ledger sequence number for the end of the export range
 
-			batch-size: size of the export batches
 			output-file: filename of the output file
+			stdout: if true, prints to stdout instead of the command line
+			limit: maximum number of changes to export in a given batch; if negative then everything gets exported
+			batch-size: size of the export batches
 
 			If none of the export_X flags are set, assume everything should be exported
-			export_accounts: boolean flag; if set then accounts should be exported
-			export_trustlines: boolean flag; if set then trustlines should be exported
-			export_offers: boolean flag; if set then offers should be exported
-
+				export_accounts: boolean flag; if set then accounts should be exported
+				export_trustlines: boolean flag; if set then trustlines should be exported
+				export_offers: boolean flag; if set then offers should be exported
 
 		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
