@@ -327,6 +327,7 @@ github.com/stellar/go v0.0.0-20200730103443-19c3edf06d4a h1:GLvztNbJyWueX3bpCghU
 github.com/stellar/go v0.0.0-20200730205046-43f14b313c04 h1:zV+1ikhd5ahMGPYYHVgp7yXR+lEdl+MjQYnsyxhFQnI=
 github.com/stellar/go v0.0.0-20200804130752-fdc4eca4f6ce h1:Lixum59yJNsfxgKO1e99ZwWKgfmQfFWRD5U4oyFxazc=
 github.com/stellar/go v0.0.0-20200804130752-fdc4eca4f6ce/go.mod h1:LDU2cdYFQbYGt7UtgciOw8g5DXdc93r6N3e1mdHWems=
+github.com/stellar/go v0.0.0-20200810170655-95d44bf4fd9b h1:0j5NkoJSTVwExn9424gQ/GjqcVXg6RKGwyzuCzX6r2U=
 github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e h1:n/hfey8pO+RYMoGXyvyzuw5pdO8IFDoyAL/g5OiCesY=
 github.com/stellar/go-xdr v0.0.0-20180917104419-0bc96f33a18e/go.mod h1:gpOLVzy6TVYTQ3LvHSN9RJC700FkhFCpSE82u37aNRM=
 github.com/stellar/go-xdr v0.0.0-20200331223602-71a1e6d555f2 h1:K9H+A+eWe8ZlnpNha+pXbEK+jtIluQp/2dKxkK8k7OE=
