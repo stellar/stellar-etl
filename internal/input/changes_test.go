@@ -16,9 +16,9 @@ func TestSendToChannel(t *testing.T) {
 		trustChannel chan xdr.LedgerEntry
 	}
 	type functionOutput struct {
-		accEntry   xdr.LedgerEntry
-		offEntry   xdr.LedgerEntry
-		trustEntry xdr.LedgerEntry
+		accEntry   *xdr.LedgerEntry
+		offEntry   *xdr.LedgerEntry
+		trustEntry *xdr.LedgerEntry
 	}
 
 	acc := make(chan xdr.LedgerEntry)
@@ -58,7 +58,7 @@ func TestSendToChannel(t *testing.T) {
 				trustChannel: trust,
 			},
 			out: functionOutput{
-				accEntry: accountTestEntry,
+				accEntry: &accountTestEntry,
 			},
 		},
 		{
@@ -70,7 +70,7 @@ func TestSendToChannel(t *testing.T) {
 				trustChannel: trust,
 			},
 			out: functionOutput{
-				offEntry: offerTestEntry,
+				offEntry: &offerTestEntry,
 			},
 		},
 		{
@@ -82,16 +82,32 @@ func TestSendToChannel(t *testing.T) {
 				trustChannel: trust,
 			},
 			out: functionOutput{
-				trustEntry: trustTestEntry,
+				trustEntry: &trustTestEntry,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sendToChannel(tt.args.entry, tt.args.accChannel, tt.args.offChannel, tt.args.trustChannel)
-			assert.Equal(t, tt.out.accEntry, <-tt.args.accChannel)
-			assert.Equal(t, tt.out.offEntry, <-tt.args.offChannel)
-			assert.Equal(t, tt.out.trustEntry, <-tt.args.trustChannel)
+			go sendToChannel(tt.args.entry, tt.args.accChannel, tt.args.offChannel, tt.args.trustChannel)
+
+			needToReadAcc := tt.out.accEntry != nil
+			needToReadOff := tt.out.offEntry != nil
+			needToReadTrust := tt.out.trustEntry != nil
+
+			for needToReadAcc || needToReadOff || needToReadTrust {
+				select {
+				case read := <-tt.args.accChannel:
+					assert.Equal(t, *tt.out.accEntry, read)
+					needToReadAcc = false
+				case read := <-tt.args.offChannel:
+					assert.Equal(t, *tt.out.offEntry, read)
+					needToReadOff = false
+				case read := <-tt.args.trustChannel:
+					assert.Equal(t, *tt.out.trustEntry, read)
+					needToReadTrust = false
+				}
+			}
+
 		})
 	}
 }
