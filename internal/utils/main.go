@@ -110,10 +110,16 @@ func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 }
 
-// AddCoreFlags adds the core-executable and core-config flags, which are needed for commands that use captive core
+// AddCoreFlags adds the core-executable, core-config, batch-size, and export{type} flags, which are needed for commands that use captive core
 func AddCoreFlags(flags *pflag.FlagSet) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
 	flags.StringP("core-config", "c", "", "Filepath to the a config file for stellar-core")
+
+	flags.BoolP("export-accounts", "a", false, "set in order to export account changes")
+	flags.BoolP("export-trustlines", "t", false, "set in order to export trustline changes")
+	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
+
+	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
 }
 
 // AddBucketFlags adds the end-ledger, output, and stdout flags, which are needed for commands that use the bucket list
@@ -153,8 +159,8 @@ func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum u
 	return
 }
 
-// MustCoreFlags gets the values for the core-executable and core-config flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string) {
+// MustCoreFlags gets the values for the core-executable, core-config, batch-size, and export{type} flags. If any do not exist, it stops the program fatally using the logger
+func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, exportAccounts, exportOffers, exportTrustlines bool, batchSize uint32) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -163,6 +169,26 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 	configPath, err = flags.GetString("core-config")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core config file, is mandatory when not starting at the genesis ledger (ledger 1): ", err)
+	}
+
+	exportAccounts, err = flags.GetBool("export-accounts")
+	if err != nil {
+		logger.Fatal("could not get export accounts flag: ", err)
+	}
+
+	exportOffers, err = flags.GetBool("export-offers")
+	if err != nil {
+		logger.Fatal("could not get export offers flag: ", err)
+	}
+
+	exportTrustlines, err = flags.GetBool("export-trustlines")
+	if err != nil {
+		logger.Fatal("could not get export trustlines flag: ", err)
+	}
+
+	batchSize, err = flags.GetUint32("batch-size")
+	if err != nil {
+		logger.Fatal("could not get batch size: ", err)
 	}
 
 	return
