@@ -3,11 +3,13 @@ package cmd
 import "testing"
 
 func TestExportChanges(t *testing.T) {
+	coreExecutablePath := "../stellar-core/src/stellar-core"
+	coreConfigPath := "../stellar-core/docs/stellar-core_example.cfg"
 	tests := []cliTest{
 		{
-			name:    "small range",
-			args:    []string{"export_ledger_entry_changes", "-x", "../stellar-core/src/stellar-core -c", "../stellar-core/docs/stellar-core_example.cfg", "-s", "100", "-e", "101"},
-			golden:  "bucket_read_exact.golden",
+			name:    "single ledger",
+			args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "100", "-e", "100", "--stdout"},
+			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
 	}

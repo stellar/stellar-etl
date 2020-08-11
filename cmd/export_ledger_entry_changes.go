@@ -64,7 +64,6 @@ be exported.`,
 
 			select {
 			case entry, ok := <-accChannel:
-				fmt.Println(entry, ok)
 				if !ok {
 					accChannel = nil
 				} else {
@@ -77,7 +76,6 @@ be exported.`,
 				}
 
 			case entry, ok := <-offChannel:
-				fmt.Println(entry, ok)
 				wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
 				offer, err := transform.TransformOffer(wrappedEntry)
 				if !ok {
@@ -91,7 +89,6 @@ be exported.`,
 				}
 
 			case entry, ok := <-trustChannel:
-				fmt.Println(entry, ok)
 				trust, err := transform.TransformTrustline(entry)
 				if !ok {
 					trustChannel = nil
