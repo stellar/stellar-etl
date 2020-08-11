@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -26,7 +27,7 @@ the export_ledger_entry_changes command.`,
 			outFile = mustOutFile(path)
 		}
 
-		accounts, err := input.GetAccountsFromGenesis(endNum)
+		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
