@@ -7,13 +7,13 @@ import (
 func TestExportAccounts(t *testing.T) {
 	tests := []cliTest{
 		{
-			name:    "bucket list read; exact checkpoint",
+			name:    "accounts: bucket list with exact checkpoint",
 			args:    []string{"export_accounts", "-e", "78975", "--stdout"},
 			golden:  "bucket_read_exact.golden",
 			wantErr: nil,
 		},
 		{
-			name:    "bucket list read; end not on checkpoint",
+			name:    "accounts: bucket list with end not on checkpoint",
 			args:    []string{"export_accounts", "-e", "80210", "--stdout"},
 			golden:  "bucket_read_off.golden",
 			wantErr: nil,

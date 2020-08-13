@@ -13,8 +13,8 @@ import (
 
 var archiveStellarURL = "http://history.stellar.org/prd/core-live/core_live_001"
 
-// GetAccountsFromGenesis returns a slice of ledger close metas for the ledgers starting from the genesis ledger and ending at end (inclusive)
-func GetAccountsFromGenesis(end uint32) ([]xdr.LedgerEntry, error) {
+// GetEntriesFromGenesis returns a slice of ledger entries of the specified type for the ledgers starting from the genesis ledger and ending at end (inclusive)
+func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType) ([]xdr.LedgerEntry, error) {
 	archive, err := historyarchive.Connect(
 		archiveStellarURL,
 		historyarchive.ConnectOptions{Context: context.Background()},
@@ -39,7 +39,7 @@ func GetAccountsFromGenesis(end uint32) ([]xdr.LedgerEntry, error) {
 		return []xdr.LedgerEntry{}, err
 	}
 
-	return readBucketList(archive, checkpointSeq, xdr.LedgerEntryTypeAccount)
+	return readBucketList(archive, checkpointSeq, entryType)
 }
 
 func readBucketList(archive *historyarchive.Archive, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]xdr.LedgerEntry, error) {
