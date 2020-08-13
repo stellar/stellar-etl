@@ -5,10 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -54,78 +52,25 @@ be exported.`,
 		}
 
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
-		input.StreamChanges(core, startNum, endNum, accChannel, offChannel, trustChannel)
+		go input.StreamChanges(core, startNum, endNum, accChannel, offChannel, trustChannel)
 
-		transformedAccounts := make([]transform.AccountOutput, 0)
-		transformedOffers := make([]transform.OfferOutput, 0)
-		transformedTrustlines := make([]transform.TrustlineOutput, 0)
-
-		for {
-
-			select {
-			case entry, ok := <-accChannel:
-				if !ok {
-					accChannel = nil
-					break
-				}
-
-				acc, err := transform.TransformAccount(entry)
-				if err != nil {
-					cmdLogger.Error("error transforming account entry: ", err)
-					break
-				}
-
-				transformedAccounts = append(transformedAccounts, acc)
-
-			case entry, ok := <-offChannel:
-				if !ok {
-					offChannel = nil
-					break
-				}
-
-				wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
-				offer, err := transform.TransformOffer(wrappedEntry)
-				if err != nil {
-					cmdLogger.Error("error transforming offer entry: ", err)
-					break
-				}
-
-				transformedOffers = append(transformedOffers, offer)
-
-			case entry, ok := <-trustChannel:
-				if !ok {
-					trustChannel = nil
-					break
-				}
-
-				trust, err := transform.TransformTrustline(entry)
-				if err != nil {
-					cmdLogger.Error("error transforming trustline entry: ", err)
-					break
-				}
-
-				transformedTrustlines = append(transformedTrustlines, trust)
-			}
-
-			if accChannel == nil && offChannel == nil && trustChannel == nil {
-				break
-			}
-		}
+		transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
 
 		// TODO: add export functionality that periodically exports transformed data in batch_size increments instead of printing at the end
 		fmt.Println(transformedAccounts)
 		fmt.Println(transformedOffers)
 		fmt.Println(transformedTrustlines)
+
 		/*
-			1. Instantiate a captive core instance
+			1. Instantiate a captive core instance - DONE
 				a) If the start and end are provided, then use a bounded range and exit after exporting the info inside the range
 				b) If the end is omitted, use an unbounded range and continue exporting as new ledgers are added to the network
-			2. Call GetLedger() constantly in a separate goroutine
+			2. Call GetLedger() constantly in a separate goroutine - DONE
 				a) Create channels for each data type
 				b) Process changes for the ledger and send changes to the channel matching their type
 			3. On the other end, receive changes from the channel
-				a) Call transform on individual changes
-				b) Once batch_size ledgers have been sent, encode and export the changes
+				a) Call transform on individual changes - DONE
+				b) Once batch_size ledgers have been sent, encode and export the changes - TODO
 		*/
 	},
 }

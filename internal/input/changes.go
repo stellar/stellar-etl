@@ -1,10 +1,14 @@
 package input
 
 import (
+	"fmt"
+
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/exp/ingest/ledgerbackend"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -129,19 +133,80 @@ func sendLedgerChangesToChannels(seqNum uint32, core *ledgerbackend.CaptiveStell
 
 // StreamChanges runs a goroutine that reads in ledgers, processes the changes, and send the changes to the channel matching their type
 func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end uint32, accChannel, offChannel, trustChannel chan xdr.LedgerEntry) {
-	go func() {
-		if end != 0 {
-			for seq := start; seq <= end; seq++ {
-				sendLedgerChangesToChannels(seq, core, accChannel, offChannel, trustChannel)
+	if end != 0 {
+		for seq := start; seq <= end; seq++ {
+			sendLedgerChangesToChannels(seq, core, accChannel, offChannel, trustChannel)
+		}
+	} else {
+		currentLedger := start
+		for {
+			sendLedgerChangesToChannels(currentLedger, core, accChannel, offChannel, trustChannel)
+			currentLedger++
+		}
+	}
+
+	closeChannels(accChannel, offChannel, trustChannel)
+}
+
+// ReceiveChanges reads in the ledger entries from the provided channels, transforms them, and adds them to the slice with the other transformed entries.
+func ReceiveChanges(accChannel, offChannel, trustChannel chan xdr.LedgerEntry, logger *log.Entry) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
+	transformedAccounts := make([]transform.AccountOutput, 0)
+	transformedOffers := make([]transform.OfferOutput, 0)
+	transformedTrustlines := make([]transform.TrustlineOutput, 0)
+
+	for {
+
+		select {
+		case entry, ok := <-accChannel:
+			if !ok {
+				accChannel = nil
+				break
 			}
-		} else {
-			currentLedger := start
-			for {
-				sendLedgerChangesToChannels(currentLedger, core, accChannel, offChannel, trustChannel)
-				currentLedger++
+
+			acc, err := transform.TransformAccount(entry)
+			if err != nil {
+				errorMsg := fmt.Sprintf("error transforming account entry last updated at: %d", entry.LastModifiedLedgerSeq)
+				logger.Error(errorMsg, err)
+				break
 			}
+
+			transformedAccounts = append(transformedAccounts, acc)
+
+		case entry, ok := <-offChannel:
+			if !ok {
+				offChannel = nil
+				break
+			}
+
+			wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
+			offer, err := transform.TransformOffer(wrappedEntry)
+			if err != nil {
+				errorMsg := fmt.Sprintf("error transforming offer entry last updated at: %d", entry.LastModifiedLedgerSeq)
+				logger.Error(errorMsg, err)
+				break
+			}
+
+			transformedOffers = append(transformedOffers, offer)
+
+		case entry, ok := <-trustChannel:
+			if !ok {
+				trustChannel = nil
+				break
+			}
+
+			trust, err := transform.TransformTrustline(entry)
+			if err != nil {
+				errorMsg := fmt.Sprintf("error transforming trustline entry last updated at: %d", entry.LastModifiedLedgerSeq)
+				logger.Error(errorMsg, err)
+				break
+			}
+
+			transformedTrustlines = append(transformedTrustlines, trust)
 		}
 
-		closeChannels(accChannel, offChannel, trustChannel)
-	}()
+		if accChannel == nil && offChannel == nil && trustChannel == nil {
+			break
+		}
+	}
+	return transformedAccounts, transformedOffers, transformedTrustlines
 }
