@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/stellar/go/xdr"
 )
 
@@ -12,11 +13,6 @@ func TransformTrustline(ledgerEntry xdr.LedgerEntry) (TrustlineOutput, error) {
 	trustEntry, ok := ledgerEntry.Data.GetTrustLine()
 	if !ok {
 		return TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
-	}
-
-	outputLedgerKey, err := trustLineEntryToLedgerKeyString(trustEntry)
-	if err != nil {
-		return TrustlineOutput{}, err
 	}
 
 	outputAccountID, err := trustEntry.AccountId.GetAddress()
@@ -29,19 +25,24 @@ func TransformTrustline(ledgerEntry xdr.LedgerEntry) (TrustlineOutput, error) {
 	asset := trustEntry.Asset
 	err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer)
 	if err != nil {
-		return TrustlineOutput{}, err
+		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s", outputAccountID))
+	}
+
+	outputLedgerKey, err := trustLineEntryToLedgerKeyString(trustEntry)
+	if err != nil {
+		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s and asset %s", outputAccountID, asset))
 	}
 
 	outputAssetType := int32(asset.Type)
 
 	outputBalance := int64(trustEntry.Balance)
 	if outputBalance < 0 {
-		return TrustlineOutput{}, fmt.Errorf("Balance is negative (%d) for trustline", outputBalance)
+		return TrustlineOutput{}, fmt.Errorf("Balance is negative (%d) for trustline (account is %s and asset is %s)", outputBalance, outputAccountID, asset)
 	}
 
 	outputLimit := int64(trustEntry.Limit)
 	if outputLimit < 0 {
-		return TrustlineOutput{}, fmt.Errorf("Limit is negative (%d) for trustline", outputLimit)
+		return TrustlineOutput{}, fmt.Errorf("Limit is negative (%d) for trustline (account is %s and asset is %s)", outputLimit, outputAccountID, asset)
 	}
 
 	//The V1 struct is the first version of the extender from trustlineEntry. It contains information on liabilities, and in the future
@@ -52,11 +53,11 @@ func TransformTrustline(ledgerEntry xdr.LedgerEntry) (TrustlineOutput, error) {
 		liabilities := trustlineExtensionInfo.Liabilities
 		outputBuyingLiabilities, outputSellingLiabilities = int64(liabilities.Buying), int64(liabilities.Selling)
 		if outputBuyingLiabilities < 0 {
-			return TrustlineOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for trustline", outputBuyingLiabilities)
+			return TrustlineOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputBuyingLiabilities, outputAccountID, asset)
 		}
 
 		if outputSellingLiabilities < 0 {
-			return TrustlineOutput{}, fmt.Errorf("The selling liabilities count is negative (%d) for trustline", outputSellingLiabilities)
+			return TrustlineOutput{}, fmt.Errorf("The selling liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputSellingLiabilities, outputAccountID, asset)
 		}
 	}
 

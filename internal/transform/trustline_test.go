@@ -33,7 +33,7 @@ func TestTransformTrustline(t *testing.T) {
 				Asset:     nativeAsset,
 				AccountId: genericAccountID,
 			}, 0),
-			TrustlineOutput{}, fmt.Errorf("Balance is negative (-1) for trustline"),
+			TrustlineOutput{}, fmt.Errorf("Balance is negative (-1) for trustline (account is %s and asset is native)", genericAccountAddress),
 		},
 		{
 			wrapTrustlineEntry(xdr.TrustLineEntry{
