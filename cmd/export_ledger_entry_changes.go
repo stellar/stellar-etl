@@ -28,8 +28,13 @@ be exported.`,
 		startNum, endNum, _, _, _ := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
 		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, _ := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 
+		//if none of the export flags are set, then we assume that everything should be exported
+		if !exportAccounts && !exportOffers && !exportTrustlines {
+			exportAccounts, exportOffers, exportTrustlines = true, true, true
+		}
+
 		if configPath == "" && endNum == 0 {
-			cmdLogger.Fatal("A path to a config file for stellar-core is mandatory when performing an unbounded export")
+			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
 		var err error
@@ -43,18 +48,13 @@ be exported.`,
 			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
 		}
 
-		/*var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}*/
-
 		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
-		go input.StreamChanges(core, startNum, endNum, accChannel, offChannel, trustChannel)
+		input.StreamChanges(core, startNum, endNum, accChannel, offChannel, trustChannel)
 
 		transformedAccounts := make([]transform.AccountOutput, 0)
 		transformedOffers := make([]transform.OfferOutput, 0)
@@ -66,39 +66,45 @@ be exported.`,
 			case entry, ok := <-accChannel:
 				if !ok {
 					accChannel = nil
-				} else {
-					acc, err := transform.TransformAccount(entry)
-					if err == nil {
-						transformedAccounts = append(transformedAccounts, acc)
-					} else {
-						cmdLogger.Error("error transforming account entry: ", err)
-					}
+					break
 				}
+
+				acc, err := transform.TransformAccount(entry)
+				if err != nil {
+					cmdLogger.Error("error transforming account entry: ", err)
+					break
+				}
+
+				transformedAccounts = append(transformedAccounts, acc)
 
 			case entry, ok := <-offChannel:
-				wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
-				offer, err := transform.TransformOffer(wrappedEntry)
 				if !ok {
 					offChannel = nil
-				} else {
-					if err == nil {
-						transformedOffers = append(transformedOffers, offer)
-					} else {
-						cmdLogger.Error("error transforming offer entry: ", err)
-					}
+					break
 				}
 
+				wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
+				offer, err := transform.TransformOffer(wrappedEntry)
+				if err != nil {
+					cmdLogger.Error("error transforming offer entry: ", err)
+					break
+				}
+
+				transformedOffers = append(transformedOffers, offer)
+
 			case entry, ok := <-trustChannel:
-				trust, err := transform.TransformTrustline(entry)
 				if !ok {
 					trustChannel = nil
-				} else {
-					if err == nil {
-						transformedTrustlines = append(transformedTrustlines, trust)
-					} else {
-						cmdLogger.Error("error transforming trustline entry: ", err)
-					}
+					break
 				}
+
+				trust, err := transform.TransformTrustline(entry)
+				if err != nil {
+					cmdLogger.Error("error transforming trustline entry: ", err)
+					break
+				}
+
+				transformedTrustlines = append(transformedTrustlines, trust)
 			}
 
 			if accChannel == nil && offChannel == nil && trustChannel == nil {
@@ -106,6 +112,7 @@ be exported.`,
 			}
 		}
 
+		// TODO: add export functionality that periodically exports transformed data in batch_size increments instead of printing at the end
 		fmt.Println(transformedAccounts)
 		fmt.Println(transformedOffers)
 		fmt.Println(transformedTrustlines)
@@ -124,13 +131,6 @@ be exported.`,
 }
 
 func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan xdr.LedgerEntry) {
-	if !exportAccounts && !exportOffers && !exportTrustlines {
-		accChan = make(chan xdr.LedgerEntry)
-		offChan = make(chan xdr.LedgerEntry)
-		trustChan = make(chan xdr.LedgerEntry)
-		return
-	}
-
 	if exportAccounts {
 		accChan = make(chan xdr.LedgerEntry)
 	}
