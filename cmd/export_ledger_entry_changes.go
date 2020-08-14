@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -63,29 +63,26 @@ be exported.`,
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
 		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
 
-		transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+		if endNum != 0 {
+			batchCount := int(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
+			for i := 0; i < batchCount; i++ {
+				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+				fmt.Printf("Exporting batch %d/%d \n", i+1, batchCount)
+				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+				fmt.Println("---------------------------------------")
+			}
 
-		// TODO: add export functionality that periodically exports transformed data in batch_size increments instead of printing at the end
-		exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
-		fmt.Println(transformedAccounts)
-		fmt.Println(transformedOffers)
-		fmt.Println(transformedTrustlines)
-
-		/*
-			1. Instantiate a captive core instance - DONE
-				a) If the start and end are provided, then use a bounded range and exit after exporting the info inside the range
-				b) If the end is omitted, use an unbounded range and continue exporting as new ledgers are added to the network
-			2. Call GetLedger() constantly in a separate goroutine - DONE
-				a) Create channels for each data type
-				b) Process changes for the ledger and send changes to the channel matching their type
-			3. On the other end, receive changes from the channel
-				a) Call transform on individual changes - DONE
-				b) Once batch_size ledgers have been sent, encode and export the changes - TODO
-		*/
+		} else {
+			for {
+				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+			}
+		}
 	},
 }
 
 func exportTransformedData(file *os.File, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
+	// TODO: make exports of different types go to different files. Also make each batch export to its own file
 	if !useStdout {
 		file.WriteString(fmt.Sprint(accounts))
 		file.WriteString("\n")
@@ -94,23 +91,23 @@ func exportTransformedData(file *os.File, useStdout bool, accounts []transform.A
 		file.WriteString(fmt.Sprint(trusts))
 		file.WriteString("\n")
 	} else {
-		fmt.Println(fmt.Sprint(accounts))
-		fmt.Println(fmt.Sprint(offers))
-		fmt.Println(fmt.Sprint(trusts))
+		fmt.Println("ACC: ", fmt.Sprint(accounts))
+		fmt.Println("OFF: ", fmt.Sprint(offers))
+		fmt.Println("TRU: ", fmt.Sprint(trusts))
 	}
 }
 
-func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan xdr.LedgerEntry) {
+func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan input.ChangeBatch) {
 	if exportAccounts {
-		accChan = make(chan xdr.LedgerEntry)
+		accChan = make(chan input.ChangeBatch)
 	}
 
 	if exportOffers {
-		offChan = make(chan xdr.LedgerEntry)
+		offChan = make(chan input.ChangeBatch)
 	}
 
 	if exportTrustlines {
-		trustChan = make(chan xdr.LedgerEntry)
+		trustChan = make(chan input.ChangeBatch)
 	}
 
 	return
