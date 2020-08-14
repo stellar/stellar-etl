@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
+	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -23,8 +25,15 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, _, _, _ := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
-		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, _ := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		startNum, endNum := utils.MustRangeFlags(cmd.Flags(), cmdLogger)
+
+		path, useStdout := utils.MustOutputFlags(cmd.Flags(), cmdLogger)
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
+		}
+
+		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, batchSize := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 
 		//if none of the export flags are set, then we assume that everything should be exported
 		if !exportAccounts && !exportOffers && !exportTrustlines {
@@ -52,11 +61,12 @@ be exported.`,
 		}
 
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
-		go input.StreamChanges(core, startNum, endNum, accChannel, offChannel, trustChannel)
+		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
 
 		transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
 
 		// TODO: add export functionality that periodically exports transformed data in batch_size increments instead of printing at the end
+		exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
 		fmt.Println(transformedAccounts)
 		fmt.Println(transformedOffers)
 		fmt.Println(transformedTrustlines)
@@ -73,6 +83,21 @@ be exported.`,
 				b) Once batch_size ledgers have been sent, encode and export the changes - TODO
 		*/
 	},
+}
+
+func exportTransformedData(file *os.File, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
+	if !useStdout {
+		file.WriteString(fmt.Sprint(accounts))
+		file.WriteString("\n")
+		file.WriteString(fmt.Sprint(offers))
+		file.WriteString("\n")
+		file.WriteString(fmt.Sprint(trusts))
+		file.WriteString("\n")
+	} else {
+		fmt.Println(fmt.Sprint(accounts))
+		fmt.Println(fmt.Sprint(offers))
+		fmt.Println(fmt.Sprint(trusts))
+	}
 }
 
 func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan xdr.LedgerEntry) {
@@ -93,8 +118,11 @@ func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (
 
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
-	utils.AddBasicFlags("changes", exportLedgerEntryChangesCmd.Flags())
+
+	utils.AddOutputFlags("changes", exportLedgerEntryChangesCmd.Flags())
+	utils.AddRangeFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags())
+
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
 	/*

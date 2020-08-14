@@ -103,9 +103,20 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 
 // AddBasicFlags adds the start-ledger, end-ledger, limit, output, and stdout flags to the provided flagset
 func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
+	AddRangeFlags(flags)
+	AddOutputFlags(objectName, flags)
+	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
+
+}
+
+// AddRangeFlags adds the start-ledger and end-ledger flags
+func AddRangeFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
+}
+
+// AddOutputFlags adds the output and stdout flags
+func AddOutputFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 }
@@ -131,6 +142,18 @@ func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 
 // MustBasicFlags gets the values of the start-ledger, end-ledger, limit, output, and stdout flags from the flag set. If any do not exist, it stops the program fatally using the logger
 func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32, limit int64, path string, useStdout bool) {
+	startNum, endNum = MustRangeFlags(flags, logger)
+	path, useStdout = MustOutputFlags(flags, logger)
+	limit, err := flags.GetInt64("limit")
+	if err != nil {
+		logger.Fatal("could not get limit: ", err)
+	}
+
+	return
+}
+
+// MustRangeFlags gets the values of the start-ledger and end-ledger flags
+func MustRangeFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -141,12 +164,12 @@ func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum u
 		logger.Fatal("could not get end sequence number: ", err)
 	}
 
-	limit, err = flags.GetInt64("limit")
-	if err != nil {
-		logger.Fatal("could not get limit: ", err)
-	}
+	return
+}
 
-	path, err = flags.GetString("output")
+// MustOutputFlags gets the values of the output and stdout flags
+func MustOutputFlags(flags *pflag.FlagSet, logger *log.Entry) (path string, useStdout bool) {
+	path, err := flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
 	}
