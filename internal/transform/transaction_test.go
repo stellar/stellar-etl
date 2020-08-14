@@ -47,17 +47,17 @@ func TestTransformTransaction(t *testing.T) {
 		transformTest{
 			negativeSeqInput,
 			TransactionOutput{},
-			fmt.Errorf("The account's sequence number (-1) is negative for ledger 0; transaction 1"),
+			fmt.Errorf("The account's sequence number (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			badFeeChargedInput,
 			TransactionOutput{},
-			fmt.Errorf("The fee charged (-1) is negative for ledger 0; transaction 1"),
+			fmt.Errorf("The fee charged (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			badTimeboundInput,
 			TransactionOutput{},
-			fmt.Errorf("The max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1"),
+			fmt.Errorf("The max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			hardCodedInput,
@@ -79,6 +79,7 @@ func makeTransactionTestOutput() (output TransactionOutput, err error) {
 		TransactionHash:  "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 		LedgerSequence:   30521816,
 		ApplicationOrder: 1,
+		TransactionID:    131090201534533632,
 		Account:          testAccount1Address,
 		AccountSequence:  112351890582290871,
 		MaxFee:           90000,

@@ -29,27 +29,27 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
 	if err != nil {
-		return LedgerOutput{}, fmt.Errorf("for ledger %d (id=%d): %v", outputSequence, outputLedgerID, err)
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(ledger)
 	if err != nil {
-		return LedgerOutput{}, fmt.Errorf("for ledger %d (id=%d): %v", outputSequence, outputLedgerID, err)
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
-		return LedgerOutput{}, fmt.Errorf("for ledger %d (id=%d): %v", outputSequence, outputLedgerID, err)
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	outputTotalCoins := int64(ledgerHeader.TotalCoins)
 	if outputTotalCoins < 0 {
-		return LedgerOutput{}, fmt.Errorf("The total number of coins (%d) is negative for ledger %d (id=%d)", outputTotalCoins, outputSequence, outputLedgerID)
+		return LedgerOutput{}, fmt.Errorf("The total number of coins (%d) is negative for ledger %d (ledger id=%d)", outputTotalCoins, outputSequence, outputLedgerID)
 	}
 
 	outputFeePool := int64(ledgerHeader.FeePool)
 	if outputFeePool < 0 {
-		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d (id=%d)", outputFeePool, outputSequence, outputLedgerID)
+		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d (ledger id=%d)", outputFeePool, outputSequence, outputLedgerID)
 	}
 
 	outputBaseFee := uint32(ledgerHeader.BaseFee)
@@ -58,7 +58,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 
 	outputMaxTxSetSize := uint32(ledgerHeader.MaxTxSetSize)
 	if int64(outputMaxTxSetSize) < int64(outputTransactionCount) {
-		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d) for ledger %d (id=%d)", outputTransactionCount, outputMaxTxSetSize, outputSequence, outputLedgerID)
+		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d) for ledger %d (ledger id=%d)", outputTransactionCount, outputMaxTxSetSize, outputSequence, outputLedgerID)
 	}
 
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
