@@ -76,7 +76,6 @@ type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
 	Type             int32   `json:"type"`
 	ApplicationOrder int32   `json:"application_order"`
-	OperationBase64  string  `json:"id"`
 	OperationDetails Details `json:"details"`
 	TransactionID    int64   `json:"transaction_id"`
 	OperationID      int64   `json:"id"`

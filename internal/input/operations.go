@@ -11,6 +11,7 @@ type OperationTransformInput struct {
 	Operation      xdr.Operation
 	OperationIndex int32
 	Transaction    ingestio.LedgerTransaction
+	LedgerSeqNum   int32
 }
 
 // GetOperations returns a slice of operation close metas for the ledgers in the provided range (inclusive on both ends)
@@ -50,6 +51,7 @@ func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, e
 					Operation:      op,
 					OperationIndex: int32(index),
 					Transaction:    tx,
+					LedgerSeqNum:   int32(seq),
 				})
 
 				if int64(len(opSlice)) >= limit && limit >= 0 {
