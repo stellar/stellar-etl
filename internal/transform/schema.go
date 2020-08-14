@@ -20,13 +20,13 @@ type LedgerOutput struct {
 	BaseReserve                uint32    `json:"base_reserve"`
 	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
 	ProtocolVersion            uint32    `json:"protocol_version"`
+	LedgerID                   int64     `json:"id"`
 
 	/*
 		TODO implement these four fields
 			CreatedAt time.Time // timestamp of table entry creation time
 			UpdatedAt time.Time // timestamp of table entry update time
 			ImporterVersion int32 // version of the ingestion system
-			LedgerID int64 // use horizon's toid package
 	*/
 }
 

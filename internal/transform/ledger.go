@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -19,6 +21,8 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	ledgerHeader := ledgerHeaderHistory.Header
 
 	outputSequence := uint32(ledgerHeader.LedgerSeq)
+
+	outputLedgerID := toid.New(int32(outputSequence), 0, 0).ToInt64()
 
 	outputLedgerHash := utils.HashToHexString(ledgerHeaderHistory.Hash)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
@@ -61,6 +65,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,
+		LedgerID:                   outputLedgerID,
 		LedgerHash:                 outputLedgerHash,
 		PreviousLedgerHash:         outputPreviousHash,
 		LedgerHeader:               outputLedgerHeader,
