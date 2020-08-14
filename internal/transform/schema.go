@@ -45,11 +45,11 @@ type TransactionOutput struct {
 	Memo             string    `json:"memo"`
 	TimeBounds       string    `json:"time_bounds"`
 	Successful       bool      `json:"successful"`
+	TransactionID    int64     `json:"id"`
 
 	/*
 		TODO implement
 			updated_at time.Time // timestamp of table entry update time
-			TransactionID int64 // use horizon's toid package
 	*/
 }
 
