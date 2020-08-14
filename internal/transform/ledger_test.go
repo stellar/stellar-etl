@@ -29,21 +29,21 @@ func TestTransformLedger(t *testing.T) {
 				TotalCoins: -1,
 			}),
 			LedgerOutput{},
-			fmt.Errorf("The total number of coins (-1) is negative for ledger 0"),
+			fmt.Errorf("The total number of coins (-1) is negative for ledger 0 (id=0)"),
 		},
 		{
 			wrapLedgerHeader(xdr.LedgerHeader{
 				FeePool: -1,
 			}),
 			LedgerOutput{},
-			fmt.Errorf("The fee pool (-1) is negative for ledger 0"),
+			fmt.Errorf("The fee pool (-1) is negative for ledger 0 (id=0)"),
 		},
 		{
 			wrapLedgerHeaderWithTransactions(xdr.LedgerHeader{
 				MaxTxSetSize: 0,
 			}, 2),
 			LedgerOutput{},
-			fmt.Errorf("The number of transactions and results are different (2 != 0)"),
+			fmt.Errorf("for ledger 0 (id=0): The number of transactions and results are different (2 != 0)"),
 		},
 		{
 			hardCodedLedger,
