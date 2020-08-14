@@ -36,12 +36,6 @@ func TestTransformTrustline(t *testing.T) {
 			TrustlineOutput{}, fmt.Errorf("Balance is negative (-1) for trustline (account is %s and asset is native)", genericAccountAddress),
 		},
 		{
-			wrapTrustlineEntry(xdr.TrustLineEntry{
-				Asset: nativeAsset,
-			}, 0),
-			TrustlineOutput{}, fmt.Errorf("Error running MarshalBinaryCompress when calculating ledger key"),
-		},
-		{
 			hardCodedInput,
 			hardCodedOutput, nil,
 		},

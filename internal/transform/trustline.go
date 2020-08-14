@@ -30,7 +30,7 @@ func TransformTrustline(ledgerEntry xdr.LedgerEntry) (TrustlineOutput, error) {
 
 	outputLedgerKey, err := trustLineEntryToLedgerKeyString(trustEntry)
 	if err != nil {
-		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s and asset %s", outputAccountID, asset))
+		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not create ledger key string for trustline with account %s and asset %s", outputAccountID, asset))
 	}
 
 	outputAssetType := int32(asset.Type)
