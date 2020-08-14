@@ -5,44 +5,45 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 )
 
-func TestSendToChannel(t *testing.T) {
+func TestSendBatchToChannel(t *testing.T) {
 	type functionInput struct {
-		entry        xdr.LedgerEntry
-		accChannel   chan xdr.LedgerEntry
-		offChannel   chan xdr.LedgerEntry
-		trustChannel chan xdr.LedgerEntry
+		entry        ChangeBatch
+		accChannel   chan ChangeBatch
+		offChannel   chan ChangeBatch
+		trustChannel chan ChangeBatch
 	}
 	type functionOutput struct {
-		accEntry   *xdr.LedgerEntry
-		offEntry   *xdr.LedgerEntry
-		trustEntry *xdr.LedgerEntry
+		accEntry   *ChangeBatch
+		offEntry   *ChangeBatch
+		trustEntry *ChangeBatch
 	}
 
-	acc := make(chan xdr.LedgerEntry)
-	off := make(chan xdr.LedgerEntry)
-	trust := make(chan xdr.LedgerEntry)
+	acc := make(chan ChangeBatch)
+	off := make(chan ChangeBatch)
+	trust := make(chan ChangeBatch)
 
-	accountTestEntry := xdr.LedgerEntry{
+	accountTestBatch := wrapLedgerEntry(xdr.LedgerEntry{
 		Data: xdr.LedgerEntryData{
 			Type:    xdr.LedgerEntryTypeAccount,
 			Account: &xdr.AccountEntry{},
 		},
-	}
-	offerTestEntry := xdr.LedgerEntry{
+	})
+	offerTestBatch := wrapLedgerEntry(xdr.LedgerEntry{
 		Data: xdr.LedgerEntryData{
 			Type:  xdr.LedgerEntryTypeOffer,
 			Offer: &xdr.OfferEntry{},
 		},
-	}
-	trustTestEntry := xdr.LedgerEntry{
+	})
+	trustTestBatch := wrapLedgerEntry(xdr.LedgerEntry{
 		Data: xdr.LedgerEntryData{
 			Type:      xdr.LedgerEntryTypeTrustline,
 			TrustLine: &xdr.TrustLineEntry{},
 		},
-	}
+	})
 
 	tests := []struct {
 		name string
@@ -52,43 +53,43 @@ func TestSendToChannel(t *testing.T) {
 		{
 			name: "account",
 			args: functionInput{
-				entry:        accountTestEntry,
+				entry:        accountTestBatch,
 				accChannel:   acc,
 				offChannel:   off,
 				trustChannel: trust,
 			},
 			out: functionOutput{
-				accEntry: &accountTestEntry,
+				accEntry: &accountTestBatch,
 			},
 		},
 		{
 			name: "offer",
 			args: functionInput{
-				entry:        offerTestEntry,
+				entry:        offerTestBatch,
 				accChannel:   acc,
 				offChannel:   off,
 				trustChannel: trust,
 			},
 			out: functionOutput{
-				offEntry: &offerTestEntry,
+				offEntry: &offerTestBatch,
 			},
 		},
 		{
 			name: "trustline",
 			args: functionInput{
-				entry:        trustTestEntry,
+				entry:        trustTestBatch,
 				accChannel:   acc,
 				offChannel:   off,
 				trustChannel: trust,
 			},
 			out: functionOutput{
-				trustEntry: &trustTestEntry,
+				trustEntry: &trustTestBatch,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			go sendToChannel(tt.args.entry, tt.args.accChannel, tt.args.offChannel, tt.args.trustChannel)
+			go sendBatchToChannels(tt.args.entry, tt.args.accChannel, tt.args.offChannel, tt.args.trustChannel)
 
 			needToReadAcc := tt.out.accEntry != nil
 			needToReadOff := tt.out.offEntry != nil
@@ -110,4 +111,20 @@ func TestSendToChannel(t *testing.T) {
 
 		})
 	}
+}
+
+func wrapLedgerEntry(entry xdr.LedgerEntry) ChangeBatch {
+	changes := []ingestio.Change{
+		ingestio.Change{Type: entry.Data.Type, Post: &entry},
+	}
+	return ChangeBatch{
+		Changes: changes,
+		Type:    entry.Data.Type,
+	}
+}
+
+func TestSendStream(t *testing.T) {
+	core, _ := PrepareCaptiveCore("../stellar-core/src/stellar-core", "", 64, 512)
+	accChannel, offChannel, trustChannel := make(chan ChangeBatch), make(chan ChangeBatch), make(chan ChangeBatch)
+	StreamChanges(core, 64, 128, 64, accChannel, offChannel, trustChannel, nil)
 }
