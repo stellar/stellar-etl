@@ -76,14 +76,10 @@ type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
 	Type             int32   `json:"type"`
 	ApplicationOrder int32   `json:"application_order"`
-	TransactionHash  string  `json:"transaction_id"`
 	OperationBase64  string  `json:"id"`
 	OperationDetails Details `json:"details"`
-	/*
-		TODO implement
-			TransactionID int64 // history table mapping that connect operations to their parent transaction; will replace TransactionHash
-			OperationId int64 // use horizon's toid package; replace OperationBase64 with this
-	*/
+	TransactionID    int64   `json:"transaction_id"`
+	OperationID      int64   `json:"id"`
 }
 
 // Details is a struct that provides additional information about operations in a way that aligns with the details struct in the BigQuery table history_operations
