@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"math"
+	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
+	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -23,10 +26,21 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, _, _, _ := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
-		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, _ := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		startNum, endNum := utils.MustRangeFlags(cmd.Flags(), cmdLogger)
 
-		//if none of the export flags are set, then we assume that everything should be exported
+		path, useStdout := utils.MustOutputFlags(cmd.Flags(), cmdLogger)
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
+		}
+
+		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, batchSize := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+
+		if batchSize <= 0 {
+			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
+		}
+
+		// If none of the export flags are set, then we assume that everything should be exported
 		if !exportAccounts && !exportOffers && !exportTrustlines {
 			exportAccounts, exportOffers, exportTrustlines = true, true, true
 		}
@@ -52,40 +66,66 @@ be exported.`,
 		}
 
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
-		go input.StreamChanges(core, startNum, endNum, accChannel, offChannel, trustChannel)
 
-		transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
+		if endNum != 0 {
+			batchCount := int(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
+			for i := 0; i < batchCount; i++ {
+				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+			}
 
-		// TODO: add export functionality that periodically exports transformed data in batch_size increments instead of printing at the end
-		fmt.Println(transformedAccounts)
-		fmt.Println(transformedOffers)
-		fmt.Println(transformedTrustlines)
-
-		/*
-			1. Instantiate a captive core instance - DONE
-				a) If the start and end are provided, then use a bounded range and exit after exporting the info inside the range
-				b) If the end is omitted, use an unbounded range and continue exporting as new ledgers are added to the network
-			2. Call GetLedger() constantly in a separate goroutine - DONE
-				a) Create channels for each data type
-				b) Process changes for the ledger and send changes to the channel matching their type
-			3. On the other end, receive changes from the channel
-				a) Call transform on individual changes - DONE
-				b) Once batch_size ledgers have been sent, encode and export the changes - TODO
-		*/
+		} else {
+			var batchNum uint32 = 1
+			for {
+				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+				batchNum++
+			}
+		}
 	},
 }
 
-func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan xdr.LedgerEntry) {
+func exportEntry(entry interface{}, file *os.File, useStdout bool) {
+	marshalled, err := json.Marshal(entry)
+	if err != nil {
+		cmdLogger.Fatal("could not json encode account", err)
+	}
+
+	if !useStdout {
+		file.Write(marshalled)
+		file.WriteString("\n")
+	} else {
+		fmt.Println(string(marshalled))
+	}
+}
+
+func exportTransformedData(file *os.File, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
+	// TODO: make exports of different types go to different files. Also make each batch export to its own file
+	for _, acc := range accounts {
+		exportEntry(acc, file, useStdout)
+	}
+
+	for _, off := range offers {
+		exportEntry(off, file, useStdout)
+	}
+
+	for _, trust := range trusts {
+		exportEntry(trust, file, useStdout)
+	}
+}
+
+func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan input.ChangeBatch) {
 	if exportAccounts {
-		accChan = make(chan xdr.LedgerEntry)
+		accChan = make(chan input.ChangeBatch)
 	}
 
 	if exportOffers {
-		offChan = make(chan xdr.LedgerEntry)
+		offChan = make(chan input.ChangeBatch)
 	}
 
 	if exportTrustlines {
-		trustChan = make(chan xdr.LedgerEntry)
+		trustChan = make(chan input.ChangeBatch)
 	}
 
 	return
@@ -93,8 +133,11 @@ func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (
 
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
-	utils.AddBasicFlags("changes", exportLedgerEntryChangesCmd.Flags())
+
+	utils.AddOutputFlags("changes", exportLedgerEntryChangesCmd.Flags())
+	utils.AddRangeFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags())
+
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
 	/*

@@ -2,6 +2,7 @@ package input
 
 import (
 	"fmt"
+	"math"
 
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/exp/ingest/ledgerbackend"
@@ -11,6 +12,16 @@ import (
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
+
+const password = network.PublicNetworkPassphrase
+
+// ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
+type ChangeBatch struct {
+	Changes    []ingestio.Change
+	BatchStart uint32
+	BatchEnd   uint32
+	Type       xdr.LedgerEntryType
+}
 
 func getLatestLedgerNumber() (uint32, error) {
 	backend, err := utils.CreateBackend()
@@ -33,7 +44,7 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 	captiveBackend, err := ledgerbackend.NewCaptive(
 		execPath,
 		configPath,
-		network.PublicNetworkPassphrase,
+		password,
 		[]string{archiveStellarURL},
 	)
 	if err != nil {
@@ -63,46 +74,29 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 	return captiveBackend, nil
 }
 
-// getCompactedChanges compacts the read changes from a ledger and returns them
-func getCompactedChanges(changeReader *ingestio.LedgerChangeReader) []ingestio.Change {
-	changeCache := ingestio.NewLedgerEntryChangeCache()
-	for {
-		change, err := changeReader.Read()
-		if err == ingestio.EOF {
-			break
-		}
-
-		if err == nil {
-			changeCache.AddChange(change)
-		}
-	}
-
-	return changeCache.GetChanges()
-}
-
-// sendToChannel sends a ledgerentry to the appropriate channel, checking that the channel is not nil before sending
-func sendToChannel(entry xdr.LedgerEntry, accChannel, offChannel, trustChannel chan xdr.LedgerEntry) {
-	switch entry.Data.Type {
+// sendBatchToChannels sends a ChangeBatch to the appropriate channel, checking that the channel is not nil before sending
+func sendBatchToChannels(batch ChangeBatch, accChannel, offChannel, trustChannel chan ChangeBatch) {
+	switch batch.Type {
 	case xdr.LedgerEntryTypeAccount:
 		if accChannel != nil {
-			accChannel <- entry
+			accChannel <- batch
 		}
 
 	case xdr.LedgerEntryTypeOffer:
 		if offChannel != nil {
-			offChannel <- entry
+			offChannel <- batch
 		}
 
 	case xdr.LedgerEntryTypeTrustline:
 		if trustChannel != nil {
-			trustChannel <- entry
+			trustChannel <- batch
 		}
 
 	}
 }
 
 // closeChannels checks that the provided channels are not nil, and then closes them
-func closeChannels(accChannel, offChannel, trustChannel chan xdr.LedgerEntry) {
+func closeChannels(accChannel, offChannel, trustChannel chan ChangeBatch) {
 	if accChannel != nil {
 		close(accChannel)
 	}
@@ -116,32 +110,108 @@ func closeChannels(accChannel, offChannel, trustChannel chan xdr.LedgerEntry) {
 	}
 }
 
-// sendLedgerChangesToChannels streams the changes from a single ledger to the provided channels
-func sendLedgerChangesToChannels(seqNum uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan xdr.LedgerEntry) {
-	changeReader, err := ingestio.NewLedgerChangeReader(core, network.PublicNetworkPassphrase, seqNum)
-	if err == nil {
-		compactedChanges := getCompactedChanges(changeReader)
-		for _, change := range compactedChanges {
-			// TODO: figure out how to handle deleted entries
-			if change.Post != nil {
-				entry := *change.Post
-				sendToChannel(entry, accChannel, offChannel, trustChannel)
-			}
+func addLedgerChangesToCache(changeReader *ingestio.LedgerChangeReader, accCache, offCache, trustCache *ingestio.LedgerEntryChangeCache) error {
+	for {
+		change, err := changeReader.Read()
+		if err == ingestio.EOF {
+			return nil
+		}
+
+		if err != nil {
+			return err
+		}
+
+		switch change.Type {
+		case xdr.LedgerEntryTypeAccount:
+			accCache.AddChange(change)
+
+		case xdr.LedgerEntryTypeOffer:
+			offCache.AddChange(change)
+
+		case xdr.LedgerEntryTypeTrustline:
+			trustCache.AddChange(change)
+
+		default:
+			// there is also a data entry type, which is not tracked right now
 		}
 	}
 }
 
+// exportBatch gets the changes from the ledgers in the range [batchStart, batchEnd), compacts them, and sends them to the proper channels
+func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) {
+	accChanges := ingestio.NewLedgerEntryChangeCache()
+	offChanges := ingestio.NewLedgerEntryChangeCache()
+	trustChanges := ingestio.NewLedgerEntryChangeCache()
+	for seq := batchStart; seq < batchEnd; {
+		latestLedger, err := core.GetLatestLedgerSequence()
+		if err != nil {
+			logger.Error("unable to get the lastest ledger sequence: ", err)
+		}
+
+		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
+		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
+		if seq <= latestLedger {
+			changeReader, err := ingestio.NewLedgerChangeReader(core, password, seq)
+			if err != nil {
+				logger.Error(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
+			}
+
+			err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges)
+			if err != nil {
+				logger.Error(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+			}
+
+			changeReader.Close()
+			seq++
+		}
+
+	}
+
+	accBatch := ChangeBatch{
+		Changes:    accChanges.GetChanges(),
+		BatchStart: batchStart,
+		BatchEnd:   batchEnd,
+		Type:       xdr.LedgerEntryTypeAccount,
+	}
+	sendBatchToChannels(accBatch, accChannel, nil, nil)
+
+	offBatch := ChangeBatch{
+		Changes:    offChanges.GetChanges(),
+		BatchStart: batchStart,
+		BatchEnd:   batchEnd,
+		Type:       xdr.LedgerEntryTypeOffer,
+	}
+	sendBatchToChannels(offBatch, nil, offChannel, nil)
+
+	trustBatch := ChangeBatch{
+		Changes:    trustChanges.GetChanges(),
+		BatchStart: batchStart,
+		BatchEnd:   batchEnd,
+		Type:       xdr.LedgerEntryTypeTrustline,
+	}
+	sendBatchToChannels(trustBatch, nil, nil, trustChannel)
+}
+
 // StreamChanges runs a goroutine that reads in ledgers, processes the changes, and send the changes to the channel matching their type
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end uint32, accChannel, offChannel, trustChannel chan xdr.LedgerEntry) {
+func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) {
 	if end != 0 {
-		for seq := start; seq <= end; seq++ {
-			sendLedgerChangesToChannels(seq, core, accChannel, offChannel, trustChannel)
+		totalBatches := uint32(math.Ceil(float64(end-start+1) / float64(batchSize)))
+		for currentBatch := uint32(0); currentBatch < totalBatches; currentBatch++ {
+			batchStart := start + currentBatch*batchSize
+			batchEnd := batchStart + batchSize
+			if batchEnd > end+1 {
+				batchEnd = end + 1
+			}
+
+			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, logger)
 		}
 	} else {
-		currentLedger := start
+		batchStart := start
+		batchEnd := batchStart + batchSize
 		for {
-			sendLedgerChangesToChannels(currentLedger, core, accChannel, offChannel, trustChannel)
-			currentLedger++
+			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, logger)
+			batchStart = batchEnd
+			batchEnd = batchStart + batchSize
 		}
 	}
 
@@ -149,64 +219,101 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end uint32, ac
 }
 
 // ReceiveChanges reads in the ledger entries from the provided channels, transforms them, and adds them to the slice with the other transformed entries.
-func ReceiveChanges(accChannel, offChannel, trustChannel chan xdr.LedgerEntry, logger *log.Entry) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
+func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
 	transformedAccounts := make([]transform.AccountOutput, 0)
 	transformedOffers := make([]transform.OfferOutput, 0)
 	transformedTrustlines := make([]transform.TrustlineOutput, 0)
-
+	accBatchRead, offBatchRead, trustBatchRead := false, false, false
 	for {
-
 		select {
-		case entry, ok := <-accChannel:
+		case batch, ok := <-accChannel:
+			// if ok is false, it means the channel is closed. There will be no more batches, so we can set the channel to nil
 			if !ok {
 				accChannel = nil
 				break
 			}
 
-			acc, err := transform.TransformAccount(entry)
-			if err != nil {
-				errorMsg := fmt.Sprintf("error transforming account entry last updated at: %d", entry.LastModifiedLedgerSeq)
-				logger.Error(errorMsg, err)
-				break
+			for _, change := range batch.Changes {
+				// TODO: export deleted changes as well as created/updated entries
+				// change.Post represents the state of the entry after all the changes have occurred.
+				// For now, since the transform doesn't handle deleted entries, we have to discard anything where post == nil
+				if change.Post == nil {
+					continue
+				}
+
+				entry := *change.Post
+				acc, err := transform.TransformAccount(entry)
+				if err != nil {
+					errorMsg := fmt.Sprintf("error transforming account entry last updated at: %d", entry.LastModifiedLedgerSeq)
+					logger.Error(errorMsg, err)
+					break
+				}
+
+				transformedAccounts = append(transformedAccounts, acc)
 			}
 
-			transformedAccounts = append(transformedAccounts, acc)
+			accBatchRead = true
 
-		case entry, ok := <-offChannel:
+		case batch, ok := <-offChannel:
 			if !ok {
 				offChannel = nil
 				break
 			}
 
-			wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
-			offer, err := transform.TransformOffer(wrappedEntry)
-			if err != nil {
-				errorMsg := fmt.Sprintf("error transforming offer entry last updated at: %d", entry.LastModifiedLedgerSeq)
-				logger.Error(errorMsg, err)
-				break
+			for _, change := range batch.Changes {
+				if change.Post == nil {
+					continue
+				}
+
+				entry := *change.Post
+				wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
+				offer, err := transform.TransformOffer(wrappedEntry)
+				if err != nil {
+					errorMsg := fmt.Sprintf("error transforming offer entry last updated at: %d", entry.LastModifiedLedgerSeq)
+					logger.Error(errorMsg, err)
+					break
+				}
+
+				transformedOffers = append(transformedOffers, offer)
 			}
 
-			transformedOffers = append(transformedOffers, offer)
+			offBatchRead = true
 
-		case entry, ok := <-trustChannel:
+		case batch, ok := <-trustChannel:
 			if !ok {
 				trustChannel = nil
 				break
 			}
 
-			trust, err := transform.TransformTrustline(entry)
-			if err != nil {
-				errorMsg := fmt.Sprintf("error transforming trustline entry last updated at: %d", entry.LastModifiedLedgerSeq)
-				logger.Error(errorMsg, err)
-				break
+			for _, change := range batch.Changes {
+				if change.Post == nil {
+					continue
+				}
+
+				entry := *change.Post
+				trust, err := transform.TransformTrustline(entry)
+				if err != nil {
+					errorMsg := fmt.Sprintf("error transforming trustline entry last updated at: %d", entry.LastModifiedLedgerSeq)
+					logger.Error(errorMsg, err)
+					break
+				}
+
+				transformedTrustlines = append(transformedTrustlines, trust)
 			}
 
-			transformedTrustlines = append(transformedTrustlines, trust)
+			trustBatchRead = true
 		}
 
+		// if a batch has been read from each channel, then break
+		if accBatchRead && offBatchRead && trustBatchRead {
+			break
+		}
+
+		// if the channels are closed, then break
 		if accChannel == nil && offChannel == nil && trustChannel == nil {
 			break
 		}
 	}
+
 	return transformedAccounts, transformedOffers, transformedTrustlines
 }
