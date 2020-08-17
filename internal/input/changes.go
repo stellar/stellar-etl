@@ -13,6 +13,8 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
+const password = network.PublicNetworkPassphrase
+
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
 	Changes    []ingestio.Change
@@ -42,7 +44,7 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 	captiveBackend, err := ledgerbackend.NewCaptive(
 		execPath,
 		configPath,
-		network.PublicNetworkPassphrase,
+		password,
 		[]string{archiveStellarURL},
 	)
 	if err != nil {
@@ -141,18 +143,29 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 	accChanges := ingestio.NewLedgerEntryChangeCache()
 	offChanges := ingestio.NewLedgerEntryChangeCache()
 	trustChanges := ingestio.NewLedgerEntryChangeCache()
-	for seq := batchStart; seq < batchEnd; seq++ {
-		changeReader, err := ingestio.NewLedgerChangeReader(core, network.PublicNetworkPassphrase, seq)
+	for seq := batchStart; seq < batchEnd; {
+		latestLedger, err := core.GetLatestLedgerSequence()
 		if err != nil {
-			logger.Error(fmt.Sprintf("unable to create change reader for ledger %d", seq), err)
+			logger.Error("unable to get the lastest ledger sequence: ", err)
 		}
 
-		err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges)
-		if err != nil {
-			logger.Error(fmt.Sprintf("unable to read changes from ledger %d", seq), err)
+		if seq <= latestLedger {
+			changeReader, err := ingestio.NewLedgerChangeReader(core, password, seq)
+			if err != nil {
+				logger.Error(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
+			}
+
+			err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges)
+			if err != nil {
+				logger.Error(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+			}
+
+			changeReader.Close()
+
+			// only look at the next ledger if this one was available; otherwise try again until the network closes the ledger
+			seq++
 		}
 
-		changeReader.Close()
 	}
 
 	accBatch := ChangeBatch{
@@ -197,7 +210,6 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 		batchStart := start
 		batchEnd := batchStart + batchSize
 		for {
-			//TODO: figure out what happens when an unbounded batch goes further than the
 			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, logger)
 			batchStart = batchEnd
 			batchEnd = batchStart + batchSize
@@ -214,7 +226,6 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 	transformedTrustlines := make([]transform.TrustlineOutput, 0)
 	accBatchRead, offBatchRead, trustBatchRead := false, false, false
 	for {
-
 		select {
 		case batch, ok := <-accChannel:
 			if !ok {

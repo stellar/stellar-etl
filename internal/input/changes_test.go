@@ -122,9 +122,3 @@ func wrapLedgerEntry(entry xdr.LedgerEntry) ChangeBatch {
 		Type:    entry.Data.Type,
 	}
 }
-
-func TestSendStream(t *testing.T) {
-	core, _ := PrepareCaptiveCore("../stellar-core/src/stellar-core", "", 64, 512)
-	accChannel, offChannel, trustChannel := make(chan ChangeBatch), make(chan ChangeBatch), make(chan ChangeBatch)
-	StreamChanges(core, 64, 128, 64, accChannel, offChannel, trustChannel, nil)
-}
