@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -61,39 +62,52 @@ be exported.`,
 		}
 
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
-		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
 
+		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
 		if endNum != 0 {
 			batchCount := int(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
 			for i := 0; i < batchCount; i++ {
 				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
-				fmt.Printf("Exporting batch %d/%d \n", i+1, batchCount)
 				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
-				fmt.Println("---------------------------------------")
 			}
 
 		} else {
+			batchNum := uint32(1)
 			for {
 				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
 				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+				batchNum++
 			}
 		}
 	},
 }
 
-func exportTransformedData(file *os.File, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
-	// TODO: make exports of different types go to different files. Also make each batch export to its own file
+func exportEntry(entry interface{}, file *os.File, useStdout bool) {
+	marshalled, err := json.Marshal(entry)
+	if err != nil {
+		cmdLogger.Fatal("could not json encode account", err)
+	}
+
 	if !useStdout {
-		file.WriteString(fmt.Sprint(accounts))
-		file.WriteString("\n")
-		file.WriteString(fmt.Sprint(offers))
-		file.WriteString("\n")
-		file.WriteString(fmt.Sprint(trusts))
+		file.Write(marshalled)
 		file.WriteString("\n")
 	} else {
-		fmt.Println("ACC: ", fmt.Sprint(accounts))
-		fmt.Println("OFF: ", fmt.Sprint(offers))
-		fmt.Println("TRU: ", fmt.Sprint(trusts))
+		fmt.Println(string(marshalled))
+	}
+}
+
+func exportTransformedData(file *os.File, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
+	// TODO: make exports of different types go to different files. Also make each batch export to its own file
+	for _, acc := range accounts {
+		exportEntry(acc, file, useStdout)
+	}
+
+	for _, off := range offers {
+		exportEntry(off, file, useStdout)
+	}
+
+	for _, trust := range trusts {
+		exportEntry(trust, file, useStdout)
 	}
 }
 
