@@ -36,7 +36,11 @@ be exported.`,
 
 		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, batchSize := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 
-		//if none of the export flags are set, then we assume that everything should be exported
+		if batchSize <= 0 {
+			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
+		}
+
+		// If none of the export flags are set, then we assume that everything should be exported
 		if !exportAccounts && !exportOffers && !exportTrustlines {
 			exportAccounts, exportOffers, exportTrustlines = true, true, true
 		}
