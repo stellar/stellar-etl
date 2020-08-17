@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -20,32 +22,34 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 
 	outputSequence := uint32(ledgerHeader.LedgerSeq)
 
+	outputLedgerID := toid.New(int32(outputSequence), 0, 0).ToInt64()
+
 	outputLedgerHash := utils.HashToHexString(ledgerHeaderHistory.Hash)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
 	if err != nil {
-		return LedgerOutput{}, err
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(ledger)
 	if err != nil {
-		return LedgerOutput{}, err
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
-		return LedgerOutput{}, err
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	outputTotalCoins := int64(ledgerHeader.TotalCoins)
 	if outputTotalCoins < 0 {
-		return LedgerOutput{}, fmt.Errorf("The total number of coins (%d) is negative for ledger %d", outputTotalCoins, outputSequence)
+		return LedgerOutput{}, fmt.Errorf("The total number of coins (%d) is negative for ledger %d (ledger id=%d)", outputTotalCoins, outputSequence, outputLedgerID)
 	}
 
 	outputFeePool := int64(ledgerHeader.FeePool)
 	if outputFeePool < 0 {
-		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d", outputFeePool, outputSequence)
+		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d (ledger id=%d)", outputFeePool, outputSequence, outputLedgerID)
 	}
 
 	outputBaseFee := uint32(ledgerHeader.BaseFee)
@@ -54,13 +58,14 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 
 	outputMaxTxSetSize := uint32(ledgerHeader.MaxTxSetSize)
 	if int64(outputMaxTxSetSize) < int64(outputTransactionCount) {
-		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d)", outputTransactionCount, outputMaxTxSetSize)
+		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d) for ledger %d (ledger id=%d)", outputTransactionCount, outputMaxTxSetSize, outputSequence, outputLedgerID)
 	}
 
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,
+		LedgerID:                   outputLedgerID,
 		LedgerHash:                 outputLedgerHash,
 		PreviousLedgerHash:         outputPreviousHash,
 		LedgerHeader:               outputLedgerHeader,

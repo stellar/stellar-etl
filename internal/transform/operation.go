@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	"github.com/stellar/go/amount"
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
@@ -12,24 +14,21 @@ import (
 )
 
 //TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingestio.LedgerTransaction) (OperationOutput, error) {
+func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingestio.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
+	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
+	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex).ToInt64()
+
 	outputSourceAccount, err := utils.GetAccountAddressFromMuxedAccount(getOperationSourceAccount(operation, transaction))
 	if err != nil {
-		return OperationOutput{}, err
+		return OperationOutput{}, fmt.Errorf("for operation %d (ledger id=%d): %v", operationIndex, outputOperationID, err)
 	}
 
 	outputOperationType := int32(operation.Body.Type)
 	if outputOperationType < 0 {
-		return OperationOutput{}, fmt.Errorf("The operation type (%d) is negative for  operation %d", outputOperationType, operationIndex)
+		return OperationOutput{}, fmt.Errorf("The operation type (%d) is negative for  operation %d (operation id=%d)", outputOperationType, operationIndex, outputOperationID)
 	}
 
 	outputDetails, err := extractOperationDetails(operation, transaction, operationIndex)
-	if err != nil {
-		return OperationOutput{}, err
-	}
-
-	outputTransactionHash := utils.HashToHexString(transaction.Result.TransactionHash)
-	outputBase64, err := xdr.MarshalBase64(operation)
 	if err != nil {
 		return OperationOutput{}, err
 	}
@@ -38,8 +37,8 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		SourceAccount:    outputSourceAccount,
 		Type:             outputOperationType,
 		ApplicationOrder: operationIndex + 1, // Application order is 1-indexed
-		TransactionHash:  outputTransactionHash,
-		OperationBase64:  outputBase64,
+		TransactionID:    outputTransactionID,
+		OperationID:      outputOperationID,
 		OperationDetails: outputDetails,
 	}
 

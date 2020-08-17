@@ -20,13 +20,13 @@ type LedgerOutput struct {
 	BaseReserve                uint32    `json:"base_reserve"`
 	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
 	ProtocolVersion            uint32    `json:"protocol_version"`
+	LedgerID                   int64     `json:"id"`
 
 	/*
 		TODO implement these four fields
 			CreatedAt time.Time // timestamp of table entry creation time
 			UpdatedAt time.Time // timestamp of table entry update time
 			ImporterVersion int32 // version of the ingestion system
-			LedgerID int64 // use horizon's toid package
 	*/
 }
 
@@ -45,11 +45,11 @@ type TransactionOutput struct {
 	Memo             string    `json:"memo"`
 	TimeBounds       string    `json:"time_bounds"`
 	Successful       bool      `json:"successful"`
+	TransactionID    int64     `json:"id"`
 
 	/*
 		TODO implement
 			updated_at time.Time // timestamp of table entry update time
-			TransactionID int64 // use horizon's toid package
 	*/
 }
 
@@ -76,14 +76,9 @@ type OperationOutput struct {
 	SourceAccount    string  `json:"source_account"`
 	Type             int32   `json:"type"`
 	ApplicationOrder int32   `json:"application_order"`
-	TransactionHash  string  `json:"transaction_id"`
-	OperationBase64  string  `json:"id"`
 	OperationDetails Details `json:"details"`
-	/*
-		TODO implement
-			TransactionID int64 // history table mapping that connect operations to their parent transaction; will replace TransactionHash
-			OperationId int64 // use horizon's toid package; replace OperationBase64 with this
-	*/
+	TransactionID    int64   `json:"transaction_id"`
+	OperationID      int64   `json:"id"`
 }
 
 // Details is a struct that provides additional information about operations in a way that aligns with the details struct in the BigQuery table history_operations

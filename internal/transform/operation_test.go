@@ -43,7 +43,7 @@ func TestTransformOperation(t *testing.T) {
 		{
 			negativeOpTypeInput,
 			OperationOutput{},
-			fmt.Errorf("The operation type (-1) is negative for  operation 1"),
+			fmt.Errorf("The operation type (-1) is negative for  operation 1 (operation id=4097)"),
 		},
 		{
 			unknownOpTypeInput,
@@ -64,7 +64,7 @@ func TestTransformOperation(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOperation(test.input.operation, test.input.index, test.input.transaction)
+		actualOutput, actualError := TransformOperation(test.input.operation, test.input.index, test.input.transaction, 0)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -361,8 +361,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			SourceAccount:    hardCodedSourceAccountAddress,
 			Type:             0,
 			ApplicationOrder: 1,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAAAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAAAAX14QA==",
+			TransactionID:    4096,
+			OperationID:      4096,
 			OperationDetails: Details{
 				Account:         hardCodedDestAccountAddress,
 				Funder:          hardCodedSourceAccountAddress,
@@ -373,8 +373,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             1,
 			ApplicationOrder: 2,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAEAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAABVVNEVAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAAU3JOA",
+			TransactionID:    4096,
+			OperationID:      4097,
 			OperationDetails: Details{
 				From:        hardCodedSourceAccountAddress,
 				To:          hardCodedDestAccountAddress,
@@ -388,8 +388,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             1,
 			ApplicationOrder: 3,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAEAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAAAAAAAABTck4A=",
+			TransactionID:    4096,
+			OperationID:      4098,
 			OperationDetails: Details{
 				From:      hardCodedSourceAccountAddress,
 				To:        hardCodedDestAccountAddress,
@@ -401,8 +401,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             2,
 			ApplicationOrder: 4,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAIAAAAAAAAAAhWM/NwAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAAAAAAAAhWM/NwAAAABAAAAAVVTRFQAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnM=",
+			TransactionID:    4096,
+			OperationID:      4099,
 			OperationDetails: Details{
 				From:            hardCodedSourceAccountAddress,
 				To:              hardCodedDestAccountAddress,
@@ -418,8 +418,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             3,
 			ApplicationOrder: 5,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAMAAAABVVNEVAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAAAAAAALaYYoAAB9gsAA9CQAAAAAAAAAAA=",
+			TransactionID:    4096,
+			OperationID:      4100,
 			OperationDetails: Details{
 				Price:  0.514092,
 				Amount: 76.586,
@@ -437,8 +437,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             4,
 			ApplicationOrder: 6,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAQAAAAAAAAAAVVTRFQAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAAAJaVf+AXvhOBK+2dw",
+			TransactionID:    4096,
+			OperationID:      4101,
 			OperationDetails: Details{
 				Amount: 63.1595,
 				Price:  0.0791606,
@@ -456,8 +456,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             5,
 			ApplicationOrder: 7,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAUAAAABAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAAQAAAAMAAAABAAAABAAAAAEAAAADAAAAAQAAAAEAAAABAAAAAwAAAAEAAAAFAAAAAQAAAA8yMDE5PURSQTtuLXRlc3QAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE=",
+			TransactionID:    4096,
+			OperationID:      4102,
 			OperationDetails: Details{
 				InflationDest:    hardCodedDestAccountAddress,
 				ClearFlags:       []int32{1, 2},
@@ -477,8 +477,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             6,
 			ApplicationOrder: 8,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAYAAAABVVNEVAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwbwW1nTsgAA",
+			TransactionID:    4096,
+			OperationID:      4103,
 			OperationDetails: Details{
 				Trustor:     hardCodedSourceAccountAddress,
 				Trustee:     hardCodedDestAccountAddress,
@@ -492,8 +492,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             7,
 			ApplicationOrder: 9,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAcAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAABVVNEVAAAAAE=",
+			TransactionID:    4096,
+			OperationID:      4104,
 			OperationDetails: Details{
 				Trustee:     hardCodedSourceAccountAddress,
 				Trustor:     hardCodedDestAccountAddress,
@@ -507,8 +507,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             8,
 			ApplicationOrder: 10,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAgAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnM=",
+			TransactionID:    4096,
+			OperationID:      4105,
 			OperationDetails: Details{
 				Account: hardCodedSourceAccountAddress,
 				Into:    hardCodedDestAccountAddress,
@@ -518,16 +518,16 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             9,
 			ApplicationOrder: 11,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAk=",
+			TransactionID:    4096,
+			OperationID:      4106,
 			OperationDetails: Details{},
 		},
 		OperationOutput{
 			Type:             10,
 			ApplicationOrder: 12,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAoAAAAEdGVzdAAAAAEAAAAFdmFsdWUAAAA=",
+			TransactionID:    4096,
+			OperationID:      4107,
 			OperationDetails: Details{
 				Name:  "test",
 				Value: base64.StdEncoding.EncodeToString([]byte{0x76, 0x61, 0x6c, 0x75, 0x65}),
@@ -537,8 +537,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             11,
 			ApplicationOrder: 13,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAsAAAAAAAAAZA==",
+			TransactionID:    4096,
+			OperationID:      4108,
+
 			OperationDetails: Details{
 				BumpTo: "100",
 			},
@@ -547,8 +548,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             12,
 			ApplicationOrder: 14,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAAwAAAABVVNEVAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAAAAAAByD5qiSXmgPVsYqABAAAAAAAAAGQ=",
+			TransactionID:    4096,
+			OperationID:      4109,
 			OperationDetails: Details{
 				Price:  0.3496823,
 				Amount: 765.4501001,
@@ -567,8 +568,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             13,
 			ApplicationOrder: 15,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAA0AAAAAAAAAAAAYYuYAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAAAAAAAAP8ipPoAAAABAAAAAVVTRFQAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnM=",
+			TransactionID:    4096,
+			OperationID:      4110,
 			OperationDetails: Details{
 				From:            hardCodedSourceAccountAddress,
 				To:              hardCodedDestAccountAddress,
@@ -584,8 +585,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             13,
 			ApplicationOrder: 16,
 			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionHash:  "0000000000000000000000000000000000000000000000000000000000000000",
-			OperationBase64:  "AAAAAAAAAA0AAAAAAAAAAAAYYuYAAAAAa1jdbGiTC20DHcW7+uI++h7D8LtYwryNk41Hwd+zvnMAAAAAAAAAAP8ipPoAAAAA",
+			TransactionID:    4096,
+			OperationID:      4111,
 			OperationDetails: Details{
 				From:            hardCodedSourceAccountAddress,
 				To:              hardCodedDestAccountAddress,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -18,30 +19,32 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 
 	outputApplicationOrder := uint32(transaction.Index)
 
+	outputTransactionID := toid.New(int32(outputLedgerSequence), int32(outputApplicationOrder), 0).ToInt64()
+
 	outputAccount, err := utils.GetAccountAddressFromMuxedAccount(transaction.Envelope.SourceAccount())
 	if err != nil {
-		return TransactionOutput{}, err
+		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, outputApplicationOrder, outputTransactionID, err)
 	}
 
 	outputAccountSequence := transaction.Envelope.SeqNum()
 	if outputAccountSequence < 0 {
-		return TransactionOutput{}, fmt.Errorf("The account's sequence number (%d) is negative for ledger %d; transaction %d", outputAccountSequence, outputLedgerSequence, outputApplicationOrder)
+		return TransactionOutput{}, fmt.Errorf("The account's sequence number (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputAccountSequence, outputLedgerSequence, outputApplicationOrder, outputTransactionID)
 	}
 
 	outputMaxFee := transaction.Envelope.Fee()
 	if outputMaxFee < 0 {
-		return TransactionOutput{}, fmt.Errorf("The fee (%d) is negative for ledger %d; transaction %d", outputMaxFee, outputLedgerSequence, outputApplicationOrder)
+		return TransactionOutput{}, fmt.Errorf("The fee (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputMaxFee, outputLedgerSequence, outputApplicationOrder, outputTransactionID)
 	}
 
 	outputFeeCharged := int64(transaction.Result.Result.FeeCharged)
 	if outputFeeCharged < 0 {
-		return TransactionOutput{}, fmt.Errorf("The fee charged (%d) is negative for ledger %d; transaction %d", outputFeeCharged, outputLedgerSequence, outputApplicationOrder)
+		return TransactionOutput{}, fmt.Errorf("The fee charged (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputFeeCharged, outputLedgerSequence, outputApplicationOrder, outputTransactionID)
 	}
 
 	outputOperationCount := int32(len(transaction.Envelope.Operations()))
 	outputCreatedAt, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
-		return TransactionOutput{}, err
+		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, outputApplicationOrder, outputTransactionID, err)
 	}
 
 	memoObject := transaction.Envelope.Memo()
@@ -64,8 +67,8 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 	outputTimeBounds := ""
 	if timeBound != nil {
 		if timeBound.MaxTime < timeBound.MinTime {
-			return TransactionOutput{}, fmt.Errorf("The max time is earlier than the min time (%d < %d) for ledger %d; transaction %d",
-				timeBound.MaxTime, timeBound.MinTime, outputLedgerSequence, outputApplicationOrder)
+			return TransactionOutput{}, fmt.Errorf("The max time is earlier than the min time (%d < %d) for ledger %d; transaction %d (transaction id=%d)",
+				timeBound.MaxTime, timeBound.MinTime, outputLedgerSequence, outputApplicationOrder, outputTransactionID)
 		}
 
 		outputTimeBounds = fmt.Sprintf("[%d, %d)", timeBound.MinTime, timeBound.MaxTime)
@@ -76,6 +79,7 @@ func TransformTransaction(transaction io.LedgerTransaction, lhe xdr.LedgerHeader
 		TransactionHash:  outputTransactionHash,
 		LedgerSequence:   outputLedgerSequence,
 		ApplicationOrder: outputApplicationOrder,
+		TransactionID:    outputTransactionID,
 		Account:          outputAccount,
 		AccountSequence:  outputAccountSequence,
 		MaxFee:           outputMaxFee,

@@ -29,7 +29,7 @@ var operationsCmd = &cobra.Command{
 		}
 
 		for _, transformInput := range operations {
-			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction)
+			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				errMsg := fmt.Sprintf("could not transform operation %d in transaction %d: ", transformInput.OperationIndex, txIndex)
