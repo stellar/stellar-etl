@@ -114,7 +114,7 @@ func addLedgerChangesToCache(changeReader *ingestio.LedgerChangeReader, accCache
 	for {
 		change, err := changeReader.Read()
 		if err == ingestio.EOF {
-			break
+			return nil
 		}
 
 		if err != nil {
@@ -132,10 +132,9 @@ func addLedgerChangesToCache(changeReader *ingestio.LedgerChangeReader, accCache
 			trustCache.AddChange(change)
 
 		default:
+			// there is also a data entry type, which is not tracked right now
 		}
 	}
-
-	return nil
 }
 
 // exportBatch gets the changes from the ledgers in the range [batchStart, batchEnd), compacts them, and sends them to the proper channels
@@ -149,6 +148,8 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 			logger.Error("unable to get the lastest ledger sequence: ", err)
 		}
 
+		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
+		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if seq <= latestLedger {
 			changeReader, err := ingestio.NewLedgerChangeReader(core, password, seq)
 			if err != nil {
@@ -161,8 +162,6 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 			}
 
 			changeReader.Close()
-
-			// only look at the next ledger if this one was available; otherwise try again until the network closes the ledger
 			seq++
 		}
 
@@ -174,7 +173,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		BatchEnd:   batchEnd,
 		Type:       xdr.LedgerEntryTypeAccount,
 	}
-	sendBatchToChannels(accBatch, accChannel, offChannel, trustChannel)
+	sendBatchToChannels(accBatch, accChannel, nil, nil)
 
 	offBatch := ChangeBatch{
 		Changes:    offChanges.GetChanges(),
@@ -182,7 +181,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		BatchEnd:   batchEnd,
 		Type:       xdr.LedgerEntryTypeOffer,
 	}
-	sendBatchToChannels(offBatch, accChannel, offChannel, trustChannel)
+	sendBatchToChannels(offBatch, nil, offChannel, nil)
 
 	trustBatch := ChangeBatch{
 		Changes:    trustChanges.GetChanges(),
@@ -190,7 +189,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		BatchEnd:   batchEnd,
 		Type:       xdr.LedgerEntryTypeTrustline,
 	}
-	sendBatchToChannels(trustBatch, accChannel, offChannel, trustChannel)
+	sendBatchToChannels(trustBatch, nil, nil, trustChannel)
 }
 
 // StreamChanges runs a goroutine that reads in ledgers, processes the changes, and send the changes to the channel matching their type
@@ -228,6 +227,7 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 	for {
 		select {
 		case batch, ok := <-accChannel:
+			// if ok is false, it means the channel is closed. There will be no more batches, so we can set the channel to nil
 			if !ok {
 				accChannel = nil
 				break
@@ -235,6 +235,8 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 
 			for _, change := range batch.Changes {
 				// TODO: export deleted changes as well as created/updated entries
+				// change.Post represents the state of the entry after all the changes have occurred.
+				// For now, since the transform doesn't handle deleted entries, we have to discard anything where post == nil
 				if change.Post == nil {
 					continue
 				}
@@ -248,8 +250,9 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 				}
 
 				transformedAccounts = append(transformedAccounts, acc)
-				accBatchRead = true
 			}
+
+			accBatchRead = true
 
 		case batch, ok := <-offChannel:
 			if !ok {
@@ -272,8 +275,9 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 				}
 
 				transformedOffers = append(transformedOffers, offer)
-				offBatchRead = true
 			}
+
+			offBatchRead = true
 
 		case batch, ok := <-trustChannel:
 			if !ok {
@@ -295,8 +299,9 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 				}
 
 				transformedTrustlines = append(transformedTrustlines, trust)
-				trustBatchRead = true
 			}
+
+			trustBatchRead = true
 		}
 
 		// if a batch has been read from each channel, then break

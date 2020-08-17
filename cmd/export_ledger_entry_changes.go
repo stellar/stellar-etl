@@ -76,7 +76,7 @@ be exported.`,
 			}
 
 		} else {
-			batchNum := uint32(1)
+			var batchNum uint32 = 1
 			for {
 				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
 				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
