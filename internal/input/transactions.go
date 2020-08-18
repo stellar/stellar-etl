@@ -37,11 +37,11 @@ func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, er
 	txSlice := []LedgerTransformInput{}
 	for seq := start; seq <= end; seq++ {
 		txReader, err := ingestio.NewLedgerTransactionReader(backend, publicPassword, seq)
-		lhe := txReader.GetHeader()
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
 
+		lhe := txReader.GetHeader()
 		// A negative limit value means that all input should be processed
 		for int64(len(txSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()

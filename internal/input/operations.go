@@ -14,7 +14,7 @@ type OperationTransformInput struct {
 	LedgerSeqNum   int32
 }
 
-// GetOperations returns a slice of operation close metas for the ledgers in the provided range (inclusive on both ends)
+// GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
 func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, error) {
 	backend, err := utils.CreateBackend()
 	if err != nil {
