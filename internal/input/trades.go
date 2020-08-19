@@ -3,6 +3,8 @@ package input
 import (
 	"time"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -10,9 +12,10 @@ import (
 
 // TradeTransformInput is a representation of the input for the TransformTrade function
 type TradeTransformInput struct {
-	OperationIndex int32
-	Transaction    ingestio.LedgerTransaction
-	CloseTime      time.Time
+	OperationIndex     int32
+	Transaction        ingestio.LedgerTransaction
+	CloseTime          time.Time
+	OperationHistoryID int64
 }
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
@@ -56,11 +59,13 @@ func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
 				// Trades occur on these operation types: manage buy offer, manage sell offer,
 				// create passive sell offer, path payment send, and path payment receive
 				// Trades also can only occur when these operations are successful
+
 				if operationResultsInTrade(op) && tx.Result.Successful() {
 					tradeSlice = append(tradeSlice, TradeTransformInput{
-						OperationIndex: int32(index),
-						Transaction:    tx,
-						CloseTime:      closeTime,
+						OperationIndex:     int32(index),
+						Transaction:        tx,
+						CloseTime:          closeTime,
+						OperationHistoryID: toid.New(int32(seq), int32(tx.Index), int32(index)).ToInt64(),
 					})
 				}
 
