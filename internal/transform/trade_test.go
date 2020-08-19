@@ -185,7 +185,7 @@ func TestTransformTrade(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrade(test.input.index, test.input.transaction, test.input.closeTime)
+		actualOutput, actualError := TransformTrade(test.input.index, 0, test.input.transaction, test.input.closeTime)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -363,6 +363,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		BaseIsSeller:          true,
 		PriceN:                12634,
 		PriceD:                13300347,
+		BaseOfferID:           97684906,
+		CounterOfferID:        4611686018427387904,
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
@@ -381,6 +383,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		BaseIsSeller:          true,
 		PriceN:                57798933,
 		PriceD:                17339680,
+		BaseOfferID:           86106895,
+		CounterOfferID:        4611686018427387904,
 	}
 
 	onePriceIsAmount := offerOneOutput
@@ -404,11 +408,5 @@ func makeTradeTestOutput() [][]TradeOutput {
 		[]TradeOutput{twoPriceIsAmount, offerOneOutputSecondPlace},
 		[]TradeOutput{},
 	}
-	output[0][0].HistoryOperationBase64 = "AAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
-	output[1][0].HistoryOperationBase64 = "AAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
-	output[2][0].HistoryOperationBase64 = "AAAAAAAAAA0AAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
-	output[2][1].HistoryOperationBase64 = "AAAAAAAAAA0AAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
-	output[3][0].HistoryOperationBase64 = "AAAAAQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAIAAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
-	output[3][1].HistoryOperationBase64 = "AAAAAQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAIAAAAAAAAAAAAAAAAAAAAAiOGmtKVxUo+qnybiDmy8P+c8roC0RmMMW+8BUq9wfXgAAAAAAAAAAAAAAAAAAAAA"
 	return output
 }
