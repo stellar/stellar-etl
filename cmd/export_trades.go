@@ -35,7 +35,7 @@ var tradesCmd = &cobra.Command{
 				cmdLogger.Fatal("could not transform trade ", err)
 			}
 
-			// Each operation, when transformed, results in multiple trades, each of which needs to be exported
+			// We can get multiple trades from each transform, so we need to ensure they are all exported
 			for _, transformed := range trades {
 				marshalled, err := json.Marshal(transformed)
 				if err != nil {
@@ -60,15 +60,6 @@ func init() {
 	tradesCmd.MarkFlagRequired("end-ledger")
 
 	/*
-		Current flags:
-			start-ledger: the ledger sequence number for the beginning of the export period
-			end-ledger: the ledger sequence number for the end of the export range (*required)
-
-			limit: maximum number of trades to export
-
-			output-file: filename of the output file
-			stdout: if set, output is printed to stdout
-
 		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
 			start and end time as a replacement for start and end sequence numbers

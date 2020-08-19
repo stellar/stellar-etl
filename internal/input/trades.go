@@ -56,10 +56,13 @@ func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
 			}
 
 			for index, op := range tx.Envelope.Operations() {
-				// Trades occur on these operation types: manage buy offer, manage sell offer,
-				// create passive sell offer, path payment send, and path payment receive
-				// Trades also can only occur when these operations are successful
+				/*
+					Trades occur on these operation types:
+					manage buy offer, manage sell offer, create passive sell offer, path payment send, and path payment receive
+					Not all of these operations will result in trades, but this is checked in TransformTrade (an empty slice is returned if no trades occurred)
 
+					Trades also can only occur when these operations are successful
+				*/
 				if operationResultsInTrade(op) && tx.Result.Successful() {
 					tradeSlice = append(tradeSlice, TradeTransformInput{
 						OperationIndex:     int32(index),
