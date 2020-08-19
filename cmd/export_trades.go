@@ -30,7 +30,7 @@ var tradesCmd = &cobra.Command{
 		}
 
 		for _, tradeInput := range trades {
-			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.Transaction, tradeInput.CloseTime)
+			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 			if err != nil {
 				cmdLogger.Fatal("could not transform trade ", err)
 			}

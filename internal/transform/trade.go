@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
+func TransformTrade(operationIndex int32, operationID int64, transaction ingestio.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
 	operationResults, ok := transaction.Result.OperationResults()
 	if !ok {
 		return []TradeOutput{}, fmt.Errorf("Could not get any results from this transaction")
@@ -21,9 +23,15 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 	}
 
 	operation := transaction.Envelope.Operations()[operationIndex]
-	claimedOffers, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
+	claimedOffers, counterOffer, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
 	if err != nil {
 		return []TradeOutput{}, err
+	}
+	var outputCounterOfferID int64
+	if counterOffer != nil {
+		outputCounterOfferID = int64(counterOffer.OfferId)
+	} else {
+		outputCounterOfferID = toid.EncodeOfferId(uint64(operationID), toid.TOIDType)
 	}
 
 	transformedTrades := []TradeOutput{}
@@ -77,31 +85,27 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 		// Final price should be buy / sell
 		outputPriceN, outputPriceD := outputCounterAmount, outputBaseAmount
 
-		outputOperationBase64, err := xdr.MarshalBase64(operation)
-		if err != nil {
-			return []TradeOutput{}, err
-		}
-
 		outputBaseIsSeller := true
 
 		trade := TradeOutput{
-			Order:                  outputOrder,
-			LedgerClosedAt:         outputLedgerClosedAt,
-			OfferID:                outputOfferID,
-			BaseAccountAddress:     outputBaseAccountAddress,
-			BaseAssetType:          outputBaseAssetType,
-			BaseAssetCode:          outputBaseAssetCode,
-			BaseAssetIssuer:        outputBaseAssetIssuer,
-			BaseAmount:             outputBaseAmount,
-			CounterAccountAddress:  outputCounterAccountAddress,
-			CounterAssetType:       outputCounterAssetType,
-			CounterAssetCode:       outputCounterAssetCode,
-			CounterAssetIssuer:     outputCounterAssetIssuer,
-			CounterAmount:          outputCounterAmount,
-			BaseIsSeller:           outputBaseIsSeller,
-			PriceN:                 outputPriceN,
-			PriceD:                 outputPriceD,
-			HistoryOperationBase64: outputOperationBase64,
+			Order:                 outputOrder,
+			LedgerClosedAt:        outputLedgerClosedAt,
+			OfferID:               outputOfferID,
+			BaseAccountAddress:    outputBaseAccountAddress,
+			BaseAssetType:         outputBaseAssetType,
+			BaseAssetCode:         outputBaseAssetCode,
+			BaseAssetIssuer:       outputBaseAssetIssuer,
+			BaseAmount:            outputBaseAmount,
+			CounterAccountAddress: outputCounterAccountAddress,
+			CounterAssetType:      outputCounterAssetType,
+			CounterAssetCode:      outputCounterAssetCode,
+			CounterAssetIssuer:    outputCounterAssetIssuer,
+			CounterAmount:         outputCounterAmount,
+			BaseIsSeller:          outputBaseIsSeller,
+			PriceN:                outputPriceN,
+			PriceD:                outputPriceD,
+			BaseOfferID:           outputOfferID,
+			CounterOfferID:        outputCounterOfferID,
 		}
 
 		transformedTrades = append(transformedTrades, trade)
@@ -109,7 +113,7 @@ func TransformTrade(operationIndex int32, transaction ingestio.LedgerTransaction
 	return transformedTrades, nil
 }
 
-func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimOfferAtom, err error) {
+func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimOfferAtom, counterOffer *xdr.OfferEntry, err error) {
 	if operationIndex >= int32(len(operationResults)) {
 		err = fmt.Errorf("Operation index of %d is out of bounds in result slice (len = %d)", operationIndex, len(operationResults))
 		return
@@ -136,6 +140,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 		if success, ok := buyOfferResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
+			counterOffer = success.Offer.Offer
 			return
 		}
 
@@ -150,6 +155,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 		if success, ok := sellOfferResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
+			counterOffer = success.Offer.Offer
 			return
 		}
 
@@ -164,6 +170,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 		if success, ok := passiveSellResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
+			counterOffer = success.Offer.Offer
 			return
 		}
 
