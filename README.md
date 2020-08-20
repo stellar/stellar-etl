@@ -1,3 +1,4 @@
+
 # Stellar ETL
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
 
@@ -24,14 +25,14 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 
 ## Exporting the Ledger Chain
 
-1. Install Golang: https://golang.org/dl/
+1. Install Golang v1.14 or later: https://golang.org/dl/
 
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. Download and install Stellar-Core v13.2.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
 
 4. Run `go get github.com/stellar/stellar-etl` to install the ETL
 
-5. Run export commands in order to export information about the legder
+5. Run export commands to export information about the legder
 
 ## Command Reference
 - [Bucket List Commands](#bucket-list-commands)
@@ -57,7 +58,7 @@ These commands use the bucket list in order to ingest large amounts of data from
 > stellar-etl export_accounts --end-ledger 500000 --output exported_accounts.txt
 ```
 
-This command exports accounts, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point in time state of accounts, meaning that the exported data represents the account information as it was at `end-ledger`.
+This command exports accounts, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point-in-time state of accounts, meaning that the exported data represents the account information as it was at `end-ledger`.
 
 #### export_offers
 
@@ -65,7 +66,7 @@ This command exports accounts, starting from the genesis ledger and ending at th
 > stellar-etl export_offers --end-ledger 500000 --output exported_offers.txt
 ```
 
-This command exports offers, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point in time state of offer, meaning that the exported data represents the offerbook as it was at `end-ledger`.
+This command exports offers, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point-in-time state of offers on Stellar's decentralized exchange as it was at `end-ledger`.
 
 #### export_trustlines
 
@@ -73,11 +74,11 @@ This command exports offers, starting from the genesis ledger and ending at the 
 > stellar-etl export_trustlines --end-ledger 500000 --output exported_trustlines.txt
 ```
 
-This command exports trustlines, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point in time state of trustlines, meaning that the exported data represents the trustline information as it was at `end-ledger`.
+This command exports trustlines, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point-in-time state of trustlines, meaning that the exported data represents the trustline information as it was at `end-ledger`.
 
 ### History Archive Commands
 
-These commands export information using the history archives. This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range.
+These commands export information using the history archives. This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
 #### export_ledgers
 
 ```bash
@@ -85,8 +86,7 @@ These commands export information using the history archives. This allows users 
 --end-ledger 500000 --output exported_ledgers.txt
 ```
 
-This command exports ledgers within the provided range. Both `start-ledger` and `end-ledger` are included in the export process.
-
+This command exports ledgers within the provided range. 
 #### export_transactions
 
 ```bash
@@ -94,7 +94,7 @@ This command exports ledgers within the provided range. Both `start-ledger` and 
 --end-ledger 500000 --output exported_transactions.txt
 ```
 
-This command exports transactions within the provided range. This range is inclusive.
+This command exports transactions within the provided range.
 
 #### export_operations
 
@@ -103,13 +103,13 @@ This command exports transactions within the provided range. This range is inclu
 --end-ledger 500000 --output exported_operations.txt
 ```
 
-This command exports transactions within the provided range. This range is inclusive.
+This command exports operations within the provided range.
 
 ### Stellar Core Commands
 
 These commands require a Stellar Core instance that is v13.2.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, or trustlines.
 
-As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This can add some overhead to the commands in this category.
+As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
 #### export_ledger_entry_changes
 
 ```bash
@@ -117,7 +117,9 @@ As the Stellar network grows, the Stellar Core instance has to catch up on an in
 --end-ledger 500000 --output exported_ledgers.txt
 ```
 
-This command exports ledger changes within the provided ledger range. There are three data type flags that control which types of changes are exported. If no data type flags are set, then by default all three types are exported. If any are set, it is assumed that the others should not be exported. Changes are exported in batches of a size defined by the `batch-size` flag.
+This command exports ledger changes within the provided ledger range. There are three data type flags that control which types of changes are exported. If no data type flags are set, then by default all three types are exported. If any are set, it is assumed that the others should not be exported. 
+
+Changes are exported in batches of a size defined by the `batch-size` flag. By default, the batch-size parameter is set to 64 ledgers, which corresponds to a five minute period of time. This batch size is convenient because checkpoint ledgers are created every 64 ledgers. Checkpoint ledgers act as anchoring points for the nodes on the network, so it is beneficial to export in multiples of 64.
 
 This command has two modes: bounded and unbounded.
 
