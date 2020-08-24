@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -10,6 +11,11 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+type ledgerRange struct {
+	Start int64 `json:"start"`
+	End   int64 `json:"end"`
+}
 
 var getLedgerRangeFromTimesCmd = &cobra.Command{
 	Use:   "get_ledger_range_from_times",
@@ -51,10 +57,17 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not calculate ledger range: ", err)
 		}
 
+		toExport := ledgerRange{Start: startLedger, End: endLedger}
+		marshalled, err := json.Marshal(toExport)
+		if err != nil {
+			cmdLogger.Fatal("could not json encode ledger range", err)
+		}
+
 		if !useStdout {
-			outFile.WriteString(fmt.Sprintf("%d %d\n", startLedger, endLedger))
+			outFile.Write(marshalled)
+			outFile.WriteString("\n")
 		} else {
-			fmt.Printf("%d %d\n", startLedger, endLedger)
+			fmt.Println(string(marshalled))
 		}
 	},
 }
