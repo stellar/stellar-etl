@@ -40,7 +40,6 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	fmt.Println(startTime, endTime)
 
 	startLedger, err := graph.findLedgerForDate(2, startTime)
 	if err != nil {
@@ -52,12 +51,6 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 		return 0, 0, err
 	}
 
-	startCT, _ := graph.getGraphPoint(startLedger)
-	endCT, _ := graph.getGraphPoint(endLedger)
-	fmt.Println("original times: ", startTime, endTime)
-	fmt.Println("seq nums: ", startLedger, endLedger)
-	fmt.Println("close times: ", startCT, endCT)
-
 	return startLedger, endLedger, nil
 }
 
@@ -65,6 +58,7 @@ func (g graph) close() {
 	g.Backend.Close()
 }
 
+// createNewGraph makes a new graph with the endpoints equal to the network's endpoints
 func createNewGraph() (graph, error) {
 	graph := graph{}
 	archive, err := utils.CreateBackend()
@@ -95,6 +89,7 @@ func createNewGraph() (graph, error) {
 	return graph, nil
 }
 
+// findLedgerForDate recursively searches for the ledger that was closed on or directly after targetTime
 func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int64, error) {
 	currentTime, err := g.getGraphPoint(currentLedger)
 	if err != nil {
@@ -118,21 +113,17 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 	if ledgerOffset == 0 {
 		ledgerOffset = 1
 	}
-	fmt.Println("Current seq is: ", currentLedger)
+
 	currentLedger += ledgerOffset
 
 	if currentLedger > g.EndPoint.Seq {
 		currentLedger = g.EndPoint.Seq
 	}
 
-	fmt.Println("Current time is: ", currentTime)
-	fmt.Println("Going for: ", targetTime)
-	fmt.Println("Offset is: ", ledgerOffset)
-	fmt.Println("--------------")
-
 	return g.findLedgerForDate(currentLedger, targetTime)
 }
 
+// limitLedgerRange restricts start and end by setting them to be the edges of the network's range if they are outside that range
 func (g graph) limitLedgerRange(start, end *time.Time) error {
 	if start.Before(g.BeginPoint.CloseTime) {
 		*start = g.BeginPoint.CloseTime
@@ -145,6 +136,7 @@ func (g graph) limitLedgerRange(start, end *time.Time) error {
 	return nil
 }
 
+// getGraphPoint gets the graphPoint representation of the ledger with the provided sequence number
 func (g graph) getGraphPoint(sequence int64) (graphPoint, error) {
 	ok, ledger, err := g.Backend.GetLedger(uint32(sequence))
 	if !ok {
