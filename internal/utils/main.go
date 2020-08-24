@@ -264,3 +264,14 @@ func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
 
 	return checkpoint, nil
 }
+
+// ExtractLedgerCloseTime gets the close time of the provided ledger
+func ExtractLedgerCloseTime(ledger xdr.LedgerCloseMeta) (time.Time, error) {
+	v0, ok := ledger.GetV0()
+	if !ok {
+		return time.Time{}, fmt.Errorf("could not extract v0 info from ledger")
+	}
+
+	close := v0.LedgerHeader.Header.ScpValue.CloseTime
+	return TimePointToUTCTimeStamp(close)
+}
