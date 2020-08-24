@@ -9,11 +9,11 @@ import (
 )
 
 type graphPoint struct {
-	Seq       uint32
+	Seq       int64
 	CloseTime time.Time
 }
 
-type grapher struct {
+type graph struct {
 	Backend              *ledgerbackend.HistoryArchiveBackend
 	BeginPoint, EndPoint graphPoint
 }
@@ -21,7 +21,7 @@ type grapher struct {
 const avgCloseTime = time.Second * 5 // average time to close a stellar ledger
 
 // GetLedgerRange calculates the ledger range that spans the provided date range
-func GetLedgerRange(startTime, endTime time.Time) (uint32, uint32, error) {
+func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 	startTime = startTime.UTC()
 	endTime = endTime.UTC()
 
@@ -42,12 +42,12 @@ func GetLedgerRange(startTime, endTime time.Time) (uint32, uint32, error) {
 	}
 	fmt.Println(startTime, endTime)
 
-	startLedger, err := graph.findLedgerForDate(startTime)
+	startLedger, err := graph.findLedgerForDate(2, startTime)
 	if err != nil {
 		return 0, 0, err
 	}
 
-	endLedger, err := graph.findLedgerForDate(endTime)
+	endLedger, err := graph.findLedgerForDate(2, endTime)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -61,12 +61,12 @@ func GetLedgerRange(startTime, endTime time.Time) (uint32, uint32, error) {
 	return startLedger, endLedger, nil
 }
 
-func (g grapher) close() {
+func (g graph) close() {
 	g.Backend.Close()
 }
 
-func createNewGraph() (grapher, error) {
-	graph := grapher{}
+func createNewGraph() (graph, error) {
+	graph := graph{}
 	archive, err := utils.CreateBackend()
 	if err != nil {
 		return graph, err
@@ -86,7 +86,7 @@ func createNewGraph() (grapher, error) {
 		return graph, err
 	}
 
-	latestPoint, err := graph.getGraphPoint(latestNum)
+	latestPoint, err := graph.getGraphPoint(int64(latestNum))
 	if err != nil {
 		return graph, err
 	}
@@ -95,7 +95,7 @@ func createNewGraph() (grapher, error) {
 	return graph, nil
 }
 
-func (g grapher) recur(currentLedger uint32, targetTime time.Time) (uint32, error) {
+func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int64, error) {
 	currentTime, err := g.getGraphPoint(currentLedger)
 	if err != nil {
 		return 0, err
@@ -108,38 +108,32 @@ func (g grapher) recur(currentLedger uint32, targetTime time.Time) (uint32, erro
 			return 0, err
 		}
 
-		if tempTime.CloseTime.Before(targetTime) && (currentTime.CloseTime.After(targetTime) || currentTime.CloseTime.Equal(targetTime)) {
+		if (tempTime.CloseTime.Before(targetTime) || tempTime.CloseTime.Equal(targetTime)) && (currentTime.CloseTime.After(targetTime) || currentTime.CloseTime.Equal(targetTime)) {
 			return currentLedger, nil
 		}
 	}
 
-	//todo fix going out of range / over last ledger
 	timeDiff := targetTime.Sub(currentTime.CloseTime)
-	ledgerOffset := uint32(timeDiff.Seconds() / avgCloseTime.Seconds())
+	ledgerOffset := int64(timeDiff.Seconds() / avgCloseTime.Seconds())
 	if ledgerOffset == 0 {
 		ledgerOffset = 1
 	}
-
 	fmt.Println("Current seq is: ", currentLedger)
+	currentLedger += ledgerOffset
+
+	if currentLedger > g.EndPoint.Seq {
+		currentLedger = g.EndPoint.Seq
+	}
+
 	fmt.Println("Current time is: ", currentTime)
 	fmt.Println("Going for: ", targetTime)
 	fmt.Println("Offset is: ", ledgerOffset)
 	fmt.Println("--------------")
 
-	currentLedger += ledgerOffset
-
-	return g.recur(currentLedger, targetTime)
+	return g.findLedgerForDate(currentLedger, targetTime)
 }
 
-func (g grapher) findLedgerForDate(t time.Time) (uint32, error) {
-	//todo put recur code here
-	timeDiff := t.Sub(g.BeginPoint.CloseTime)
-	ledgerOffset := uint32(timeDiff.Seconds() / avgCloseTime.Seconds())
-	currentLedger := 2 + ledgerOffset
-	return g.recur(currentLedger, t)
-}
-
-func (g grapher) limitLedgerRange(start, end *time.Time) error {
+func (g graph) limitLedgerRange(start, end *time.Time) error {
 	if start.Before(g.BeginPoint.CloseTime) {
 		*start = g.BeginPoint.CloseTime
 	}
@@ -151,8 +145,8 @@ func (g grapher) limitLedgerRange(start, end *time.Time) error {
 	return nil
 }
 
-func (g grapher) getGraphPoint(sequence uint32) (graphPoint, error) {
-	ok, ledger, err := g.Backend.GetLedger(sequence)
+func (g graph) getGraphPoint(sequence int64) (graphPoint, error) {
+	ok, ledger, err := g.Backend.GetLedger(uint32(sequence))
 	if !ok {
 		return graphPoint{}, fmt.Errorf("ledger %d does not exist in history archive", sequence)
 	}
