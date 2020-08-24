@@ -1,0 +1,45 @@
+package cmd
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestConvertTimes(t *testing.T) {
+	tests := []cliTest{
+		{
+			name:    "wrong date format",
+			args:    []string{"get_ledger_range_from_times", "-s", "2016 01 01 4:33", "-e", "2020 03 04 12:32", "--stdout"},
+			golden:  "",
+			wantErr: fmt.Errorf("could not parse start time: parsing time \\"),
+		},
+		{
+			name:    "normal range",
+			args:    []string{"get_ledger_range_from_times", "-s", "2016-11-10T18:00:00-0500", "-e", "2019-09-13T23:00:00+0000", "--stdout"},
+			golden:  "normal_range.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "start too early",
+			args:    []string{"get_ledger_range_from_times", "-s", "2006-11-10T18:00:00-0500", "-e", "2019-09-13T23:00:00+0000", "--stdout"},
+			golden:  "early_start.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "end too late",
+			args:    []string{"get_ledger_range_from_times", "-s", "2016-11-10T18:00:00-0500", "-e", "2021-09-13T23:00:00+0000", "--stdout"},
+			golden:  "late_end.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "same date",
+			args:    []string{"get_ledger_range_from_times", "-s", "2016-11-10T18:00:00-0500", "-e", "2016-11-10T18:00:00-0500", "--stdout"},
+			golden:  "same_date.golden",
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range tests {
+		runCLITest(t, test, "testdata/ranges/")
+	}
+}
