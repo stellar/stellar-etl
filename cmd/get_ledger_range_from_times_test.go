@@ -27,14 +27,20 @@ func TestConvertTimes(t *testing.T) {
 		},
 		{
 			name:    "end too late",
-			args:    []string{"get_ledger_range_from_times", "-s", "2016-11-10T18:00:00-0500", "-e", "2021-09-13T23:00:00+0000", "--stdout"},
+			args:    []string{"get_ledger_range_from_times", "-s", "2017-11-10T12:14:32+0400", "-e", "2021-09-13T23:00:00+0000", "--stdout"},
 			golden:  "late_end.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "same date",
-			args:    []string{"get_ledger_range_from_times", "-s", "2016-11-10T18:00:00-0500", "-e", "2016-11-10T18:00:00-0500", "--stdout"},
+			args:    []string{"get_ledger_range_from_times", "-s", "2016-11-10T18:03:37-0500", "-e", "2016-11-10T18:03:37-0500", "--stdout"},
 			golden:  "same_date.golden",
+			wantErr: nil,
+		},
+		{
+			name:    "checkpoint range (22343680-22343743)",
+			args:    []string{"get_ledger_range_from_times", "-s", "2019-02-06T09:14:43+0000", "-e", "2019-02-06T09:20:23+0000", "--stdout"},
+			golden:  "checkpoint_range.golden",
 			wantErr: nil,
 		},
 	}
