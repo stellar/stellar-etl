@@ -41,7 +41,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			outFile = mustOutFile(path)
 		}
 
-		formatString := "2006-01-02T15:04:05-0700"
+		formatString := "2006-01-02T15:04:05-07:00"
 		startTime, err := time.Parse(formatString, startString)
 		if err != nil {
 			cmdLogger.Fatal("could not parse start time: ", err)
