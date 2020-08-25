@@ -1,5 +1,6 @@
 package input
 
+
 import (
 	"fmt"
 	"time"

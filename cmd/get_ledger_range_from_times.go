@@ -21,6 +21,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 	Use:   "get_ledger_range_from_times",
 	Short: "Converts a time range into a ledger range",
 	Long: `Converts a time range into a ledger range. Times must be in the format YYYY-MM-DDTHH:MM:SS.SSSZ.
+
 	Some examples include: 2006-01-02T15:04:05-0700, 2009-11-10T18:00:00-0500, or 2019-09-13T23:00:00+0000.
 	If the time range goes into the future, the ledger range will end on the most recent ledger. If the time
 	range covers time before the network started, the ledger range will start with the genesis ledger.`,
