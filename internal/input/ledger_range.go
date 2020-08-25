@@ -8,14 +8,21 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
+// graphPoint represents a single point in the graph. It includes the ledger sequence and close time (in UTC)
 type graphPoint struct {
 	Seq       int64
 	CloseTime time.Time
 }
 
+/*
+The graph struct is used to calculate ledger ranges from time ranges. It keeps track of its boundaries, and uses its backend to
+retrieve new graphPoints as necessary. As the sequence number increases, so does the close time, so we can use the graph to find
+sequence numbers that correspond to a given close time fairly easily.
+*/
 type graph struct {
-	Backend              *ledgerbackend.HistoryArchiveBackend
-	BeginPoint, EndPoint graphPoint
+	Backend    *ledgerbackend.HistoryArchiveBackend
+	BeginPoint graphPoint
+	EndPoint   graphPoint
 }
 
 const avgCloseTime = time.Second * 5 // average time to close a stellar ledger
@@ -41,6 +48,8 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 		return 0, 0, err
 	}
 
+	// Ledger sequence 2 is the start ledger because the genesis ledger (ledger 1), has a close time of 0 in Unix time.
+	// The second ledger has a valid close time that matches with the network start time.
 	startLedger, err := graph.findLedgerForDate(2, startTime)
 	if err != nil {
 		return 0, 0, err
@@ -97,13 +106,13 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 	}
 
 	if currentLedger > 1 {
-		tempLedger := currentLedger - 1
-		tempTime, err := g.getGraphPoint(tempLedger)
+		prevLedger := currentLedger - 1
+		prevTime, err := g.getGraphPoint(prevLedger)
 		if err != nil {
 			return 0, err
 		}
 
-		if (tempTime.CloseTime.Before(targetTime) || tempTime.CloseTime.Equal(targetTime)) && (currentTime.CloseTime.After(targetTime) || currentTime.CloseTime.Equal(targetTime)) {
+		if prevTime.CloseTime.Unix() <= targetTime.Unix() && currentTime.CloseTime.Unix() >= targetTime.Unix() {
 			return currentLedger, nil
 		}
 	}
