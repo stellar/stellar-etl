@@ -1,6 +1,5 @@
 package input
 
-
 import (
 	"fmt"
 	"time"
@@ -128,6 +127,8 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 
 	if currentLedger > g.EndPoint.Seq {
 		currentLedger = g.EndPoint.Seq
+	} else if currentLedger < g.BeginPoint.Seq {
+		currentLedger = g.BeginPoint.Seq
 	}
 
 	return g.findLedgerForDate(currentLedger, targetTime)
@@ -137,10 +138,14 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 func (g graph) limitLedgerRange(start, end *time.Time) error {
 	if start.Before(g.BeginPoint.CloseTime) {
 		*start = g.BeginPoint.CloseTime
+	} else if start.After(g.EndPoint.CloseTime) {
+		*start = g.EndPoint.CloseTime
 	}
 
 	if end.After(g.EndPoint.CloseTime) {
 		*end = g.EndPoint.CloseTime
+	} else if end.Before(g.BeginPoint.CloseTime) {
+		*end = g.BeginPoint.CloseTime
 	}
 
 	return nil
