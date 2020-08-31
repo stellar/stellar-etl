@@ -173,10 +173,6 @@ type OfferOutput struct {
 	Flags              uint32  `json:"flags"`
 	LastModifiedLedger uint32  `json:"last_modified_ledger"`
 	Deleted            bool    `json:"deleted"`
-	/*
-		TODO implement
-			Deleted bool `json:"deleted"` // need to see operation that deletes offer to know what this value should be
-	*/
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
