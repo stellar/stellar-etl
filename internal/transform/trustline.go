@@ -5,11 +5,18 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 //TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrustline(ledgerEntry xdr.LedgerEntry) (TrustlineOutput, error) {
+func TransformTrustline(ledgerChange ingestio.Change) (TrustlineOutput, error) {
+	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
+	if err != nil {
+		return TrustlineOutput{}, err
+	}
+
 	trustEntry, ok := ledgerEntry.Data.GetTrustLine()
 	if !ok {
 		return TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
@@ -77,6 +84,7 @@ func TransformTrustline(ledgerEntry xdr.LedgerEntry) (TrustlineOutput, error) {
 		SellingLiabilities: outputSellingLiabilities,
 		Flags:              outputFlags,
 		LastModifiedLedger: outputLastModifiedLedger,
+		Deleted:            outputDeleted,
 	}
 
 	return transformedTrustline, nil
