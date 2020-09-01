@@ -4,25 +4,29 @@ import (
 	"fmt"
 	"testing"
 
+	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransformTrustline(t *testing.T) {
 	type transformTest struct {
-		input      xdr.LedgerEntry
+		input      ingestio.Change
 		wantOutput TrustlineOutput
 		wantErr    error
 	}
 
-	hardCodedInput, err := makeTrustlineTestInput()
-	assert.NoError(t, err)
+	hardCodedInput := makeTrustlineTestInput()
 	hardCodedOutput := makeTrustlineTestOutput()
 	tests := []transformTest{
 		{
-			xdr.LedgerEntry{
-				Data: xdr.LedgerEntryData{
-					Type: xdr.LedgerEntryTypeOffer,
+			ingestio.Change{
+				Type: xdr.LedgerEntryTypeOffer,
+				Pre:  nil,
+				Post: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeOffer,
+					},
 				},
 			},
 			TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is LedgerEntryTypeOffer"),
@@ -48,8 +52,8 @@ func TestTransformTrustline(t *testing.T) {
 	}
 }
 
-func makeTrustlineTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
-	ledgerEntry = xdr.LedgerEntry{
+func makeTrustlineTestInput() ingestio.Change {
+	ledgerEntry := xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 24229503,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeTrustline,
@@ -71,7 +75,11 @@ func makeTrustlineTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
 			},
 		},
 	}
-	return
+	return ingestio.Change{
+		Type: xdr.LedgerEntryTypeTrustline,
+		Pre:  &xdr.LedgerEntry{},
+		Post: &ledgerEntry,
+	}
 }
 
 func makeTrustlineTestOutput() TrustlineOutput {
@@ -87,15 +95,20 @@ func makeTrustlineTestOutput() TrustlineOutput {
 		BuyingLiabilities:  1000,
 		SellingLiabilities: 2000,
 		LastModifiedLedger: 24229503,
+		Deleted:            false,
 	}
 }
 
-func wrapTrustlineEntry(trustlineEntry xdr.TrustLineEntry, lastModified int) xdr.LedgerEntry {
-	return xdr.LedgerEntry{
-		LastModifiedLedgerSeq: xdr.Uint32(lastModified),
-		Data: xdr.LedgerEntryData{
-			Type:      xdr.LedgerEntryTypeTrustline,
-			TrustLine: &trustlineEntry,
+func wrapTrustlineEntry(trustlineEntry xdr.TrustLineEntry, lastModified int) ingestio.Change {
+	return ingestio.Change{
+		Type: xdr.LedgerEntryTypeTrustline,
+		Pre:  nil,
+		Post: &xdr.LedgerEntry{
+			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
+			Data: xdr.LedgerEntryData{
+				Type:      xdr.LedgerEntryTypeTrustline,
+				TrustLine: &trustlineEntry,
+			},
 		},
 	}
 }

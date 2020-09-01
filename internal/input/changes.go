@@ -234,16 +234,9 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 			}
 
 			for _, change := range batch.Changes {
-				// TODO: export deleted changes as well as created/updated entries
-				// change.Post represents the state of the entry after all the changes have occurred.
-				// For now, since the transform doesn't handle deleted entries, we have to discard anything where post == nil
-				if change.Post == nil {
-					continue
-				}
-
-				entry := *change.Post
-				acc, err := transform.TransformAccount(entry)
+				acc, err := transform.TransformAccount(change)
 				if err != nil {
+					entry, _, _ := utils.ExtractEntryFromChange(change)
 					errorMsg := fmt.Sprintf("error transforming account entry last updated at: %d", entry.LastModifiedLedgerSeq)
 					logger.Error(errorMsg, err)
 					break
@@ -261,14 +254,9 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 			}
 
 			for _, change := range batch.Changes {
-				if change.Post == nil {
-					continue
-				}
-
-				entry := *change.Post
-				wrappedEntry := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &entry}
-				offer, err := transform.TransformOffer(wrappedEntry)
+				offer, err := transform.TransformOffer(change)
 				if err != nil {
+					entry, _, _ := utils.ExtractEntryFromChange(change)
 					errorMsg := fmt.Sprintf("error transforming offer entry last updated at: %d", entry.LastModifiedLedgerSeq)
 					logger.Error(errorMsg, err)
 					break
@@ -286,13 +274,9 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 			}
 
 			for _, change := range batch.Changes {
-				if change.Post == nil {
-					continue
-				}
-
-				entry := *change.Post
-				trust, err := transform.TransformTrustline(entry)
+				trust, err := transform.TransformTrustline(change)
 				if err != nil {
+					entry, _, _ := utils.ExtractEntryFromChange(change)
 					errorMsg := fmt.Sprintf("error transforming trustline entry last updated at: %d", entry.LastModifiedLedgerSeq)
 					logger.Error(errorMsg, err)
 					break

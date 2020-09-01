@@ -3,11 +3,17 @@ package transform
 import (
 	"fmt"
 
-	"github.com/stellar/go/xdr"
+	ingestio "github.com/stellar/go/exp/ingest/io"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 //TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
+func TransformAccount(ledgerChange ingestio.Change) (AccountOutput, error) {
+	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
+	if err != nil {
+		return AccountOutput{}, err
+	}
+
 	accountEntry, accountFound := ledgerEntry.Data.GetAccount()
 	if !accountFound {
 		return AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
@@ -81,6 +87,7 @@ func TransformAccount(ledgerEntry xdr.LedgerEntry) (AccountOutput, error) {
 		ThresholdMedium:      outputThreshMed,
 		ThresholdHigh:        outputThreshHigh,
 		LastModifiedLedger:   outputLastModifiedLedger,
+		Deleted:              outputDeleted,
 	}
 	return transformedAccount, nil
 }

@@ -4,26 +4,30 @@ import (
 	"fmt"
 	"testing"
 
+	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransformAccount(t *testing.T) {
 	type transformTest struct {
-		input      xdr.LedgerEntry
+		input      ingestio.Change
 		wantOutput AccountOutput
 		wantErr    error
 	}
 
-	hardCodedInput, err := makeAccountTestInput()
-	assert.NoError(t, err)
+	hardCodedInput := makeAccountTestInput()
 	hardCodedOutput := makeAccountTestOutput()
 
 	tests := []transformTest{
 		{
-			xdr.LedgerEntry{
-				Data: xdr.LedgerEntryData{
-					Type: xdr.LedgerEntryTypeOffer,
+			ingestio.Change{
+				Type: xdr.LedgerEntryTypeOffer,
+				Pre:  nil,
+				Post: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeOffer,
+					},
 				},
 			},
 			AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is LedgerEntryTypeOffer"),
@@ -83,18 +87,21 @@ func TestTransformAccount(t *testing.T) {
 	}
 }
 
-func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) xdr.LedgerEntry {
-	return xdr.LedgerEntry{
-		LastModifiedLedgerSeq: xdr.Uint32(lastModified),
-		Data: xdr.LedgerEntryData{
-			Type:    xdr.LedgerEntryTypeAccount,
-			Account: &accountEntry,
+func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingestio.Change {
+	return ingestio.Change{
+		Type: xdr.LedgerEntryTypeAccount,
+		Pre: &xdr.LedgerEntry{
+			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
+			Data: xdr.LedgerEntryData{
+				Type:    xdr.LedgerEntryTypeAccount,
+				Account: &accountEntry,
+			},
 		},
 	}
 }
 
-func makeAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
-	ledgerEntry = xdr.LedgerEntry{
+func makeAccountTestInput() ingestio.Change {
+	ledgerEntry := xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 30705278,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeAccount,
@@ -119,7 +126,11 @@ func makeAccountTestInput() (ledgerEntry xdr.LedgerEntry, err error) {
 			},
 		},
 	}
-	return
+	return ingestio.Change{
+		Type: xdr.LedgerEntryTypeAccount,
+		Pre:  &ledgerEntry,
+		Post: nil,
+	}
 }
 
 func makeAccountTestOutput() AccountOutput {
@@ -138,5 +149,6 @@ func makeAccountTestOutput() AccountOutput {
 		ThresholdMedium:      3,
 		ThresholdHigh:        5,
 		LastModifiedLedger:   30705278,
+		Deleted:              true,
 	}
 }

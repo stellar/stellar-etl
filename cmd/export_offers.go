@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -35,8 +34,7 @@ var offersCmd = &cobra.Command{
 		}
 
 		for _, offer := range offers {
-			wrappedOffer := ingestio.Change{Type: xdr.LedgerEntryTypeOffer, Post: &offer}
-			transformed, err := transform.TransformOffer(wrappedOffer)
+			transformed, err := transform.TransformOffer(offer)
 			if err != nil {
 				cmdLogger.Fatal("could not transform offer", err)
 			}
