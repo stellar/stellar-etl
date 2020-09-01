@@ -128,7 +128,8 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 	if currentLedger > g.EndPoint.Seq {
 		currentLedger = g.EndPoint.Seq
 	} else if currentLedger < g.BeginPoint.Seq {
-		currentLedger = g.BeginPoint.Seq
+		// since we started with BeginPoint, returning to it would create an infinite cycle;
+		currentLedger = g.BeginPoint.Seq + 1
 	}
 
 	return g.findLedgerForDate(currentLedger, targetTime)
