@@ -195,15 +195,5 @@ type TradeOutput struct {
 	PriceD                int64     `json:"price_d"`
 	BaseOfferID           int64     `json:"base_offer_id"`
 	CounterOfferID        int64     `json:"counter_offer_id"`
-	/*
-		TODO:
-				BaseOfferID is the same as the OfferID
-				CounterOfferID:
-					if entry.BuyOfferExists {
-							buyOfferID = EncodeOfferId(uint64(entry.BuyOfferID), CoreOfferIDType)
-						} else {
-							buyOfferID = EncodeOfferId(uint64(entry.HistoryOperationID), TOIDType)
-					}
-			Replace HistoryOperationBase64 with a numeric id that uses horizon's toid package
-	*/
+	HistoryOperationID    int64     `json:"history_operation_id"`
 }

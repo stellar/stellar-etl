@@ -23,6 +23,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingesti
 	}
 
 	operation := transaction.Envelope.Operations()[operationIndex]
+	outputOperationID := operationID
 	claimedOffers, counterOffer, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
 	if err != nil {
 		return []TradeOutput{}, err
@@ -106,6 +107,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingesti
 			PriceD:                outputPriceD,
 			BaseOfferID:           outputOfferID,
 			CounterOfferID:        outputCounterOfferID,
+			HistoryOperationID:    outputOperationID,
 		}
 
 		transformedTrades = append(transformedTrades, trade)
