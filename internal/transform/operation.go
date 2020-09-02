@@ -430,6 +430,7 @@ func ensureSlicesAreNotNil(details *Details) {
 	if details.Path == nil {
 		details.Path = make([]AssetOutput, 0)
 	}
+
 	if details.SetFlags == nil {
 		details.SetFlags = make([]int32, 0)
 	}
