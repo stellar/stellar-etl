@@ -185,7 +185,7 @@ func TestTransformTrade(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrade(test.input.index, 0, test.input.transaction, test.input.closeTime)
+		actualOutput, actualError := TransformTrade(test.input.index, 100, test.input.transaction, test.input.closeTime)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -364,7 +364,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		PriceN:                12634,
 		PriceD:                13300347,
 		BaseOfferID:           97684906,
-		CounterOfferID:        4611686018427387904,
+		CounterOfferID:        4611686018427388004,
+		HistoryOperationID:    100,
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
@@ -384,7 +385,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		PriceN:                57798933,
 		PriceD:                17339680,
 		BaseOfferID:           86106895,
-		CounterOfferID:        4611686018427387904,
+		CounterOfferID:        4611686018427388004,
+		HistoryOperationID:    100,
 	}
 
 	onePriceIsAmount := offerOneOutput

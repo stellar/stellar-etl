@@ -106,8 +106,7 @@ func wrapOfferEntry(offerEntry xdr.OfferEntry, lastModified int) ingestio.Change
 func makeOfferTestInput() (ledgerChange ingestio.Change, err error) {
 	ledgerChange = ingestio.Change{
 		Type: xdr.LedgerEntryTypeOffer,
-		Pre:  nil,
-		Post: &xdr.LedgerEntry{
+		Pre: &xdr.LedgerEntry{
 			LastModifiedLedgerSeq: xdr.Uint32(30715263),
 			Data: xdr.LedgerEntryData{
 				Type: xdr.LedgerEntryTypeOffer,
@@ -125,6 +124,7 @@ func makeOfferTestInput() (ledgerChange ingestio.Change, err error) {
 				},
 			},
 		},
+		Post: nil,
 	}
 	return
 }
@@ -141,5 +141,6 @@ func makeOfferTestOutput() OfferOutput {
 		Price:              0.5142373444404865,
 		Flags:              2,
 		LastModifiedLedger: 30715263,
+		Deleted:            true,
 	}
 }

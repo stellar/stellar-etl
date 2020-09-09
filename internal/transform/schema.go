@@ -69,6 +69,7 @@ type AccountOutput struct {
 	ThresholdMedium      int32  `json:"threshold_medium"`
 	ThresholdHigh        int32  `json:"threshold_high"`
 	LastModifiedLedger   uint32 `json:"last_modified_ledger"`
+	Deleted              bool   `json:"deleted"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -156,6 +157,7 @@ type TrustlineOutput struct {
 	SellingLiabilities int64  `json:"selling_liabilities"`
 	Flags              uint32 `json:"flags"`
 	LastModifiedLedger uint32 `json:"last_modified_ledger"`
+	Deleted            bool   `json:"deleted"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
@@ -170,10 +172,7 @@ type OfferOutput struct {
 	Price              float64 `json:"price"`
 	Flags              uint32  `json:"flags"`
 	LastModifiedLedger uint32  `json:"last_modified_ledger"`
-	/*
-		TODO implement
-			Deleted bool `json:"deleted"` // need to see operation that deletes offer to know what this value should be
-	*/
+	Deleted            bool    `json:"deleted"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
@@ -196,15 +195,5 @@ type TradeOutput struct {
 	PriceD                int64     `json:"price_d"`
 	BaseOfferID           int64     `json:"base_offer_id"`
 	CounterOfferID        int64     `json:"counter_offer_id"`
-	/*
-		TODO:
-				BaseOfferID is the same as the OfferID
-				CounterOfferID:
-					if entry.BuyOfferExists {
-							buyOfferID = EncodeOfferId(uint64(entry.BuyOfferID), CoreOfferIDType)
-						} else {
-							buyOfferID = EncodeOfferId(uint64(entry.HistoryOperationID), TOIDType)
-					}
-			Replace HistoryOperationBase64 with a numeric id that uses horizon's toid package
-	*/
+	HistoryOperationID    int64     `json:"history_operation_id"`
 }

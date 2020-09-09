@@ -5,17 +5,14 @@ import (
 
 	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 //TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
-	ledgerEntry := ledgerChange.Post
-	if ledgerChange.LedgerEntryChangeType() == xdr.LedgerEntryChangeTypeLedgerEntryRemoved {
-		ledgerEntry = ledgerChange.Pre
-	}
-
-	if ledgerEntry == nil {
-		return OfferOutput{}, fmt.Errorf("Ledger entry is nil")
+	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
+	if err != nil {
+		return OfferOutput{}, err
 	}
 
 	offerEntry, offerFound := ledgerEntry.Data.GetOffer()
@@ -82,6 +79,7 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 		Price:              outputPrice,
 		Flags:              outputFlags,
 		LastModifiedLedger: outputLastModifiedLedger,
+		Deleted:            outputDeleted,
 	}
 	return transformedOffer, nil
 }

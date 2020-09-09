@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/exp/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
@@ -263,4 +264,27 @@ func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
 	}
 
 	return checkpoint, nil
+}
+
+// ExtractLedgerCloseTime gets the close time of the provided ledger
+func ExtractLedgerCloseTime(ledger xdr.LedgerCloseMeta) (time.Time, error) {
+	v0, ok := ledger.GetV0()
+	if !ok {
+		return time.Time{}, fmt.Errorf("could not extract v0 info from ledger")
+	}
+
+	close := v0.LedgerHeader.Header.ScpValue.CloseTime
+	return TimePointToUTCTimeStamp(close)
+}
+
+// ExtractEntryFromChange gets the close time of the provided ledger
+func ExtractEntryFromChange(change ingestio.Change) (xdr.LedgerEntry, bool, error) {
+	switch changeType := change.LedgerEntryChangeType(); changeType {
+	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
+		return *change.Post, false, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
+		return *change.Pre, true, nil
+	default:
+		return xdr.LedgerEntry{}, false, fmt.Errorf("unable to extract ledger entry type from change")
+	}
 }

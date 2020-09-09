@@ -98,7 +98,7 @@ func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
 	if len(initialPath) == 0 {
 		return nil
 	}
-	var path = []AssetOutput{}
+	var path = make([]AssetOutput, 0)
 	for _, pathAsset := range initialPath {
 		var assetType, code, issuer string
 		err := pathAsset.Extract(&assetType, &code, &issuer)
@@ -116,8 +116,8 @@ func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
 }
 
 func addOperationFlagToOperationDetails(operationDetails *Details, flag uint32, prefix string) {
-	var intFlags []int32
-	var stringFlags []string
+	intFlags := make([]int32, 0)
+	stringFlags := make([]string, 0)
 
 	if (int64(flag) & int64(xdr.AccountFlagsAuthRequiredFlag)) > 0 {
 		intFlags = append(intFlags, int32(xdr.AccountFlagsAuthRequiredFlag))
@@ -421,5 +421,29 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 	default:
 		return Details{}, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
+
+	ensureSlicesAreNotNil(&outputDetails)
 	return outputDetails, nil
+}
+
+func ensureSlicesAreNotNil(details *Details) {
+	if details.Path == nil {
+		details.Path = make([]AssetOutput, 0)
+	}
+
+	if details.SetFlags == nil {
+		details.SetFlags = make([]int32, 0)
+	}
+
+	if details.SetFlagsString == nil {
+		details.SetFlagsString = make([]string, 0)
+	}
+
+	if details.ClearFlags == nil {
+		details.ClearFlags = make([]int32, 0)
+	}
+
+	if details.ClearFlagsString == nil {
+		details.ClearFlagsString = make([]string, 0)
+	}
 }

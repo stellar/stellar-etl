@@ -28,10 +28,11 @@ be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		startNum, endNum := utils.MustRangeFlags(cmd.Flags(), cmdLogger)
 
-		path, useStdout := utils.MustOutputFlags(cmd.Flags(), cmdLogger)
-		var outFile *os.File
+		outputFolder, useStdout := utils.MustOutputFlags(cmd.Flags(), cmdLogger)
+
+		var folderPath string
 		if !useStdout {
-			outFile = mustOutFile(path)
+			folderPath = mustCreateFolder(outputFolder)
 		}
 
 		execPath, configPath, exportAccounts, exportOffers, exportTrustlines, batchSize := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
@@ -69,23 +70,49 @@ be exported.`,
 
 		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
 		if endNum != 0 {
-			batchCount := int(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
-			for i := 0; i < batchCount; i++ {
+			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
+			for i := uint32(0); i < batchCount; i++ {
+				batchStart := startNum + i*batchSize
+				// Subtract 1 from the end batch number because batches do not include the last batch in the range
+				batchEnd := batchStart + batchSize - 1
+				if batchEnd > endNum {
+					batchEnd = endNum
+				}
+
 				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
-				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
 			}
 
 		} else {
-			var batchNum uint32 = 1
+			var batchNum uint32 = 0
 			for {
+				batchStart := startNum + batchNum*batchSize
+				batchEnd := batchStart + batchSize - 1
 				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
-				exportTransformedData(outFile, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
+				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, transformedAccounts, transformedOffers, transformedTrustlines)
 				batchNum++
 			}
 		}
 	},
 }
 
+func mustCreateFolder(path string) string {
+	absolutePath, err := filepath.Abs(path)
+	if err != nil {
+		cmdLogger.Fatal("could not get absolute filepath: ", err)
+	}
+
+	_, err = os.Stat(path)
+
+	if os.IsNotExist(err) {
+		err := os.Mkdir(path, 0777)
+		if err != nil {
+			cmdLogger.Fatal("could not create folder: ", err)
+		}
+	}
+
+	return absolutePath
+}
 func exportEntry(entry interface{}, file *os.File, useStdout bool) {
 	marshalled, err := json.Marshal(entry)
 	if err != nil {
@@ -100,18 +127,26 @@ func exportEntry(entry interface{}, file *os.File, useStdout bool) {
 	}
 }
 
-func exportTransformedData(file *os.File, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
+func exportTransformedData(start, end uint32, folderPath string, useStdout bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
 	// TODO: make exports of different types go to different files. Also make each batch export to its own file
+
+	var accountFile, offersFile, trustFile *os.File
+	if !useStdout {
+		accountFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
+		offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
+		trustFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
+	}
+
 	for _, acc := range accounts {
-		exportEntry(acc, file, useStdout)
+		exportEntry(acc, accountFile, useStdout)
 	}
 
 	for _, off := range offers {
-		exportEntry(off, file, useStdout)
+		exportEntry(off, offersFile, useStdout)
 	}
 
 	for _, trust := range trusts {
-		exportEntry(trust, file, useStdout)
+		exportEntry(trust, trustFile, useStdout)
 	}
 }
 
@@ -134,7 +169,8 @@ func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
 
-	utils.AddOutputFlags("changes", exportLedgerEntryChangesCmd.Flags())
+	exportLedgerEntryChangesCmd.Flags().StringP("output", "o", "changes_output/", "Folder that will contain the output files")
+	exportLedgerEntryChangesCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 	utils.AddRangeFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags())
 
@@ -145,7 +181,7 @@ func init() {
 			start-ledger: the ledger sequence number for the beginning of the export period
 			end-ledger: the ledger sequence number for the end of the export range
 
-			output-file: filename of the output file
+			output-folder: folder that will contain the output files
 			stdout: if true, prints to stdout instead of the command line
 			limit: maximum number of changes to export in a given batch; if negative then everything gets exported
 			batch-size: size of the export batches
