@@ -22,7 +22,7 @@ func createOutputFile(filepath string) error {
 
 		defer file.Close()
 	}
-	
+
 	return nil
 }
 
@@ -37,10 +37,9 @@ func mustOutFile(path string) *os.File {
 		cmdLogger.Fatal("could not create output file: ", err)
 	}
 
-	// TODO: check the permissions of the file to ensure that it can be written to
 	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		cmdLogger.Fatal("error in output file: ", err)
+		cmdLogger.Fatal("error in opening output file: ", err)
 	}
 
 	return outFile
