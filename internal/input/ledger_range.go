@@ -117,10 +117,14 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 		}
 	}
 
-	timeDiff := targetTime.Sub(currentTime.CloseTime)
-	ledgerOffset := int64(timeDiff.Seconds() / avgCloseTime.Seconds())
+	timeDiff := targetTime.Sub(currentTime.CloseTime).Seconds()
+	ledgerOffset := int64(timeDiff / avgCloseTime.Seconds())
 	if ledgerOffset == 0 {
-		ledgerOffset = 1
+		if timeDiff > 0 {
+			ledgerOffset = 1
+		} else {
+			ledgerOffset = -1
+		}
 	}
 
 	currentLedger += ledgerOffset
