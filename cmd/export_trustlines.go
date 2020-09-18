@@ -21,7 +21,8 @@ var trustlinesCmd = &cobra.Command{
 	should be used in an initial data dump. In order to get trustline information within a specified ledger range, see 
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, path, useStdout := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -33,15 +34,28 @@ var trustlinesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read trustlines: ", err)
 		}
 
+		failures := 0
 		for _, trust := range trustlines {
 			transformed, err := transform.TransformTrustline(trust)
 			if err != nil {
-				cmdLogger.Fatal("could not transform trustline", err)
+				if strictExport {
+					cmdLogger.Fatal("could not transform trustline", err)
+				} else {
+					cmdLogger.Warning("could not transform trustline", err)
+					failures++
+					continue
+				}
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				cmdLogger.Fatal("could not json encode trustline", err)
+				if strictExport {
+					cmdLogger.Fatal("could not json encode trustline", err)
+				} else {
+					cmdLogger.Warning("could not json encode trustline", err)
+					failures++
+					continue
+				}
 			}
 
 			if !useStdout {
@@ -51,11 +65,16 @@ var trustlinesCmd = &cobra.Command{
 				fmt.Println(string(marshalled))
 			}
 		}
+
+		if !strictExport {
+			printTransformStats(len(trustlines), failures)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(trustlinesCmd)
+	utils.AddCommonFlags(trustlinesCmd.Flags())
 	utils.AddBucketFlags("trustlines", trustlinesCmd.Flags())
 	trustlinesCmd.MarkFlagRequired("end-ledger")
 

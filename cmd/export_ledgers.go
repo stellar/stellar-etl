@@ -45,12 +45,29 @@ func mustOutFile(path string) *os.File {
 	return outFile
 }
 
+// Prints the number of attempted, failed, and successful transformations as a JSON object
+func printTransformStats(attempts, failures int) {
+	resultsMap := map[string]int{
+		"attempted_transforms":  attempts,
+		"failed_transforms":     failures,
+		"successful_transforms": attempts - failures,
+	}
+
+	results, err := json.Marshal(resultsMap)
+	if err != nil {
+		cmdLogger.Fatal("Could not marshall results: ", err)
+	}
+
+	fmt.Println(string(results))
+}
+
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -62,15 +79,30 @@ var ledgersCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
 
+		failures := 0
 		for i, lcm := range ledgers {
 			transformed, err := transform.TransformLedger(lcm)
 			if err != nil {
-				cmdLogger.Fatal(fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i)), err)
+				errMsg := fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i))
+				if strictExport {
+					cmdLogger.Fatal(errMsg, err)
+				} else {
+					cmdLogger.Warning(errMsg, err)
+					failures++
+					continue
+				}
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				cmdLogger.Fatal(fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i)), err)
+				errMsg := fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i))
+				if strictExport {
+					cmdLogger.Fatal(errMsg, err)
+				} else {
+					cmdLogger.Warning(errMsg, err)
+					failures++
+					continue
+				}
 			}
 
 			if !useStdout {
@@ -80,12 +112,17 @@ var ledgersCmd = &cobra.Command{
 				fmt.Println(string(marshalled))
 			}
 		}
+
+		if !strictExport {
+			printTransformStats(len(ledgers), failures)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(ledgersCmd)
-	utils.AddBasicFlags("ledgers", ledgersCmd.Flags())
+	utils.AddCommonFlags(ledgersCmd.Flags())
+	utils.AddArchiveFlags("ledgers", ledgersCmd.Flags())
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

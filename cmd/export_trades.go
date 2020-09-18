@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -17,7 +19,8 @@ var tradesCmd = &cobra.Command{
 	Short: "Exports the trade data",
 	Long:  `Exports trade data within the specified range to an output file`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -29,17 +32,34 @@ var tradesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read trades: ", err)
 		}
 
+		failures := 0
 		for _, tradeInput := range trades {
 			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 			if err != nil {
-				cmdLogger.Fatal("could not transform trade ", err)
+				parsedID := toid.Parse(tradeInput.OperationHistoryID)
+				locationString := fmt.Sprintf("from ledger %d, transaction %d, operation %d", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder)
+				if strictExport {
+					cmdLogger.Fatalf("could not transform trade (%s): %v", locationString, err)
+				} else {
+					cmdLogger.Warningf("could not transform trade (%s): %v", locationString, err)
+					failures++
+					continue
+				}
 			}
 
 			// We can get multiple trades from each transform, so we need to ensure they are all exported
 			for _, transformed := range trades {
 				marshalled, err := json.Marshal(transformed)
 				if err != nil {
-					cmdLogger.Fatal("could not json encode trade ", err)
+					parsedID := toid.Parse(tradeInput.OperationHistoryID)
+					locationString := fmt.Sprintf("from ledger %d, transaction %d, operation %d", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder)
+					if strictExport {
+						cmdLogger.Fatalf("could not JSON encode trade (%s): %v", locationString, err)
+					} else {
+						cmdLogger.Warningf("could not JSON encode trade (%s): %v", locationString, err)
+						failures++
+						continue
+					}
 				}
 
 				if !useStdout {
@@ -49,14 +69,18 @@ var tradesCmd = &cobra.Command{
 					fmt.Println(string(marshalled))
 				}
 			}
+		}
 
+		if !strictExport {
+			printTransformStats(len(trades), failures)
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(tradesCmd)
-	utils.AddBasicFlags("trades", tradesCmd.Flags())
+	utils.AddCommonFlags(tradesCmd.Flags())
+	utils.AddBucketFlags("trades", tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
 
 	/*

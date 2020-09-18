@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -36,7 +35,16 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get end time: ", err)
 		}
 
-		path, useStdout := utils.MustOutputFlags(cmd.Flags(), cmdLogger)
+		path, err := cmd.Flags().GetString("output")
+		if err != nil {
+			cmdLogger.Fatal("could not get output path: ", err)
+		}
+
+		useStdout, err := cmd.Flags().GetBool("stdout")
+		if err != nil {
+			cmdLogger.Fatal("could not get stdout boolean: ", err)
+		}
+
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
@@ -75,9 +83,12 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getLedgerRangeFromTimesCmd)
-	utils.AddOutputFlags("range", getLedgerRangeFromTimesCmd.Flags())
+
 	getLedgerRangeFromTimesCmd.Flags().StringP("start-time", "s", "", "The start time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("end-time", "e", "", "The end time")
+	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
+	getLedgerRangeFromTimesCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("start-time")
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("end-time")
 }
