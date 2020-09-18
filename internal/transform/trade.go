@@ -28,6 +28,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingesti
 	if err != nil {
 		return []TradeOutput{}, err
 	}
+	
 	var outputCounterOfferID int64
 	if counterOffer != nil {
 		outputCounterOfferID = int64(counterOffer.OfferId)
