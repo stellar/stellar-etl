@@ -219,7 +219,7 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 }
 
 // ReceiveChanges reads in the ledger entries from the provided channels, transforms them, and adds them to the slice with the other transformed entries.
-func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
+func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, strictExport bool, logger *log.Entry) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
 	transformedAccounts := make([]transform.AccountOutput, 0)
 	transformedOffers := make([]transform.OfferOutput, 0)
 	transformedTrustlines := make([]transform.TrustlineOutput, 0)
@@ -238,8 +238,12 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 				if err != nil {
 					entry, _, _ := utils.ExtractEntryFromChange(change)
 					errorMsg := fmt.Sprintf("error transforming account entry last updated at: %d", entry.LastModifiedLedgerSeq)
-					logger.Error(errorMsg, err)
-					break
+					if strictExport {
+						logger.Fatal(errorMsg, err)
+					} else {
+						logger.Warning(errorMsg, err)
+						continue
+					}
 				}
 
 				transformedAccounts = append(transformedAccounts, acc)
@@ -258,8 +262,12 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 				if err != nil {
 					entry, _, _ := utils.ExtractEntryFromChange(change)
 					errorMsg := fmt.Sprintf("error transforming offer entry last updated at: %d", entry.LastModifiedLedgerSeq)
-					logger.Error(errorMsg, err)
-					break
+					if strictExport {
+						logger.Fatal(errorMsg, err)
+					} else {
+						logger.Warning(errorMsg, err)
+						continue
+					}
 				}
 
 				transformedOffers = append(transformedOffers, offer)
@@ -278,8 +286,12 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logge
 				if err != nil {
 					entry, _, _ := utils.ExtractEntryFromChange(change)
 					errorMsg := fmt.Sprintf("error transforming trustline entry last updated at: %d", entry.LastModifiedLedgerSeq)
-					logger.Error(errorMsg, err)
-					break
+					if strictExport {
+						logger.Fatal(errorMsg, err)
+					} else {
+						logger.Warning(errorMsg, err)
+						continue
+					}
 				}
 
 				transformedTrustlines = append(transformedTrustlines, trust)

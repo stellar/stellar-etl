@@ -20,7 +20,8 @@ The command reads from the bucket list, which includes the full history of the S
 should be used in an initial data dump. In order to get account information within a specified ledger range, see 
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, path, useStdout := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -32,15 +33,28 @@ the export_ledger_entry_changes command.`,
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
+		failures := 0
 		for _, acc := range accounts {
 			transformed, err := transform.TransformAccount(acc)
 			if err != nil {
-				cmdLogger.Fatal("could not transform account", err)
+				if strictExport {
+					cmdLogger.Fatal("could not transform account", err)
+				} else {
+					cmdLogger.Warning("could not transform account", err)
+					failures++
+					continue
+				}
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				cmdLogger.Fatal("could not json encode account", err)
+				if strictExport {
+					cmdLogger.Fatal("could not json encode account", err)
+				} else {
+					cmdLogger.Warning("could not json encode account", err)
+					failures++
+					continue
+				}
 			}
 
 			if !useStdout {
@@ -50,11 +64,16 @@ the export_ledger_entry_changes command.`,
 				fmt.Println(string(marshalled))
 			}
 		}
+
+		if !strictExport {
+			printTransformStats(len(accounts), failures)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(accountsCmd)
+	utils.AddCommonFlags(accountsCmd.Flags())
 	utils.AddBucketFlags("accounts", accountsCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*

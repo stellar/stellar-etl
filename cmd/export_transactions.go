@@ -16,7 +16,8 @@ var transactionsCmd = &cobra.Command{
 	Short: "Exports the transaction data over a specified range.",
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -28,19 +29,33 @@ var transactionsCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}
 
+		failures := 0
 		for _, transformInput := range transactions {
 			transformed, err := transform.TransformTransaction(transformInput.Transaction, transformInput.LedgerHistory)
 			if err != nil {
 				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
 				errMsg := fmt.Sprintf("could not transform transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq)
-				cmdLogger.Fatal(errMsg, err)
+				if strictExport {
+					cmdLogger.Fatal(errMsg, err)
+				} else {
+					cmdLogger.Warning(errMsg, err)
+					failures++
+					continue
+				}
+
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
 				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
 				errMsg := fmt.Sprintf("could not json encode transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq)
-				cmdLogger.Fatal(errMsg, err)
+				if strictExport {
+					cmdLogger.Fatal(errMsg, err)
+				} else {
+					cmdLogger.Warning(errMsg, err)
+					failures++
+					continue
+				}
 			}
 
 			if !useStdout {
@@ -50,12 +65,17 @@ var transactionsCmd = &cobra.Command{
 				fmt.Println(string(marshalled))
 			}
 		}
+
+		if !strictExport {
+			printTransformStats(len(transactions), failures)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(transactionsCmd)
-	utils.AddBasicFlags("transactions", transactionsCmd.Flags())
+	utils.AddCommonFlags(transactionsCmd.Flags())
+	utils.AddArchiveFlags("transactions", transactionsCmd.Flags())
 	transactionsCmd.MarkFlagRequired("end-ledger")
 
 	/*

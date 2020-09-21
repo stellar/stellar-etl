@@ -21,7 +21,8 @@ var offersCmd = &cobra.Command{
 	should be used in an initial data dump. In order to get offer information within a specified ledger range, see 
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, path, useStdout := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -33,15 +34,28 @@ var offersCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read offers: ", err)
 		}
 
+		failures := 0
 		for _, offer := range offers {
 			transformed, err := transform.TransformOffer(offer)
 			if err != nil {
-				cmdLogger.Fatal("could not transform offer", err)
+				if strictExport {
+					cmdLogger.Fatal("could not transform offer", err)
+				} else {
+					cmdLogger.Warning("could not transform offer", err)
+					failures++
+					continue
+				}
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
-				cmdLogger.Fatal("could not json encode offer", err)
+				if strictExport {
+					cmdLogger.Fatal("could not json encode offer", err)
+				} else {
+					cmdLogger.Warning("could not json encode offer", err)
+					failures++
+					continue
+				}
 			}
 
 			if !useStdout {
@@ -51,11 +65,16 @@ var offersCmd = &cobra.Command{
 				fmt.Println(string(marshalled))
 			}
 		}
+
+		if !strictExport {
+			printTransformStats(len(offers), failures)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(offersCmd)
+	utils.AddCommonFlags(offersCmd.Flags())
 	utils.AddBucketFlags("offers", offersCmd.Flags())
 	offersCmd.MarkFlagRequired("end-ledger")
 	/*
