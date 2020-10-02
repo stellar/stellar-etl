@@ -62,6 +62,12 @@ func TestConvertTimes(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name:    "infinite loop; checkpoint range (14558-14606)",
+			args:    []string{"get_ledger_range_from_times", "-s", "2015-10-01T13:35:00+00:00", "-e", "2015-10-01T13:40:00+00:00", "--stdout"},
+			golden:  "checkpoint_range3.golden",
+			wantErr: nil,
+		},
+		{
 			name:    "early checkpoint range (3-3)",
 			args:    []string{"get_ledger_range_from_times", "-s", "2015-09-30T16:50:00+00:00", "-e", "2015-09-30T16:55:00+00:00", "--stdout"},
 			golden:  "early_checkpoint_range.golden",

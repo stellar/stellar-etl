@@ -50,12 +50,12 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 
 	// Ledger sequence 2 is the start ledger because the genesis ledger (ledger 1), has a close time of 0 in Unix time.
 	// The second ledger has a valid close time that matches with the network start time.
-	startLedger, err := graph.findLedgerForDate(2, startTime)
+	startLedger, err := graph.findLedgerForDate(2, startTime, map[int64]struct{}{})
 	if err != nil {
 		return 0, 0, err
 	}
 
-	endLedger, err := graph.findLedgerForDate(2, endTime)
+	endLedger, err := graph.findLedgerForDate(2, endTime, map[int64]struct{}{})
 	if err != nil {
 		return 0, 0, err
 	}
@@ -98,9 +98,52 @@ func createNewGraph() (graph, error) {
 	return graph, nil
 }
 
+func (g graph) findLedgerForTimeBinary(targetTime time.Time, start, end graphPoint) (int64, error) {
+	if end.Seq >= 2 {
+		middleLedger := start.Seq + (end.Seq-start.Seq)/2
+		middleTime, err := g.getGraphPoint(middleLedger)
+		if err != nil {
+			return 0, err
+		}
+
+		// check if middle element is the one to choose
+		if middleLedger > 1 {
+			prevLedger := middleLedger - 1
+			prevTime, err := g.getGraphPoint(prevLedger)
+			if err != nil {
+				return 0, err
+			}
+
+			if prevTime.CloseTime.Unix() < targetTime.Unix() && middleTime.CloseTime.Unix() >= targetTime.Unix() {
+				return middleLedger, nil
+			}
+		}
+
+		if middleTime.CloseTime.Unix() > targetTime.Unix() {
+			newEnd, err := g.getGraphPoint(middleLedger - 1)
+			if err != nil {
+				return 0, err
+			}
+
+			return g.findLedgerForTimeBinary(targetTime, start, newEnd)
+		}
+
+		newStart, err := g.getGraphPoint(middleLedger + 1)
+		if err != nil {
+			return 0, err
+		}
+
+		return g.findLedgerForTimeBinary(targetTime, newStart, end)
+	}
+
+	return 0, fmt.Errorf("unable to find ledger with close time %v: ", targetTime)
+}
+
 // findLedgerForDate recursively searches for the ledger that was closed on or directly after targetTime
-func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int64, error) {
-	currentTime, err := g.getGraphPoint(currentLedger)
+func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time, seenLedgers map[int64]struct{}) (int64, error) {
+	seenLedgers[currentLedger] = struct{}{}
+
+	currentPoint, err := g.getGraphPoint(currentLedger)
 	if err != nil {
 		return 0, err
 	}
@@ -112,12 +155,12 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 			return 0, err
 		}
 
-		if prevTime.CloseTime.Unix() <= targetTime.Unix() && currentTime.CloseTime.Unix() >= targetTime.Unix() {
+		if prevTime.CloseTime.Unix() < targetTime.Unix() && currentPoint.CloseTime.Unix() >= targetTime.Unix() {
 			return currentLedger, nil
 		}
 	}
 
-	timeDiff := targetTime.Sub(currentTime.CloseTime).Seconds()
+	timeDiff := targetTime.Sub(currentPoint.CloseTime).Seconds()
 	ledgerOffset := int64(timeDiff / avgCloseTime.Seconds())
 	if ledgerOffset == 0 {
 		if timeDiff > 0 {
@@ -127,16 +170,27 @@ func (g graph) findLedgerForDate(currentLedger int64, targetTime time.Time) (int
 		}
 	}
 
-	currentLedger += ledgerOffset
+	newLedger := currentLedger + ledgerOffset
 
-	if currentLedger > g.EndPoint.Seq {
-		currentLedger = g.EndPoint.Seq
-	} else if currentLedger < g.BeginPoint.Seq {
+	if newLedger > g.EndPoint.Seq {
+		newLedger = g.EndPoint.Seq
+	} else if newLedger < g.BeginPoint.Seq {
 		// since we started with BeginPoint, returning to it would create an infinite cycle;
-		currentLedger = g.BeginPoint.Seq + 1
+		newLedger = g.BeginPoint.Seq + 1
 	}
 
-	return g.findLedgerForDate(currentLedger, targetTime)
+	// if we have already seen this ledger, it means the algorithm is trapped in a cycle; use binary search instead (slower but will find the ledger)
+	if _, exists := seenLedgers[newLedger]; exists {
+		// since we have already calculated the current point, we can use it as the upper or lower bound.
+		// This way, the binary search doesn't have to search the entire space
+		if ledgerOffset > 0 {
+			return g.findLedgerForTimeBinary(targetTime, currentPoint, g.EndPoint)
+		}
+
+		return g.findLedgerForTimeBinary(targetTime, g.BeginPoint, currentPoint)
+	}
+
+	return g.findLedgerForDate(newLedger, targetTime, seenLedgers)
 }
 
 // limitLedgerRange restricts start and end by setting them to be the edges of the network's range if they are outside that range
