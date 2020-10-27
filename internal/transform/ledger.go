@@ -96,18 +96,20 @@ func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operation
 
 	txSetOperationCounter := int32(0)
 	for i := 0; i < txCount; i++ {
-		operationResults, ok := results[i].Result.OperationResults()
-		if !ok {
-			err = fmt.Errorf("Could not access operation results for result %d", i)
-			return
-		}
-
-		numberOfOps := int32(len(operationResults))
+		operations := transactions[i].Operations()
+		numberOfOps := int32(len(operations))
 		txSetOperationCounter += numberOfOps
 
+		// for successful transactions, the operation count is based on the operations results slice
 		if results[i].Result.Successful() {
+			operationResults, ok := results[i].Result.OperationResults()
+			if !ok {
+				err = fmt.Errorf("Could not access operation results for result %d", i)
+				return
+			}
+
 			successTxCount++
-			operationCount += numberOfOps
+			operationCount += int32(len(operationResults))
 		} else {
 			failedTxCount++
 		}

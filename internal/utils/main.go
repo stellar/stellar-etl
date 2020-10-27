@@ -102,27 +102,27 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 	}
 }
 
-// AddBasicFlags adds the start-ledger, end-ledger, limit, output, and stdout flags to the provided flagset
-func AddBasicFlags(objectName string, flags *pflag.FlagSet) {
-	AddRangeFlags(flags)
-	AddOutputFlags(objectName, flags)
+// AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
+func AddCommonFlags(flags *pflag.FlagSet) {
+	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
+	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+	flags.Bool("strict-export", false, "If set, transform errors will be reported as fatal errors instead of warnings.")
+}
+
+// AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
+func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
+	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 
 }
 
-// AddRangeFlags adds the start-ledger and end-ledger flags
-func AddRangeFlags(flags *pflag.FlagSet) {
-	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
-	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-}
-
-// AddOutputFlags adds the output and stdout flags
-func AddOutputFlags(objectName string, flags *pflag.FlagSet) {
+// AddBucketFlags adds the bucket list specifc flags: output
+func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
-	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 }
 
-// AddCoreFlags adds the core-executable, core-config, batch-size, and export{type} flags, which are needed for commands that use captive core
+// AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, output, and the export-{type} flags
 func AddCoreFlags(flags *pflag.FlagSet) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
 	flags.StringP("core-config", "c", "", "Filepath to the a config file for stellar-core")
@@ -132,47 +132,14 @@ func AddCoreFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
 
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
+	flags.StringP("output", "o", "changes_output/", "Folder that will contain the output files")
 }
 
-// AddBucketFlags adds the end-ledger, output, and stdout flags, which are needed for commands that use the bucket list
-func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
-	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range (required)")
-	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
-	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
-}
-
-// MustBasicFlags gets the values of the start-ledger, end-ledger, limit, output, and stdout flags from the flag set. If any do not exist, it stops the program fatally using the logger
-func MustBasicFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32, limit int64, path string, useStdout bool) {
-	startNum, endNum = MustRangeFlags(flags, logger)
-	path, useStdout = MustOutputFlags(flags, logger)
-	limit, err := flags.GetInt64("limit")
-	if err != nil {
-		logger.Fatal("could not get limit: ", err)
-	}
-
-	return
-}
-
-// MustRangeFlags gets the values of the start-ledger and end-ledger flags
-func MustRangeFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum, endNum uint32) {
-	startNum, err := flags.GetUint32("start-ledger")
-	if err != nil {
-		logger.Fatal("could not get start sequence number: ", err)
-	}
-
-	endNum, err = flags.GetUint32("end-ledger")
+// MustCommonFlags gets the values of the the flags common to all commands: end-ledger, stdout, and strict-export. If any do not exist, it stops the program fatally using the logger
+func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, useStdout bool, strictExport bool) {
+	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
-	}
-
-	return
-}
-
-// MustOutputFlags gets the values of the output and stdout flags
-func MustOutputFlags(flags *pflag.FlagSet, logger *log.Entry) (path string, useStdout bool) {
-	path, err := flags.GetString("output")
-	if err != nil {
-		logger.Fatal("could not get output filename: ", err)
 	}
 
 	useStdout, err = flags.GetBool("stdout")
@@ -180,11 +147,46 @@ func MustOutputFlags(flags *pflag.FlagSet, logger *log.Entry) (path string, useS
 		logger.Fatal("could not get stdout boolean: ", err)
 	}
 
+	strictExport, err = flags.GetBool("strict-export")
+	if err != nil {
+		logger.Fatal("could not get strict-export boolean: ", err)
+	}
+
 	return
 }
 
-// MustCoreFlags gets the values for the core-executable, core-config, batch-size, and export{type} flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, exportAccounts, exportOffers, exportTrustlines bool, batchSize uint32) {
+// MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
+func MustArchiveFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum uint32, path string, limit int64) {
+	startNum, err := flags.GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	path, err = flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	limit, err = flags.GetInt64("limit")
+	if err != nil {
+		logger.Fatal("could not get limit: ", err)
+	}
+
+	return
+}
+
+// MustBucketFlags gets the values of the bucket list specific flags: output
+func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (path string) {
+	path, err := flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	return
+}
+
+// MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, output, and export{type} flags. If any do not exist, it stops the program fatally using the logger
+func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, startNum, batchSize uint32, path string, exportAccounts, exportOffers, exportTrustlines bool) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -193,6 +195,21 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 	configPath, err = flags.GetString("core-config")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core config file, is mandatory when not starting at the genesis ledger (ledger 1): ", err)
+	}
+
+	path, err = flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	startNum, err = flags.GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	batchSize, err = flags.GetUint32("batch-size")
+	if err != nil {
+		logger.Fatal("could not get batch size: ", err)
 	}
 
 	exportAccounts, err = flags.GetBool("export-accounts")
@@ -208,31 +225,6 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 	exportTrustlines, err = flags.GetBool("export-trustlines")
 	if err != nil {
 		logger.Fatal("could not get export trustlines flag: ", err)
-	}
-
-	batchSize, err = flags.GetUint32("batch-size")
-	if err != nil {
-		logger.Fatal("could not get batch size: ", err)
-	}
-
-	return
-}
-
-// MustBucketFlags gets the values of the end-ledger, output, and stdout flags from the flag set. If any do not exist, it stops the program fatally using the logger
-func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, path string, useStdout bool) {
-	endNum, err := flags.GetUint32("end-ledger")
-	if err != nil {
-		logger.Fatal("could not get end sequence number: ", err)
-	}
-
-	path, err = flags.GetString("output")
-	if err != nil {
-		logger.Fatal("could not get output filename: ", err)
-	}
-
-	useStdout, err = flags.GetBool("stdout")
-	if err != nil {
-		logger.Fatal("could not get stdout boolean: ", err)
 	}
 
 	return
@@ -277,7 +269,7 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerCloseMeta) (time.Time, error) {
 	return TimePointToUTCTimeStamp(close)
 }
 
-// ExtractEntryFromChange gets the close time of the provided ledger
+// ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingestio.Change) (xdr.LedgerEntry, bool, error) {
 	switch changeType := change.LedgerEntryChangeType(); changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:

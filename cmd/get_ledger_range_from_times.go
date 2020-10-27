@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +21,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 	Short: "Converts a time range into a ledger range",
 	Long: `Converts a time range into a ledger range. Times must be in the format YYYY-MM-DDTHH:MM:SS.SSSZ.
 
-	Some examples include: 2006-01-02T15:04:05-0700, 2009-11-10T18:00:00-0500, or 2019-09-13T23:00:00+0000.
+	Some examples include: 2006-01-02T15:04:05-07:00, 2009-11-10T18:00:00-05:00, or 2019-09-13T23:00:00+00:00.
 	If the time range goes into the future, the ledger range will end on the most recent ledger. If the time
 	range covers time before the network started, the ledger range will start with the genesis ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -36,7 +35,16 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get end time: ", err)
 		}
 
-		path, useStdout := utils.MustOutputFlags(cmd.Flags(), cmdLogger)
+		path, err := cmd.Flags().GetString("output")
+		if err != nil {
+			cmdLogger.Fatal("could not get output path: ", err)
+		}
+
+		useStdout, err := cmd.Flags().GetBool("stdout")
+		if err != nil {
+			cmdLogger.Fatal("could not get stdout boolean: ", err)
+		}
+
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
@@ -75,9 +83,12 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getLedgerRangeFromTimesCmd)
-	utils.AddOutputFlags("range", getLedgerRangeFromTimesCmd.Flags())
+
 	getLedgerRangeFromTimesCmd.Flags().StringP("start-time", "s", "", "The start time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("end-time", "e", "", "The end time")
+	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
+	getLedgerRangeFromTimesCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("start-time")
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("end-time")
 }

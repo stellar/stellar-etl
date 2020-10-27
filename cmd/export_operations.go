@@ -16,7 +16,8 @@ var operationsCmd = &cobra.Command{
 	Short: "Exports the operations data over a specified range",
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		startNum, endNum, limit, path, useStdout := utils.MustBasicFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
@@ -28,19 +29,33 @@ var operationsCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read operations: ", err)
 		}
 
+		failures := 0
 		for _, transformInput := range operations {
 			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
-				errMsg := fmt.Sprintf("could not transform operation %d in transaction %d: ", transformInput.OperationIndex, txIndex)
-				cmdLogger.Fatal(errMsg, err)
+				errMsg := fmt.Sprintf("could not transform operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum)
+				if strictExport {
+					cmdLogger.Fatal(errMsg, err)
+				} else {
+					cmdLogger.Warning(errMsg, err)
+					failures++
+					continue
+				}
+
 			}
 
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				errMsg := fmt.Sprintf("could not json encode operation %d in ledger %d: ", transformInput.OperationIndex, txIndex)
-				cmdLogger.Fatal(errMsg, err)
+				if strictExport {
+					cmdLogger.Fatal(errMsg, err)
+				} else {
+					cmdLogger.Warning(errMsg, err)
+					failures++
+					continue
+				}
 			}
 
 			if !useStdout {
@@ -50,12 +65,17 @@ var operationsCmd = &cobra.Command{
 				fmt.Println(string(marshalled))
 			}
 		}
+
+		if !strictExport {
+			printTransformStats(len(operations), failures)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(operationsCmd)
-	utils.AddBasicFlags("operations", operationsCmd.Flags())
+	utils.AddCommonFlags(operationsCmd.Flags())
+	utils.AddArchiveFlags("operations", operationsCmd.Flags())
 	operationsCmd.MarkFlagRequired("end-ledger")
 
 	/*
