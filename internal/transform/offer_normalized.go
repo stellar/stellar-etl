@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	ingestio "github.com/stellar/go/exp/ingest/io"
+	ingestio "github.com/stellar/go/ingest/io"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 

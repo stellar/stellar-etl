@@ -8,7 +8,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/toid"
 
 	"github.com/stellar/go/amount"
-	ingestio "github.com/stellar/go/exp/ingest/io"
+	ingestio "github.com/stellar/go/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )

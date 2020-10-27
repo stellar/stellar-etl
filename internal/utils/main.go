@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
-	ingestio "github.com/stellar/go/exp/ingest/io"
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
+	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
