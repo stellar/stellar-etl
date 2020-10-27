@@ -197,3 +197,44 @@ type TradeOutput struct {
 	CounterOfferID        int64     `json:"counter_offer_id"`
 	HistoryOperationID    int64     `json:"history_operation_id"`
 }
+
+//DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts
+type DimAccount struct {
+	ID      uint64 `json:"account_id"`
+	Address string `json:"address"`
+}
+
+// DimOffer is a representation of an account that aligns with the BigQuery table dim_offers
+type DimOffer struct {
+	HorizonID     int64   `json:"horizon_offer_id"`
+	DimOfferID    uint64  `json:"dim_offer_id"`
+	MarketID      uint64  `json:"market_id"`
+	MakerID       uint64  `json:"maker_id"`
+	Action        string  `json:"action"`
+	BaseAmount    int64   `json:"base_amount"`
+	CounterAmount float64 `json:"counter_amount"`
+	Price         float64 `json:"price"`
+}
+
+// FactOfferEvent is a representation of an offer event that aligns with the BigQuery table fact_offer_events
+type FactOfferEvent struct {
+	LedgerSeq       uint32 `json:"ledger_id"`
+	OfferInstanceID uint64 `json:"offer_instance_id"`
+}
+
+// DimMarket is a representation of an account that aligns with the BigQuery table dim_markets
+type DimMarket struct {
+	ID            uint64 `json:"market_id"`
+	BaseCode      string `json:"base_code"`
+	BaseIssuer    string `json:"base_issuer"`
+	CounterCode   string `json:"counter_code"`
+	CounterIssuer string `json:"counter_issuer"`
+}
+
+// NormalizedOfferOutput ties together the information for dim_markets, dim_offers, dim_accounts, and fact_offer-events
+type NormalizedOfferOutput struct {
+	Market  DimMarket
+	Offer   DimOffer
+	Account DimAccount
+	Event   FactOfferEvent
+}

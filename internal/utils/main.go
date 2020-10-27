@@ -269,7 +269,7 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerCloseMeta) (time.Time, error) {
 	return TimePointToUTCTimeStamp(close)
 }
 
-// ExtractEntryFromChange gets the close time of the provided ledger
+// ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingestio.Change) (xdr.LedgerEntry, bool, error) {
 	switch changeType := change.LedgerEntryChangeType(); changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
