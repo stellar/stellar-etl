@@ -123,13 +123,19 @@ func addLedgerChangesToCache(changeReader *ingestio.LedgerChangeReader, accCache
 
 		switch change.Type {
 		case xdr.LedgerEntryTypeAccount:
-			accCache.AddChange(change)
+			if accCache != nil {
+				accCache.AddChange(change)
+			}
 
 		case xdr.LedgerEntryTypeOffer:
-			offCache.AddChange(change)
+			if offCache != nil {
+				offCache.AddChange(change)
+			}
 
 		case xdr.LedgerEntryTypeTrustline:
-			trustCache.AddChange(change)
+			if trustCache != nil {
+				trustCache.AddChange(change)
+			}
 
 		default:
 			// there is also a data entry type, which is not tracked right now
