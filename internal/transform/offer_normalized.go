@@ -12,14 +12,14 @@ import (
 
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset
 func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
-	normalized := NormalizedOfferOutput{}
+
 	transformed, err := TransformOffer(ledgerChange)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
 
 	if transformed.Deleted {
-		return NormalizedOfferOutput{}, nil
+		return NormalizedOfferOutput{}, fmt.Errorf("offer %d is deleted", transformed.OfferID)
 	}
 
 	err = modifyOfferAsset(ledgerChange, &transformed)
@@ -27,27 +27,30 @@ func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (N
 		return NormalizedOfferOutput{}, err
 	}
 
-	normalized.Market, err = extractDimMarket(transformed)
+	outputMarket, err := extractDimMarket(transformed)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
 
-	normalized.Account, err = extractDimAccount(transformed)
+	outputAccount, err := extractDimAccount(transformed)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
 
-	normalized.Offer, err = extractDimOffer(transformed, normalized.Market.ID, normalized.Account.ID)
+	outputOffer, err := extractDimOffer(transformed, outputMarket.ID, outputAccount.ID)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
 
-	normalized.Event = FactOfferEvent{
-		LedgerSeq:       ledgerSeq,
-		OfferInstanceID: normalized.Offer.DimOfferID,
-	}
-
-	return normalized, nil
+	return NormalizedOfferOutput{
+		Market:  outputMarket,
+		Account: outputAccount,
+		Offer:   outputOffer,
+		Event: FactOfferEvent{
+			LedgerSeq:       ledgerSeq,
+			OfferInstanceID: outputOffer.DimOfferID,
+		},
+	}, nil
 }
 
 // modifyOfferAsset changes the buying and selling asset of a transformed offer from the asset hash to a string of the format code:issuer
@@ -110,6 +113,14 @@ func extractDimMarket(offer OfferOutput) (DimMarket, error) {
 
 	sellSplit := strings.Split(assets[0], ":")
 	buySplit := strings.Split(assets[1], ":")
+
+	if len(sellSplit) < 2 {
+		return DimMarket{}, fmt.Errorf("unable to get sell code and issuer for offer %d", offer.OfferID)
+	}
+
+	if len(buySplit) < 2 {
+		return DimMarket{}, fmt.Errorf("unable to get buy code and issuer for offer %d", offer.OfferID)
+	}
 
 	baseCode, baseIssuer := sellSplit[0], sellSplit[1]
 	counterCode, counterIssuer := buySplit[0], buySplit[1]
