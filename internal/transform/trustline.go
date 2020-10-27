@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	ingestio "github.com/stellar/go/exp/ingest/io"
+	ingestio "github.com/stellar/go/ingest/io"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )

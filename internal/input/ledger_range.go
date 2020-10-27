@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 

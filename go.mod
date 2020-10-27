@@ -3,15 +3,11 @@ module github.com/stellar/stellar-etl
 go 1.14
 
 require (
-	bitbucket.org/ww/goautoneg v0.0.0-20120707110453-75cd24fc2f2c // indirect
 	github.com/Masterminds/squirrel v1.4.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/aws/aws-sdk-go v1.34.13 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gavv/monotime v0.0.0-20190418164738-30dba4353424 // indirect
-	github.com/gdexlab/go-render v1.0.1
-	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-errors/errors v1.1.1 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect
@@ -20,9 +16,6 @@ require (
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/jarcoal/httpmock v1.0.6 // indirect
 	github.com/klauspost/compress v1.10.11 // indirect
-	github.com/klauspost/cpuid v1.3.1 // indirect
-	github.com/klauspost/crc32 v1.2.0 // indirect
-	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/magiconair/properties v1.8.2 // indirect
@@ -30,10 +23,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
-	github.com/mndrix/ps v0.0.0-20170330174427-18e65badd6ab // indirect
-	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/nullstyle/go-xdr v0.0.0-20180726165426-f4c839f75077 // indirect
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/pkg/errors v0.9.1
@@ -46,7 +36,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20200827221214-3ad0378dd691
+	github.com/stellar/go v0.0.0-20201027155406-0b17a675ec5a
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.16.0 // indirect
