@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"fmt"
 	"testing"
 
 	ingestio "github.com/stellar/go/exp/ingest/io"
@@ -43,7 +44,7 @@ func TestTransformOfferNormalized(t *testing.T) {
 				Post: nil,
 			}, 100},
 			wantOutput: NormalizedOfferOutput{},
-			wantErr:    nil,
+			wantErr:    fmt.Errorf("offer 0 is deleted"),
 		},
 		{
 			input:      testInput{hardCodedInput, 100},

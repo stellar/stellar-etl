@@ -204,7 +204,7 @@ type DimAccount struct {
 	Address string `json:"address"`
 }
 
-//DimOffer is a representation of an account that aligns with the BigQuery table dim_offers
+// DimOffer is a representation of an account that aligns with the BigQuery table dim_offers
 type DimOffer struct {
 	HorizonID     int64   `json:"horizon_offer_id"`
 	DimOfferID    uint64  `json:"dim_offer_id"`
