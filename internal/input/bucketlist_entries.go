@@ -5,9 +5,9 @@ import (
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
-	"github.com/stellar/go/exp/ingest/adapters"
-	ingestio "github.com/stellar/go/exp/ingest/io"
 	"github.com/stellar/go/historyarchive"
+	"github.com/stellar/go/ingest/adapters"
+	ingestio "github.com/stellar/go/ingest/io"
 	"github.com/stellar/go/xdr"
 )
 
