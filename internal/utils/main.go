@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
-	ingestio "github.com/stellar/go/exp/ingest/io"
-	"github.com/stellar/go/exp/ingest/ledgerbackend"
+	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
@@ -277,7 +277,7 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerCloseMeta) (time.Time, error) {
 	return TimePointToUTCTimeStamp(close)
 }
 
-// ExtractEntryFromChange gets the close time of the provided ledger
+// ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingestio.Change) (xdr.LedgerEntry, bool, error) {
 	switch changeType := change.LedgerEntryChangeType(); changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
