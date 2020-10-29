@@ -122,13 +122,15 @@ func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 }
 
-// AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, output, and the export-{type} flags
-func AddCoreFlags(flags *pflag.FlagSet) {
+// AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, and output flags
+func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
 	flags.StringP("core-config", "c", "", "Filepath to the a config file for stellar-core")
 
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
-	flags.StringP("output", "o", "changes_output/", "Folder that will contain the output files")
+	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
+
+	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 }
 
 // AddExportTypeFlags adds the captive core specifc flags: export-{type} flags

@@ -172,7 +172,7 @@ func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
 	utils.AddCommonFlags(exportLedgerEntryChangesCmd.Flags())
-	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags())
+	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags(), "changes_output/")
 	utils.AddExportTypeFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
