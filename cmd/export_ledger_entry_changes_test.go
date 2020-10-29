@@ -5,9 +5,11 @@ import (
 	"testing"
 )
 
+const coreExecutablePath = "/Users/isaiahturner/Local/stellar-core/src/stellar-core"
+const coreConfigPath = "/Users/isaiahturner/Local/stellar-core/docs/stellar-core_example.cfg"
+
 func TestExportChanges(t *testing.T) {
-	coreExecutablePath := "../stellar-core/src/stellar-core"
-	coreConfigPath := "../stellar-core/docs/stellar-core_example.cfg"
+
 	tests := []cliTest{
 		{
 			name:    "unbounded range with no config",
