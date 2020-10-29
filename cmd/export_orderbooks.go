@@ -17,11 +17,13 @@ import (
 var exportOrderbooksCmd = &cobra.Command{
 	Use:   "export_orderbooks",
 	Short: "This command exports the historical orderbooks",
-	Long: `This command instantiates a stellar-core instance and uses it to export about orderbooks.
-	The information is exported in batches determined by the batch-size flag.
+	Long: `This command instantiates a stellar-core instance and uses it to export normalized orderbooks.
+	The information is exported in batches determined by the batch-size flag. The normalized data is exported in multiple 
+	different files within the exported data folder. These files are dimAccounts.txt, dimOffers.txt, dimMarkets.txt, and factEvents.txt.
+	These files contain normalized data that helps save storage space. 
 	
 	If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
-	confirmed by the Stellar network.`,
+	confirmed by the Stellar network. In this unbounded case, a stellar-core config file is required.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 
