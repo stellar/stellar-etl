@@ -3,6 +3,7 @@ module github.com/stellar/stellar-etl
 go 1.14
 
 require (
+	bitbucket.org/ww/goautoneg v0.0.0-20120707110453-75cd24fc2f2c // indirect
 	github.com/Masterminds/squirrel v1.4.0 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/aws/aws-sdk-go v1.34.8 // indirect
@@ -43,7 +44,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20200820150558-f57b47851c33
+	github.com/stellar/go v0.0.0-20201028171940-a89275a19a1c
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasthttp v1.16.0 // indirect

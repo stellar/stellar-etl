@@ -1,13 +1,15 @@
 package cmd
 
 import (
+	"bufio"
+	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -24,8 +26,6 @@ var exportOrderbooksCmd = &cobra.Command{
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
-		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
-
 		var folderPath string
 		if !useStdout {
 			folderPath = mustCreateFolder(outputFolder)
@@ -33,11 +33,6 @@ var exportOrderbooksCmd = &cobra.Command{
 
 		if batchSize <= 0 {
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
-		}
-
-		// If none of the export flags are set, then we assume that everything should be exported
-		if !exportAccounts && !exportOffers && !exportTrustlines {
-			exportAccounts, exportOffers, exportTrustlines = true, true, true
 		}
 
 		if configPath == "" && endNum == 0 {
@@ -55,22 +50,21 @@ var exportOrderbooksCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
 		}
 
+		checkpointSeq := utils.GetMostRecentCheckpoint(startNum)
 		core, err := input.PrepareCaptiveCore(execPath, configPath, checkpointSeq, endNum)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
-		checkpointSeq := utils.GetMostRecentCheckpoint(startNum)
 		orderbook, err := input.GetEntriesFromGenesis(checkpointSeq, xdr.LedgerEntryTypeOffer)
 		if err != nil {
-			cmdLogger.Fatal("could not read inital orderbook: ", err)
+			cmdLogger.Fatal("could not read initial orderbook: ", err)
 		}
 
-		
-		orderbookChannel := make(chan transform.NormalizedOfferOutput)
+		input.UpdateOrderbook(checkpointSeq, startNum, orderbook, core, cmdLogger)
+		orderbookChannel := make(chan input.OrderbookBatch)
 
-		// stream changes in batches of 1, allows for applying batches
-		go input.StreamOrderbooks(core, startNum, endNum, 1, orderbookChannel, cmdLogger)
+		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, cmdLogger)
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
 			for i := uint32(0); i < batchCount; i++ {
@@ -81,26 +75,64 @@ var exportOrderbooksCmd = &cobra.Command{
 					batchEnd = endNum
 				}
 
+				parser := input.ReceiveParsedOrderbooks(orderbookChannel, strictExport, cmdLogger)
+				exportOrderbook(batchStart, batchEnd, folderPath, useStdout, strictExport, parser)
 			}
-
 		} else {
 			var batchNum uint32 = 0
 			for {
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines)
+				parser := input.ReceiveParsedOrderbooks(orderbookChannel, strictExport, cmdLogger)
+				exportOrderbook(batchStart, batchEnd, folderPath, useStdout, strictExport, parser)
 				batchNum++
 			}
 		}
 	},
 }
 
+func writeSlice(file *os.File, useStdout bool, slice [][]byte) {
+	var w *bufio.Writer
+	if !useStdout {
+		w = bufio.NewWriter(file)
+		defer w.Flush()
+	}
+
+	for _, v := range slice {
+		if !useStdout {
+			w.Write(v)
+			w.WriteString("\n")
+		} else {
+			fmt.Println(v)
+		}
+	}
+}
+
+func exportOrderbook(start, end uint32, folderPath string, useStdout, strictExport bool, parser *input.OrderbookParser) {
+	var marketsFile, offersFile, accountsFile, eventsFile *os.File
+	if !useStdout {
+		marketsFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimMarkets.txt", start, end)))
+		offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimOffers.txt", start, end)))
+		accountsFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimAccounts.txt", start, end)))
+		eventsFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-factEvents.txt", start, end)))
+		defer marketsFile.Close()
+		defer offersFile.Close()
+		defer accountsFile.Close()
+		defer eventsFile.Close()
+	}
+
+	writeSlice(marketsFile, useStdout, parser.Markets)
+	writeSlice(offersFile, useStdout, parser.Offers)
+	writeSlice(accountsFile, useStdout, parser.Accounts)
+	writeSlice(eventsFile, useStdout, parser.Events)
+}
+
 func init() {
 	rootCmd.AddCommand(exportOrderbooksCmd)
-	utils.AddCommonFlags(exportLedgerEntryChangesCmd.Flags())
-	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags())
+	utils.AddCommonFlags(exportOrderbooksCmd.Flags())
+	utils.AddCoreFlags(exportOrderbooksCmd.Flags(), "orderbooks_output/")
 
+	exportOrderbooksCmd.MarkFlagRequired("start-ledger")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
