@@ -103,7 +103,7 @@ func writeSlice(file *os.File, useStdout bool, slice [][]byte) {
 			w.Write(v)
 			w.WriteString("\n")
 		} else {
-			fmt.Println(v)
+			fmt.Println(string(v))
 		}
 	}
 }
