@@ -18,13 +18,22 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 		   - [export_operations](#export_operations)
 		- [Stellar Core Commands](#stellar-core-commands)
 		   - [export_ledger_entry_changes](#export_ledger_entry_changes)
-    - [Schema](#schema)
+		- [Utility Commands](#utility-commands)
+		   - [get_ledger_range_from_times](#get_ledger_range_from_times) 
+		   - [export_orderbooks](#export_orderbooks)
+    - [Schemas](#schemas)
 
 
 
 
 ## Exporting the Ledger Chain
 
+### Docker
+1. Download the latest version of docker [Docker](https://www.docker.com/get-started)
+2. Pull the stellar-etl Docker image: `docker pull stellar/stellar-etl`
+3. Run the Docker images with the desired stellar-etl command: `docker run stellar/stellar-etl stellar-etl [etl-command] [etl-command arguments]`
+
+### Manual Installation
 1. Install Golang v1.14 or later: https://golang.org/dl/
 
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
@@ -45,6 +54,9 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
    - [export_operations](#export_operations)
  - [Stellar Core Commands](#stellar-core-commands)
    - [export_ledger_entry_changes](#export_ledger_entry_changes)
+   - [export_orderbooks](#export_orderbooks)
+ - [Utility Commands](#utility-commands)
+   - [get_ledger_range_from_times](#get_ledger_range_from_times) 
 
 Every command accepts a `-h` parameter, which provides a help screen containing information about the command, its usage, and its flags.
 
@@ -107,14 +119,14 @@ This command exports operations within the provided range.
 
 ### Stellar Core Commands
 
-These commands require a Stellar Core instance that is v13.2.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, or trustlines.
+These commands require a Stellar Core instance that is v15.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, or trustlines.
 
 As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
 #### export_ledger_entry_changes
 
 ```bash
 > stellar-etl export_ledger_entry_changes --start-ledger 1000 \
---end-ledger 500000 --output exported_ledgers.txt
+--end-ledger 500000 --output exported_changes_folder/
 ```
 
 This command exports ledger changes within the provided ledger range. There are three data type flags that control which types of changes are exported. If no data type flags are set, then by default all three types are exported. If any are set, it is assumed that the others should not be exported. 
@@ -129,7 +141,37 @@ This command has two modes: bounded and unbounded.
 ##### Unbounded
 If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, the Stellar Core connects to the Stellar network and processes new changes as they occur on the network. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new Stellar Core instances.
 
-## Schema
+#### export_orderbooks
+
+```bash
+> stellar-etl export_orderbooks --start-ledger 1000 \
+--end-ledger 500000 --output exported_orderbooks_folder/
+```
+
+This command exports orderbooks within the provided ledger range. Since exporting complete orderbooks at every single ledger would require an excessive amount of storage space, the output is normalized. Each batch that is exported contains multiple files, namely: `dimAccounts.txt`, `dimOffers.txt`, `dimMarkets.txt`, and `factEvents.txt`. The dim files relate a data structure to an ID. `dimMarkets`, for example, contains the buying and selling assets of a market, as well as the ID for that market. That ID is used in other places as a replacement for the full market information. This normalization process saves  a significant amount of space. The `factEvents` file connects ledger numbers to the offer IDs that were present at that ledger.
+
+Orderbooks are exported in batches of a size defined by the `batch-size` flag. By default, the batch-size parameter is set to 64 ledgers, which corresponds to a five minute period of time. This batch size is convenient because checkpoint ledgers are created every 64 ledgers. Checkpoint ledgers act as anchoring points for the nodes on the network, so it is beneficial to export in multiples of 64.
+
+This command has two modes: bounded and unbounded.
+
+##### Bounded
+ If both a start and end ledger are provided, then the command runs in a bounded mode. This means that once all the ledgers in the range are processed and exported, the command shuts down.
+ 
+##### Unbounded
+If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, the Stellar Core connects to the Stellar network and processes new orderbooks as they occur on the network. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new Stellar Core instances.
+
+### Utility Commands
+#### get_ledger_range_from_times
+```bash
+> stellar-etl get_ledger_range_from_times \
+--start-time 2019-09-13T23:00:00+00:00 \
+--end-time 2019-09-14T13:35:10+00:00 --output exported_range.txt
+```
+
+This command exports takes in a start and end time and converts it to a ledger range. The ledger range that is returned will be the smallest possible ledger range that completely covers the provided time period. 
+
+
+## Schemas
 
 See https://github.com/stellar/stellar-etl/blob/master/internal/transform/schema.go for the schemas of the data structures that are outputted by the ETL.
 
