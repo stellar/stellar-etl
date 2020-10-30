@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-const coreExecutablePath = "/Users/isaiahturner/Local/stellar-core/src/stellar-core"
-const coreConfigPath = "/Users/isaiahturner/Local/stellar-core/docs/stellar-core_example.cfg"
+const coreExecutablePath = "../stellar-core/src/stellar-core"
+const coreConfigPath = "../stellar-core/docs/stellar-core_example.cfg"
 
 func TestExportChanges(t *testing.T) {
 

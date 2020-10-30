@@ -82,9 +82,9 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingestio.Change, seq uint32
 					o.Logger.Warning(errorMsg, err)
 					continue
 				}
-			} else {
-				o.Markets = append(o.Markets, marshalledMarket)
 			}
+
+			o.Markets = append(o.Markets, marshalledMarket)
 		}
 
 		if _, exists := o.SeenAccountHashes[converted.Account.ID]; !exists {
@@ -98,9 +98,9 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingestio.Change, seq uint32
 					o.Logger.Warning(errorMsg, err)
 					continue
 				}
-			} else {
-				o.Accounts = append(o.Accounts, marshalledAccount)
 			}
+
+			o.Accounts = append(o.Accounts, marshalledAccount)
 		}
 
 		if _, exists := o.SeenOfferHashes[converted.Offer.DimOfferID]; !exists {
@@ -114,9 +114,10 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingestio.Change, seq uint32
 					o.Logger.Warning(errorMsg, err)
 					continue
 				}
-			} else {
-				o.Offers = append(o.Offers, marshalledOffer)
 			}
+
+			o.Offers = append(o.Offers, marshalledOffer)
+
 		}
 
 		marshalledEvent, err := json.Marshal(converted.Event)
@@ -134,6 +135,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingestio.Change, seq uint32
 	}
 }
 
+// GetOfferChanges gets the offer changes that ocurred between the firstSeq ledger and nextSeq ledger
 func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq uint32) (*ingestio.LedgerEntryChangeCache, error) {
 	offChanges := ingestio.NewLedgerEntryChangeCache()
 
@@ -188,6 +190,7 @@ func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.Capti
 	orderbookChan <- batch
 }
 
+// UpdateOrderbook updates an orderbook at ledger start to its state at ledger end
 func UpdateOrderbook(start, end uint32, orderbook []ingestio.Change, core *ledgerbackend.CaptiveStellarCore, logger *log.Entry) {
 	changeCache, err := GetOfferChanges(core, start, end)
 	if err != nil {
@@ -201,6 +204,7 @@ func UpdateOrderbook(start, end uint32, orderbook []ingestio.Change, core *ledge
 	orderbook = changeCache.GetChanges()
 }
 
+// StreamOrderbooks exports all the batches of orderbooks between start and end to the orderbookChannel. If end is 0, then it exports in an unbounded fashion
 func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, orderbookChannel chan OrderbookBatch, startOrderbook []ingestio.Change, logger *log.Entry) {
 	if end != 0 {
 		totalBatches := uint32(math.Ceil(float64(end-start+1) / float64(batchSize)))
@@ -221,10 +225,9 @@ func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchS
 			batchEnd = batchStart + batchSize
 		}
 	}
-
-	//close(orderbookChannel)
 }
 
+// ReceiveParsedOrderbooks reads a batch from the orderbookChannel, parses it using an orderbook parser, and returns the parser.
 func ReceiveParsedOrderbooks(orderbookChannel chan OrderbookBatch, strictExport bool, logger *log.Entry) *OrderbookParser {
 	batchParser := NewOrderbookParser(strictExport, logger)
 	batchRead := false

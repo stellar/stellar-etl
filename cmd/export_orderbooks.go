@@ -67,6 +67,8 @@ var exportOrderbooksCmd = &cobra.Command{
 		orderbookChannel := make(chan input.OrderbookBatch)
 
 		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, cmdLogger)
+		
+		// If the end sequence number is defined, we work in a closed range and export a finite number of batches
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
 			for i := uint32(0); i < batchCount; i++ {
@@ -81,6 +83,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				exportOrderbook(batchStart, batchEnd, folderPath, useStdout, strictExport, parser)
 			}
 		} else {
+			// otherwise, we export in an unbounded manner where batches are constantly exported
 			var batchNum uint32 = 0
 			for {
 				batchStart := startNum + batchNum*batchSize
@@ -93,6 +96,7 @@ var exportOrderbooksCmd = &cobra.Command{
 	},
 }
 
+// writeSlice writes the slice either to a file or to stdout. When useStdout is false, the file is written to, and when useStdout is true, std out is written to.
 func writeSlice(file *os.File, useStdout bool, slice [][]byte) {
 	var w *bufio.Writer
 	if !useStdout {
