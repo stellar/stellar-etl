@@ -122,17 +122,22 @@ func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 }
 
-// AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, output, and the export-{type} flags
-func AddCoreFlags(flags *pflag.FlagSet) {
+// AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, and output flags
+func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
 	flags.StringP("core-config", "c", "", "Filepath to the a config file for stellar-core")
 
+	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
+	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
+
+	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+}
+
+// AddExportTypeFlags adds the captive core specifc flags: export-{type} flags
+func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-accounts", "a", false, "set in order to export account changes")
 	flags.BoolP("export-trustlines", "t", false, "set in order to export trustline changes")
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
-
-	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
-	flags.StringP("output", "o", "changes_output/", "Folder that will contain the output files")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger, stdout, and strict-export. If any do not exist, it stops the program fatally using the logger
@@ -185,8 +190,8 @@ func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (path string) {
 	return
 }
 
-// MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, output, and export{type} flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, startNum, batchSize uint32, path string, exportAccounts, exportOffers, exportTrustlines bool) {
+// MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, and output flags. If any do not exist, it stops the program fatally using the logger
+func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, startNum, batchSize uint32, path string) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -212,7 +217,12 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 		logger.Fatal("could not get batch size: ", err)
 	}
 
-	exportAccounts, err = flags.GetBool("export-accounts")
+	return
+}
+
+// MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccounts, exportOffers, exportTrustlines bool) {
+	exportAccounts, err := flags.GetBool("export-accounts")
 	if err != nil {
 		logger.Fatal("could not get export accounts flag: ", err)
 	}
@@ -279,4 +289,13 @@ func ExtractEntryFromChange(change ingestio.Change) (xdr.LedgerEntry, bool, erro
 	default:
 		return xdr.LedgerEntry{}, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}
+}
+
+// GetMostRecentCheckpoint returns the most recent checkpoint before the provided ledger
+func GetMostRecentCheckpoint(seq uint32) uint32 {
+	remainder := (seq + 1) % 64
+	if remainder == 0 {
+		return seq
+	}
+	return seq - remainder
 }

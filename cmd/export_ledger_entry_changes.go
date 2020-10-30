@@ -28,7 +28,8 @@ be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 
-		execPath, configPath, startNum, batchSize, outputFolder, exportAccounts, exportOffers, exportTrustlines := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 
 		var folderPath string
 		if !useStdout {
@@ -171,7 +172,8 @@ func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
 	utils.AddCommonFlags(exportLedgerEntryChangesCmd.Flags())
-	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags())
+	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags(), "changes_output/")
+	utils.AddExportTypeFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
