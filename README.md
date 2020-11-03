@@ -22,6 +22,8 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 		   - [get_ledger_range_from_times](#get_ledger_range_from_times) 
 		   - [export_orderbooks](#export_orderbooks)
     - [Schemas](#schemas)
+    - [Extensions](#extensions)
+	    - [Adding New Commands](#adding-new-commands)
 
 
 
@@ -174,4 +176,26 @@ This command exports takes in a start and end time and converts it to a ledger r
 ## Schemas
 
 See https://github.com/stellar/stellar-etl/blob/master/internal/transform/schema.go for the schemas of the data structures that are outputted by the ETL.
+
+## Extensions
+This section covers some possible extensions or further work that can be done.
+
+### Adding New Commands
+In general, in order to add new commands, you need to add these files:
+
+ - `export_new_data_structure.go` in the `cmd` folder
+	 - This file can be generated with cobra by calling: `cobra add {command}`
+	 - This file will parse flags, create output files, get the transformed data from the input package, and then export the data.
+ - `export_new_data_structure_test.go` in the `cmd` folder
+	 - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
+	 - Test data should be stored in the `testate/new_data_structure` folder
+ - `new_data_structure.go` in the `internal/input` folder
+	 - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, or a captive core instance. 
+	 - This file should extract the data and transform it, and return the transformed data.
+	 - If working with captive core, the methods need to work in the background. There should be methods that export batches of data and send them to a channel. There should be other methods that read from the channel and transform the data so it can be exported.
+- `new_data_structure.go` in the `internal/transform` folder
+	- This file will contain the methods needed to transform the extracted data into a form that is suitable for BigQuery.
+	- The struct definition for the transformed object should be stored in `schemas.go` in the `internal/transform` folder.
+
+A good number of common methods are already written and stored in the `util` package.
 
