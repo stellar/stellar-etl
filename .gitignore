@@ -4,6 +4,7 @@
 /local-archive
 /.vscode/*.sql
 /.vscode/settings.json
+/.vscode/launch.json
 .idea
 debug
 .bundle
