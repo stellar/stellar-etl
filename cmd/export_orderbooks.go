@@ -62,8 +62,7 @@ var exportOrderbooksCmd = &cobra.Command{
 		if err != nil {
 			cmdLogger.Fatal("could not read initial orderbook: ", err)
 		}
-
-		input.UpdateOrderbook(checkpointSeq, startNum, orderbook, core, cmdLogger)
+		
 		orderbookChannel := make(chan input.OrderbookBatch)
 
 		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, cmdLogger)
