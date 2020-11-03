@@ -103,7 +103,6 @@ func TestExportLedger(t *testing.T) {
 	}
 }
 
-// TODO: add a testing flag that outputs to stdout and read from there instead of reading back from a test file
 func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()
