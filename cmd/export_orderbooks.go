@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"math"
 	"os"
@@ -62,11 +61,11 @@ var exportOrderbooksCmd = &cobra.Command{
 		if err != nil {
 			cmdLogger.Fatal("could not read initial orderbook: ", err)
 		}
-		
+
 		orderbookChannel := make(chan input.OrderbookBatch)
 
 		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, cmdLogger)
-		
+
 		// If the end sequence number is defined, we work in a closed range and export a finite number of batches
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
@@ -97,19 +96,16 @@ var exportOrderbooksCmd = &cobra.Command{
 
 // writeSlice writes the slice either to a file or to stdout. When useStdout is false, the file is written to, and when useStdout is true, std out is written to.
 func writeSlice(file *os.File, useStdout bool, slice [][]byte) {
-	var w *bufio.Writer
-	if !useStdout {
-		w = bufio.NewWriter(file)
-		defer w.Flush()
-	}
-
 	for _, v := range slice {
 		if !useStdout {
-			w.Write(v)
-			w.WriteString("\n")
+			file.WriteString(string(v) + "\n")
 		} else {
 			fmt.Println(string(v))
 		}
+	}
+
+	if file != nil {
+		file.Close()
 	}
 }
 
@@ -120,10 +116,6 @@ func exportOrderbook(start, end uint32, folderPath string, useStdout, strictExpo
 		offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimOffers.txt", start, end)))
 		accountsFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimAccounts.txt", start, end)))
 		eventsFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-factEvents.txt", start, end)))
-		defer marketsFile.Close()
-		defer offersFile.Close()
-		defer accountsFile.Close()
-		defer eventsFile.Close()
 	}
 
 	writeSlice(marketsFile, useStdout, parser.Markets)
