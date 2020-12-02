@@ -42,10 +42,12 @@ func getLatestLedgerNumber() (uint32, error) {
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
 func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
 	captiveBackend, err := ledgerbackend.NewCaptive(
-		execPath,
-		configPath,
-		password,
-		[]string{archiveStellarURL},
+		ledgerbackend.CaptiveCoreConfig{
+			StellarCoreBinaryPath: execPath,
+			StellarCoreConfigPath: configPath,
+			NetworkPassphrase:     password,
+			HistoryArchiveURLs:    []string{archiveStellarURL},
+		},
 	)
 	if err != nil {
 		return &ledgerbackend.CaptiveStellarCore{}, err
