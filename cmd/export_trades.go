@@ -80,7 +80,7 @@ var tradesCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(tradesCmd)
 	utils.AddCommonFlags(tradesCmd.Flags())
-	utils.AddBucketFlags("trades", tradesCmd.Flags())
+	utils.AddArchiveFlags("trades", tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
 
 	/*
