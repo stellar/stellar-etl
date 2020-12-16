@@ -37,7 +37,7 @@ func mustOutFile(path string) *os.File {
 		cmdLogger.Fatal("could not create output file: ", err)
 	}
 
-	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		cmdLogger.Fatal("error in opening output file: ", err)
 	}
@@ -64,7 +64,7 @@ func printTransformStats(attempts, failures int) {
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data.",
-	Long:  `Exports ledger data within the specified range to an output file. Data is appended to the output file after being encoded as a JSON object.`,
+	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
