@@ -94,11 +94,11 @@ func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asse
 	return nil
 }
 
-func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
+func transformPath(initialPath []xdr.Asset) []Path {
 	if len(initialPath) == 0 {
 		return nil
 	}
-	var path = make([]AssetOutput, 0)
+	var path = make([]Path, 0)
 	for _, pathAsset := range initialPath {
 		var assetType, code, issuer string
 		err := pathAsset.Extract(&assetType, &code, &issuer)
@@ -106,7 +106,7 @@ func convertPathToAssetOutput(initialPath []xdr.Asset) []AssetOutput {
 			return nil
 		}
 
-		path = append(path, AssetOutput{
+		path = append(path, Path{
 			AssetType:   assetType,
 			AssetIssuer: issuer,
 			AssetCode:   code,
@@ -220,7 +220,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 			outputDetails.SourceAmount = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
 
-		outputDetails.Path = convertPathToAssetOutput(op.Path)
+		outputDetails.Path = transformPath(op.Path)
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		op, ok := operation.Body.GetPathPaymentStrictSendOp()
@@ -252,7 +252,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 			outputDetails.Amount = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
 
-		outputDetails.Path = convertPathToAssetOutput(op.Path)
+		outputDetails.Path = transformPath(op.Path)
 
 	case xdr.OperationTypeManageBuyOffer:
 		op, ok := operation.Body.GetManageBuyOfferOp()
@@ -428,7 +428,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 
 func ensureSlicesAreNotNil(details *Details) {
 	if details.Path == nil {
-		details.Path = make([]AssetOutput, 0)
+		details.Path = make([]Path, 0)
 	}
 
 	if details.SetFlags == nil {

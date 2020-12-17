@@ -44,7 +44,7 @@ func TestTransformAccount(t *testing.T) {
 				AccountId: genericAccountID,
 				Ext: xdr.AccountEntryExt{
 					V: 1,
-					V1: &xdr.AccountEntryV1{
+					V1: &xdr.AccountEntryExtensionV1{
 						Liabilities: xdr.Liabilities{
 							Buying: -1,
 						},
@@ -58,7 +58,7 @@ func TestTransformAccount(t *testing.T) {
 				AccountId: genericAccountID,
 				Ext: xdr.AccountEntryExt{
 					V: 1,
-					V1: &xdr.AccountEntryV1{
+					V1: &xdr.AccountEntryExtensionV1{
 						Liabilities: xdr.Liabilities{
 							Selling: -2,
 						},
@@ -116,7 +116,7 @@ func makeAccountTestInput() ingestio.Change {
 				Thresholds:    xdr.Thresholds([4]byte{2, 1, 3, 5}),
 				Ext: xdr.AccountEntryExt{
 					V: 1,
-					V1: &xdr.AccountEntryV1{
+					V1: &xdr.AccountEntryExtensionV1{
 						Liabilities: xdr.Liabilities{
 							Buying:  1000,
 							Selling: 1500,

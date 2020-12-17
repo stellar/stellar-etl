@@ -133,8 +133,8 @@ func makeOfferTestOutput() OfferOutput {
 	return OfferOutput{
 		SellerID:           testAccount1Address,
 		OfferID:            260678439,
-		SellingAsset:       "AAAAAA==",
-		BuyingAsset:        "AAAAAUVUSAAAAAAAZ8wAhkw7iRaMaq/gvDRwntAhxQVy4vmIYTQiCCwiKXI=",
+		SellingAsset:       12638146518625398189,
+		BuyingAsset:        13488700931717487949,
 		Amount:             2628450327,
 		PriceN:             920936891,
 		PriceD:             1790879058,
