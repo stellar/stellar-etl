@@ -6,7 +6,7 @@ import (
 )
 
 const coreExecutablePath = "../stellar-core/src/stellar-core"
-const coreConfigPath = "../stellar-core/docs/stellar-core_example.cfg"
+const coreConfigPath = "./docker/stellar-core.cfg"
 
 func TestExportChanges(t *testing.T) {
 
