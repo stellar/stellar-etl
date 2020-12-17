@@ -94,7 +94,7 @@ func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asse
 	return nil
 }
 
-func transfromPath(initialPath []xdr.Asset) []Path {
+func transformPath(initialPath []xdr.Asset) []Path {
 	if len(initialPath) == 0 {
 		return nil
 	}
@@ -220,7 +220,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 			outputDetails.SourceAmount = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
 
-		outputDetails.Path = transfromPath(op.Path)
+		outputDetails.Path = transformPath(op.Path)
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		op, ok := operation.Body.GetPathPaymentStrictSendOp()
@@ -252,7 +252,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingestio.Ledge
 			outputDetails.Amount = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
 
-		outputDetails.Path = transfromPath(op.Path)
+		outputDetails.Path = transformPath(op.Path)
 
 	case xdr.OperationTypeManageBuyOffer:
 		op, ok := operation.Body.GetManageBuyOfferOp()
