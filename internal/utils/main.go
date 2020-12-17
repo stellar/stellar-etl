@@ -243,7 +243,7 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccount
 // CreateBackend creates a history archive backend
 func CreateBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
 	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
-	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL)
+	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL, 0)
 }
 
 // GetCheckpointNum gets the ledger sequence number of the checkpoint containing the provided ledger. If the checkpoint does not exist, an error is returned
