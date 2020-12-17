@@ -43,10 +43,10 @@ func getLatestLedgerNumber() (uint32, error) {
 func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
 	captiveBackend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
-			StellarCoreBinaryPath: execPath,
-			StellarCoreConfigPath: configPath,
-			NetworkPassphrase:     password,
-			HistoryArchiveURLs:    []string{archiveStellarURL},
+			BinaryPath:         execPath,
+			ConfigAppendPath:   configPath,
+			NetworkPassphrase:  password,
+			HistoryArchiveURLs: []string{archiveStellarURL},
 		},
 	)
 	if err != nil {
