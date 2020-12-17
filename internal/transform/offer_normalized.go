@@ -22,12 +22,12 @@ func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (N
 		return NormalizedOfferOutput{}, fmt.Errorf("offer %d is deleted", transformed.OfferID)
 	}
 
-	err = modifyOfferAsset(ledgerChange, &transformed)
+	buyingAsset, sellingAsset, err := extractAssets(ledgerChange, transformed)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
 
-	outputMarket, err := extractDimMarket(transformed)
+	outputMarket, err := extractDimMarket(transformed, buyingAsset, sellingAsset)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
@@ -37,7 +37,7 @@ func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (N
 		return NormalizedOfferOutput{}, err
 	}
 
-	outputOffer, err := extractDimOffer(transformed, outputMarket.ID, outputAccount.ID)
+	outputOffer, err := extractDimOffer(transformed, buyingAsset, sellingAsset, outputMarket.ID, outputAccount.ID)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
@@ -53,22 +53,22 @@ func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (N
 	}, nil
 }
 
-// modifyOfferAsset changes the buying and selling asset of a transformed offer from the asset hash to a string of the format code:issuer
-func modifyOfferAsset(ledgerChange ingestio.Change, transformed *OfferOutput) error {
+// extractAssets extracts the buying and selling assets as strings of the format code:issuer
+func extractAssets(ledgerChange ingestio.Change, transformed OfferOutput) (string, string, error) {
 	ledgerEntry, _, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	offerEntry, offerFound := ledgerEntry.Data.GetOffer()
 	if !offerFound {
-		return fmt.Errorf("Could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return "", "", fmt.Errorf("Could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	var sellType, sellCode, sellIssuer string
 	err = offerEntry.Selling.Extract(&sellType, &sellCode, &sellIssuer)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	var outputSellingAsset string
@@ -82,7 +82,7 @@ func modifyOfferAsset(ledgerChange ingestio.Change, transformed *OfferOutput) er
 	var buyType, buyCode, buyIssuer string
 	err = offerEntry.Buying.Extract(&buyType, &buyCode, &buyIssuer)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	var outputBuyingAsset string
@@ -92,14 +92,12 @@ func modifyOfferAsset(ledgerChange ingestio.Change, transformed *OfferOutput) er
 		outputBuyingAsset = "native:"
 	}
 
-	transformed.BuyingAsset = outputBuyingAsset
-	transformed.SellingAsset = outputSellingAsset
-	return nil
+	return outputBuyingAsset, outputSellingAsset, nil
 }
 
-// extractDimMarket gets the DimMarket struct that corresponds to the provided offer
-func extractDimMarket(offer OfferOutput) (DimMarket, error) {
-	assets := []string{offer.BuyingAsset, offer.SellingAsset}
+// extractDimMarket gets the DimMarket struct that corresponds to the provided offer and its buying/selling assets
+func extractDimMarket(offer OfferOutput, buyingAsset, sellingAsset string) (DimMarket, error) {
+	assets := []string{buyingAsset, sellingAsset}
 	// sort in order to ensure markets have consistent base/counter pairs
 	// markets are stored as selling/buying == base/counter
 	sort.Strings(assets)
@@ -134,8 +132,8 @@ func extractDimMarket(offer OfferOutput) (DimMarket, error) {
 	}, nil
 }
 
-// extractDimOffer extracts the DimOffer struct from the provided offer
-func extractDimOffer(offer OfferOutput, marketID, makerID uint64) (DimOffer, error) {
+// extractDimOffer extracts the DimOffer struct from the provided offer and its buying/selling assets
+func extractDimOffer(offer OfferOutput, buyingAsset, sellingAsset string, marketID, makerID uint64) (DimOffer, error) {
 	importantFields := fmt.Sprintf("%d/%d/%f", offer.OfferID, offer.Amount, offer.Price)
 
 	fnvHasher := fnv.New64a()
@@ -145,11 +143,11 @@ func extractDimOffer(offer OfferOutput, marketID, makerID uint64) (DimOffer, err
 
 	offerHash := fnvHasher.Sum64()
 
-	assets := []string{offer.BuyingAsset, offer.SellingAsset}
+	assets := []string{buyingAsset, sellingAsset}
 	sort.Strings(assets)
 
 	var action string
-	if offer.SellingAsset == assets[0] {
+	if sellingAsset == assets[0] {
 		action = "s"
 	} else {
 		action = "b"
