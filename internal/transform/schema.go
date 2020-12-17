@@ -21,13 +21,6 @@ type LedgerOutput struct {
 	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
 	ProtocolVersion            uint32    `json:"protocol_version"`
 	LedgerID                   int64     `json:"id"`
-
-	/*
-		TODO implement these four fields
-			CreatedAt time.Time // timestamp of table entry creation time
-			UpdatedAt time.Time // timestamp of table entry update time
-			ImporterVersion int32 // version of the ingestion system
-	*/
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
@@ -46,11 +39,6 @@ type TransactionOutput struct {
 	TimeBounds       string    `json:"time_bounds"`
 	Successful       bool      `json:"successful"`
 	TransactionID    int64     `json:"id"`
-
-	/*
-		TODO implement
-			updated_at time.Time // timestamp of table entry update time
-	*/
 }
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
@@ -172,8 +160,8 @@ type TrustlineOutput struct {
 type OfferOutput struct {
 	SellerID           string  `json:"seller_id"` // Account address of the seller
 	OfferID            int64   `json:"offer_id"`
-	SellingAsset       string  `json:"selling_asset"` // Base 64 encoding of the xdr.Asset being sold
-	BuyingAsset        string  `json:"buying_asset"`  // Base 64 encoding of the xdr.Asset being bought
+	SellingAsset       uint64  `json:"selling_asset"`
+	BuyingAsset        uint64  `json:"buying_asset"`
 	Amount             int64   `json:"amount"`
 	PriceN             int32   `json:"pricen"`
 	PriceD             int32   `json:"priced"`

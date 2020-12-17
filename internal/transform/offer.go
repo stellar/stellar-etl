@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -30,12 +29,12 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 		return OfferOutput{}, fmt.Errorf("OfferID is negative (%d) for offer from account: %s", outputOfferID, outputSellerID)
 	}
 
-	outputSellingAsset, err := xdr.MarshalBase64(offerEntry.Selling)
+	outputSellingAsset, err := transformSingleAsset(offerEntry.Selling)
 	if err != nil {
 		return OfferOutput{}, err
 	}
 
-	outputBuyingAsset, err := xdr.MarshalBase64(offerEntry.Buying)
+	outputBuyingAsset, err := transformSingleAsset(offerEntry.Buying)
 	if err != nil {
 		return OfferOutput{}, err
 	}
@@ -71,8 +70,8 @@ func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
 	transformedOffer := OfferOutput{
 		SellerID:           outputSellerID,
 		OfferID:            outputOfferID,
-		SellingAsset:       outputSellingAsset,
-		BuyingAsset:        outputBuyingAsset,
+		SellingAsset:       outputSellingAsset.AssetID,
+		BuyingAsset:        outputBuyingAsset.AssetID,
 		Amount:             outputAmount,
 		PriceN:             outputPriceN,
 		PriceD:             outputPriceD,
