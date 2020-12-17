@@ -80,7 +80,7 @@ var usdtAsset = xdr.Asset{
 		Issuer:    testAccount4ID,
 	},
 }
-var usdtAssetOutput = AssetOutput{
+var usdtAssetStruct = Asset{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "USDT",
 	AssetIssuer: testAccount4Address,
@@ -93,13 +93,13 @@ var ethAsset = xdr.Asset{
 		Issuer:    testAccount3ID,
 	},
 }
-var ethAssetOutput = AssetOutput{
+var ethAssetStruct = Asset{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "ETH",
 	AssetIssuer: testAccount1Address,
 }
 
 var nativeAsset = xdr.MustNewNativeAsset()
-var nativeAssetOutput = AssetOutput{
+var nativeAssetStruct = Asset{
 	AssetType: "native",
 }
