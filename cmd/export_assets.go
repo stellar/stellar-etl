@@ -29,6 +29,7 @@ var assetsCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read assets: ", err)
 		}
 
+		// With seenIDs, the code doesn't export duplicate assets within a single export. Note that across exports, assets may be duplicated
 		seenIDs := map[uint64]bool{}
 		failures := 0
 		for _, transformInput := range paymentOps {
