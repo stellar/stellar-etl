@@ -178,7 +178,7 @@ func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.Capti
 	for curSeq < batchEnd {
 		latestLedger, err := core.GetLatestLedgerSequence()
 		if err != nil {
-			logger.Error("unable to get the lastest ledger sequence: ", err)
+			logger.Fatal("unable to get the lastest ledger sequence: ", err)
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
