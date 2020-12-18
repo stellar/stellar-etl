@@ -153,7 +153,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 	for seq := batchStart; seq < batchEnd; {
 		latestLedger, err := core.GetLatestLedgerSequence()
 		if err != nil {
-			logger.Error("unable to get the lastest ledger sequence: ", err)
+			logger.Fatal("unable to get the lastest ledger sequence: ", err)
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
@@ -161,12 +161,12 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		if seq <= latestLedger {
 			changeReader, err := ingestio.NewLedgerChangeReader(core, password, seq)
 			if err != nil {
-				logger.Error(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
+				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
 
 			err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges)
 			if err != nil {
-				logger.Error(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+				logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
 			}
 
 			changeReader.Close()
