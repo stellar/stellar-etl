@@ -60,7 +60,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20201217173652-abcfaa9ff07b
+	github.com/stellar/go v0.0.0-20201218151145-990a09044ba9
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/ugorji/go v1.1.4 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	golang.org/x/crypto v0.0.0-20201217014255-9d1352758620 // indirect
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924 // indirect
-	golang.org/x/sys v0.0.0-20201214210602-f9fddec55a1e // indirect
+	golang.org/x/sys v0.0.0-20201218084310-7d0127a74742 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
