@@ -1,7 +1,9 @@
 package input
 
 import (
-	ingestio "github.com/stellar/go/ingest/io"
+	"io"
+
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -9,7 +11,7 @@ import (
 
 // LedgerTransformInput is a representation of the input for the TransformTransaction function
 type LedgerTransformInput struct {
-	Transaction   ingestio.LedgerTransaction
+	Transaction   ingest.LedgerTransaction
 	LedgerHistory xdr.LedgerHeaderHistoryEntry
 }
 
@@ -17,26 +19,14 @@ var publicPassword = network.PublicNetworkPassphrase
 
 // GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, error) {
-	backend, err := utils.CreateBackend()
+	backend, err := utils.CreateBackend(start, end)
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
 
-	defer backend.Close()
-
-	latestNum, err := backend.GetLatestLedgerSequence()
-	if err != nil {
-		return []LedgerTransformInput{}, err
-	}
-
-	err = validateLedgerRange(start, end, latestNum)
-	if err != nil {
-		return []LedgerTransformInput{}, err
-	}
-
-	txSlice := []LedgerTransformInput{}
+	var txSlice []LedgerTransformInput
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingestio.NewLedgerTransactionReader(backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(backend, publicPassword, seq)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
@@ -45,7 +35,7 @@ func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, er
 		// A negative limit value means that all input should be processed
 		for int64(len(txSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
-			if err == ingestio.EOF {
+			if err == io.EOF {
 				break
 			}
 

@@ -3,12 +3,12 @@ package transform
 import (
 	"fmt"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformOffer(ledgerChange ingestio.Change) (OfferOutput, error) {
+//TransformOffer converts an account from the history archive ingestn system into a form suitable for BigQuery
+func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return OfferOutput{}, err

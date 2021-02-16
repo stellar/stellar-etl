@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +14,7 @@ import (
 func TestTransformTrade(t *testing.T) {
 	type tradeInput struct {
 		index       int32
-		transaction ingestio.LedgerTransaction
+		transaction ingest.LedgerTransaction
 		closeTime   time.Time
 	}
 	type transformTest struct {
@@ -33,7 +33,7 @@ func TestTransformTrade(t *testing.T) {
 	}
 
 	wrongTypeInput := genericInput
-	wrongTypeInput.transaction = ingestio.LedgerTransaction{
+	wrongTypeInput.transaction = ingest.LedgerTransaction{
 		Index: 1,
 		Envelope: xdr.TransactionEnvelope{
 			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
@@ -206,7 +206,7 @@ func wrapOperationsResultsSlice(results []xdr.OperationResult, successful bool) 
 	}
 }
 
-func makeTradeTestInput() (inputTransaction ingestio.LedgerTransaction) {
+func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 	inputTransaction = genericLedgerTransaction
 	inputEnvelope := genericBumpOperationEnvelope
 

@@ -6,12 +6,12 @@ import (
 	"sort"
 	"strings"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset
-func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
+func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
 
 	transformed, err := TransformOffer(ledgerChange)
 	if err != nil {
@@ -54,7 +54,7 @@ func TransformOfferNormalized(ledgerChange ingestio.Change, ledgerSeq uint32) (N
 }
 
 // extractAssets extracts the buying and selling assets as strings of the format code:issuer
-func extractAssets(ledgerChange ingestio.Change, transformed OfferOutput) (string, string, error) {
+func extractAssets(ledgerChange ingest.Change, transformed OfferOutput) (string, string, error) {
 	ledgerEntry, _, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return "", "", err

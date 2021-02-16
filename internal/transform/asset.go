@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"hash/fnv"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
 )
 
 //TransformAsset converts an asset from a payment operation into a form suitable for BigQuery
-func TransformAsset(operation xdr.Operation, operationIndex int32, transaction ingestio.LedgerTransaction, ledgerSeq int32) (AssetOutput, error) {
+func TransformAsset(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (AssetOutput, error) {
 	operationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex).ToInt64()
 
 	opType := operation.Body.Type

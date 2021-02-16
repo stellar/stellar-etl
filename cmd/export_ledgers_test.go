@@ -18,7 +18,6 @@ var executableName = "stellar-etl"
 var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
 var latestLedger = getLastSeqNum()
 var update = flag.Bool("update", false, "update the golden files of this test")
-var backend, _ = utils.CreateBackend()
 
 type cliTest struct {
 	name    string
@@ -42,7 +41,6 @@ func TestMain(m *testing.M) {
 
 	flag.Parse()
 	exitCode := m.Run()
-	backend.Close()
 	os.Exit(exitCode)
 }
 
@@ -148,7 +146,10 @@ func removeCoreLogging(loggerOutput string) string {
 }
 
 func getLastSeqNum() uint32 {
-	num, _ := backend.GetLatestLedgerSequence()
+	num, err := utils.GetLatestLedgerSequence()
+	if err != nil {
+		panic(err)
+	}
 	return num
 }
 

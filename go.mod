@@ -18,8 +18,8 @@ require (
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gavv/monotime v0.0.0-20190418164738-30dba4353424 // indirect
-	github.com/gdexlab/go-render v1.0.1
-	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
+	github.com/gdexlab/go-render v1.0.1 // indirect
+	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-errors/errors v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
@@ -60,7 +60,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20201218151145-990a09044ba9
+	github.com/stellar/go v0.0.0-20210210172739-2df91a0a5d4f
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/ugorji/go v1.1.4 // indirect

@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 //TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrustline(ledgerChange ingestio.Change) (TrustlineOutput, error) {
+func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return TrustlineOutput{}, err

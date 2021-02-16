@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransformTransaction(t *testing.T) {
 	type inputStruct struct {
-		transaction   ingestio.LedgerTransaction
+		transaction   ingest.LedgerTransaction
 		historyHeader xdr.LedgerHeaderHistoryEntry
 	}
 	type transformTest struct {
@@ -93,10 +93,10 @@ func makeTransactionTestOutput() (output TransactionOutput, err error) {
 	}
 	return
 }
-func makeTransactionTestInput() (transaction ingestio.LedgerTransaction, historyHeader xdr.LedgerHeaderHistoryEntry, err error) {
+func makeTransactionTestInput() (transaction ingest.LedgerTransaction, historyHeader xdr.LedgerHeaderHistoryEntry, err error) {
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
-	transaction = ingestio.LedgerTransaction{
+	transaction = ingest.LedgerTransaction{
 		Index: 1,
 		Envelope: xdr.TransactionEnvelope{
 			Type: xdr.EnvelopeTypeEnvelopeTypeTx,

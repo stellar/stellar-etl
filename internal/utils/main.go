@@ -4,12 +4,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/stellar/go/historyarchive"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"math/big"
 	"time"
 
 	"github.com/spf13/pflag"
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/ingest/ledgerbackend"
+
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
@@ -240,10 +242,115 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccount
 	return
 }
 
-// CreateBackend creates a history archive backend
-func CreateBackend() (*ledgerbackend.HistoryArchiveBackend, error) {
+type historyArchiveBackend struct {
+	client  historyarchive.ArchiveInterface
+	ledgers map[uint32]*historyarchive.Ledger
+}
+
+func (h historyArchiveBackend) GetLatestLedgerSequence() (sequence uint32, err error) {
+	root, err := h.client.GetRootHAS()
+	if err != nil {
+		return 0, err
+	}
+	return root.CurrentLedger, nil
+}
+
+func (h historyArchiveBackend) GetLedger(sequence uint32) (bool, xdr.LedgerCloseMeta, error) {
+	ledger, ok := h.ledgers[sequence]
+	if !ok {
+		return false, xdr.LedgerCloseMeta{}, fmt.Errorf("ledger %d is missing from map", sequence)
+	}
+
+	lcm := xdr.LedgerCloseMeta{
+		V: 0,
+		V0: &xdr.LedgerCloseMetaV0{
+			LedgerHeader: ledger.Header,
+			TxSet:        ledger.Transaction.TxSet,
+		},
+	}
+	lcm.V0.TxProcessing = make([]xdr.TransactionResultMeta, len(ledger.TransactionResult.TxResultSet.Results))
+	for i, result := range ledger.TransactionResult.TxResultSet.Results {
+		lcm.V0.TxProcessing[i].Result = result
+	}
+
+	return true, lcm, nil
+}
+
+func (h historyArchiveBackend) PrepareRange(ledgerbackend.Range) error {
+	return nil
+}
+
+func (h historyArchiveBackend) IsPrepared(ledgerbackend.Range) (bool, error) {
+	return true, nil
+}
+
+func (h historyArchiveBackend) Close() error {
+	return nil
+}
+
+func ValidateLedgerRange(start, end, latestNum uint32) error {
+	if start == 0 {
+		return fmt.Errorf("Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+	}
+
+	if end == 0 {
+		return fmt.Errorf("End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+	}
+
+	if end < start {
+		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
+	}
+
+	if latestNum < start {
+		return fmt.Errorf("Latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
+	}
+
+	if latestNum < end {
+		return fmt.Errorf("Latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
+	}
+
+	return nil
+}
+
+func CreateBackend(start, end uint32) (ledgerbackend.LedgerBackend, error) {
+	client, err := CreateHistoryArchiveClient()
+	if err != nil {
+		return nil, err
+	}
+
+	root, err := client.GetRootHAS()
+	if err != nil {
+		return nil, err
+	}
+	if err = ValidateLedgerRange(start, end, root.CurrentLedger); err != nil {
+		return nil, err
+	}
+
+	ledgers, err := client.GetLedgers(start, end)
+	if err != nil {
+		return nil, err
+	}
+	return historyArchiveBackend{client: client, ledgers: ledgers}, nil
+}
+
+func CreateHistoryArchiveClient() (historyarchive.ArchiveInterface, error) {
 	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
-	return ledgerbackend.NewHistoryArchiveBackendFromURL(archiveStellarURL, 0)
+	return historyarchive.Connect(archiveStellarURL, historyarchive.ConnectOptions{})
+}
+
+// GetLatestLedgerSequence returns the latest ledger sequence
+func GetLatestLedgerSequence() (uint32, error) {
+	client, err := CreateHistoryArchiveClient()
+	if err != nil {
+		return 0, err
+	}
+
+	root, err := client.GetRootHAS()
+	if err != nil {
+		return 0, err
+	}
+
+	return root.CurrentLedger, nil
 }
 
 // GetCheckpointNum gets the ledger sequence number of the checkpoint containing the provided ledger. If the checkpoint does not exist, an error is returned
@@ -269,18 +376,12 @@ func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
 }
 
 // ExtractLedgerCloseTime gets the close time of the provided ledger
-func ExtractLedgerCloseTime(ledger xdr.LedgerCloseMeta) (time.Time, error) {
-	v0, ok := ledger.GetV0()
-	if !ok {
-		return time.Time{}, fmt.Errorf("could not extract v0 info from ledger")
-	}
-
-	close := v0.LedgerHeader.Header.ScpValue.CloseTime
-	return TimePointToUTCTimeStamp(close)
+func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, error) {
+	return TimePointToUTCTimeStamp(ledger.Header.ScpValue.CloseTime)
 }
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
-func ExtractEntryFromChange(change ingestio.Change) (xdr.LedgerEntry, bool, error) {
+func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, bool, error) {
 	switch changeType := change.LedgerEntryChangeType(); changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 		return *change.Post, false, nil
