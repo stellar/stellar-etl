@@ -4,11 +4,11 @@ import (
 	"context"
 	"io"
 
-	"github.com/stellar/stellar-etl/internal/utils"
-
 	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
+
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 var archiveStellarURL = "http://history.stellar.org/prd/core-live/core_live_001"

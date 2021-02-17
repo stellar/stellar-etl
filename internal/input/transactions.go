@@ -3,10 +3,11 @@ package input
 import (
 	"io"
 
+	"github.com/stellar/stellar-etl/internal/utils"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // LedgerTransformInput is a representation of the input for the TransformTransaction function

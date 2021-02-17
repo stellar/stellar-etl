@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTransformOperation(t *testing.T) {

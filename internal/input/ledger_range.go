@@ -2,10 +2,11 @@ package input
 
 import (
 	"fmt"
-	"github.com/stellar/go/historyarchive"
 	"time"
 
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/historyarchive"
 )
 
 // graphPoint represents a single point in the graph. It includes the ledger sequence and close time (in UTC)

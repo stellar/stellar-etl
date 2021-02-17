@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"hash/fnv"
 
+	"github.com/stellar/stellar-etl/internal/toid"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/toid"
 )
 
 //TransformAsset converts an asset from a payment operation into a form suitable for BigQuery

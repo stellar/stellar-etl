@@ -2,8 +2,10 @@ package input
 
 import (
 	"fmt"
-	"github.com/stellar/go/xdr"
+
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/xdr"
 )
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)

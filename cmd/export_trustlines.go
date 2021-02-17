@@ -6,10 +6,12 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/xdr"
+
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/xdr"
 )
 
 // trustlinesCmd represents the trustlines command

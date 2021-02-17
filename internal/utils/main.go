@@ -4,35 +4,35 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/stellar/go/historyarchive"
-	"github.com/stellar/go/ingest/ledgerbackend"
 	"math/big"
 	"time"
 
 	"github.com/spf13/pflag"
 
+	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
-//PanicOnError is a function that panics if the provided error is not nil
+// PanicOnError is a function that panics if the provided error is not nil
 func PanicOnError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-//HashToHexString is utility function that converts and xdr.Hash type to a hex string
+// HashToHexString is utility function that converts and xdr.Hash type to a hex string
 func HashToHexString(inputHash xdr.Hash) string {
 	sliceHash := inputHash[:]
 	hexString := hex.EncodeToString(sliceHash)
 	return hexString
 }
 
-//TimePointToUTCTimeStamp takes in an xdr TimePoint and converts it to a time.Time struct in UTC. It returns an error for negative timepoints
+// TimePointToUTCTimeStamp takes in an xdr TimePoint and converts it to a time.Time struct in UTC. It returns an error for negative timepoints
 func TimePointToUTCTimeStamp(providedTime xdr.TimePoint) (time.Time, error) {
 	intTime := int64(providedTime)
 	if intTime < 0 {
@@ -41,14 +41,14 @@ func TimePointToUTCTimeStamp(providedTime xdr.TimePoint) (time.Time, error) {
 	return time.Unix(intTime, 0).UTC(), nil
 }
 
-//GetAccountAddressFromMuxedAccount takes in a muxed account and returns the address of the account
+// GetAccountAddressFromMuxedAccount takes in a muxed account and returns the address of the account
 func GetAccountAddressFromMuxedAccount(account xdr.MuxedAccount) (string, error) {
 	providedID := account.ToAccountId()
 	pointerToID := &providedID
 	return pointerToID.GetAddress()
 }
 
-//CreateSampleTx creates a transaction with a single operation (BumpSequence), the min base fee, and infinite timebounds
+// CreateSampleTx creates a transaction with a single operation (BumpSequence), the min base fee, and infinite timebounds
 func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
 	kp, err := keypair.Random()
 	PanicOnError(err)
@@ -73,13 +73,13 @@ func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
 	return env
 }
 
-//ConvertStroopValueToReal converts a value in stroops, the smallest amount unit, into real units
+// ConvertStroopValueToReal converts a value in stroops, the smallest amount unit, into real units
 func ConvertStroopValueToReal(input xdr.Int64) float64 {
 	output, _ := big.NewRat(int64(input), int64(10000000)).Float64()
 	return output
 }
 
-//CreateSampleResultMeta creates Transaction results with the desired success flag and number of sub operation results
+// CreateSampleResultMeta creates Transaction results with the desired success flag and number of sub operation results
 func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.TransactionResultMeta {
 	resultCode := xdr.TransactionResultCodeTxFailed
 	if successful {
@@ -288,6 +288,7 @@ func (h historyArchiveBackend) Close() error {
 	return nil
 }
 
+// ValidateLedgerRange validates the given ledger range
 func ValidateLedgerRange(start, end, latestNum uint32) error {
 	if start == 0 {
 		return fmt.Errorf("Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")

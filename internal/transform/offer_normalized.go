@@ -6,8 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/stellar/go/ingest"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
 )
 
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset

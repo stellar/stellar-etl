@@ -1,10 +1,12 @@
 package input
 
 import (
+	"io"
+
+	"github.com/stellar/stellar-etl/internal/utils"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
-	"io"
 )
 
 // OperationTransformInput is a representation of the input for the TransformOperation function

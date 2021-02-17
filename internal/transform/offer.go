@@ -3,8 +3,9 @@ package transform
 import (
 	"fmt"
 
-	"github.com/stellar/go/ingest"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
 )
 
 // TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery

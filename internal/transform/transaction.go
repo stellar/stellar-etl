@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 // TransformTransaction converts a transaction from the history archive ingestion system into a form suitable for BigQuery

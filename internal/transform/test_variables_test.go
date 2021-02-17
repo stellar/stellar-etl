@@ -3,9 +3,10 @@ package transform
 import (
 	"time"
 
+	"github.com/stellar/stellar-etl/internal/utils"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 var genericSourceAccount, _ = xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{}))

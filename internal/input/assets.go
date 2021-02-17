@@ -3,9 +3,10 @@ package input
 import (
 	"io"
 
+	"github.com/stellar/stellar-etl/internal/utils"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)

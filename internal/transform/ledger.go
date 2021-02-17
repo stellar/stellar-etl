@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 //TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery

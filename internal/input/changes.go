@@ -5,13 +5,14 @@ import (
 	"io"
 	"math"
 
-	ingest "github.com/stellar/go/ingest"
+	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/transform"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 const password = network.PublicNetworkPassphrase
