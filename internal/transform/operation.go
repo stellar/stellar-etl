@@ -13,7 +13,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformOperation converts an operation from the history archive ingestn system into a form suitable for BigQuery
+// TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
 func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
 	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex).ToInt64()

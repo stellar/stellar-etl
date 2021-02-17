@@ -11,7 +11,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-// TransformTrade converts a relevant operation from the history archive ingestn system into a form suitable for BigQuery
+// TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
 func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
 	operationResults, ok := transaction.Result.OperationResults()
 	if !ok {

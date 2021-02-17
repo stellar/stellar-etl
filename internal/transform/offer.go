@@ -7,7 +7,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformOffer converts an account from the history archive ingestn system into a form suitable for BigQuery
+// TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {

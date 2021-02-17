@@ -11,7 +11,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformTransaction converts a transaction from the history archive ingestn system into a form suitable for BigQuery
+// TransformTransaction converts a transaction from the history archive ingestion system into a form suitable for BigQuery
 func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHeaderHistoryEntry) (TransactionOutput, error) {
 	ledgerHeader := lhe.Header
 	outputTransactionHash := utils.HashToHexString(transaction.Result.TransactionHash)
