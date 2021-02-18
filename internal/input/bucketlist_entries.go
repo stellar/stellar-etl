@@ -11,14 +11,9 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-var archiveStellarURL = "http://history.stellar.org/prd/core-live/core_live_001"
-
 // GetEntriesFromGenesis returns a slice of ledger entries of the specified type for the ledgers starting from the genesis ledger and ending at end (inclusive)
 func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
-	archive, err := historyarchive.Connect(
-		archiveStellarURL,
-		historyarchive.ConnectOptions{Context: context.Background()},
-	)
+	archive, err := utils.CreateHistoryArchiveClient()
 	if err != nil {
 		return []ingest.Change{}, err
 	}
@@ -40,7 +35,7 @@ func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType) ([]ingest.
 	return readBucketList(archive, checkpointSeq, entryType)
 }
 
-func readBucketList(archive *historyarchive.Archive, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
+func readBucketList(archive historyarchive.ArchiveInterface, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
 	changeReader, err := ingest.NewCheckpointChangeReader(context.Background(), archive, checkpointSeq)
 	defer changeReader.Close()
 	if err != nil {

@@ -334,9 +334,14 @@ func CreateBackend(start, end uint32) (ledgerbackend.LedgerBackend, error) {
 	return historyArchiveBackend{client: client, ledgers: ledgers}, nil
 }
 
+var ArchiveURLs = []string{
+	"https://history.stellar.org/prd/core-live/core_live_001",
+	"https://history.stellar.org/prd/core-live/core_live_002",
+	"https://history.stellar.org/prd/core-live/core_live_003",
+}
+
 func CreateHistoryArchiveClient() (historyarchive.ArchiveInterface, error) {
-	archiveStellarURL := "http://history.stellar.org/prd/core-live/core_live_001"
-	return historyarchive.Connect(archiveStellarURL, historyarchive.ConnectOptions{})
+	return historyarchive.NewArchivePool(ArchiveURLs, historyarchive.ConnectOptions{})
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence

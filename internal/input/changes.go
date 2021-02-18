@@ -32,7 +32,7 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 			BinaryPath:         execPath,
 			ConfigAppendPath:   configPath,
 			NetworkPassphrase:  password,
-			HistoryArchiveURLs: []string{archiveStellarURL},
+			HistoryArchiveURLs: utils.ArchiveURLs,
 		},
 	)
 	if err != nil {
