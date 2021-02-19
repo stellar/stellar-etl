@@ -6,7 +6,7 @@ import (
 	"math"
 	"sync"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -17,7 +17,7 @@ import (
 type OrderbookBatch struct {
 	BatchStart uint32
 	BatchEnd   uint32
-	Orderbooks map[uint32][]ingestio.Change
+	Orderbooks map[uint32][]ingest.Change
 }
 
 // OrderbookParser handles parsing orderbooks
@@ -33,7 +33,7 @@ type OrderbookParser struct {
 	Strict            bool
 }
 
-func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.NormalizedOfferOutput, index int, offer ingestio.Change, seq uint32, wg *sync.WaitGroup) {
+func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.NormalizedOfferOutput, index int, offer ingest.Change, seq uint32, wg *sync.WaitGroup) {
 	defer wg.Done()
 	transformed, err := transform.TransformOfferNormalized(offer, seq)
 	if err != nil {
@@ -62,7 +62,7 @@ func NewOrderbookParser(strictExport bool, logger *log.Entry) OrderbookParser {
 	}
 }
 
-func (o *OrderbookParser) parseOrderbook(orderbook []ingestio.Change, seq uint32) {
+func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) {
 	var group sync.WaitGroup
 	allConverted := make([]transform.NormalizedOfferOutput, len(orderbook))
 	for i, v := range orderbook {
@@ -138,8 +138,8 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingestio.Change, seq uint32
 }
 
 // GetOfferChanges gets the offer changes that ocurred between the firstSeq ledger and nextSeq ledger
-func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq uint32) (*ingestio.LedgerEntryChangeCache, error) {
-	offChanges := ingestio.NewLedgerEntryChangeCache()
+func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq uint32) (*ingest.ChangeCompactor, error) {
+	offChanges := ingest.NewChangeCompactor()
 
 	for seq := firstSeq; seq <= nextSeq; {
 		latestLedger, err := core.GetLatestLedgerSequence()
@@ -150,7 +150,7 @@ func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq u
 		// if this ledger is available, we can read its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if seq <= latestLedger {
-			changeReader, err := ingestio.NewLedgerChangeReader(core, password, seq)
+			changeReader, err := ingest.NewLedgerChangeReader(core, password, seq)
 			if err != nil {
 				return nil, fmt.Errorf(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
@@ -168,9 +168,9 @@ func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq u
 	return offChanges, nil
 }
 
-func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, orderbookChan chan OrderbookBatch, startOrderbook []ingestio.Change, logger *log.Entry) {
-	batchMap := make(map[uint32][]ingestio.Change)
-	batchMap[batchStart] = make([]ingestio.Change, len(startOrderbook))
+func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, orderbookChan chan OrderbookBatch, startOrderbook []ingest.Change, logger *log.Entry) {
+	batchMap := make(map[uint32][]ingest.Change)
+	batchMap[batchStart] = make([]ingest.Change, len(startOrderbook))
 	copy(batchMap[batchStart], startOrderbook)
 
 	prevSeq := batchStart
@@ -185,7 +185,7 @@ func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.Capti
 		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if curSeq <= latestLedger {
 			UpdateOrderbook(prevSeq, curSeq, startOrderbook, core, logger)
-			batchMap[curSeq] = make([]ingestio.Change, len(startOrderbook))
+			batchMap[curSeq] = make([]ingest.Change, len(startOrderbook))
 			copy(batchMap[curSeq], startOrderbook)
 			prevSeq = curSeq
 			curSeq++
@@ -202,7 +202,7 @@ func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.Capti
 }
 
 // UpdateOrderbook updates an orderbook at ledger start to its state at ledger end
-func UpdateOrderbook(start, end uint32, orderbook []ingestio.Change, core *ledgerbackend.CaptiveStellarCore, logger *log.Entry) {
+func UpdateOrderbook(start, end uint32, orderbook []ingest.Change, core *ledgerbackend.CaptiveStellarCore, logger *log.Entry) {
 	if start > end {
 		logger.Fatalf("unable to update orderbook start ledger %d is after end %d: ", start, end)
 	}
@@ -220,7 +220,7 @@ func UpdateOrderbook(start, end uint32, orderbook []ingestio.Change, core *ledge
 }
 
 // StreamOrderbooks exports all the batches of orderbooks between start and end to the orderbookChannel. If end is 0, then it exports in an unbounded fashion
-func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, orderbookChannel chan OrderbookBatch, startOrderbook []ingestio.Change, logger *log.Entry) {
+func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, orderbookChannel chan OrderbookBatch, startOrderbook []ingest.Change, logger *log.Entry) {
 	// The initial orderbook is at the checkpoint sequence, not the start of the range, so it needs to be updated
 	checkpointSeq := utils.GetMostRecentCheckpoint(start)
 	UpdateOrderbook(checkpointSeq, start, startOrderbook, core, logger)

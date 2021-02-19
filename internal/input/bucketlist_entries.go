@@ -2,62 +2,55 @@ package input
 
 import (
 	"context"
-
-	"github.com/stellar/stellar-etl/internal/utils"
+	"io"
 
 	"github.com/stellar/go/historyarchive"
-	"github.com/stellar/go/ingest/adapters"
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
+
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-var archiveStellarURL = "http://history.stellar.org/prd/core-live/core_live_001"
-
 // GetEntriesFromGenesis returns a slice of ledger entries of the specified type for the ledgers starting from the genesis ledger and ending at end (inclusive)
-func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType) ([]ingestio.Change, error) {
-	archive, err := historyarchive.Connect(
-		archiveStellarURL,
-		historyarchive.ConnectOptions{Context: context.Background()},
-	)
+func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
+	archive, err := utils.CreateHistoryArchiveClient()
 	if err != nil {
-		return []ingestio.Change{}, err
+		return []ingest.Change{}, err
 	}
 
-	historyAdapter := adapters.MakeHistoryArchiveAdapter(archive)
-	latestNum, err := historyAdapter.GetLatestLedgerSequence()
+	latestNum, err := utils.GetLatestLedgerSequence()
 	if err != nil {
-		return []ingestio.Change{}, err
+		return []ingest.Change{}, err
 	}
 
-	err = validateLedgerRange(1, end, latestNum)
-	if err != nil {
-		return []ingestio.Change{}, err
+	if err = utils.ValidateLedgerRange(1, end, latestNum); err != nil {
+		return []ingest.Change{}, err
 	}
 
 	checkpointSeq, err := utils.GetCheckpointNum(end, latestNum)
 	if err != nil {
-		return []ingestio.Change{}, err
+		return []ingest.Change{}, err
 	}
 
 	return readBucketList(archive, checkpointSeq, entryType)
 }
 
-func readBucketList(archive *historyarchive.Archive, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]ingestio.Change, error) {
-	changeReader, err := ingestio.MakeSingleLedgerStateReader(context.Background(), archive, checkpointSeq)
+func readBucketList(archive historyarchive.ArchiveInterface, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
+	changeReader, err := ingest.NewCheckpointChangeReader(context.Background(), archive, checkpointSeq)
 	defer changeReader.Close()
 	if err != nil {
-		return []ingestio.Change{}, err
+		return []ingest.Change{}, err
 	}
 
-	entrySlice := []ingestio.Change{}
+	entrySlice := []ingest.Change{}
 	for {
 		change, err := changeReader.Read()
-		if err == ingestio.EOF {
+		if err == io.EOF {
 			break
 		}
 
 		if err != nil {
-			return []ingestio.Change{}, err
+			return []ingest.Change{}, err
 		}
 
 		if change.Type == entryType {

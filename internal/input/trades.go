@@ -1,45 +1,34 @@
 package input
 
 import (
+	"io"
 	"time"
 
 	"github.com/stellar/stellar-etl/internal/toid"
-
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 // TradeTransformInput is a representation of the input for the TransformTrade function
 type TradeTransformInput struct {
 	OperationIndex     int32
-	Transaction        ingestio.LedgerTransaction
+	Transaction        ingest.LedgerTransaction
 	CloseTime          time.Time
 	OperationHistoryID int64
 }
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
 func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
-	backend, err := utils.CreateBackend()
-	if err != nil {
-		return []TradeTransformInput{}, err
-	}
-
-	defer backend.Close()
-
-	latestNum, err := backend.GetLatestLedgerSequence()
-	if err != nil {
-		return []TradeTransformInput{}, err
-	}
-
-	err = validateLedgerRange(start, end, latestNum)
+	backend, err := utils.CreateBackend(start, end)
 	if err != nil {
 		return []TradeTransformInput{}, err
 	}
 
 	tradeSlice := []TradeTransformInput{}
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingestio.NewLedgerTransactionReader(backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(backend, publicPassword, seq)
 		if err != nil {
 			return []TradeTransformInput{}, err
 		}
@@ -51,7 +40,7 @@ func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
 
 		for int64(len(tradeSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
-			if err == ingestio.EOF {
+			if err == io.EOF {
 				break
 			}
 

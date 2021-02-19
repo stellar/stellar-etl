@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 func TestTransformAsset(t *testing.T) {
 	type operationInput struct {
 		operation   xdr.Operation
 		index       int32
-		transaction ingestio.LedgerTransaction
+		transaction ingest.LedgerTransaction
 	}
 	type transformTest struct {
 		input      operationInput
@@ -54,7 +55,7 @@ func TestTransformAsset(t *testing.T) {
 	}
 }
 
-func makeAssetTestInput() (inputTransaction ingestio.LedgerTransaction, err error) {
+func makeAssetTestInput() (inputTransaction ingest.LedgerTransaction, err error) {
 	inputTransaction = genericLedgerTransaction
 	inputEnvelope := genericBumpOperationEnvelope
 

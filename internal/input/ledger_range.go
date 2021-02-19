@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/historyarchive"
 )
 
 // graphPoint represents a single point in the graph. It includes the ledger sequence and close time (in UTC)
@@ -20,7 +21,7 @@ retrieve new graphPoints as necessary. As the sequence number increases, so does
 sequence numbers that correspond to a given close time fairly easily.
 */
 type graph struct {
-	Backend    *ledgerbackend.HistoryArchiveBackend
+	Client     historyarchive.ArchiveInterface
 	BeginPoint graphPoint
 	EndPoint   graphPoint
 }
@@ -40,8 +41,6 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-
-	defer graph.close()
 
 	err = graph.limitLedgerRange(&startTime, &endTime)
 	if err != nil {
@@ -63,19 +62,15 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 	return startLedger, endLedger, nil
 }
 
-func (g graph) close() {
-	g.Backend.Close()
-}
-
 // createNewGraph makes a new graph with the endpoints equal to the network's endpoints
 func createNewGraph() (graph, error) {
 	graph := graph{}
-	archive, err := utils.CreateBackend()
+	archive, err := utils.CreateHistoryArchiveClient()
 	if err != nil {
 		return graph, err
 	}
 
-	graph.Backend = archive
+	graph.Client = archive
 
 	secondLedgerPoint, err := graph.getGraphPoint(2) // the second ledger has a real close time, unlike the 1970s close time of the genesis ledger
 	if err != nil {
@@ -84,12 +79,12 @@ func createNewGraph() (graph, error) {
 
 	graph.BeginPoint = secondLedgerPoint
 
-	latestNum, err := graph.Backend.GetLatestLedgerSequence()
+	root, err := graph.Client.GetRootHAS()
 	if err != nil {
 		return graph, err
 	}
 
-	latestPoint, err := graph.getGraphPoint(int64(latestNum))
+	latestPoint, err := graph.getGraphPoint(int64(root.CurrentLedger))
 	if err != nil {
 		return graph, err
 	}
@@ -212,11 +207,7 @@ func (g graph) limitLedgerRange(start, end *time.Time) error {
 
 // getGraphPoint gets the graphPoint representation of the ledger with the provided sequence number
 func (g graph) getGraphPoint(sequence int64) (graphPoint, error) {
-	ok, ledger, err := g.Backend.GetLedger(uint32(sequence))
-	if !ok {
-		return graphPoint{}, fmt.Errorf("ledger %d does not exist in history archive", sequence)
-	}
-
+	ledger, err := g.Client.GetLedgerHeader(uint32(sequence))
 	if err != nil {
 		return graphPoint{}, fmt.Errorf(fmt.Sprintf("unable to get ledger %d: ", sequence), err)
 	}

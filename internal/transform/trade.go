@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/stellar/stellar-etl/internal/toid"
-
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrade(operationIndex int32, operationID int64, transaction ingestio.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
+func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
 	operationResults, ok := transaction.Result.OperationResults()
 	if !ok {
 		return []TradeOutput{}, fmt.Errorf("Could not get any results from this transaction")
@@ -28,7 +28,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingesti
 	if err != nil {
 		return []TradeOutput{}, err
 	}
-	
+
 	var outputCounterOfferID int64
 	if counterOffer != nil {
 		outputCounterOfferID = int64(counterOffer.OfferId)

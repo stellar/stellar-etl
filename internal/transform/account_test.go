@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 func TestTransformAccount(t *testing.T) {
 	type transformTest struct {
-		input      ingestio.Change
+		input      ingest.Change
 		wantOutput AccountOutput
 		wantErr    error
 	}
@@ -21,7 +22,7 @@ func TestTransformAccount(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			ingestio.Change{
+			ingest.Change{
 				Type: xdr.LedgerEntryTypeOffer,
 				Pre:  nil,
 				Post: &xdr.LedgerEntry{
@@ -87,8 +88,8 @@ func TestTransformAccount(t *testing.T) {
 	}
 }
 
-func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingestio.Change {
-	return ingestio.Change{
+func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingest.Change {
+	return ingest.Change{
 		Type: xdr.LedgerEntryTypeAccount,
 		Pre: &xdr.LedgerEntry{
 			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
@@ -100,7 +101,7 @@ func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingestio.
 	}
 }
 
-func makeAccountTestInput() ingestio.Change {
+func makeAccountTestInput() ingest.Change {
 	ledgerEntry := xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 30705278,
 		Data: xdr.LedgerEntryData{
@@ -126,7 +127,7 @@ func makeAccountTestInput() ingestio.Change {
 			},
 		},
 	}
-	return ingestio.Change{
+	return ingest.Change{
 		Type: xdr.LedgerEntryTypeAccount,
 		Pre:  &ledgerEntry,
 		Post: nil,

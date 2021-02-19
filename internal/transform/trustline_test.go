@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 func TestTransformTrustline(t *testing.T) {
 	type transformTest struct {
-		input      ingestio.Change
+		input      ingest.Change
 		wantOutput TrustlineOutput
 		wantErr    error
 	}
@@ -20,7 +21,7 @@ func TestTransformTrustline(t *testing.T) {
 	hardCodedOutput := makeTrustlineTestOutput()
 	tests := []transformTest{
 		{
-			ingestio.Change{
+			ingest.Change{
 				Type: xdr.LedgerEntryTypeOffer,
 				Pre:  nil,
 				Post: &xdr.LedgerEntry{
@@ -52,7 +53,7 @@ func TestTransformTrustline(t *testing.T) {
 	}
 }
 
-func makeTrustlineTestInput() ingestio.Change {
+func makeTrustlineTestInput() ingest.Change {
 	ledgerEntry := xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 24229503,
 		Data: xdr.LedgerEntryData{
@@ -75,7 +76,7 @@ func makeTrustlineTestInput() ingestio.Change {
 			},
 		},
 	}
-	return ingestio.Change{
+	return ingest.Change{
 		Type: xdr.LedgerEntryTypeTrustline,
 		Pre:  &xdr.LedgerEntry{},
 		Post: &ledgerEntry,
@@ -99,8 +100,8 @@ func makeTrustlineTestOutput() TrustlineOutput {
 	}
 }
 
-func wrapTrustlineEntry(trustlineEntry xdr.TrustLineEntry, lastModified int) ingestio.Change {
-	return ingestio.Change{
+func wrapTrustlineEntry(trustlineEntry xdr.TrustLineEntry, lastModified int) ingest.Change {
+	return ingest.Change{
 		Type: xdr.LedgerEntryTypeTrustline,
 		Pre:  nil,
 		Post: &xdr.LedgerEntry{

@@ -3,9 +3,10 @@ package transform
 import (
 	"time"
 
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 var genericSourceAccount, _ = xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{}))
@@ -43,7 +44,7 @@ var genericManageBuyOfferEnvelope = xdr.TransactionV1Envelope{
 		},
 	},
 }
-var genericLedgerTransaction = ingestio.LedgerTransaction{
+var genericLedgerTransaction = ingest.LedgerTransaction{
 	Index: 1,
 	Envelope: xdr.TransactionEnvelope{
 		Type: xdr.EnvelopeTypeEnvelopeTypeTx,
@@ -93,7 +94,7 @@ var ethAsset = xdr.Asset{
 		Issuer:    testAccount3ID,
 	},
 }
-var ethAssetPath= Path{
+var ethAssetPath = Path{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "ETH",
 	AssetIssuer: testAccount1Address,

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 )
 
@@ -114,8 +114,8 @@ func TestSendBatchToChannel(t *testing.T) {
 }
 
 func wrapLedgerEntry(entry xdr.LedgerEntry) ChangeBatch {
-	changes := []ingestio.Change{
-		ingestio.Change{Type: entry.Data.Type, Post: &entry},
+	changes := []ingest.Change{
+		{Type: entry.Data.Type, Post: &entry},
 	}
 	return ChangeBatch{
 		Changes: changes,

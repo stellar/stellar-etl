@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	ingestio "github.com/stellar/go/ingest/io"
-	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 func TestTransformOfferNormalized(t *testing.T) {
 	type testInput struct {
-		change ingestio.Change
+		change ingest.Change
 		ledger uint32
 	}
 	type transformTest struct {
@@ -26,7 +27,7 @@ func TestTransformOfferNormalized(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			input: testInput{ingestio.Change{
+			input: testInput{ingest.Change{
 				Type: xdr.LedgerEntryTypeOffer,
 				Pre: &xdr.LedgerEntry{
 					LastModifiedLedgerSeq: xdr.Uint32(100),
@@ -60,8 +61,8 @@ func TestTransformOfferNormalized(t *testing.T) {
 	}
 }
 
-func makeOfferNormalizedTestInput() (ledgerChange ingestio.Change, err error) {
-	ledgerChange = ingestio.Change{
+func makeOfferNormalizedTestInput() (ledgerChange ingest.Change, err error) {
+	ledgerChange = ingest.Change{
 		Type: xdr.LedgerEntryTypeOffer,
 		Pre:  nil,
 		Post: &xdr.LedgerEntry{

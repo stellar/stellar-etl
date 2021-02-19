@@ -2,41 +2,27 @@ package input
 
 import (
 	"fmt"
+	"io"
 	"math"
 
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/stellar/stellar-etl/internal/utils"
+
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/transform"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 const password = network.PublicNetworkPassphrase
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    []ingestio.Change
+	Changes    []ingest.Change
 	BatchStart uint32
 	BatchEnd   uint32
 	Type       xdr.LedgerEntryType
-}
-
-func getLatestLedgerNumber() (uint32, error) {
-	backend, err := utils.CreateBackend()
-	if err != nil {
-		return 0, err
-	}
-
-	defer backend.Close()
-
-	latestNum, err := backend.GetLatestLedgerSequence()
-	if err != nil {
-		return 0, err
-	}
-
-	return latestNum, nil
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
@@ -46,7 +32,7 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 			BinaryPath:         execPath,
 			ConfigAppendPath:   configPath,
 			NetworkPassphrase:  password,
-			HistoryArchiveURLs: []string{archiveStellarURL},
+			HistoryArchiveURLs: utils.ArchiveURLs,
 		},
 	)
 	if err != nil {
@@ -57,13 +43,12 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 
 	if end != 0 {
 		ledgerRange = ledgerbackend.BoundedRange(start, end)
-		latest, err := getLatestLedgerNumber()
+		latest, err := utils.GetLatestLedgerSequence()
 		if err != nil {
 			return &ledgerbackend.CaptiveStellarCore{}, err
 		}
 
-		err = validateLedgerRange(start, end, latest)
-		if err != nil {
+		if err = utils.ValidateLedgerRange(start, end, latest); err != nil {
 			return &ledgerbackend.CaptiveStellarCore{}, err
 		}
 	}
@@ -112,10 +97,10 @@ func closeChannels(accChannel, offChannel, trustChannel chan ChangeBatch) {
 	}
 }
 
-func addLedgerChangesToCache(changeReader *ingestio.LedgerChangeReader, accCache, offCache, trustCache *ingestio.LedgerEntryChangeCache) error {
+func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, offCache, trustCache *ingest.ChangeCompactor) error {
 	for {
 		change, err := changeReader.Read()
-		if err == ingestio.EOF {
+		if err == io.EOF {
 			return nil
 		}
 
@@ -147,9 +132,9 @@ func addLedgerChangesToCache(changeReader *ingestio.LedgerChangeReader, accCache
 
 // exportBatch gets the changes from the ledgers in the range [batchStart, batchEnd), compacts them, and sends them to the proper channels
 func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) {
-	accChanges := ingestio.NewLedgerEntryChangeCache()
-	offChanges := ingestio.NewLedgerEntryChangeCache()
-	trustChanges := ingestio.NewLedgerEntryChangeCache()
+	accChanges := ingest.NewChangeCompactor()
+	offChanges := ingest.NewChangeCompactor()
+	trustChanges := ingest.NewChangeCompactor()
 	for seq := batchStart; seq < batchEnd; {
 		latestLedger, err := core.GetLatestLedgerSequence()
 		if err != nil {
@@ -159,7 +144,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if seq <= latestLedger {
-			changeReader, err := ingestio.NewLedgerChangeReader(core, password, seq)
+			changeReader, err := ingest.NewLedgerChangeReader(core, password, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}

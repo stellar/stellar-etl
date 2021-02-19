@@ -6,15 +6,15 @@ import (
 	"strconv"
 
 	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/amount"
-	ingestio "github.com/stellar/go/ingest/io"
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingestio.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
+// TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
+func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
 	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex).ToInt64()
 
@@ -45,7 +45,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 	return transformedOperation, nil
 }
 
-func getOperationSourceAccount(operation xdr.Operation, transaction ingestio.LedgerTransaction) xdr.MuxedAccount {
+func getOperationSourceAccount(operation xdr.Operation, transaction ingest.LedgerTransaction) xdr.MuxedAccount {
 	sourceAccount := operation.SourceAccount
 	if sourceAccount != nil {
 		return *sourceAccount
@@ -145,7 +145,7 @@ func addOperationFlagToOperationDetails(operationDetails *Details, flag uint32, 
 	}
 }
 
-func extractOperationDetails(operation xdr.Operation, transaction ingestio.LedgerTransaction, operationIndex int32) (Details, error) {
+func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerTransaction, operationIndex int32) (Details, error) {
 	outputDetails := Details{}
 	sourceAccount := getOperationSourceAccount(operation, transaction)
 	sourceAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(sourceAccount)
