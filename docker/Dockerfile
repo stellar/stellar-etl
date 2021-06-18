@@ -1,4 +1,4 @@
-FROM golang:1.16 as build
+FROM golang:1.16
 
 COPY . /etl
 WORKDIR /etl
