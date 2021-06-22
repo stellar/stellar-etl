@@ -36,7 +36,7 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 3. Run the Docker images with the desired stellar-etl command: `docker run stellar/stellar-etl stellar-etl [etl-command] [etl-command arguments]`
 
 ### Manual Installation
-1. Install Golang v1.14 or later: https://golang.org/dl/
+1. Install Golang v1.16.5 or later: https://golang.org/dl/
 
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. Download and install Stellar-Core v13.2.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
