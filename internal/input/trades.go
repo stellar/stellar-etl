@@ -1,6 +1,7 @@
 package input
 
 import (
+	"context"
 	"io"
 	"time"
 
@@ -26,9 +27,10 @@ func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
 		return []TradeTransformInput{}, err
 	}
 
+	ctx := context.Background()
 	tradeSlice := []TradeTransformInput{}
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
 		if err != nil {
 			return []TradeTransformInput{}, err
 		}

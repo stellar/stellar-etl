@@ -68,8 +68,7 @@ func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
 	)
 	PanicOnError(err)
 
-	env, err := tx.TxEnvelope()
-	PanicOnError(err)
+	env := tx.ToXDR()
 	return env
 }
 

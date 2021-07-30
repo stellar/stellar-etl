@@ -1,6 +1,7 @@
 package input
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -140,9 +141,10 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 // GetOfferChanges gets the offer changes that ocurred between the firstSeq ledger and nextSeq ledger
 func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq uint32) (*ingest.ChangeCompactor, error) {
 	offChanges := ingest.NewChangeCompactor()
+	ctx := context.Background()
 
 	for seq := firstSeq; seq <= nextSeq; {
-		latestLedger, err := core.GetLatestLedgerSequence()
+		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			return nil, fmt.Errorf(fmt.Sprintf("unable to get latest ledger at ledger %d: ", seq), err)
 		}
@@ -150,7 +152,7 @@ func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, firstSeq, nextSeq u
 		// if this ledger is available, we can read its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if seq <= latestLedger {
-			changeReader, err := ingest.NewLedgerChangeReader(core, password, seq)
+			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, password, seq)
 			if err != nil {
 				return nil, fmt.Errorf(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
@@ -172,11 +174,12 @@ func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.Capti
 	batchMap := make(map[uint32][]ingest.Change)
 	batchMap[batchStart] = make([]ingest.Change, len(startOrderbook))
 	copy(batchMap[batchStart], startOrderbook)
+	ctx := context.Background()
 
 	prevSeq := batchStart
 	curSeq := batchStart + 1
 	for curSeq < batchEnd {
-		latestLedger, err := core.GetLatestLedgerSequence()
+		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			logger.Fatal("unable to get the lastest ledger sequence: ", err)
 		}
