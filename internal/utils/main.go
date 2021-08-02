@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -246,7 +247,7 @@ type historyArchiveBackend struct {
 	ledgers map[uint32]*historyarchive.Ledger
 }
 
-func (h historyArchiveBackend) GetLatestLedgerSequence() (sequence uint32, err error) {
+func (h historyArchiveBackend) GetLatestLedgerSequence(ctx context.Context) (sequence uint32, err error) {
 	root, err := h.client.GetRootHAS()
 	if err != nil {
 		return 0, err
@@ -254,10 +255,10 @@ func (h historyArchiveBackend) GetLatestLedgerSequence() (sequence uint32, err e
 	return root.CurrentLedger, nil
 }
 
-func (h historyArchiveBackend) GetLedger(sequence uint32) (bool, xdr.LedgerCloseMeta, error) {
+func (h historyArchiveBackend) GetLedger(ctx context.Context, sequence uint32) (xdr.LedgerCloseMeta, error) {
 	ledger, ok := h.ledgers[sequence]
 	if !ok {
-		return false, xdr.LedgerCloseMeta{}, fmt.Errorf("ledger %d is missing from map", sequence)
+		return xdr.LedgerCloseMeta{}, fmt.Errorf("ledger %d is missing from map", sequence)
 	}
 
 	lcm := xdr.LedgerCloseMeta{
@@ -272,14 +273,14 @@ func (h historyArchiveBackend) GetLedger(sequence uint32) (bool, xdr.LedgerClose
 		lcm.V0.TxProcessing[i].Result = result
 	}
 
-	return true, lcm, nil
+	return lcm, nil
 }
 
-func (h historyArchiveBackend) PrepareRange(ledgerbackend.Range) error {
+func (h historyArchiveBackend) PrepareRange(ctx context.Context, ledgerRange ledgerbackend.Range) error {
 	return nil
 }
 
-func (h historyArchiveBackend) IsPrepared(ledgerbackend.Range) (bool, error) {
+func (h historyArchiveBackend) IsPrepared(ctx context.Context, ledgerRange ledgerbackend.Range) (bool, error) {
 	return true, nil
 }
 

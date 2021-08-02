@@ -1,7 +1,7 @@
 package input
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -16,11 +16,9 @@ func GetLedgers(start, end uint32, limit int64) ([]xdr.LedgerCloseMeta, error) {
 	}
 
 	metaSlice := []xdr.LedgerCloseMeta{}
+	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		ok, ledger, err := backend.GetLedger(seq)
-		if !ok {
-			return []xdr.LedgerCloseMeta{}, fmt.Errorf("Ledger %d does not exist in the history archives", seq)
-		}
+		ledger, err := backend.GetLedger(ctx, seq)
 
 		if err != nil {
 			return []xdr.LedgerCloseMeta{}, err

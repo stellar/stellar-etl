@@ -27,7 +27,20 @@ type ChangeBatch struct {
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
-func PrepareCaptiveCore(execPath string, toml *ledgerbackend.CaptiveCoreToml, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
+func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
+	toml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
+		tomlPath,
+		ledgerbackend.CaptiveCoreTomlParams{
+			NetworkPassphrase:  password,
+			HistoryArchiveURLs: utils.ArchiveURLs,
+			Strict:             true,
+		},
+	)
+	// @TODO: return the error when the toml canoot be created from config path
+	// if err != nil {
+	// 	return &ledgerbackend.CaptiveCoreToml{}, err
+	// }
+
 	captiveBackend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
 			BinaryPath:         execPath,

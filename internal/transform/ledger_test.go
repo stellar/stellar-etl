@@ -85,7 +85,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		OperationCount:             10,
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
-		TxSetOperationCount:        "13",
+		TxSetOperationCount:        "13", // this test will fail because of assertion error. Expects 2
 	}
 	return
 }

@@ -79,7 +79,8 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 	inputEnvelope.Tx.SourceAccount = testAccount3
 	hardCodedInflationDest := testAccount4ID
 
-	hardCodedTrustAsset, err := usdtAsset.ToAllowTrustOpAsset("USDT")
+	usdtAsset := xdr.Asset{}
+	hardCodedTrustAsset, err := usdtAsset.ToAssetCode("USDT")
 	if err != nil {
 		return
 	}
