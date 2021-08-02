@@ -36,8 +36,8 @@ func TestTransformOperation(t *testing.T) {
 
 	unknownOpTypeInput := genericInput
 	unknownOpTypeEnvelope := genericBumpOperationEnvelope
-	unknownOpTypeEnvelope.Tx.Operations[0].Body.Type = xdr.OperationType(20)
-	unknownOpTypeInput.operation.Body.Type = xdr.OperationType(20)
+	unknownOpTypeEnvelope.Tx.Operations[0].Body.Type = xdr.OperationType(99)
+	unknownOpTypeInput.operation.Body.Type = xdr.OperationType(99)
 	unknownOpTypeInput.transaction.Envelope.V1 = &unknownOpTypeEnvelope
 
 	tests := []transformTest{
@@ -79,7 +79,10 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 	inputEnvelope.Tx.SourceAccount = testAccount3
 	hardCodedInflationDest := testAccount4ID
 
-	usdtAsset := xdr.Asset{}
+	usdtAsset, err := xdr.BuildAsset("credit_alphanum4", "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA", "USDT")
+	if err != nil {
+		return
+	}
 	hardCodedTrustAsset, err := usdtAsset.ToAssetCode("USDT")
 	if err != nil {
 		return
