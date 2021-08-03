@@ -1,6 +1,10 @@
 package transform
 
-import "time"
+import (
+	"time"
+
+	"github.com/stellar/go/xdr"
+)
 
 // LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
@@ -72,51 +76,67 @@ type OperationOutput struct {
 
 // Details is a struct that provides additional information about operations in a way that aligns with the details struct in the BigQuery table history_operations
 type Details struct {
-	Account            string   `json:"account"`
-	Amount             float64  `json:"amount"`
-	AssetCode          string   `json:"asset_code"`
-	AssetIssuer        string   `json:"asset_issuer"`
-	AssetType          string   `json:"asset_type"`
-	Authorize          bool     `json:"authorize"`
-	BuyingAssetCode    string   `json:"buying_asset_code"`
-	BuyingAssetIssuer  string   `json:"buying_asset_issuer"`
-	BuyingAssetType    string   `json:"buying_asset_type"`
-	From               string   `json:"from"`
-	Funder             string   `json:"funder"`
-	HighThreshold      uint32   `json:"high_threshold"`
-	HomeDomain         string   `json:"home_domain"`
-	InflationDest      string   `json:"inflation_dest"`
-	Into               string   `json:"into"`
-	Limit              float64  `json:"limit"`
-	LowThreshold       uint32   `json:"low_threshold"`
-	MasterKeyWeight    uint32   `json:"master_key_weight"`
-	MedThreshold       uint32   `json:"med_threshold"`
-	Name               string   `json:"name"`
-	OfferID            int64    `json:"offer_id"`
-	Path               []Path   `json:"path"`
-	Price              float64  `json:"price"`
-	PriceR             Price    `json:"price_r"`
-	SellingAssetCode   string   `json:"selling_asset_code"`
-	SellingAssetIssuer string   `json:"selling_asset_issuer"`
-	SellingAssetType   string   `json:"selling_asset_type"`
-	SetFlags           []int32  `json:"set_flags"`
-	SetFlagsString     []string `json:"set_flags_s"`
-	SignerKey          string   `json:"signer_key"`
-	SignerWeight       uint32   `json:"signer_weight"`
-	SourceAmount       float64  `json:"source_amount"`
-	SourceAssetCode    string   `json:"source_asset_code"`
-	SourceAssetIssuer  string   `json:"source_asset_issuer"`
-	SourceAssetType    string   `json:"source_asset_type"`
-	SourceMax          float64  `json:"source_max"`
-	StartingBalance    float64  `json:"starting_balance"`
-	To                 string   `json:"to"`
-	Trustee            string   `json:"trustee"`
-	Trustor            string   `json:"trustor"`
-	Value              string   `json:"value"` // base64 encoding of bytes for operations that manage data
-	ClearFlags         []int32  `json:"clear_flags"`
-	ClearFlagsString   []string `json:"clear_flags_s"`
-	DestinationMin     string   `json:"destination_min"`
-	BumpTo             string   `json:"bump_to"`
+	Account            string     `json:"account"`
+	AccountID          string     `json:"account_id"`
+	Amount             float64    `json:"amount"`
+	AssetCode          string     `json:"asset_code"`
+	AssetIssuer        string     `json:"asset_issuer"`
+	AssetType          string     `json:"asset_type"`
+	Authorize          bool       `json:"authorize"`
+	BalanceID          string     `json:"balance_id"`
+	BuyingAssetCode    string     `json:"buying_asset_code"`
+	BuyingAssetIssuer  string     `json:"buying_asset_issuer"`
+	BuyingAssetType    string     `json:"buying_asset_type"`
+	ClaimableBalanceID string     `json:"claimable_balance_id"`
+	Claimants          []Claimant `json:"claimants"`
+	DataAccountID      string     `json:"data_account_id"`
+	DataName           string     `json:"data_name"`
+	From               string     `json:"from"`
+	Funder             string     `json:"funder"`
+	HighThreshold      uint32     `json:"high_threshold"`
+	HomeDomain         string     `json:"home_domain"`
+	InflationDest      string     `json:"inflation_dest"`
+	Into               string     `json:"into"`
+	Limit              float64    `json:"limit"`
+	LowThreshold       uint32     `json:"low_threshold"`
+	MasterKeyWeight    uint32     `json:"master_key_weight"`
+	MedThreshold       uint32     `json:"med_threshold"`
+	Name               string     `json:"name"`
+	OfferID            int64      `json:"offer_id"`
+	Path               []Path     `json:"path"`
+	Price              float64    `json:"price"`
+	PriceR             Price      `json:"price_r"`
+	SellingAssetCode   string     `json:"selling_asset_code"`
+	SellingAssetIssuer string     `json:"selling_asset_issuer"`
+	SellingAssetType   string     `json:"selling_asset_type"`
+	SetFlags           []int32    `json:"set_flags"`
+	SetFlagsString     []string   `json:"set_flags_s"`
+	SignerAccountID    string     `json:"signer_account_id"`
+	SignerKey          string     `json:"signer_key"`
+	SignerWeight       uint32     `json:"signer_weight"`
+	SourceAmount       float64    `json:"source_amount"`
+	SourceAssetCode    string     `json:"source_asset_code"`
+	SourceAssetIssuer  string     `json:"source_asset_issuer"`
+	SourceAssetType    string     `json:"source_asset_type"`
+	SourceMax          float64    `json:"source_max"`
+	SponsoredID        string     `json:"sponsored_id"`
+	StartingBalance    float64    `json:"starting_balance"`
+	To                 string     `json:"to"`
+	Trustee            string     `json:"trustee"`
+	TrustlineAccountID string     `json:"trustline_account_id"`
+	TrustlineAsset     string     `json:"trustline_asset"`
+	Trustor            string     `json:"trustor"`
+	Value              string     `json:"value"` // base64 encoding of bytes for operations that manage data
+	ClearFlags         []int32    `json:"clear_flags"`
+	ClearFlagsString   []string   `json:"clear_flags_s"`
+	DestinationMin     string     `json:"destination_min"`
+	BumpTo             string     `json:"bump_to"`
+}
+
+// Claimants
+type Claimant struct {
+	Destination string             `json:"destination"`
+	Predicate   xdr.ClaimPredicate `json:"predicate"`
 }
 
 // Price represents the price of an asset as a fraction
