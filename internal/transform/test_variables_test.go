@@ -104,3 +104,23 @@ var nativeAsset = xdr.MustNewNativeAsset()
 var nativeAssetPath = Path{
 	AssetType: "native",
 }
+
+var genericClaimableBalance = xdr.ClaimableBalanceId{
+	Type: xdr.ClaimableBalanceIdTypeClaimableBalanceIdTypeV0,
+	V0:   &xdr.Hash{},
+}
+
+var testClaimant = xdr.Claimant{
+	Type: xdr.ClaimantTypeClaimantTypeV0,
+	V0: &xdr.ClaimantV0{
+		Destination: testAccount1ID,
+		Predicate: xdr.ClaimPredicate{
+			Type: xdr.ClaimPredicateTypeClaimPredicateUnconditional,
+		},
+	},
+}
+
+var testClaimantDetails = Claimant{
+	Destination: testAccount1Address,
+	Predicate:   xdr.ClaimPredicate{},
+}

@@ -79,10 +79,10 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 	inputEnvelope.Tx.SourceAccount = testAccount3
 	hardCodedInflationDest := testAccount4ID
 
-	usdtAsset, err := xdr.BuildAsset("credit_alphanum4", "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA", "USDT")
-	if err != nil {
-		return
-	}
+	// usdtAsset, err := xdr.BuildAsset("credit_alphanum4", "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA", "USDT")
+	// if err != nil {
+	// 	return
+	// }
 	hardCodedTrustAsset, err := usdtAsset.ToAssetCode("USDT")
 	if err != nil {
 		return
@@ -105,6 +105,8 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		Weight: xdr.Uint32(1),
 	}
 
+	hardCodedClaimableBalance := genericClaimableBalance
+	hardCodedClaimant := testClaimant
 	hardCodedDataValue := xdr.DataValue([]byte{0x76, 0x61, 0x6c, 0x75, 0x65})
 	hardCodedSequenceNumber := xdr.SequenceNumber(100)
 	inputOperations := []xdr.Operation{
@@ -299,6 +301,158 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeCreateClaimableBalance,
+				CreateClaimableBalanceOp: &xdr.CreateClaimableBalanceOp{
+					Asset:     usdtAsset,
+					Amount:    1234567890000,
+					Claimants: []xdr.Claimant{hardCodedClaimant},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: &testAccount3,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeClaimClaimableBalance,
+				ClaimClaimableBalanceOp: &xdr.ClaimClaimableBalanceOp{
+					BalanceId: hardCodedClaimableBalance,
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeBeginSponsoringFutureReserves,
+				BeginSponsoringFutureReservesOp: &xdr.BeginSponsoringFutureReservesOp{
+					SponsoredId: testAccount4ID,
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipOp: &xdr.RevokeSponsorshipOp{
+					Type: xdr.RevokeSponsorshipTypeRevokeSponsorshipSigner,
+					Signer: &xdr.RevokeSponsorshipOpSigner{
+						AccountId: testAccount4ID,
+						SignerKey: hardCodedSigner.Key,
+					},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipOp: &xdr.RevokeSponsorshipOp{
+					Type: xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry,
+					LedgerKey: &xdr.LedgerKey{
+						Type: xdr.LedgerEntryTypeAccount,
+						Account: &xdr.LedgerKeyAccount{
+							AccountId: testAccount4ID,
+						},
+					},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipOp: &xdr.RevokeSponsorshipOp{
+					Type: xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry,
+					LedgerKey: &xdr.LedgerKey{
+						Type: xdr.LedgerEntryTypeClaimableBalance,
+						ClaimableBalance: &xdr.LedgerKeyClaimableBalance{
+							BalanceId: hardCodedClaimableBalance,
+						},
+					},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipOp: &xdr.RevokeSponsorshipOp{
+					Type: xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry,
+					LedgerKey: &xdr.LedgerKey{
+						Type: xdr.LedgerEntryTypeData,
+						Data: &xdr.LedgerKeyData{
+							AccountId: testAccount4ID,
+							DataName:  "test",
+						},
+					},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipOp: &xdr.RevokeSponsorshipOp{
+					Type: xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry,
+					LedgerKey: &xdr.LedgerKey{
+						Type: xdr.LedgerEntryTypeOffer,
+						Offer: &xdr.LedgerKeyOffer{
+							SellerId: testAccount3ID,
+							OfferId:  100,
+						},
+					},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipOp: &xdr.RevokeSponsorshipOp{
+					Type: xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry,
+					LedgerKey: &xdr.LedgerKey{
+						Type: xdr.LedgerEntryTypeTrustline,
+						TrustLine: &xdr.LedgerKeyTrustLine{
+							AccountId: testAccount3ID,
+							Asset:     usdtAsset,
+						},
+					},
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeClawback,
+				ClawbackOp: &xdr.ClawbackOp{
+					Asset:  usdtAsset,
+					From:   testAccount4,
+					Amount: 1598182,
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeClawbackClaimableBalance,
+				ClawbackClaimableBalanceOp: &xdr.ClawbackClaimableBalanceOp{
+					BalanceId: hardCodedClaimableBalance,
+				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeSetTrustLineFlags,
+				SetTrustLineFlagsOp: &xdr.SetTrustLineFlagsOp{
+					Trustor:    testAccount4ID,
+					Asset:      usdtAsset,
+					SetFlags:   hardCodedSetFlags,
+					ClearFlags: hardCodedClearFlags,
+				},
+			},
+		},
 	}
 	inputEnvelope.Tx.Operations = inputOperations
 	results := []xdr.OperationResult{
@@ -352,6 +506,18 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
+		xdr.OperationResult{},
 	}
 	inputTransaction.Result.Result.Result.Results = &results
 	inputTransaction.Envelope.V1 = &inputEnvelope
@@ -675,6 +841,200 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				ClearFlagsString: []string{},
 				SetFlags:         []int32{},
 				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             14,
+			ApplicationOrder: 17,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4112,
+			OperationDetails: Details{
+				AssetCode:        "USDT:GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				Amount:           123456.789,
+				Claimants:        []Claimant{testClaimantDetails},
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             15,
+			ApplicationOrder: 18,
+			SourceAccount:    testAccount3Address,
+			TransactionID:    4096,
+			OperationID:      4113,
+			OperationDetails: Details{
+				Account:          hardCodedSourceAccountAddress,
+				Amount:           0,
+				BalanceID:        "000000000000000000000000000000000000000000000000000000000000000000000000",
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             16,
+			ApplicationOrder: 19,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4114,
+			OperationDetails: Details{
+				SponsoredID:      hardCodedDestAccountAddress,
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             18,
+			ApplicationOrder: 20,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4115,
+			OperationDetails: Details{
+				SignerAccountID:  hardCodedDestAccountAddress,
+				SignerKey:        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             18,
+			ApplicationOrder: 21,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4116,
+			OperationDetails: Details{
+				AccountID:        hardCodedDestAccountAddress,
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             18,
+			ApplicationOrder: 22,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4117,
+			OperationDetails: Details{
+				ClaimableBalanceID: "000000000000000000000000000000000000000000000000000000000000000000000000",
+				Path:               []Path{},
+				ClearFlags:         []int32{},
+				ClearFlagsString:   []string{},
+				SetFlags:           []int32{},
+				SetFlagsString:     []string{},
+			},
+		},
+		OperationOutput{
+			Type:             18,
+			ApplicationOrder: 23,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4118,
+			OperationDetails: Details{
+				DataAccountID:    hardCodedDestAccountAddress,
+				DataName:         "test",
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             18,
+			ApplicationOrder: 24,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4119,
+			OperationDetails: Details{
+				OfferID:          100,
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             18,
+			ApplicationOrder: 25,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4120,
+			OperationDetails: Details{
+				TrustlineAccountID: testAccount3Address,
+				TrustlineAsset:     "USDT:GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				Path:               []Path{},
+				ClearFlags:         []int32{},
+				ClearFlagsString:   []string{},
+				SetFlags:           []int32{},
+				SetFlagsString:     []string{},
+			},
+		},
+		OperationOutput{
+			Type:             19,
+			ApplicationOrder: 26,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4121,
+			OperationDetails: Details{
+				From:             hardCodedDestAccountAddress,
+				Amount:           0.1598182,
+				AssetCode:        "USDT",
+				AssetIssuer:      "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				AssetType:        "credit_alphanum4",
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             20,
+			ApplicationOrder: 27,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4122,
+			OperationDetails: Details{
+				BalanceID:        "000000000000000000000000000000000000000000000000000000000000000000000000",
+				Path:             []Path{},
+				ClearFlags:       []int32{},
+				ClearFlagsString: []string{},
+				SetFlags:         []int32{},
+				SetFlagsString:   []string{},
+			},
+		},
+		OperationOutput{
+			Type:             21,
+			ApplicationOrder: 28,
+			SourceAccount:    hardCodedSourceAccountAddress,
+			TransactionID:    4096,
+			OperationID:      4123,
+			OperationDetails: Details{
+				AssetCode:        "USDT",
+				AssetIssuer:      "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				AssetType:        "credit_alphanum4",
+				Trustor:          testAccount4Address,
+				Path:             []Path{},
+				ClearFlags:       []int32{1, 2},
+				ClearFlagsString: []string{"authorized", "authorized_to_maintain_liabilities"},
+				SetFlags:         []int32{4},
+				SetFlagsString:   []string{"clawback_enabled"},
 			},
 		},
 	}
