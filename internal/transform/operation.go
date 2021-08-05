@@ -19,7 +19,7 @@ type Claimants []Claimant
 // TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
 func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
-	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex).ToInt64()
+	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex+1).ToInt64()
 
 	outputSourceAccount, err := utils.GetAccountAddressFromMuxedAccount(getOperationSourceAccount(operation, transaction))
 	if err != nil {
@@ -171,6 +171,28 @@ func transformPath(initialPath []xdr.Asset) []Path {
 		})
 	}
 	return path
+}
+
+func findInitatingBeginSponsoringOp(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction) *SponsorshipOutput {
+	if !transaction.Result.Successful() {
+		// Failed transactions may not have a compliant sandwich structure
+		// we can rely on (e.g. invalid nesting or a being operation with the wrong sponsoree ID)
+		// and thus we bail out since we could return incorrect information.
+		return nil
+	}
+	sponsoree := getOperationSourceAccount(operation, transaction).ToAccountId()
+	operations := transaction.Envelope.Operations()
+	for i := int(operationIndex) - 1; i >= 0; i-- {
+		if beginOp, ok := operations[i].Body.GetBeginSponsoringFutureReservesOp(); ok &&
+			beginOp.SponsoredId.Address() == sponsoree.Address() {
+			result := SponsorshipOutput{
+				Operation:      operations[i],
+				OperationIndex: uint32(i),
+			}
+			return &result
+		}
+	}
+	return nil
 }
 
 func addOperationFlagToOperationDetails(operationDetails *Details, flag uint32, prefix string) {
@@ -503,8 +525,16 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		op := operation.Body.MustBeginSponsoringFutureReservesOp()
 		outputDetails.SponsoredID = op.SponsoredId.Address()
 
-	// @TODO End Sponsoring Future Reserves
-	// case xdr.OperationTypeEndSponsoringFutureReserves:
+	case xdr.OperationTypeEndSponsoringFutureReserves:
+		beginSponsorOp := findInitatingBeginSponsoringOp(operation, operationIndex, transaction)
+		if beginSponsorOp != nil {
+			beginSponsorshipSource := getOperationSourceAccount(beginSponsorOp.Operation, transaction)
+			beginSponsorAddress, err := utils.GetAccountAddressFromMuxedAccount(beginSponsorshipSource)
+			if err != nil {
+				return Details{}, fmt.Errorf("Cannot get Sponsoring Address this operation (index %d)", operationIndex)
+			}
+			outputDetails.BeginSponsor = beginSponsorAddress
+		}
 
 	case xdr.OperationTypeRevokeSponsorship:
 		op := operation.Body.MustRevokeSponsorshipOp()

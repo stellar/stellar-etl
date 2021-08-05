@@ -83,6 +83,7 @@ type Details struct {
 	AssetIssuer        string     `json:"asset_issuer"`
 	AssetType          string     `json:"asset_type"`
 	Authorize          bool       `json:"authorize"`
+	BeginSponsor       string     `json:"begin_sponsor"`
 	BalanceID          string     `json:"balance_id"`
 	BuyingAssetCode    string     `json:"buying_asset_code"`
 	BuyingAssetIssuer  string     `json:"buying_asset_issuer"`
@@ -253,4 +254,9 @@ type NormalizedOfferOutput struct {
 	Offer   DimOffer
 	Account DimAccount
 	Event   FactOfferEvent
+}
+
+type SponsorshipOutput struct {
+	Operation      xdr.Operation
+	OperationIndex uint32
 }

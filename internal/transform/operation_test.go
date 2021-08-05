@@ -44,7 +44,7 @@ func TestTransformOperation(t *testing.T) {
 		{
 			negativeOpTypeInput,
 			OperationOutput{},
-			fmt.Errorf("The operation type (-1) is negative for  operation 1 (operation id=4097)"),
+			fmt.Errorf("The operation type (-1) is negative for  operation 1 (operation id=4098)"),
 		},
 		{
 			unknownOpTypeInput,
@@ -533,7 +533,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			Type:             0,
 			ApplicationOrder: 1,
 			TransactionID:    4096,
-			OperationID:      4096,
+			OperationID:      4097,
 			OperationDetails: Details{
 				Account:          hardCodedDestAccountAddress,
 				Funder:           hardCodedSourceAccountAddress,
@@ -550,7 +550,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 2,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4097,
+			OperationID:      4098,
 			OperationDetails: Details{
 				From:             hardCodedSourceAccountAddress,
 				To:               hardCodedDestAccountAddress,
@@ -570,7 +570,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 3,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4098,
+			OperationID:      4099,
 			OperationDetails: Details{
 				From:             hardCodedSourceAccountAddress,
 				To:               hardCodedDestAccountAddress,
@@ -588,7 +588,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 4,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4099,
+			OperationID:      4100,
 			OperationDetails: Details{
 				From:             hardCodedSourceAccountAddress,
 				To:               hardCodedDestAccountAddress,
@@ -609,7 +609,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 5,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4100,
+			OperationID:      4101,
 			OperationDetails: Details{
 				Price:  0.514092,
 				Amount: 76.586,
@@ -633,7 +633,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 6,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4101,
+			OperationID:      4102,
 			OperationDetails: Details{
 				Amount: 63.1595,
 				Price:  0.0791606,
@@ -657,7 +657,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 7,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4102,
+			OperationID:      4103,
 			OperationDetails: Details{
 				InflationDest:    hardCodedDestAccountAddress,
 				ClearFlags:       []int32{1, 2},
@@ -679,7 +679,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 8,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4103,
+			OperationID:      4104,
 			OperationDetails: Details{
 				Trustor:          hardCodedSourceAccountAddress,
 				Trustee:          hardCodedDestAccountAddress,
@@ -699,7 +699,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 9,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4104,
+			OperationID:      4105,
 			OperationDetails: Details{
 				Trustee:          hardCodedSourceAccountAddress,
 				Trustor:          hardCodedDestAccountAddress,
@@ -719,7 +719,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 10,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4105,
+			OperationID:      4106,
 			OperationDetails: Details{
 				Account:          hardCodedSourceAccountAddress,
 				Into:             hardCodedDestAccountAddress,
@@ -735,7 +735,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 11,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4106,
+			OperationID:      4107,
 			OperationDetails: Details{
 				Path:             []Path{},
 				ClearFlags:       []int32{},
@@ -749,7 +749,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 12,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4107,
+			OperationID:      4108,
 			OperationDetails: Details{
 				Name:             "test",
 				Value:            base64.StdEncoding.EncodeToString([]byte{0x76, 0x61, 0x6c, 0x75, 0x65}),
@@ -765,7 +765,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 13,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4108,
+			OperationID:      4109,
 
 			OperationDetails: Details{
 				BumpTo:           "100",
@@ -781,7 +781,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 14,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4109,
+			OperationID:      4110,
 			OperationDetails: Details{
 				Price:  0.3496823,
 				Amount: 765.4501001,
@@ -806,7 +806,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 15,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4110,
+			OperationID:      4111,
 			OperationDetails: Details{
 				From:             hardCodedSourceAccountAddress,
 				To:               hardCodedDestAccountAddress,
@@ -827,7 +827,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 16,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4111,
+			OperationID:      4112,
 			OperationDetails: Details{
 				From:             hardCodedSourceAccountAddress,
 				To:               hardCodedDestAccountAddress,
@@ -848,7 +848,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 17,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4112,
+			OperationID:      4113,
 			OperationDetails: Details{
 				AssetCode:        "USDT:GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
 				Amount:           123456.789,
@@ -865,7 +865,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 18,
 			SourceAccount:    testAccount3Address,
 			TransactionID:    4096,
-			OperationID:      4113,
+			OperationID:      4114,
 			OperationDetails: Details{
 				Account:          hardCodedSourceAccountAddress,
 				Amount:           0,
@@ -882,7 +882,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 19,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4114,
+			OperationID:      4115,
 			OperationDetails: Details{
 				SponsoredID:      hardCodedDestAccountAddress,
 				Path:             []Path{},
@@ -897,7 +897,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 20,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4115,
+			OperationID:      4116,
 			OperationDetails: Details{
 				SignerAccountID:  hardCodedDestAccountAddress,
 				SignerKey:        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
@@ -913,7 +913,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 21,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4116,
+			OperationID:      4117,
 			OperationDetails: Details{
 				AccountID:        hardCodedDestAccountAddress,
 				Path:             []Path{},
@@ -928,7 +928,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 22,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4117,
+			OperationID:      4118,
 			OperationDetails: Details{
 				ClaimableBalanceID: "000000000000000000000000000000000000000000000000000000000000000000000000",
 				Path:               []Path{},
@@ -943,7 +943,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 23,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4118,
+			OperationID:      4119,
 			OperationDetails: Details{
 				DataAccountID:    hardCodedDestAccountAddress,
 				DataName:         "test",
@@ -959,7 +959,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 24,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4119,
+			OperationID:      4120,
 			OperationDetails: Details{
 				OfferID:          100,
 				Path:             []Path{},
@@ -974,7 +974,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 25,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4120,
+			OperationID:      4121,
 			OperationDetails: Details{
 				TrustlineAccountID: testAccount3Address,
 				TrustlineAsset:     "USDT:GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
@@ -990,7 +990,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 26,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4121,
+			OperationID:      4122,
 			OperationDetails: Details{
 				From:             hardCodedDestAccountAddress,
 				Amount:           0.1598182,
@@ -1009,7 +1009,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 27,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4122,
+			OperationID:      4123,
 			OperationDetails: Details{
 				BalanceID:        "000000000000000000000000000000000000000000000000000000000000000000000000",
 				Path:             []Path{},
@@ -1024,7 +1024,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ApplicationOrder: 28,
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
-			OperationID:      4123,
+			OperationID:      4124,
 			OperationDetails: Details{
 				AssetCode:        "USDT",
 				AssetIssuer:      "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
