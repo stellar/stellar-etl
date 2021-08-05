@@ -418,13 +418,6 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 		outputDetails.BumpTo = fmt.Sprintf("%d", op.BumpTo)
 
-	// case xdr.OperationTypeEndSponsoringFutureReserves:
-	// 	beginSponsorshipOp := findInitatingBeginSponsoringOp(operation)
-	// 	if beginSponsorshipOp != nil {
-	// 		beginSponsorshipSource := beginSponsorshipOp.SourceAccount()
-	// 		outputDetails.BeginSponsor = "TestValue"
-	// 	}
-
 	default:
 		return Details{}, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}

@@ -36,10 +36,9 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*l
 			Strict:             true,
 		},
 	)
-	// @TODO: return the error when the toml canoot be created from config path
-	// if err != nil {
-	// 	return &ledgerbackend.CaptiveCoreToml{}, err
-	// }
+	if err != nil {
+		return &ledgerbackend.CaptiveStellarCore{}, err
+	}
 
 	captiveBackend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
