@@ -19,7 +19,6 @@ func GetLedgers(start, end uint32, limit int64) ([]xdr.LedgerCloseMeta, error) {
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
 		ledger, err := backend.GetLedger(ctx, seq)
-
 		if err != nil {
 			return []xdr.LedgerCloseMeta{}, err
 		}

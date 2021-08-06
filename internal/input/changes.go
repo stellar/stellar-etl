@@ -52,7 +52,6 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*l
 		return &ledgerbackend.CaptiveStellarCore{}, err
 	}
 
-	ctx := context.Background()
 	ledgerRange := ledgerbackend.UnboundedRange(start)
 
 	if end != 0 {
@@ -67,6 +66,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*l
 		}
 	}
 
+	ctx := context.Background()
 	err = captiveBackend.PrepareRange(ctx, ledgerRange)
 	if err != nil {
 		return &ledgerbackend.CaptiveStellarCore{}, err
