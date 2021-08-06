@@ -1,6 +1,7 @@
 package input
 
 import (
+	"context"
 	"io"
 
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -26,8 +27,9 @@ func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, er
 	}
 
 	var txSlice []LedgerTransformInput
+	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}

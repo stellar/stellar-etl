@@ -24,7 +24,7 @@ var exportOrderbooksCmd = &cobra.Command{
 	These files contain normalized data that helps save storage space. 
 	
 	If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
-	confirmed by the Stellar network. In this unbounded case, a stellar-core config file is required.`,
+	confirmed by the Stellar network. In this unbounded case, a stellar-core config path is required to utilize the Captive Core toml.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 

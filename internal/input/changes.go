@@ -1,6 +1,7 @@
 package input
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"math"
@@ -26,11 +27,23 @@ type ChangeBatch struct {
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
-func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
+func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
+	toml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
+		tomlPath,
+		ledgerbackend.CaptiveCoreTomlParams{
+			NetworkPassphrase:  password,
+			HistoryArchiveURLs: utils.ArchiveURLs,
+			Strict:             true,
+		},
+	)
+	if err != nil {
+		return &ledgerbackend.CaptiveStellarCore{}, err
+	}
+
 	captiveBackend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
 			BinaryPath:         execPath,
-			ConfigAppendPath:   configPath,
+			Toml:               toml,
 			NetworkPassphrase:  password,
 			HistoryArchiveURLs: utils.ArchiveURLs,
 		},
@@ -53,7 +66,8 @@ func PrepareCaptiveCore(execPath, configPath string, start, end uint32) (*ledger
 		}
 	}
 
-	err = captiveBackend.PrepareRange(ledgerRange)
+	ctx := context.Background()
+	err = captiveBackend.PrepareRange(ctx, ledgerRange)
 	if err != nil {
 		return &ledgerbackend.CaptiveStellarCore{}, err
 	}
@@ -135,8 +149,9 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 	accChanges := ingest.NewChangeCompactor()
 	offChanges := ingest.NewChangeCompactor()
 	trustChanges := ingest.NewChangeCompactor()
+	ctx := context.Background()
 	for seq := batchStart; seq < batchEnd; {
-		latestLedger, err := core.GetLatestLedgerSequence()
+		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			logger.Fatal("unable to get the lastest ledger sequence: ", err)
 		}
@@ -144,7 +159,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if seq <= latestLedger {
-			changeReader, err := ingest.NewLedgerChangeReader(core, password, seq)
+			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, password, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}

@@ -85,7 +85,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		OperationCount:             10,
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
-		TxSetOperationCount:        "13",
+		TxSetOperationCount:        "2",
 	}
 	return
 }
