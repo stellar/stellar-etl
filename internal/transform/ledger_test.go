@@ -101,7 +101,6 @@ func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 		utils.CreateSampleResultMeta(false, 3),
 		utils.CreateSampleResultMeta(true, 10),
 	}
-
 	lcm, err = xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
 		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 			Header: xdr.LedgerHeader{

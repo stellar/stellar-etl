@@ -92,7 +92,6 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 			Tr:   &xdr.OperationResultTr{},
 		})
 	}
-
 	return xdr.TransactionResultMeta{
 		Result: xdr.TransactionResultPair{
 			Result: xdr.TransactionResult{

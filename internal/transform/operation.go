@@ -19,7 +19,7 @@ type Claimants []Claimant
 // TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
 func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
-	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex+1).ToInt64()
+	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex+1).ToInt64() //operationIndex needs +1 increment
 
 	outputSourceAccount, err := utils.GetAccountAddressFromMuxedAccount(getOperationSourceAccount(operation, transaction))
 	if err != nil {
@@ -171,17 +171,6 @@ func transformPath(initialPath []xdr.Asset) []Path {
 		})
 	}
 	return path
-}
-
-func addPriceRToDetails(operationDetails *Details, initialPrice *xdr.Price) {
-
-	if initialPrice != nil {
-		operationDetails.PriceR = Price{
-			Numerator:   int32(initialPrice.N),
-			Denominator: int32(initialPrice.D),
-		}
-	}
-
 }
 
 func findInitatingBeginSponsoringOp(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction) *SponsorshipOutput {
@@ -359,11 +348,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 
 		outputDetails.Price = parsedPrice
-		addPriceRToDetails(&outputDetails, &op.Price)
-		// outputDetails.PriceR = Price{
-		// 	Numerator:   int32(op.Price.N),
-		// 	Denominator: int32(op.Price.D),
-		// }
+		outputDetails.PriceR = Price{
+			Numerator:   int32(op.Price.N),
+			Denominator: int32(op.Price.D),
+		}
 		addAssetDetailsToOperationDetails(&outputDetails, op.Buying, "buying")
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
 
@@ -381,11 +369,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 
 		outputDetails.Price = parsedPrice
-		addPriceRToDetails(&outputDetails, &op.Price)
-		// outputDetails.PriceR = Price{
-		// 	Numerator:   int32(op.Price.N),
-		// 	Denominator: int32(op.Price.D),
-		// }
+		outputDetails.PriceR = Price{
+			Numerator:   int32(op.Price.N),
+			Denominator: int32(op.Price.D),
+		}
 		addAssetDetailsToOperationDetails(&outputDetails, op.Buying, "buying")
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
 
@@ -402,11 +389,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 
 		outputDetails.Price = parsedPrice
-		addPriceRToDetails(&outputDetails, &op.Price)
-		// outputDetails.PriceR = Price{
-		// 	Numerator:   int32(op.Price.N),
-		// 	Denominator: int32(op.Price.D),
-		// }
+		outputDetails.PriceR = Price{
+			Numerator:   int32(op.Price.N),
+			Denominator: int32(op.Price.D),
+		}
 		addAssetDetailsToOperationDetails(&outputDetails, op.Buying, "buying")
 		addAssetDetailsToOperationDetails(&outputDetails, op.Selling, "selling")
 
