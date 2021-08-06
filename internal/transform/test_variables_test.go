@@ -107,7 +107,7 @@ var nativeAssetPath = Path{
 
 var genericClaimableBalance = xdr.ClaimableBalanceId{
 	Type: xdr.ClaimableBalanceIdTypeClaimableBalanceIdTypeV0,
-	V0:   &xdr.Hash{},
+	V0:   &xdr.Hash{1, 2, 3, 4, 5, 6, 7, 8, 9},
 }
 
 var testClaimant = xdr.Claimant{

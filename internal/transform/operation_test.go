@@ -865,7 +865,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: Details{
 				Account:          hardCodedSourceAccountAddress,
 				Amount:           0,
-				BalanceID:        "000000000000000000000000000000000000000000000000000000000000000000000000",
+				BalanceID:        "000000000102030405060708090000000000000000000000000000000000000000000000",
 				Path:             []Path{},
 				ClearFlags:       []int32{},
 				ClearFlagsString: []string{},
@@ -926,7 +926,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID:    4096,
 			OperationID:      4118,
 			OperationDetails: Details{
-				ClaimableBalanceID: "000000000000000000000000000000000000000000000000000000000000000000000000",
+				ClaimableBalanceID: "000000000102030405060708090000000000000000000000000000000000000000000000",
 				Path:               []Path{},
 				ClearFlags:         []int32{},
 				ClearFlagsString:   []string{},
@@ -1007,7 +1007,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID:    4096,
 			OperationID:      4123,
 			OperationDetails: Details{
-				BalanceID:        "000000000000000000000000000000000000000000000000000000000000000000000000",
+				BalanceID:        "000000000102030405060708090000000000000000000000000000000000000000000000",
 				Path:             []Path{},
 				ClearFlags:       []int32{},
 				ClearFlagsString: []string{},
