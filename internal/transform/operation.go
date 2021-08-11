@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/pkg/errors"
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -16,7 +17,7 @@ import (
 // TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
 func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
-	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex).ToInt64()
+	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex+1).ToInt64() //operationIndex needs +1 increment to stay in sync with ingest package
 
 	outputSourceAccount, err := utils.GetAccountAddressFromMuxedAccount(getOperationSourceAccount(operation, transaction))
 	if err != nil {
@@ -94,6 +95,61 @@ func addAssetDetailsToOperationDetails(operationDetails *Details, asset xdr.Asse
 	return nil
 }
 
+func addTrustLineFlagToDetails(operationDetails *Details, f xdr.TrustLineFlags, prefix string) {
+	var (
+		n []int32
+		s []string
+	)
+
+	if f.IsAuthorized() {
+		n = append(n, int32(xdr.TrustLineFlagsAuthorizedFlag))
+		s = append(s, "authorized")
+	}
+
+	if f.IsAuthorizedToMaintainLiabilitiesFlag() {
+		n = append(n, int32(xdr.TrustLineFlagsAuthorizedToMaintainLiabilitiesFlag))
+		s = append(s, "authorized_to_maintain_liabilities")
+	}
+
+	if f.IsClawbackEnabledFlag() {
+		n = append(n, int32(xdr.TrustLineFlagsTrustlineClawbackEnabledFlag))
+		s = append(s, "clawback_enabled")
+	}
+
+	switch prefix {
+	case "set":
+		operationDetails.SetFlags = n
+		operationDetails.SetFlagsString = s
+
+	case "clear":
+		operationDetails.ClearFlags = n
+		operationDetails.ClearFlagsString = s
+	}
+
+}
+
+func addLedgerKeyToDetails(operationDetails *Details, ledgerKey xdr.LedgerKey) error {
+	switch ledgerKey.Type {
+	case xdr.LedgerEntryTypeAccount:
+		operationDetails.AccountID = ledgerKey.Account.AccountId.Address()
+	case xdr.LedgerEntryTypeClaimableBalance:
+		marshalHex, err := xdr.MarshalHex(ledgerKey.ClaimableBalance.BalanceId)
+		if err != nil {
+			return errors.Wrapf(err, "in claimable balance")
+		}
+		operationDetails.ClaimableBalanceID = marshalHex
+	case xdr.LedgerEntryTypeData:
+		operationDetails.DataAccountID = ledgerKey.Data.AccountId.Address()
+		operationDetails.DataName = string(ledgerKey.Data.DataName)
+	case xdr.LedgerEntryTypeOffer:
+		operationDetails.OfferID = int64(ledgerKey.Offer.OfferId)
+	case xdr.LedgerEntryTypeTrustline:
+		operationDetails.TrustlineAccountID = ledgerKey.TrustLine.AccountId.Address()
+		operationDetails.TrustlineAsset = ledgerKey.TrustLine.Asset.StringCanonical()
+	}
+	return nil
+}
+
 func transformPath(initialPath []xdr.Asset) []Path {
 	if len(initialPath) == 0 {
 		return nil
@@ -113,6 +169,28 @@ func transformPath(initialPath []xdr.Asset) []Path {
 		})
 	}
 	return path
+}
+
+func findInitatingBeginSponsoringOp(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction) *SponsorshipOutput {
+	if !transaction.Result.Successful() {
+		// Failed transactions may not have a compliant sandwich structure
+		// we can rely on (e.g. invalid nesting or a being operation with the wrong sponsoree ID)
+		// and thus we bail out since we could return incorrect information.
+		return nil
+	}
+	sponsoree := getOperationSourceAccount(operation, transaction).ToAccountId()
+	operations := transaction.Envelope.Operations()
+	for i := int(operationIndex) - 1; i >= 0; i-- {
+		if beginOp, ok := operations[i].Body.GetBeginSponsoringFutureReservesOp(); ok &&
+			beginOp.SponsoredId.Address() == sponsoree.Address() {
+			result := SponsorshipOutput{
+				Operation:      operations[i],
+				OperationIndex: uint32(i),
+			}
+			return &result
+		}
+	}
+	return nil
 }
 
 func addOperationFlagToOperationDetails(operationDetails *Details, flag uint32, prefix string) {
@@ -417,6 +495,86 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return Details{}, fmt.Errorf("Could not access BumpSequence info for this operation (index %d)", operationIndex)
 		}
 		outputDetails.BumpTo = fmt.Sprintf("%d", op.BumpTo)
+
+	case xdr.OperationTypeCreateClaimableBalance:
+		op := operation.Body.MustCreateClaimableBalanceOp()
+		outputDetails.AssetCode = op.Asset.StringCanonical()
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
+		var claimants []Claimant
+		for _, c := range op.Claimants {
+			cv0 := c.MustV0()
+			claimants = append(claimants, Claimant{
+				Destination: cv0.Destination.Address(),
+				Predicate:   cv0.Predicate,
+			})
+		}
+		outputDetails.Claimants = claimants
+
+	case xdr.OperationTypeClaimClaimableBalance:
+		op := operation.Body.MustClaimClaimableBalanceOp()
+		balanceID, err := xdr.MarshalHex(op.BalanceId)
+		if err != nil {
+			return Details{}, fmt.Errorf("Invalid balanceId in op: %d", operationIndex)
+		}
+		outputDetails.BalanceID = balanceID
+		outputDetails.Account = sourceAccountAddress
+
+	case xdr.OperationTypeBeginSponsoringFutureReserves:
+		op := operation.Body.MustBeginSponsoringFutureReservesOp()
+		outputDetails.SponsoredID = op.SponsoredId.Address()
+
+	case xdr.OperationTypeEndSponsoringFutureReserves:
+		beginSponsorOp := findInitatingBeginSponsoringOp(operation, operationIndex, transaction)
+		if beginSponsorOp != nil {
+			beginSponsorshipSource := getOperationSourceAccount(beginSponsorOp.Operation, transaction)
+			beginSponsorAddress, err := utils.GetAccountAddressFromMuxedAccount(beginSponsorshipSource)
+			if err != nil {
+				return Details{}, fmt.Errorf("Cannot get Sponsoring Address this operation (index %d)", operationIndex)
+			}
+			outputDetails.BeginSponsor = beginSponsorAddress
+		}
+
+	case xdr.OperationTypeRevokeSponsorship:
+		op := operation.Body.MustRevokeSponsorshipOp()
+		switch op.Type {
+		case xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry:
+			if err := addLedgerKeyToDetails(&outputDetails, *op.LedgerKey); err != nil {
+				return Details{}, err
+			}
+		case xdr.RevokeSponsorshipTypeRevokeSponsorshipSigner:
+			outputDetails.SignerAccountID = op.Signer.AccountId.Address()
+			outputDetails.SignerKey = op.Signer.SignerKey.Address()
+		}
+
+	case xdr.OperationTypeClawback:
+		op := operation.Body.MustClawbackOp()
+		addAssetDetailsToOperationDetails(&outputDetails, op.Asset, "")
+		fromAccount, err := utils.GetAccountAddressFromMuxedAccount(op.From)
+		if err != nil {
+			return Details{}, err
+		}
+		outputDetails.From = fromAccount
+		outputDetails.Amount = utils.ConvertStroopValueToReal(op.Amount)
+
+	case xdr.OperationTypeClawbackClaimableBalance:
+		op := operation.Body.MustClawbackClaimableBalanceOp()
+		balanceID, err := xdr.MarshalHex(op.BalanceId)
+		if err != nil {
+			return Details{}, fmt.Errorf("Invalid balanceId in op: %d", operationIndex)
+		}
+		outputDetails.BalanceID = balanceID
+
+	case xdr.OperationTypeSetTrustLineFlags:
+		op := operation.Body.MustSetTrustLineFlagsOp()
+		outputDetails.Trustor = op.Trustor.Address()
+		addAssetDetailsToOperationDetails(&outputDetails, op.Asset, "")
+		if op.SetFlags > 0 {
+			addTrustLineFlagToDetails(&outputDetails, xdr.TrustLineFlags(op.SetFlags), "set")
+
+		}
+		if op.ClearFlags > 0 {
+			addTrustLineFlagToDetails(&outputDetails, xdr.TrustLineFlags(op.ClearFlags), "clear")
+		}
 
 	default:
 		return Details{}, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
