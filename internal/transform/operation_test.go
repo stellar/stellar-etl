@@ -523,6 +523,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 	hardCodedSourceAccountAddress := testAccount3Address
 	hardCodedDestAccountAddress := testAccount4Address
+	Details := make(map[string]interface{})
 	transformedOperations = []OperationOutput{
 		OperationOutput{
 			SourceAccount:    hardCodedSourceAccountAddress,
@@ -863,7 +864,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID:    4096,
 			OperationID:      4114,
 			OperationDetails: Details{
-				Account:          hardCodedSourceAccountAddress,
+				Claimant:         hardCodedSourceAccountAddress,
 				Amount:           0,
 				BalanceID:        "000000000102030405060708090000000000000000000000000000000000000000000000",
 				Path:             []Path{},
