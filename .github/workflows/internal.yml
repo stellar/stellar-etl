@@ -1,4 +1,4 @@
-name: Internal-unit-tests
+name: internal
 
 on:
   pull_request:
