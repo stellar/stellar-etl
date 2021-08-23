@@ -78,36 +78,7 @@ func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.
 
 	result[prefix+"asset_code"] = code
 	result[prefix+"asset_issuer"] = issuer
-	// switch prefix {
-	// case "buying":
-	// 	operationDetails.BuyingAssetType = assetType
-	// 	if asset.Type != xdr.AssetTypeAssetTypeNative {
-	// 		operationDetails.BuyingAssetIssuer = issuer
-	// 		operationDetails.BuyingAssetCode = code
-	// 	}
 
-	// case "selling":
-	// 	operationDetails.SellingAssetType = assetType
-	// 	if asset.Type != xdr.AssetTypeAssetTypeNative {
-	// 		operationDetails.SellingAssetIssuer = issuer
-	// 		operationDetails.SellingAssetCode = code
-	// 	}
-
-	// case "source":
-	// 	operationDetails.SourceAssetType = assetType
-	// 	if asset.Type != xdr.AssetTypeAssetTypeNative {
-	// 		operationDetails.SourceAssetIssuer = issuer
-	// 		operationDetails.SourceAssetCode = code
-	// 	}
-
-	// default:
-	// 	operationDetails.AssetType = assetType
-	// 	if asset.Type != xdr.AssetTypeAssetTypeNative {
-	// 		operationDetails.AssetIssuer = issuer
-	// 		operationDetails.AssetCode = code
-	// 	}
-
-	// }
 	return nil
 }
 
@@ -116,8 +87,6 @@ func addAccountAndMuxedAccountDetails(result map[string]interface{}, a xdr.Muxed
 	result[prefix] = account_id.Address()
 	if a.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
 		result[prefix+"_muxed"] = a.Address()
-		// _muxed_id fields should had ideally been stored as a string and not uint64
-		// @TODO: transform the ID to string?? and not use original Horizon processors code
 		result[prefix+"_muxed_id"] = uint64(a.Med25519.Id)
 	}
 }
@@ -145,16 +114,6 @@ func addTrustLineFlagToDetails(result map[string]interface{}, f xdr.TrustLineFla
 
 	result[prefix+"_flags"] = n
 	result[prefix+"_flags_s"] = s
-	// switch prefix {
-	// case "set":
-	// 	operationDetails.SetFlags = n
-	// 	operationDetails.SetFlagsString = s
-
-	// case "clear":
-	// 	operationDetails.ClearFlags = n
-	// 	operationDetails.ClearFlagsString = s
-	// }
-
 }
 
 func addLedgerKeyToDetails(result map[string]interface{}, ledgerKey xdr.LedgerKey) error {
@@ -248,19 +207,9 @@ func addOperationFlagToOperationDetails(result map[string]interface{}, flag uint
 
 	result[prefix+"_flags"] = intFlags
 	result[prefix+"_flags_s"] = stringFlags
-	// switch prefix {
-	// case "set":
-	// 	operationDetails.SetFlags = intFlags
-	// 	operationDetails.SetFlagsString = stringFlags
-
-	// case "clear":
-	// 	operationDetails.ClearFlags = intFlags
-	// 	operationDetails.ClearFlagsString = stringFlags
-	// }
 }
 
 func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerTransaction, operationIndex int32) (map[string]interface{}, error) {
-	// outputDetails := Details{}
 	details := map[string]interface{}{}
 	sourceAccount := getOperationSourceAccount(operation, transaction)
 	operationType := operation.Body.Type
@@ -407,8 +356,8 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			Numerator:   int32(op.Price.N),
 			Denominator: int32(op.Price.D),
 		}
-		addAssetDetailsToOperationDetails(details, op.Buying, "buying")
-		addAssetDetailsToOperationDetails(details, op.Selling, "selling")
+		addAssetDetailsToOperationDetails(details, op.Buying, "buying_")
+		addAssetDetailsToOperationDetails(details, op.Selling, "selling_")
 
 	case xdr.OperationTypeSetOptions:
 		op, ok := operation.Body.GetSetOptionsOp()
@@ -591,28 +540,5 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		return details, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
 
-	// ensureSlicesAreNotNil(&outputDetails)
 	return details, nil
 }
-
-// func ensureSlicesAreNotNil(details *Details) {
-// 	if details.Path == nil {
-// 		details.Path = make([]Path, 0)
-// 	}
-
-// 	if details.SetFlags == nil {
-// 		details.SetFlags = make([]int32, 0)
-// 	}
-
-// 	if details.SetFlagsString == nil {
-// 		details.SetFlagsString = make([]string, 0)
-// 	}
-
-// 	if details.ClearFlags == nil {
-// 		details.ClearFlags = make([]int32, 0)
-// 	}
-
-// 	if details.ClearFlagsString == nil {
-// 		details.ClearFlagsString = make([]string, 0)
-// 	}
-// }
