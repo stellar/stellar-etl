@@ -9,6 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
+	github.com/guregu/null v2.1.3-0.20151024101046-79c5bd36b615+incompatible
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.9.0 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
