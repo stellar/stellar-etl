@@ -28,7 +28,11 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 
 	var outputSourceAccountMuxed null.String
 	if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
-		outputSourceAccountMuxed = null.StringFrom(sourceAccount.Address())
+		muxedAddress, err := sourceAccount.GetAddress()
+		if err != nil {
+			return OperationOutput{}, err
+		}
+		outputSourceAccountMuxed = null.StringFrom(muxedAddress)
 	}
 
 	outputOperationType := int32(operation.Body.Type)
@@ -63,6 +67,13 @@ func getOperationSourceAccount(operation xdr.Operation, transaction ingest.Ledge
 	return transaction.Envelope.SourceAccount()
 }
 
+func formatPrefix(p string) string {
+	if p != "" {
+		p += "_"
+	}
+	return p
+}
+
 func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.Asset, prefix string) error {
 	var assetType, code, issuer string
 	err := asset.Extract(&assetType, &code, &issuer)
@@ -70,6 +81,7 @@ func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.
 		return err
 	}
 
+	prefix = formatPrefix(prefix)
 	result[prefix+"asset_type"] = assetType
 
 	if asset.Type == xdr.AssetTypeAssetTypeNative {
@@ -82,13 +94,23 @@ func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.
 	return nil
 }
 
-func addAccountAndMuxedAccountDetails(result map[string]interface{}, a xdr.MuxedAccount, prefix string) {
+func addAccountAndMuxedAccountDetails(result map[string]interface{}, a xdr.MuxedAccount, prefix string) error {
 	account_id := a.ToAccountId()
 	result[prefix] = account_id.Address()
+	prefix = formatPrefix(prefix)
 	if a.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
-		result[prefix+"_muxed"] = a.Address()
-		result[prefix+"_muxed_id"] = uint64(a.Med25519.Id)
+		muxedAccountAddress, err := a.GetAddress()
+		if err != nil {
+			return err
+		}
+		result[prefix+"muxed"] = muxedAccountAddress
+		muxedAccountId, err := a.GetId()
+		if err != nil {
+			return err
+		}
+		result[prefix+"muxed_id"] = muxedAccountId
 	}
+	return nil
 }
 
 func addTrustLineFlagToDetails(result map[string]interface{}, f xdr.TrustLineFlags, prefix string) {
@@ -112,8 +134,9 @@ func addTrustLineFlagToDetails(result map[string]interface{}, f xdr.TrustLineFla
 		s = append(s, "clawback_enabled")
 	}
 
-	result[prefix+"_flags"] = n
-	result[prefix+"_flags_s"] = s
+	prefix = formatPrefix(prefix)
+	result[prefix+"flags"] = n
+	result[prefix+"flags_s"] = s
 }
 
 func addLedgerKeyToDetails(result map[string]interface{}, ledgerKey xdr.LedgerKey) error {
@@ -205,8 +228,9 @@ func addOperationFlagToOperationDetails(result map[string]interface{}, flag uint
 		stringFlags = append(stringFlags, "auth_clawback_enabled")
 	}
 
-	result[prefix+"_flags"] = intFlags
-	result[prefix+"_flags_s"] = stringFlags
+	prefix = formatPrefix(prefix)
+	result[prefix+"flags"] = intFlags
+	result[prefix+"flags_s"] = stringFlags
 }
 
 func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerTransaction, operationIndex int32) (map[string]interface{}, error) {
@@ -226,7 +250,9 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access CreateAccount info for this operation (index %d)", operationIndex)
 		}
 
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "funder")
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "funder"); err != nil {
+			return details, err
+		}
 		details["account"] = op.Destination.Address()
 		details["starting_balance"] = utils.ConvertStroopValueToReal(op.StartingBalance)
 
@@ -236,10 +262,16 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access Payment info for this operation (index %d)", operationIndex)
 		}
 
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "from")
-		addAccountAndMuxedAccountDetails(details, op.Destination, "to")
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, op.Destination, "to"); err != nil {
+			return details, err
+		}
 		details["amount"] = utils.ConvertStroopValueToReal(op.Amount)
-		addAssetDetailsToOperationDetails(details, op.Asset, "")
+		if err := addAssetDetailsToOperationDetails(details, op.Asset, ""); err != nil {
+			return details, err
+		}
 
 	case xdr.OperationTypePathPaymentStrictReceive:
 		op, ok := operation.Body.GetPathPaymentStrictReceiveOp()
@@ -247,13 +279,21 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access PathPaymentStrictReceive info for this operation (index %d)", operationIndex)
 		}
 
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "from")
-		addAccountAndMuxedAccountDetails(details, op.Destination, "to")
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, op.Destination, "to"); err != nil {
+			return details, err
+		}
 		details["amount"] = utils.ConvertStroopValueToReal(op.DestAmount)
 		details["source_amount"] = amount.String(0)
 		details["source_max"] = utils.ConvertStroopValueToReal(op.SendMax)
-		addAssetDetailsToOperationDetails(details, op.DestAsset, "")
-		addAssetDetailsToOperationDetails(details, op.SendAsset, "source_")
+		if err := addAssetDetailsToOperationDetails(details, op.DestAsset, ""); err != nil {
+			return details, err
+		}
+		if err := addAssetDetailsToOperationDetails(details, op.SendAsset, "source"); err != nil {
+			return details, err
+		}
 
 		if transaction.Result.Successful() {
 			resultBody, ok := currentOperationResult.GetTr()
@@ -275,13 +315,21 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access PathPaymentStrictSend info for this operation (index %d)", operationIndex)
 		}
 
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "from")
-		addAccountAndMuxedAccountDetails(details, op.Destination, "to")
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, op.Destination, "to"); err != nil {
+			return details, err
+		}
 		details["amount"] = amount.String(0)
 		details["source_amount"] = utils.ConvertStroopValueToReal(op.SendAmount)
 		details["destination_min"] = amount.String(op.DestMin)
-		addAssetDetailsToOperationDetails(details, op.DestAsset, "")
-		addAssetDetailsToOperationDetails(details, op.SendAsset, "source_")
+		if err := addAssetDetailsToOperationDetails(details, op.DestAsset, ""); err != nil {
+			return details, err
+		}
+		if err := addAssetDetailsToOperationDetails(details, op.SendAsset, "source"); err != nil {
+			return details, err
+		}
 
 		if transaction.Result.Successful() {
 			resultBody, ok := currentOperationResult.GetTr()
@@ -315,8 +363,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			Numerator:   int32(op.Price.N),
 			Denominator: int32(op.Price.D),
 		}
-		addAssetDetailsToOperationDetails(details, op.Buying, "buying_")
-		addAssetDetailsToOperationDetails(details, op.Selling, "selling_")
+		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying"); err != nil {
+			return details, err
+		}
+		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling"); err != nil {
+			return details, err
+		}
 
 	case xdr.OperationTypeManageSellOffer:
 		op, ok := operation.Body.GetManageSellOfferOp()
@@ -336,8 +388,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			Numerator:   int32(op.Price.N),
 			Denominator: int32(op.Price.D),
 		}
-		addAssetDetailsToOperationDetails(details, op.Buying, "buying_")
-		addAssetDetailsToOperationDetails(details, op.Selling, "selling_")
+		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying"); err != nil {
+			return details, err
+		}
+		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling"); err != nil {
+			return details, err
+		}
 
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		op, ok := operation.Body.GetCreatePassiveSellOfferOp()
@@ -356,8 +412,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			Numerator:   int32(op.Price.N),
 			Denominator: int32(op.Price.D),
 		}
-		addAssetDetailsToOperationDetails(details, op.Buying, "buying_")
-		addAssetDetailsToOperationDetails(details, op.Selling, "selling_")
+		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying"); err != nil {
+			return details, err
+		}
+		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling"); err != nil {
+			return details, err
+		}
 
 	case xdr.OperationTypeSetOptions:
 		op, ok := operation.Body.GetSetOptionsOp()
@@ -408,8 +468,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access GetChangeTrust info for this operation (index %d)", operationIndex)
 		}
 
-		addAssetDetailsToOperationDetails(details, op.Line, "")
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "trustor")
+		if err := addAssetDetailsToOperationDetails(details, op.Line, ""); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "trustor"); err != nil {
+			return details, err
+		}
 		details["trustee"] = details["asset_issuer"]
 		details["limit"] = utils.ConvertStroopValueToReal(op.Limit)
 
@@ -419,8 +483,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access AllowTrust info for this operation (index %d)", operationIndex)
 		}
 
-		addAssetDetailsToOperationDetails(details, op.Asset.ToAsset(sourceAccount.ToAccountId()), "")
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "trustee")
+		if err := addAssetDetailsToOperationDetails(details, op.Asset.ToAsset(sourceAccount.ToAccountId()), ""); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "trustee"); err != nil {
+			return details, err
+		}
 		details["trustor"] = op.Trustor.Address()
 		shouldAuth := xdr.TrustLineFlags(op.Authorize).IsAuthorized()
 		details["authorize"] = shouldAuth
@@ -439,8 +507,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access Destination info for this operation (index %d)", operationIndex)
 		}
 
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "account")
-		addAccountAndMuxedAccountDetails(details, destinationAccount, "into")
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "account"); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, destinationAccount, "into"); err != nil {
+			return details, err
+		}
 
 	case xdr.OperationTypeInflation:
 		// Inflation operations don't have information that affects the details struct
@@ -485,7 +557,9 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Invalid balanceId in op: %d", operationIndex)
 		}
 		details["balance_id"] = balanceID
-		addAccountAndMuxedAccountDetails(details, sourceAccount, "claimant")
+		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "claimant"); err != nil {
+			return details, err
+		}
 
 	case xdr.OperationTypeBeginSponsoringFutureReserves:
 		op := operation.Body.MustBeginSponsoringFutureReservesOp()
@@ -495,7 +569,9 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		beginSponsorOp := findInitatingBeginSponsoringOp(operation, operationIndex, transaction)
 		if beginSponsorOp != nil {
 			beginSponsorshipSource := getOperationSourceAccount(beginSponsorOp.Operation, transaction)
-			addAccountAndMuxedAccountDetails(details, beginSponsorshipSource, "begin_sponsor")
+			if err := addAccountAndMuxedAccountDetails(details, beginSponsorshipSource, "begin_sponsor"); err != nil {
+				return details, err
+			}
 		}
 
 	case xdr.OperationTypeRevokeSponsorship:
@@ -512,8 +588,12 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 	case xdr.OperationTypeClawback:
 		op := operation.Body.MustClawbackOp()
-		addAssetDetailsToOperationDetails(details, op.Asset, "")
-		addAccountAndMuxedAccountDetails(details, op.From, "from")
+		if err := addAssetDetailsToOperationDetails(details, op.Asset, ""); err != nil {
+			return details, err
+		}
+		if err := addAccountAndMuxedAccountDetails(details, op.From, "from"); err != nil {
+			return details, err
+		}
 		details["amount"] = utils.ConvertStroopValueToReal(op.Amount)
 
 	case xdr.OperationTypeClawbackClaimableBalance:
@@ -527,7 +607,9 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeSetTrustLineFlags:
 		op := operation.Body.MustSetTrustLineFlagsOp()
 		details["trustor"] = op.Trustor.Address()
-		addAssetDetailsToOperationDetails(details, op.Asset, "")
+		if err := addAssetDetailsToOperationDetails(details, op.Asset, ""); err != nil {
+			return details, err
+		}
 		if op.SetFlags > 0 {
 			addTrustLineFlagToDetails(details, xdr.TrustLineFlags(op.SetFlags), "set")
 
