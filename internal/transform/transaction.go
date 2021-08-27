@@ -95,6 +95,17 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		Successful:       outputSuccessful,
 	}
 
+	// Add Muxed Account Details, if exists
+	if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
+		muxedAddress, err := sourceAccount.GetAddress()
+		if err != nil {
+			return TransactionOutput{}, err
+		}
+		transformedTransaction.AccountMuxed = muxedAddress
+
+	}
+
+	// Add Fee Bump Details, if exists
 	if transaction.Envelope.IsFeeBump() {
 		feeBumpAccount := transaction.Envelope.FeeBumpAccount()
 		feeAccount := feeBumpAccount.ToAccountId()

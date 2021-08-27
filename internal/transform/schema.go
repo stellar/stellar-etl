@@ -33,6 +33,7 @@ type TransactionOutput struct {
 	LedgerSequence       uint32    `json:"ledger_sequence"`
 	ApplicationOrder     uint32    `json:"application_order"`
 	Account              string    `json:"account"`
+	AccountMuxed         string    `json:"account_muxed,omitempty"`
 	AccountSequence      int64     `json:"account_sequence"`
 	MaxFee               uint32    `json:"max_fee"`
 	FeeCharged           int64     `json:"fee_charged"`
