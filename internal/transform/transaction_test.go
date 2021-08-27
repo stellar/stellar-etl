@@ -40,7 +40,6 @@ func TestTransformTransaction(t *testing.T) {
 
 	hardCodedTransaction, hardCodedLedgerHeader, err := makeTransactionTestInput()
 	assert.NoError(t, err)
-	hardCodedInput := inputStruct{hardCodedTransaction, hardCodedLedgerHeader}
 	hardCodedOutput, err := makeTransactionTestOutput()
 	assert.NoError(t, err)
 
@@ -60,11 +59,14 @@ func TestTransformTransaction(t *testing.T) {
 			TransactionOutput{},
 			fmt.Errorf("The max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1 (transaction id=4096)"),
 		},
-		{
-			hardCodedInput,
-			hardCodedOutput,
-			nil,
-		},
+	}
+
+	for i := range hardCodedTransaction {
+		tests = append(tests, transformTest{
+			input:      inputStruct{hardCodedTransaction[i], hardCodedLedgerHeader[i]},
+			wantOutput: hardCodedOutput[i],
+			wantErr:    nil,
+		})
 	}
 
 	for _, test := range tests {
@@ -74,75 +76,168 @@ func TestTransformTransaction(t *testing.T) {
 	}
 }
 
-func makeTransactionTestOutput() (output TransactionOutput, err error) {
+func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 	correctTime, err := time.Parse("2006-1-2 15:04:05 MST", "2020-07-09 05:28:42 UTC")
-	output = TransactionOutput{
-		TransactionHash:  "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
-		LedgerSequence:   30521816,
-		ApplicationOrder: 1,
-		TransactionID:    131090201534533632,
-		Account:          testAccount1Address,
-		AccountSequence:  112351890582290871,
-		MaxFee:           90000,
-		FeeCharged:       300,
-		OperationCount:   1,
-		CreatedAt:        correctTime,
-		MemoType:         "MemoTypeMemoText",
-		Memo:             "HL5aCgozQHIW7sSc5XdcfmR",
-		TimeBounds:       "[0, 1594272628)",
-		Successful:       false,
+	output = []TransactionOutput{
+		TransactionOutput{
+			TransactionHash:  "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			LedgerSequence:   30521816,
+			ApplicationOrder: 1,
+			TransactionID:    131090201534533632,
+			Account:          testAccount1Address,
+			AccountSequence:  112351890582290871,
+			MaxFee:           90000,
+			FeeCharged:       300,
+			OperationCount:   1,
+			CreatedAt:        correctTime,
+			MemoType:         "MemoTypeMemoText",
+			Memo:             "HL5aCgozQHIW7sSc5XdcfmR",
+			TimeBounds:       "[0, 1594272628)",
+			Successful:       false,
+		},
+		TransactionOutput{
+			TransactionHash:      "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			LedgerSequence:       30521817,
+			ApplicationOrder:     1,
+			TransactionID:        131090205829500928,
+			Account:              testAccount1Address,
+			AccountSequence:      150015399398735997,
+			MaxFee:               0,
+			FeeCharged:           300,
+			OperationCount:       1,
+			CreatedAt:            correctTime,
+			MemoType:             "MemoTypeMemoText",
+			Memo:                 "HL5aCgozQHIW7sSc5XdcfmR",
+			TimeBounds:           "[0, 1594272628)",
+			Successful:           true,
+			InnerTransactionHash: "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			FeeAccount:           testAccount3Address,
+			NewMaxFee:            7200,
+		},
 	}
 	return
 }
-func makeTransactionTestInput() (transaction ingest.LedgerTransaction, historyHeader xdr.LedgerHeaderHistoryEntry, err error) {
+func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, historyHeader []xdr.LedgerHeaderHistoryEntry, err error) {
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
-	transaction = ingest.LedgerTransaction{
-		Index: 1,
-		Envelope: xdr.TransactionEnvelope{
-			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
-			V1: &xdr.TransactionV1Envelope{
-				Tx: xdr.Transaction{
-					SourceAccount: testAccount1,
-					SeqNum:        112351890582290871,
-					Memo: xdr.Memo{
-						Type: xdr.MemoTypeMemoText,
-						Text: &hardCodedMemoText,
-					},
-					Fee: 90000,
-					TimeBounds: &xdr.TimeBounds{
-						MinTime: 0,
-						MaxTime: 1594272628,
-					},
-					Operations: []xdr.Operation{
-						xdr.Operation{
-							SourceAccount: &testAccount2,
-							Body: xdr.OperationBody{
-								Type:                       xdr.OperationTypePathPaymentStrictReceive,
-								PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+	transaction = []ingest.LedgerTransaction{
+		ingest.LedgerTransaction{
+			Index: 1,
+			Envelope: xdr.TransactionEnvelope{
+				Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+				V1: &xdr.TransactionV1Envelope{
+					Tx: xdr.Transaction{
+						SourceAccount: testAccount1,
+						SeqNum:        112351890582290871,
+						Memo: xdr.Memo{
+							Type: xdr.MemoTypeMemoText,
+							Text: &hardCodedMemoText,
+						},
+						Fee: 90000,
+						TimeBounds: &xdr.TimeBounds{
+							MinTime: 0,
+							MaxTime: 1594272628,
+						},
+						Operations: []xdr.Operation{
+							xdr.Operation{
+								SourceAccount: &testAccount2,
+								Body: xdr.OperationBody{
+									Type:                       xdr.OperationTypePathPaymentStrictReceive,
+									PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+								},
 							},
 						},
 					},
 				},
 			},
+			Result: xdr.TransactionResultPair{
+				TransactionHash: hardCodedTransactionHash,
+				Result: xdr.TransactionResult{
+					FeeCharged: 300,
+					Result: xdr.TransactionResultResult{
+						Code: xdr.TransactionResultCodeTxFailed,
+						Results: &[]xdr.OperationResult{
+							xdr.OperationResult{},
+						},
+					},
+				},
+			},
 		},
-		Result: xdr.TransactionResultPair{
-			TransactionHash: hardCodedTransactionHash,
-			Result: xdr.TransactionResult{
-				FeeCharged: 300,
-				Result: xdr.TransactionResultResult{
-					Code: xdr.TransactionResultCodeTxFailed,
-					Results: &[]xdr.OperationResult{
-						xdr.OperationResult{},
+		ingest.LedgerTransaction{
+			Index: 1,
+			Envelope: xdr.TransactionEnvelope{
+				Type: xdr.EnvelopeTypeEnvelopeTypeTxFeeBump,
+				FeeBump: &xdr.FeeBumpTransactionEnvelope{
+					Tx: xdr.FeeBumpTransaction{
+						FeeSource: testAccount3,
+						Fee:       7200,
+						InnerTx: xdr.FeeBumpTransactionInnerTx{
+							Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+							V1: &xdr.TransactionV1Envelope{
+								Tx: xdr.Transaction{
+									SourceAccount: testAccount1,
+									SeqNum:        150015399398735997,
+									Memo: xdr.Memo{
+										Type: xdr.MemoTypeMemoText,
+										Text: &hardCodedMemoText,
+									},
+									TimeBounds: &xdr.TimeBounds{
+										MinTime: 0,
+										MaxTime: 1594272628,
+									},
+									Operations: []xdr.Operation{
+										xdr.Operation{
+											SourceAccount: &testAccount2,
+											Body: xdr.OperationBody{
+												Type:                       xdr.OperationTypePathPaymentStrictReceive,
+												PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			Result: xdr.TransactionResultPair{
+				TransactionHash: hardCodedTransactionHash,
+				Result: xdr.TransactionResult{
+					FeeCharged: 300,
+					Result: xdr.TransactionResultResult{
+						Code: xdr.TransactionResultCodeTxFeeBumpInnerSuccess,
+						InnerResultPair: &xdr.InnerTransactionResultPair{
+							TransactionHash: hardCodedTransactionHash,
+							Result: xdr.InnerTransactionResult{
+								FeeCharged: 100,
+								Result: xdr.InnerTransactionResultResult{
+									Code: xdr.TransactionResultCodeTxFeeBumpInnerSuccess,
+									Results: &[]xdr.OperationResult{
+										xdr.OperationResult{},
+									},
+								},
+							},
+						},
+						Results: &[]xdr.OperationResult{
+							xdr.OperationResult{},
+						},
 					},
 				},
 			},
 		},
 	}
-	historyHeader = xdr.LedgerHeaderHistoryEntry{
-		Header: xdr.LedgerHeader{
-			LedgerSeq: 30521816,
-			ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
+	historyHeader = []xdr.LedgerHeaderHistoryEntry{
+		xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				LedgerSeq: 30521816,
+				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
+			},
+		},
+		xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				LedgerSeq: 30521817,
+				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
+			},
 		},
 	}
 	return
