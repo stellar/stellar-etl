@@ -2,6 +2,7 @@ package transform
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -22,6 +23,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 	outputTransactionID := toid.New(int32(outputLedgerSequence), int32(outputApplicationOrder), 0).ToInt64()
 
+	sourceAccount := transaction.Envelope.SourceAccount()
 	outputAccount, err := utils.GetAccountAddressFromMuxedAccount(transaction.Envelope.SourceAccount())
 	if err != nil {
 		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, outputApplicationOrder, outputTransactionID, err)
@@ -92,5 +94,30 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		TimeBounds:       outputTimeBounds,
 		Successful:       outputSuccessful,
 	}
+
+	// Add Muxed Account Details, if exists
+	if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
+		muxedAddress, err := sourceAccount.GetAddress()
+		if err != nil {
+			return TransactionOutput{}, err
+		}
+		transformedTransaction.AccountMuxed = muxedAddress
+
+	}
+
+	// Add Fee Bump Details, if exists
+	if transaction.Envelope.IsFeeBump() {
+		feeBumpAccount := transaction.Envelope.FeeBumpAccount()
+		feeAccount := feeBumpAccount.ToAccountId()
+		if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
+			feeAccountMuxed := feeAccount.Address()
+			transformedTransaction.FeeAccountMuxed = feeAccountMuxed
+		}
+		transformedTransaction.FeeAccount = feeAccount.Address()
+		innerHash := transaction.Result.InnerHash()
+		transformedTransaction.InnerTransactionHash = hex.EncodeToString(innerHash[:])
+		transformedTransaction.NewMaxFee = uint32(transaction.Envelope.FeeBumpFee())
+	}
+
 	return transformedTransaction, nil
 }
