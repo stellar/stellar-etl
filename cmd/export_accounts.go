@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/stellar/stellar-etl/internal/input"
@@ -22,6 +23,7 @@ The command reads from the bucket list, which includes the full history of the S
 should be used in an initial data dump. In order to get account information within a specified ledger range, see 
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
@@ -36,6 +38,7 @@ the export_ledger_entry_changes command.`,
 		}
 
 		failures := 0
+		numBytes := 0
 		for _, acc := range accounts {
 			transformed, err := transform.TransformAccount(acc)
 			if err != nil {
@@ -60,15 +63,24 @@ the export_ledger_entry_changes command.`,
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
+				numBytes += nb
 				outFile.WriteString("\n")
+				if err != nil {
+					cmdLogger.Info("Error writing accounts to file: ", err)
+				}
 			} else {
 				fmt.Println(string(marshalled))
 			}
 		}
 
 		if !strictExport {
-			printTransformStats(len(accounts), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
+			}
+			printTransformStats(len(accounts), failures, printLog)
 		}
 	},
 }

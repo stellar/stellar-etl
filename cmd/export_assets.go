@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -16,6 +17,7 @@ var assetsCmd = &cobra.Command{
 	Short: "Exports the assets data over a specified range",
 	Long:  `Exports the assets that are created from payment operations over a specified ledger range`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
@@ -32,6 +34,7 @@ var assetsCmd = &cobra.Command{
 		// With seenIDs, the code doesn't export duplicate assets within a single export. Note that across exports, assets may be duplicated
 		seenIDs := map[uint64]bool{}
 		failures := 0
+		numBytes := 0
 		for _, transformInput := range paymentOps {
 			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
 			if err != nil {
@@ -68,15 +71,24 @@ var assetsCmd = &cobra.Command{
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
+				numBytes += nb
 				outFile.WriteString("\n")
+				if err != nil {
+					cmdLogger.Info("Error writing assets to file: ", err)
+				}
 			} else {
 				fmt.Println(string(marshalled))
 			}
 		}
 
 		if !strictExport {
-			printTransformStats(len(paymentOps), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
+			}
+			printTransformStats(len(paymentOps), failures, printLog)
 		}
 	},
 }

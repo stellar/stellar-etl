@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -16,12 +17,14 @@ var operationsCmd = &cobra.Command{
 	Short: "Exports the operations data over a specified range",
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
+			cmdLogger.Info("Exporting operations to ", path)
 		}
 
 		operations, err := input.GetOperations(startNum, endNum, limit)
@@ -30,6 +33,7 @@ var operationsCmd = &cobra.Command{
 		}
 
 		failures := 0
+		numBytes := 0
 		for _, transformInput := range operations {
 			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
 			if err != nil {
@@ -59,15 +63,25 @@ var operationsCmd = &cobra.Command{
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				// outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
 				outFile.WriteString("\n")
+				numBytes += nb
+				if err != nil {
+					cmdLogger.Info("Error writing operations to file: ", err)
+				}
 			} else {
 				fmt.Println(string(marshalled))
 			}
 		}
 
 		if !strictExport {
-			printTransformStats(len(operations), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
+			}
+			printTransformStats(len(operations), failures, printLog)
 		}
 	},
 }

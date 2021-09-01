@@ -69,7 +69,11 @@ var offersCmd = &cobra.Command{
 		}
 
 		if !strictExport {
-			printTransformStats(len(offers), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+			}
+			printTransformStats(len(offers), failures, printLog)
 		}
 	},
 }

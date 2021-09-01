@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stellar/stellar-etl/internal/toid"
 
 	"github.com/spf13/cobra"
@@ -19,6 +20,7 @@ var tradesCmd = &cobra.Command{
 	Short: "Exports the trade data",
 	Long:  `Exports trade data within the specified range to an output file`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
@@ -33,6 +35,7 @@ var tradesCmd = &cobra.Command{
 		}
 
 		failures := 0
+		numBytes := 0
 		for _, tradeInput := range trades {
 			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 			if err != nil {
@@ -63,8 +66,12 @@ var tradesCmd = &cobra.Command{
 				}
 
 				if !useStdout {
-					outFile.Write(marshalled)
+					nb, err := outFile.Write(marshalled)
+					numBytes += nb
 					outFile.WriteString("\n")
+					if err != nil {
+						cmdLogger.Info("Error writing trades to file: ", err)
+					}
 				} else {
 					fmt.Println(string(marshalled))
 				}
@@ -72,7 +79,12 @@ var tradesCmd = &cobra.Command{
 		}
 
 		if !strictExport {
-			printTransformStats(len(trades), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
+			}
+			printTransformStats(len(trades), failures, printLog)
 		}
 	},
 }

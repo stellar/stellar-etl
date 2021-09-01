@@ -25,18 +25,25 @@ func TestConvertTimes(t *testing.T) {
 			golden:  "early_start.golden",
 			wantErr: nil,
 		},
-		{
-			name:    "start too late",
-			args:    []string{"get_ledger_range_from_times", "-s", "2021-09-13T23:00:00+00:00", "-e", "2021-09-13T23:30:00+00:00", "--stdout"},
-			golden:  "late_start.golden",
-			wantErr: nil,
-		},
-		{
-			name:    "end too late",
-			args:    []string{"get_ledger_range_from_times", "-s", "2017-11-10T12:14:32+04:00", "-e", "2021-09-13T23:00:00+00:00", "--stdout"},
-			golden:  "late_end.golden",
-			wantErr: nil,
-		},
+		// {
+		// 	name: "start too late",
+		// 	// @TODO
+		// 	// assertion should actually be that the start and end times equal
+		// 	// since it always grabs the end ledger you cannot hardcode the expected result
+		// 	// maybe grab the latest ledger through code??
+		// 	args:    []string{"get_ledger_range_from_times", "-s", "2021-09-13T23:00:00+00:00", "-e", "2021-09-13T23:30:00+00:00", "--stdout"},
+		// 	golden:  "late_start.golden",
+		// 	wantErr: nil,
+		// },
+		// {
+		// 	name: "end too late",
+		// 	// @TODO
+		// 	// Change the expected output to the max ledger time
+		// 	// cannot be hardcoded in a golden ledger
+		// 	args:    []string{"get_ledger_range_from_times", "-s", "2017-11-10T12:14:32+04:00", "-e", "2021-09-13T23:00:00+00:00", "--stdout"},
+		// 	golden:  "late_end.golden",
+		// 	wantErr: nil,
+		// },
 		{
 			name:    "end too early",
 			args:    []string{"get_ledger_range_from_times", "-s", "2006-11-10T12:14:32+04:00", "-e", "2006-11-10T12:14:32+04:00", "--stdout"},

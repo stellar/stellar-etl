@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -16,6 +17,7 @@ var transactionsCmd = &cobra.Command{
 	Short: "Exports the transaction data over a specified range.",
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
@@ -30,6 +32,7 @@ var transactionsCmd = &cobra.Command{
 		}
 
 		failures := 0
+		numBytes := 0
 		for _, transformInput := range transactions {
 			transformed, err := transform.TransformTransaction(transformInput.Transaction, transformInput.LedgerHistory)
 			if err != nil {
@@ -59,15 +62,24 @@ var transactionsCmd = &cobra.Command{
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
+				numBytes += nb
 				outFile.WriteString("\n")
+				if err != nil {
+					cmdLogger.Info("Error writing transactions to file: ", err)
+				}
 			} else {
 				fmt.Println(string(marshalled))
 			}
 		}
 
 		if !strictExport {
-			printTransformStats(len(transactions), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
+			}
+			printTransformStats(len(transactions), failures, printLog)
 		}
 	},
 }
