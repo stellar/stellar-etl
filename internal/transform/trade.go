@@ -165,19 +165,19 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
 
 	case xdr.OperationTypeCreatePassiveSellOffer:
-		var passiveSellResult xdr.ManageSellOfferResult
-		if passiveSellResult, ok = operationTr.GetCreatePassiveSellOfferResult(); !ok {
-			err = fmt.Errorf("Could not get CreatePassiveSellOfferResult for operation at index %d", operationIndex)
+		// KNOWN ISSUE: stellar-core creates results for CreatePassiveOffer operations
+		// with the wrong result arm set.
+		if operationTr.Type == xdr.OperationTypeManageSellOffer {
+			passiveSellResult := operationTr.MustManageSellOfferResult().MustSuccess()
+			claimedOffers = passiveSellResult.OffersClaimed
+			counterOffer = passiveSellResult.Offer.Offer
+			return
+		} else {
+			passiveSellResult := operationTr.MustCreatePassiveSellOfferResult().MustSuccess()
+			claimedOffers = passiveSellResult.OffersClaimed
+			counterOffer = passiveSellResult.Offer.Offer
 			return
 		}
-
-		if success, ok := passiveSellResult.GetSuccess(); ok {
-			claimedOffers = success.OffersClaimed
-			counterOffer = success.Offer.Offer
-			return
-		}
-
-		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		var pathSendResult xdr.PathPaymentStrictSendResult
