@@ -69,12 +69,18 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	timeBound := transaction.Envelope.TimeBounds()
 	outputTimeBounds := ""
 	if timeBound != nil {
-		if timeBound.MaxTime < timeBound.MinTime {
+		if timeBound.MaxTime < timeBound.MinTime && timeBound.MaxTime > 0 {
+
 			return TransactionOutput{}, fmt.Errorf("The max time is earlier than the min time (%d < %d) for ledger %d; transaction %d (transaction id=%d)",
 				timeBound.MaxTime, timeBound.MinTime, outputLedgerSequence, outputApplicationOrder, outputTransactionID)
 		}
 
-		outputTimeBounds = fmt.Sprintf("[%d, %d)", timeBound.MinTime, timeBound.MaxTime)
+		if timeBound.MaxTime == 0 {
+			outputTimeBounds = fmt.Sprintf("[%d,)", timeBound.MinTime)
+		} else {
+			outputTimeBounds = fmt.Sprintf("[%d,%d)", timeBound.MinTime, timeBound.MaxTime)
+		}
+
 	}
 
 	outputSuccessful := transaction.Result.Successful()

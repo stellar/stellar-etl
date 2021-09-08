@@ -92,7 +92,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			CreatedAt:        correctTime,
 			MemoType:         "MemoTypeMemoText",
 			Memo:             "HL5aCgozQHIW7sSc5XdcfmR",
-			TimeBounds:       "[0, 1594272628)",
+			TimeBounds:       "[0,1594272628)",
 			Successful:       false,
 		},
 		TransactionOutput{
@@ -108,7 +108,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			CreatedAt:            correctTime,
 			MemoType:             "MemoTypeMemoText",
 			Memo:                 "HL5aCgozQHIW7sSc5XdcfmR",
-			TimeBounds:           "[0, 1594272628)",
+			TimeBounds:           "[0,1594272628)",
 			Successful:           true,
 			InnerTransactionHash: "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 			FeeAccount:           testAccount3Address,
