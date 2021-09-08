@@ -77,6 +77,7 @@ the export_ledger_entry_changes command.`,
 		if !strictExport {
 			printLog := true
 			if !useStdout {
+				outFile.Close()
 				printLog = false
 				cmdLogger.Info("Number of bytes written: ", numBytes)
 			}

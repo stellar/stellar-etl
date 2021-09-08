@@ -81,6 +81,7 @@ var tradesCmd = &cobra.Command{
 		if !strictExport {
 			printLog := true
 			if !useStdout {
+				outFile.Close()
 				printLog = false
 				cmdLogger.Info("Number of bytes written: ", numBytes)
 			}

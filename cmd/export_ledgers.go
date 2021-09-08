@@ -16,13 +16,10 @@ import (
 func createOutputFile(filepath string) error {
 	var _, err = os.Stat(filepath)
 	if os.IsNotExist(err) {
-		// var file, err = os.Create(filepath)
 		var _, err = os.Create(filepath)
 		if err != nil {
 			return err
 		}
-
-		// defer file.Close()
 	}
 
 	return nil
@@ -39,7 +36,7 @@ func mustOutFile(path string) *os.File {
 		cmdLogger.Fatal("could not create output file: ", err)
 	}
 
-	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE, 0644)
+	outFile, err := os.OpenFile(absolutePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		cmdLogger.Fatal("error in opening output file: ", err)
 	}
@@ -129,6 +126,7 @@ var ledgersCmd = &cobra.Command{
 		if !strictExport {
 			printLog := true
 			if !useStdout {
+				outFile.Close()
 				printLog = false
 				cmdLogger.Info("Number of bytes written: ", numBytes)
 			}
