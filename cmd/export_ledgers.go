@@ -57,7 +57,6 @@ func printTransformStats(attempts, failures int, printLog bool) {
 		cmdLogger.Fatal("Could not marshall results: ", err)
 	}
 
-	// fmt.Println(string(results))
 	if printLog {
 		fmt.Println(string(results))
 	} else {
