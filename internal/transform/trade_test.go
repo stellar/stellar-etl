@@ -90,10 +90,13 @@ func TestTransformTrade(t *testing.T) {
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
 					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimOfferAtom{
-							xdr.ClaimOfferAtom{
-								SellerId:   genericAccountID,
-								AmountSold: -1,
+						OffersClaimed: []xdr.ClaimAtom{
+							xdr.ClaimAtom{
+								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+								OrderBook: &xdr.ClaimOfferAtom{
+									SellerId:   genericAccountID,
+									AmountSold: -1,
+								},
 							},
 						},
 					},
@@ -111,10 +114,13 @@ func TestTransformTrade(t *testing.T) {
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
 					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimOfferAtom{
-							xdr.ClaimOfferAtom{
-								SellerId:     genericAccountID,
-								AmountBought: -2,
+						OffersClaimed: []xdr.ClaimAtom{
+							xdr.ClaimAtom{
+								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+								OrderBook: &xdr.ClaimOfferAtom{
+									SellerId:     genericAccountID,
+									AmountBought: -2,
+								},
 							},
 						},
 					},
@@ -132,10 +138,13 @@ func TestTransformTrade(t *testing.T) {
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
 					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimOfferAtom{
-							xdr.ClaimOfferAtom{
-								SellerId: genericAccountID,
-								OfferId:  -3,
+						OffersClaimed: []xdr.ClaimAtom{
+							xdr.ClaimAtom{
+								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+								OrderBook: &xdr.ClaimOfferAtom{
+									SellerId: genericAccountID,
+									OfferId:  -3,
+								},
 							},
 						},
 					},
@@ -213,21 +222,27 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 	inputEnvelope := genericBumpOperationEnvelope
 
 	inputEnvelope.Tx.SourceAccount = testAccount3
-	offerOne := xdr.ClaimOfferAtom{
-		SellerId:     testAccount1ID,
-		OfferId:      97684906,
-		AssetSold:    ethAsset,
-		AssetBought:  usdtAsset,
-		AmountSold:   13300347,
-		AmountBought: 12634,
+	offerOne := xdr.ClaimAtom{
+		Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+		OrderBook: &xdr.ClaimOfferAtom{
+			SellerId:     testAccount1ID,
+			OfferId:      97684906,
+			AssetSold:    ethAsset,
+			AssetBought:  usdtAsset,
+			AmountSold:   13300347,
+			AmountBought: 12634,
+		},
 	}
-	offerTwo := xdr.ClaimOfferAtom{
-		SellerId:     testAccount3ID,
-		OfferId:      86106895,
-		AssetSold:    usdtAsset,
-		AssetBought:  nativeAsset,
-		AmountSold:   17339680,
-		AmountBought: 57798933,
+	offerTwo := xdr.ClaimAtom{
+		Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+		OrderBook: &xdr.ClaimOfferAtom{
+			SellerId:     testAccount3ID,
+			OfferId:      86106895,
+			AssetSold:    usdtAsset,
+			AssetBought:  nativeAsset,
+			AmountSold:   17339680,
+			AmountBought: 57798933,
+		},
 	}
 	inputOperations := []xdr.Operation{
 
@@ -281,7 +296,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				ManageSellOfferResult: &xdr.ManageSellOfferResult{
 					Code: xdr.ManageSellOfferResultCodeManageSellOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimOfferAtom{
+						OffersClaimed: []xdr.ClaimAtom{
 							offerOne,
 						},
 					},
@@ -295,7 +310,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
 					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimOfferAtom{
+						OffersClaimed: []xdr.ClaimAtom{
 							offerTwo,
 						},
 					},
@@ -309,7 +324,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				PathPaymentStrictSendResult: &xdr.PathPaymentStrictSendResult{
 					Code: xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess,
 					Success: &xdr.PathPaymentStrictSendResultSuccess{
-						Offers: []xdr.ClaimOfferAtom{
+						Offers: []xdr.ClaimAtom{
 							offerOne, offerTwo,
 						},
 					},
@@ -323,7 +338,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				PathPaymentStrictReceiveResult: &xdr.PathPaymentStrictReceiveResult{
 					Code: xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess,
 					Success: &xdr.PathPaymentStrictReceiveResultSuccess{
-						Offers: []xdr.ClaimOfferAtom{
+						Offers: []xdr.ClaimAtom{
 							offerTwo, offerOne,
 						},
 					},
@@ -336,7 +351,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				CreatePassiveSellOfferResult: &xdr.ManageSellOfferResult{
 					Code: xdr.ManageSellOfferResultCodeManageSellOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimOfferAtom{},
+						OffersClaimed: []xdr.ClaimAtom{},
 					},
 				},
 			},

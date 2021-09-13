@@ -205,7 +205,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeChangeTrust,
 				ChangeTrustOp: &xdr.ChangeTrustOp{
-					Line:  usdtAsset,
+					Line:  usdtChangeTrustAsset,
 					Limit: xdr.Int64(500000000000000000),
 				},
 			},
@@ -397,7 +397,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 						Type: xdr.LedgerEntryTypeTrustline,
 						TrustLine: &xdr.LedgerKeyTrustLine{
 							AccountId: testAccount3ID,
-							Asset:     usdtAsset,
+							Asset:     usdtTrustLineAsset,
 						},
 					},
 				},
@@ -625,7 +625,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"trustor":      hardCodedSourceAccountAddress,
 				"trustee":      hardCodedDestAccountAddress,
 				"limit":        50000000000.0,
-				"asset_code":   "USDT",
+				"asset_code":   "USSD",
 				"asset_type":   "credit_alphanum4",
 				"asset_issuer": hardCodedDestAccountAddress,
 			},
@@ -815,7 +815,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationID:      4120,
 			OperationDetails: map[string]interface{}{
 				"trustline_account_id": testAccount3Address,
-				"trustline_asset":      "USDT:GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				"trustline_asset":      "USTT:GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN",
 			},
 		},
 		OperationOutput{
