@@ -112,11 +112,11 @@ var ledgersCmd = &cobra.Command{
 
 			if !useStdout {
 				nb, err := outFile.Write(marshalled)
-				numBytes += nb
-				outFile.WriteString("\n")
 				if err != nil {
 					cmdLogger.Info("Error writing ledgers to file: ", err)
 				}
+				numBytes += nb
+				outFile.WriteString("\n")
 			} else {
 				fmt.Println(string(marshalled))
 			}

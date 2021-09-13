@@ -63,13 +63,12 @@ var operationsCmd = &cobra.Command{
 			}
 
 			if !useStdout {
-				// outFile.Write(marshalled)
 				nb, err := outFile.Write(marshalled)
-				outFile.WriteString("\n")
-				numBytes += nb
 				if err != nil {
 					cmdLogger.Info("Error writing operations to file: ", err)
 				}
+				outFile.WriteString("\n")
+				numBytes += nb
 			} else {
 				fmt.Println(string(marshalled))
 			}
