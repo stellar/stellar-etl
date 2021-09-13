@@ -35,7 +35,7 @@ func TestTransformTrustline(t *testing.T) {
 		{
 			wrapTrustlineEntry(xdr.TrustLineEntry{
 				Balance:   -1,
-				Asset:     nativeAsset,
+				Asset:     nativeTrustLineAsset,
 				AccountId: genericAccountID,
 			}, 0),
 			TrustlineOutput{}, fmt.Errorf("Balance is negative (-1) for trustline (account is %s and asset is native)", genericAccountAddress),
@@ -60,7 +60,7 @@ func makeTrustlineTestInput() ingest.Change {
 			Type: xdr.LedgerEntryTypeTrustline,
 			TrustLine: &xdr.TrustLineEntry{
 				AccountId: testAccount1ID,
-				Asset:     ethAsset,
+				Asset:     ethTrustLineAsset,
 				Balance:   6203000,
 				Limit:     9000000000000000000,
 				Flags:     1,

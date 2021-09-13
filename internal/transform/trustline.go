@@ -39,19 +39,19 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 
 	outputLedgerKey, err := trustLineEntryToLedgerKeyString(trustEntry)
 	if err != nil {
-		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not create ledger key string for trustline with account %s and asset %s", outputAccountID, asset))
+		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not create ledger key string for trustline with account %s and asset %s", outputAccountID, asset.ToAsset().StringCanonical()))
 	}
 
 	outputAssetType := int32(asset.Type)
 
 	outputBalance := int64(trustEntry.Balance)
 	if outputBalance < 0 {
-		return TrustlineOutput{}, fmt.Errorf("Balance is negative (%d) for trustline (account is %s and asset is %s)", outputBalance, outputAccountID, asset)
+		return TrustlineOutput{}, fmt.Errorf("Balance is negative (%d) for trustline (account is %s and asset is %s)", outputBalance, outputAccountID, asset.ToAsset().StringCanonical())
 	}
 
 	outputLimit := int64(trustEntry.Limit)
 	if outputLimit < 0 {
-		return TrustlineOutput{}, fmt.Errorf("Limit is negative (%d) for trustline (account is %s and asset is %s)", outputLimit, outputAccountID, asset)
+		return TrustlineOutput{}, fmt.Errorf("Limit is negative (%d) for trustline (account is %s and asset is %s)", outputLimit, outputAccountID, asset.ToAsset().StringCanonical())
 	}
 
 	//The V1 struct is the first version of the extender from trustlineEntry. It contains information on liabilities, and in the future
@@ -62,11 +62,11 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 		liabilities := trustlineExtensionInfo.Liabilities
 		outputBuyingLiabilities, outputSellingLiabilities = int64(liabilities.Buying), int64(liabilities.Selling)
 		if outputBuyingLiabilities < 0 {
-			return TrustlineOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputBuyingLiabilities, outputAccountID, asset)
+			return TrustlineOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputBuyingLiabilities, outputAccountID, asset.ToAsset().StringCanonical())
 		}
 
 		if outputSellingLiabilities < 0 {
-			return TrustlineOutput{}, fmt.Errorf("The selling liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputSellingLiabilities, outputAccountID, asset)
+			return TrustlineOutput{}, fmt.Errorf("The selling liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputSellingLiabilities, outputAccountID, asset.ToAsset().StringCanonical())
 		}
 	}
 

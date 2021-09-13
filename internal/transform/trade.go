@@ -142,7 +142,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := buyOfferResult.GetSuccess(); ok {
-			claimedOffers = success.OffersClaimed
+			claimedOffers = getClaimedOrderBook(success.OffersClaimed)
 			counterOffer = success.Offer.Offer
 			return
 		}
@@ -157,7 +157,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := sellOfferResult.GetSuccess(); ok {
-			claimedOffers = success.OffersClaimed
+			claimedOffers = getClaimedOrderBook(success.OffersClaimed)
 			counterOffer = success.Offer.Offer
 			return
 		}
@@ -169,12 +169,12 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		// with the wrong result arm set.
 		if operationTr.Type == xdr.OperationTypeManageSellOffer {
 			passiveSellResult := operationTr.MustManageSellOfferResult().MustSuccess()
-			claimedOffers = passiveSellResult.OffersClaimed
+			claimedOffers = getClaimedOrderBook(passiveSellResult.OffersClaimed)
 			counterOffer = passiveSellResult.Offer.Offer
 			return
 		} else {
 			passiveSellResult := operationTr.MustCreatePassiveSellOfferResult().MustSuccess()
-			claimedOffers = passiveSellResult.OffersClaimed
+			claimedOffers = getClaimedOrderBook(passiveSellResult.OffersClaimed)
 			counterOffer = passiveSellResult.Offer.Offer
 			return
 		}
@@ -188,7 +188,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 		success, ok := pathSendResult.GetSuccess()
 		if ok {
-			claimedOffers = success.Offers
+			claimedOffers = getClaimedOrderBook(success.Offers)
 			return
 		}
 
@@ -202,7 +202,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := pathReceiveResult.GetSuccess(); ok {
-			claimedOffers = success.Offers
+			claimedOffers = getClaimedOrderBook(success.Offers)
 			return
 		}
 
@@ -214,4 +214,14 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 	}
 
 	return
+}
+
+func getClaimedOrderBook(offers []xdr.ClaimAtom) (orderBookOffers []xdr.ClaimOfferAtom) {
+	for _, singleOffer := range offers {
+		if singleOffer.Type == xdr.ClaimAtomTypeClaimAtomTypeOrderBook {
+			orderBookOffers = append(orderBookOffers, *singleOffer.OrderBook)
+		}
+	}
+
+	return orderBookOffers
 }
