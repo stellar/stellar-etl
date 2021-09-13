@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -15,12 +16,10 @@ import (
 func createOutputFile(filepath string) error {
 	var _, err = os.Stat(filepath)
 	if os.IsNotExist(err) {
-		var file, err = os.Create(filepath)
+		var _, err = os.Create(filepath)
 		if err != nil {
 			return err
 		}
-
-		defer file.Close()
 	}
 
 	return nil
@@ -46,7 +45,7 @@ func mustOutFile(path string) *os.File {
 }
 
 // Prints the number of attempted, failed, and successful transformations as a JSON object
-func printTransformStats(attempts, failures int) {
+func printTransformStats(attempts, failures int, printLog bool) {
 	resultsMap := map[string]int{
 		"attempted_transforms":  attempts,
 		"failed_transforms":     failures,
@@ -58,7 +57,11 @@ func printTransformStats(attempts, failures int) {
 		cmdLogger.Fatal("Could not marshall results: ", err)
 	}
 
-	fmt.Println(string(results))
+	if printLog {
+		fmt.Println(string(results))
+	} else {
+		cmdLogger.Info(string(results))
+	}
 }
 
 var ledgersCmd = &cobra.Command{
@@ -66,6 +69,7 @@ var ledgersCmd = &cobra.Command{
 	Short: "Exports the ledger data.",
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
@@ -80,6 +84,7 @@ var ledgersCmd = &cobra.Command{
 		}
 
 		failures := 0
+		numBytes := 0
 		for i, lcm := range ledgers {
 			transformed, err := transform.TransformLedger(lcm)
 			if err != nil {
@@ -106,7 +111,11 @@ var ledgersCmd = &cobra.Command{
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
+				if err != nil {
+					cmdLogger.Info("Error writing ledgers to file: ", err)
+				}
+				numBytes += nb
 				outFile.WriteString("\n")
 			} else {
 				fmt.Println(string(marshalled))
@@ -114,7 +123,13 @@ var ledgersCmd = &cobra.Command{
 		}
 
 		if !strictExport {
-			printTransformStats(len(ledgers), failures)
+			printLog := true
+			if !useStdout {
+				outFile.Close()
+				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
+			}
+			printTransformStats(len(ledgers), failures, printLog)
 		}
 	},
 }

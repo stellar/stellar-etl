@@ -69,7 +69,11 @@ var trustlinesCmd = &cobra.Command{
 		}
 
 		if !strictExport {
-			printTransformStats(len(trustlines), failures)
+			printLog := true
+			if !useStdout {
+				printLog = false
+			}
+			printTransformStats(len(trustlines), failures, printLog)
 		}
 	},
 }
