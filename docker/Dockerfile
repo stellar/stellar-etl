@@ -5,6 +5,7 @@ WORKDIR /etl
 RUN go install
 
 RUN apt-get -qq update
+RUN apt-get -qq install vim
 # Needed for stellar-core
 RUN wget -qO - https://apt.stellar.org/SDF.asc | apt-key add -
 RUN echo "deb https://apt.stellar.org focal stable" | tee -a /etc/apt/sources.list.d/SDF.list
