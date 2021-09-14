@@ -16,7 +16,11 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// Mainnet passphrase
 const password = network.PublicNetworkPassphrase
+
+// Testnet passphrase
+// const password = network.TestNetworkPassphrase
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
