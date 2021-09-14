@@ -343,16 +343,16 @@ func CreateBackend(start, end uint32) (ledgerbackend.LedgerBackend, error) {
 
 // swap out the ArchiveURLs for testnet
 // testnet is only used for local testing with new Protocol features
-// var ArchiveURLs = []string{
-// 	"https://history.stellar.org/prd/core-testnet/core_testnet_001",
-// "https://history.stellar.org/prd/core-testnet/core_testnet_002",
-// "https://history.stellar.org/prd/core-testnet/core_testnet_003",
-// }
+var ArchiveURLs = []string{
+	"https://history.stellar.org/prd/core-testnet/core_testnet_001",
+	"https://history.stellar.org/prd/core-testnet/core_testnet_002",
+	"https://history.stellar.org/prd/core-testnet/core_testnet_003",
+}
 
 // FUTURENET
-var ArchiveURLs = []string{
-	"http://horizon-devnet-core-001a.dev.stellar002.internal.stellar-ops.com",
-}
+// var ArchiveURLs = []string{
+// 	"http://horizon-devnet-core-001a.dev.stellar002.internal.stellar-ops.com",
+// }
 
 func CreateHistoryArchiveClient() (historyarchive.ArchiveInterface, error) {
 	return historyarchive.NewArchivePool(ArchiveURLs, historyarchive.ConnectOptions{})
