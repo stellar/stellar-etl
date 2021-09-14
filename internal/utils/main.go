@@ -349,7 +349,7 @@ var ArchiveURLs = []string{
 // 	"https://history.stellar.org/prd/core-testnet/core_testnet_003",
 // }
 
-// FUTURENET
+// FUTURENET - Does not work, need local connect access as of 09/2021
 // var ArchiveURLs = []string{
 // 	"http://horizon-devnet-core-001a.dev.stellar002.internal.stellar-ops.com",
 // }

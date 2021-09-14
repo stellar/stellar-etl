@@ -17,7 +17,11 @@ type LedgerTransformInput struct {
 	LedgerHistory xdr.LedgerHeaderHistoryEntry
 }
 
+// Mainnet
 var publicPassword = network.PublicNetworkPassphrase
+
+// Testnet
+// var publicPassword = network.TestNetworkPassphrase
 
 // GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, error) {
