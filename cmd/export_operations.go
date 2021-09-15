@@ -27,7 +27,7 @@ var operationsCmd = &cobra.Command{
 			cmdLogger.Info("Exporting operations to ", path)
 		}
 
-		operations, err := input.GetOperations(startNum, endNum, limit)
+		operations, err := input.GetOperationsCaptive(startNum, endNum, limit)
 		if err != nil {
 			cmdLogger.Fatal("could not read operations: ", err)
 		}

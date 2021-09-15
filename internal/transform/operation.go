@@ -237,12 +237,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	details := map[string]interface{}{}
 	sourceAccount := getOperationSourceAccount(operation, transaction)
 	operationType := operation.Body.Type
-	allOperationResults, ok := transaction.Result.OperationResults()
-	if !ok {
-		return details, fmt.Errorf("Could not access any results for this transaction")
-	}
 
-	currentOperationResult := allOperationResults[operationIndex]
 	switch operationType {
 	case xdr.OperationTypeCreateAccount:
 		op, ok := operation.Body.GetCreateAccountOp()
@@ -279,6 +274,13 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access PathPaymentStrictReceive info for this operation (index %d)", operationIndex)
 		}
 
+		allOperationResults, ok := transaction.Result.OperationResults()
+		if !ok {
+			return details, fmt.Errorf("Could not access any results for this transaction")
+		}
+
+		currentOperationResult := allOperationResults[operationIndex]
+
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
 			return details, err
 		}
@@ -314,6 +316,13 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		if !ok {
 			return details, fmt.Errorf("Could not access PathPaymentStrictSend info for this operation (index %d)", operationIndex)
 		}
+
+		allOperationResults, ok := transaction.Result.OperationResults()
+		if !ok {
+			return details, fmt.Errorf("Could not access any results for this transaction")
+		}
+
+		currentOperationResult := allOperationResults[operationIndex]
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
 			return details, err
@@ -620,6 +629,15 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 	default:
 		return details, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
+	}
+
+	sponsor, err := operation.getSponsor()
+	if err != nil {
+		return details, err
+	}
+
+	if sponsor != nil {
+		details["sponsor"] = sponsor.Address()
 	}
 
 	return details, nil
