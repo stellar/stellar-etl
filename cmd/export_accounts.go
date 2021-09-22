@@ -24,7 +24,8 @@ should be used in an initial data dump. In order to get account information with
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
@@ -32,7 +33,7 @@ the export_ledger_entry_changes command.`,
 			outFile = mustOutFile(path)
 		}
 
-		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount)
+		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}

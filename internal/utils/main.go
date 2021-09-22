@@ -14,6 +14,7 @@ import (
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
@@ -109,6 +110,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
 	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 	flags.Bool("strict-export", false, "If set, transform errors will be reported as fatal errors instead of warnings.")
+	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 }
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
@@ -143,7 +145,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger, stdout, and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, useStdout bool, strictExport bool) {
+func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, useStdout, strictExport, isTest bool) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
@@ -157,6 +159,11 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, us
 	strictExport, err = flags.GetBool("strict-export")
 	if err != nil {
 		logger.Fatal("could not get strict-export boolean: ", err)
+	}
+
+	isTest, err = flags.GetBool("testnet")
+	if err != nil {
+		logger.Fatal("could not get testnet boolean: ", err)
 	}
 
 	return
@@ -313,8 +320,8 @@ func ValidateLedgerRange(start, end, latestNum uint32) error {
 	return nil
 }
 
-func CreateBackend(start, end uint32) (ledgerbackend.LedgerBackend, error) {
-	client, err := CreateHistoryArchiveClient()
+func CreateBackend(start, end uint32, archiveURLs []string) (ledgerbackend.LedgerBackend, error) {
+	client, err := CreateHistoryArchiveClient(archiveURLs)
 	if err != nil {
 		return nil, err
 	}
@@ -335,27 +342,26 @@ func CreateBackend(start, end uint32) (ledgerbackend.LedgerBackend, error) {
 }
 
 // mainnet history archive URLs
-var ArchiveURLs = []string{
+var mainArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-live/core_live_001",
 	"https://history.stellar.org/prd/core-live/core_live_002",
 	"https://history.stellar.org/prd/core-live/core_live_003",
 }
 
-// swap out the ArchiveURLs for testnet
 // testnet is only used for local testing with new Protocol features
-// var ArchiveURLs = []string{
-// 	"https://history.stellar.org/prd/core-testnet/core_testnet_001",
-// 	"https://history.stellar.org/prd/core-testnet/core_testnet_002",
-// 	"https://history.stellar.org/prd/core-testnet/core_testnet_003",
-// }
+var testArchiveURLs = []string{
+	"https://history.stellar.org/prd/core-testnet/core_testnet_001",
+	"https://history.stellar.org/prd/core-testnet/core_testnet_002",
+	"https://history.stellar.org/prd/core-testnet/core_testnet_003",
+}
 
-func CreateHistoryArchiveClient() (historyarchive.ArchiveInterface, error) {
-	return historyarchive.NewArchivePool(ArchiveURLs, historyarchive.ConnectOptions{})
+func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
+	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{})
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence
-func GetLatestLedgerSequence() (uint32, error) {
-	client, err := CreateHistoryArchiveClient()
+func GetLatestLedgerSequence(archiveURLs []string) (uint32, error) {
+	client, err := CreateHistoryArchiveClient(archiveURLs)
 	if err != nil {
 		return 0, err
 	}
@@ -414,4 +420,24 @@ func GetMostRecentCheckpoint(seq uint32) uint32 {
 		return seq
 	}
 	return seq - remainder
+}
+
+type EnvironmentDetails struct {
+	NetworkPassphrase string
+	ArchiveURLs       []string
+}
+
+// GetPassphrase returns the correct Network Passphrase based on env preference
+func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
+	if isTest {
+		// testnet passphrase to be used for testing
+		details.NetworkPassphrase = network.TestNetworkPassphrase
+		details.ArchiveURLs = testArchiveURLs
+		return details
+	} else {
+		// default: mainnet
+		details.NetworkPassphrase = network.PublicNetworkPassphrase
+		details.ArchiveURLs = mainArchiveURLs
+		return details
+	}
 }

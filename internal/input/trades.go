@@ -21,8 +21,9 @@ type TradeTransformInput struct {
 }
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
-func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
-	backend, err := utils.CreateBackend(start, end)
+func GetTrades(start, end uint32, limit int64, isTest bool) ([]TradeTransformInput, error) {
+	env := utils.GetEnvironmentDetails(isTest)
+	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []TradeTransformInput{}, err
 	}
@@ -30,7 +31,7 @@ func GetTrades(start, end uint32, limit int64) ([]TradeTransformInput, error) {
 	ctx := context.Background()
 	tradeSlice := []TradeTransformInput{}
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []TradeTransformInput{}, err
 		}

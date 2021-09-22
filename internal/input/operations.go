@@ -19,8 +19,9 @@ type OperationTransformInput struct {
 }
 
 // GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
-func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, error) {
-	backend, err := utils.CreateBackend(start, end)
+func GetOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
+	env := utils.GetEnvironmentDetails(isTest)
+	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []OperationTransformInput{}, err
 	}
@@ -28,7 +29,7 @@ func GetOperations(start, end uint32, limit int64) ([]OperationTransformInput, e
 	opSlice := []OperationTransformInput{}
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []OperationTransformInput{}, err
 		}
