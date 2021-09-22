@@ -240,7 +240,11 @@ func getClaimedOrderBook(offers []xdr.ClaimAtom) (orderBookOffers []xdr.ClaimOff
 		switch singleOffer.Type {
 		case xdr.ClaimAtomTypeClaimAtomTypeV0:
 			// Protocols 17 and 18 changes the Orderbook structure
-			singleOfferOrders := singleOffer.MustV0()
+			singleOfferOrders, ok := singleOffer.GetV0()
+			if !ok {
+				err = fmt.Errorf("Could not fetch V0 type for xdr.ClaimAtom")
+				return orderBookOffers, err
+			}
 			singleClaimOfferAtom.SellerId.Ed25519 = &singleOfferOrders.SellerEd25519
 			singleClaimOfferAtom.SellerId.Type = xdr.PublicKeyTypePublicKeyTypeEd25519
 			singleClaimOfferAtom.OfferId = singleOfferOrders.OfferId
@@ -251,7 +255,11 @@ func getClaimedOrderBook(offers []xdr.ClaimAtom) (orderBookOffers []xdr.ClaimOff
 			orderBookOffers = append(orderBookOffers, singleClaimOfferAtom)
 
 		case xdr.ClaimAtomTypeClaimAtomTypeOrderBook:
-			singleOfferOrders := singleOffer.MustOrderBook()
+			singleOfferOrders, ok := singleOffer.GetOrderBook()
+			if !ok {
+				err = fmt.Errorf("Could not fetch Orderbook type for xdr.ClaimAtom")
+				return orderBookOffers, err
+			}
 			orderBookOffers = append(orderBookOffers, singleOfferOrders)
 
 		default:
