@@ -237,12 +237,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	details := map[string]interface{}{}
 	sourceAccount := getOperationSourceAccount(operation, transaction)
 	operationType := operation.Body.Type
-	// allOperationResults, ok := transaction.Result.OperationResults()
-	// if !ok {
-	// 	return details, fmt.Errorf("Could not access any results for this transaction")
-	// }
 
-	// currentOperationResult := allOperationResults[operationIndex]
 	switch operationType {
 	case xdr.OperationTypeCreateAccount:
 		op, ok := operation.Body.GetCreateAccountOp()
