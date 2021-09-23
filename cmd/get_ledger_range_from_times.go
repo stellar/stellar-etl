@@ -45,6 +45,11 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get stdout boolean: ", err)
 		}
 
+		isTest, err := cmd.Flags().GetBool("testnet")
+		if err != nil {
+			cmdLogger.Fatal("could not get testnet boolean: ", err)
+		}
+
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
@@ -61,7 +66,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not parse end time: ", err)
 		}
 
-		startLedger, endLedger, err := input.GetLedgerRange(startTime, endTime)
+		startLedger, endLedger, err := input.GetLedgerRange(startTime, endTime, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not calculate ledger range: ", err)
 		}
@@ -88,6 +93,7 @@ func init() {
 	getLedgerRangeFromTimesCmd.Flags().StringP("end-time", "e", "", "The end time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
 	getLedgerRangeFromTimesCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
+	getLedgerRangeFromTimesCmd.Flags().Bool("testnet", false, "If set, the batch job will connect to testnet instead of mainnet.")
 
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("start-time")
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("end-time")

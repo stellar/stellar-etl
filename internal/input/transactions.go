@@ -7,7 +7,6 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 )
 
@@ -17,15 +16,10 @@ type LedgerTransformInput struct {
 	LedgerHistory xdr.LedgerHeaderHistoryEntry
 }
 
-// Mainnet
-var publicPassword = network.PublicNetworkPassphrase
-
-// Testnet
-// var publicPassword = network.TestNetworkPassphrase
-
 // GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, error) {
-	backend, err := utils.CreateBackend(start, end)
+func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTransformInput, error) {
+	env := utils.GetEnvironmentDetails(isTest)
+	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
@@ -33,7 +27,7 @@ func GetTransactions(start, end uint32, limit int64) ([]LedgerTransformInput, er
 	var txSlice []LedgerTransformInput
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}

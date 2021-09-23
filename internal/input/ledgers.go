@@ -9,8 +9,9 @@ import (
 )
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetLedgers(start, end uint32, limit int64) ([]xdr.LedgerCloseMeta, error) {
-	backend, err := utils.CreateBackend(start, end)
+func GetLedgers(start, end uint32, limit int64, isTest bool) ([]xdr.LedgerCloseMeta, error) {
+	env := utils.GetEnvironmentDetails(isTest)
+	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []xdr.LedgerCloseMeta{}, err
 	}

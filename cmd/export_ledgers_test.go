@@ -16,7 +16,8 @@ import (
 
 var executableName = "stellar-etl"
 var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
-var latestLedger = getLastSeqNum()
+var archiveURLs = []string{archiveURL}
+var latestLedger = getLastSeqNum(archiveURLs)
 var update = flag.Bool("update", false, "update the golden files of this test")
 
 type cliTest struct {
@@ -145,8 +146,8 @@ func removeCoreLogging(loggerOutput string) string {
 	return loggerOutput[endIndex:len(loggerOutput)]
 }
 
-func getLastSeqNum() uint32 {
-	num, err := utils.GetLatestLedgerSequence()
+func getLastSeqNum(archiveURLs []string) uint32 {
+	num, err := utils.GetLatestLedgerSequence(archiveURLs)
 	if err != nil {
 		panic(err)
 	}

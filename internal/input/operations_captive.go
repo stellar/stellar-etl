@@ -27,13 +27,13 @@ func panicIf(err error) {
 }
 
 // GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
-func GetOperationsCaptive(start, end uint32, limit int64) ([]OperationTransformInput, error) {
+func GetOperationsCaptive(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]OperationTransformInput, error) {
 	ctx := context.Background()
 	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
 		"docker/stellar-core.cfg",
 		ledgerbackend.CaptiveCoreTomlParams{
 			NetworkPassphrase:  network.PublicNetworkPassphrase,
-			HistoryArchiveURLs: utils.ArchiveURLs,
+			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
 		},
 	)
@@ -43,7 +43,7 @@ func GetOperationsCaptive(start, end uint32, limit int64) ([]OperationTransformI
 			BinaryPath:         "/usr/bin/stellar-core",
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  network.PublicNetworkPassphrase,
-			HistoryArchiveURLs: utils.ArchiveURLs,
+			HistoryArchiveURLs: env.ArchiveURLs,
 		},
 	)
 	if err != nil {
@@ -55,7 +55,7 @@ func GetOperationsCaptive(start, end uint32, limit int64) ([]OperationTransformI
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
 		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
-		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, publicPassword, seq)
+		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []OperationTransformInput{}, err
 		}

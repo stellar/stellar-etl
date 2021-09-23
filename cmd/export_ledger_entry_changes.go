@@ -26,7 +26,8 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
@@ -60,14 +61,14 @@ be exported.`,
 			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
 		}
 
-		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum)
+		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
 		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
 
-		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, cmdLogger)
+		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, env, cmdLogger)
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
 			for i := uint32(0); i < batchCount; i++ {

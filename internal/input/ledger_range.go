@@ -29,15 +29,16 @@ type graph struct {
 const avgCloseTime = time.Second * 5 // average time to close a stellar ledger
 
 // GetLedgerRange calculates the ledger range that spans the provided date range
-func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
+func GetLedgerRange(startTime, endTime time.Time, isTest bool) (int64, int64, error) {
 	startTime = startTime.UTC()
 	endTime = endTime.UTC()
+	env := utils.GetEnvironmentDetails(isTest)
 
 	if startTime.After(endTime) {
 		return 0, 0, fmt.Errorf("start time must be less than or equal to the end time")
 	}
 
-	graph, err := createNewGraph()
+	graph, err := createNewGraph(env.ArchiveURLs)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -63,9 +64,9 @@ func GetLedgerRange(startTime, endTime time.Time) (int64, int64, error) {
 }
 
 // createNewGraph makes a new graph with the endpoints equal to the network's endpoints
-func createNewGraph() (graph, error) {
+func createNewGraph(archiveURLs []string) (graph, error) {
 	graph := graph{}
-	archive, err := utils.CreateHistoryArchiveClient()
+	archive, err := utils.CreateHistoryArchiveClient(archiveURLs)
 	if err != nil {
 		return graph, err
 	}
