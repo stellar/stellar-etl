@@ -54,10 +54,12 @@ func GetOperationsCaptive(start, end uint32, limit int64) ([]OperationTransformI
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
+		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
+		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, publicPassword, seq)
 		if err != nil {
 			return []OperationTransformInput{}, err
 		}
+		txReader := changeReader.LedgerTransactionReader
 
 		for int64(len(opSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()

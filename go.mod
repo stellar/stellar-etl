@@ -28,7 +28,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20210909191921-952b079d0cb7
+	github.com/stellar/go v0.0.0-20210914171233-9e69521ed240
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

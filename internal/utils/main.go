@@ -104,6 +104,84 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 	}
 }
 
+func CreateSampleTxMeta(subOperationCount int, AssetA, AssetB xdr.Asset) *xdr.TransactionMetaV1 {
+	operationMeta := []xdr.OperationMeta{}
+	for i := 0; i < subOperationCount; i++ {
+		operationMeta = append(operationMeta, xdr.OperationMeta{
+			Changes: xdr.LedgerEntryChanges{},
+		})
+	}
+
+	operationMeta = AddLPOperations(operationMeta, AssetA, AssetB)
+	operationMeta = AddLPOperations(operationMeta, AssetA, AssetB)
+
+	operationMeta = append(operationMeta, xdr.OperationMeta{
+		Changes: xdr.LedgerEntryChanges{},
+	})
+
+	return &xdr.TransactionMetaV1{
+		Operations: operationMeta,
+	}
+}
+
+func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr.OperationMeta {
+	txMeta = append(txMeta, xdr.OperationMeta{
+		Changes: xdr.LedgerEntryChanges{
+			xdr.LedgerEntryChange{
+				Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+				State: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LiquidityPoolEntry{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							Body: xdr.LiquidityPoolEntryBody{
+								Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+								ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+									Params: xdr.LiquidityPoolConstantProductParameters{
+										AssetA: AssetA,
+										AssetB: AssetB,
+										Fee:    30,
+									},
+									ReserveA:                 100000,
+									ReserveB:                 1000,
+									TotalPoolShares:          500,
+									PoolSharesTrustLineCount: 25,
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.LedgerEntryChange{
+				Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+				Updated: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LiquidityPoolEntry{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							Body: xdr.LiquidityPoolEntryBody{
+								Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+								ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+									Params: xdr.LiquidityPoolConstantProductParameters{
+										AssetA: AssetA,
+										AssetB: AssetB,
+										Fee:    30,
+									},
+									ReserveA:                 101000,
+									ReserveB:                 1100,
+									TotalPoolShares:          502,
+									PoolSharesTrustLineCount: 26,
+								},
+							},
+						},
+					},
+				},
+			},
+		}})
+
+	return txMeta
+}
+
 // AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")

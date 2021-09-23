@@ -99,6 +99,18 @@ type Path struct {
 	AssetType   string `json:"asset_type"`
 }
 
+// LiquidityPoolAsset represents the asset pairs in a liquidity pool
+type LiquidityPoolAsset struct {
+	AssetAType   string
+	AssetACode   string
+	AssetAIssuer string
+	AssetAAmount float64
+	AssetBType   string
+	AssetBCode   string
+	AssetBIssuer string
+	AssetBAmount float64
+}
+
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
 type AssetOutput struct {
 	AssetCode   string `json:"asset_code"`

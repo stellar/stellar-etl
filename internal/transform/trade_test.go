@@ -382,7 +382,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 		PriceD:                13300347,
 		BaseOfferID:           97684906,
 		CounterOfferID:        4611686018427388004,
-		HistoryOperationID:    100,
+		HistoryOperationID:    101,
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
@@ -403,7 +403,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 		PriceD:                17339680,
 		BaseOfferID:           86106895,
 		CounterOfferID:        4611686018427388004,
-		HistoryOperationID:    100,
+		HistoryOperationID:    101,
 	}
 
 	onePriceIsAmount := offerOneOutput
