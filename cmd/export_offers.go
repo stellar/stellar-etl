@@ -23,7 +23,8 @@ var offersCmd = &cobra.Command{
 	should be used in an initial data dump. In order to get offer information within a specified ledger range, see 
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
@@ -31,7 +32,7 @@ var offersCmd = &cobra.Command{
 			outFile = mustOutFile(path)
 		}
 
-		offers, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeOffer)
+		offers, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read offers: ", err)
 		}

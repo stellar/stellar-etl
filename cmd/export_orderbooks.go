@@ -26,7 +26,8 @@ var exportOrderbooksCmd = &cobra.Command{
 	If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
 	confirmed by the Stellar network. In this unbounded case, a stellar-core config path is required to utilize the Captive Core toml.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		var folderPath string
@@ -54,19 +55,19 @@ var exportOrderbooksCmd = &cobra.Command{
 		}
 
 		checkpointSeq := utils.GetMostRecentCheckpoint(startNum)
-		core, err := input.PrepareCaptiveCore(execPath, configPath, checkpointSeq, endNum)
+		core, err := input.PrepareCaptiveCore(execPath, configPath, checkpointSeq, endNum, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
-		orderbook, err := input.GetEntriesFromGenesis(checkpointSeq, xdr.LedgerEntryTypeOffer)
+		orderbook, err := input.GetEntriesFromGenesis(checkpointSeq, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read initial orderbook: ", err)
 		}
 
 		orderbookChannel := make(chan input.OrderbookBatch)
 
-		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, cmdLogger)
+		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, env, cmdLogger)
 
 		// If the end sequence number is defined, we work in a closed range and export a finite number of batches
 		if endNum != 0 {

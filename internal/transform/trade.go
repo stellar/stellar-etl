@@ -142,7 +142,10 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := buyOfferResult.GetSuccess(); ok {
-			claimedOffers = success.OffersClaimed
+			if claimedOffers, err = getClaimedOrderBook(success.OffersClaimed); err != nil {
+				err = fmt.Errorf("Could not get orderbook: %v", err)
+				return
+			}
 			counterOffer = success.Offer.Offer
 			return
 		}
@@ -157,7 +160,10 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := sellOfferResult.GetSuccess(); ok {
-			claimedOffers = success.OffersClaimed
+			if claimedOffers, err = getClaimedOrderBook(success.OffersClaimed); err != nil {
+				err = fmt.Errorf("Could not get orderbook: %v", err)
+				return
+			}
 			counterOffer = success.Offer.Offer
 			return
 		}
@@ -169,12 +175,18 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		// with the wrong result arm set.
 		if operationTr.Type == xdr.OperationTypeManageSellOffer {
 			passiveSellResult := operationTr.MustManageSellOfferResult().MustSuccess()
-			claimedOffers = passiveSellResult.OffersClaimed
+			if claimedOffers, err = getClaimedOrderBook(passiveSellResult.OffersClaimed); err != nil {
+				err = fmt.Errorf("Could not get orderbook: %v", err)
+				return
+			}
 			counterOffer = passiveSellResult.Offer.Offer
 			return
 		} else {
 			passiveSellResult := operationTr.MustCreatePassiveSellOfferResult().MustSuccess()
-			claimedOffers = passiveSellResult.OffersClaimed
+			if claimedOffers, err = getClaimedOrderBook(passiveSellResult.OffersClaimed); err != nil {
+				err = fmt.Errorf("Could not get orderbook: %v", err)
+				return
+			}
 			counterOffer = passiveSellResult.Offer.Offer
 			return
 		}
@@ -188,7 +200,10 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 		success, ok := pathSendResult.GetSuccess()
 		if ok {
-			claimedOffers = success.Offers
+			if claimedOffers, err = getClaimedOrderBook(success.Offers); err != nil {
+				err = fmt.Errorf("Could not get orderbook: %v", err)
+				return
+			}
 			return
 		}
 
@@ -202,7 +217,10 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := pathReceiveResult.GetSuccess(); ok {
-			claimedOffers = success.Offers
+			if claimedOffers, err = getClaimedOrderBook(success.Offers); err != nil {
+				err = fmt.Errorf("Could not get orderbook: %v", err)
+				return
+			}
 			return
 		}
 
@@ -214,4 +232,41 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 	}
 
 	return
+}
+
+func getClaimedOrderBook(offers []xdr.ClaimAtom) (orderBookOffers []xdr.ClaimOfferAtom, err error) {
+	var singleClaimOfferAtom xdr.ClaimOfferAtom
+	for _, singleOffer := range offers {
+		switch singleOffer.Type {
+		case xdr.ClaimAtomTypeClaimAtomTypeV0:
+			// Protocols 17 and 18 changes the Orderbook structure
+			singleOfferOrders, ok := singleOffer.GetV0()
+			if !ok {
+				err = fmt.Errorf("Could not fetch V0 type for xdr.ClaimAtom")
+				return orderBookOffers, err
+			}
+			singleClaimOfferAtom.SellerId.Ed25519 = &singleOfferOrders.SellerEd25519
+			singleClaimOfferAtom.SellerId.Type = xdr.PublicKeyTypePublicKeyTypeEd25519
+			singleClaimOfferAtom.OfferId = singleOfferOrders.OfferId
+			singleClaimOfferAtom.AssetSold = singleOfferOrders.AssetSold
+			singleClaimOfferAtom.AmountSold = singleOfferOrders.AmountSold
+			singleClaimOfferAtom.AssetBought = singleOfferOrders.AssetBought
+			singleClaimOfferAtom.AmountBought = singleOfferOrders.AmountBought
+			orderBookOffers = append(orderBookOffers, singleClaimOfferAtom)
+
+		case xdr.ClaimAtomTypeClaimAtomTypeOrderBook:
+			singleOfferOrders, ok := singleOffer.GetOrderBook()
+			if !ok {
+				err = fmt.Errorf("Could not fetch Orderbook type for xdr.ClaimAtom")
+				return orderBookOffers, err
+			}
+			orderBookOffers = append(orderBookOffers, singleOfferOrders)
+
+		default:
+			err = fmt.Errorf("Could not parse the ClaimAtomType")
+			return
+		}
+	}
+
+	return orderBookOffers, nil
 }

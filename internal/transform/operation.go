@@ -156,7 +156,7 @@ func addLedgerKeyToDetails(result map[string]interface{}, ledgerKey xdr.LedgerKe
 		result["offer_id"] = int64(ledgerKey.Offer.OfferId)
 	case xdr.LedgerEntryTypeTrustline:
 		result["trustline_account_id"] = ledgerKey.TrustLine.AccountId.Address()
-		result["trustline_asset"] = ledgerKey.TrustLine.Asset.StringCanonical()
+		result["trustline_asset"] = ledgerKey.TrustLine.Asset.ToAsset().StringCanonical()
 	}
 	return nil
 }
@@ -468,7 +468,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access GetChangeTrust info for this operation (index %d)", operationIndex)
 		}
 
-		if err := addAssetDetailsToOperationDetails(details, op.Line, ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Line.ToAsset(), ""); err != nil {
 			return details, err
 		}
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "trustor"); err != nil {

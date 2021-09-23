@@ -18,7 +18,7 @@ var operationsCmd = &cobra.Command{
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
@@ -27,7 +27,7 @@ var operationsCmd = &cobra.Command{
 			cmdLogger.Info("Exporting operations to ", path)
 		}
 
-		operations, err := input.GetOperations(startNum, endNum, limit)
+		operations, err := input.GetOperations(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read operations: ", err)
 		}

@@ -21,7 +21,7 @@ var tradesCmd = &cobra.Command{
 	Long:  `Exports trade data within the specified range to an output file`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
@@ -29,7 +29,7 @@ var tradesCmd = &cobra.Command{
 			outFile = mustOutFile(path)
 		}
 
-		trades, err := input.GetTrades(startNum, endNum, limit)
+		trades, err := input.GetTrades(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read trades: ", err)
 		}

@@ -11,8 +11,9 @@ import (
 )
 
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
-func GetPaymentOperations(start, end uint32, limit int64) ([]OperationTransformInput, error) {
-	backend, err := utils.CreateBackend(start, end)
+func GetPaymentOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
+	env := utils.GetEnvironmentDetails(isTest)
+	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []OperationTransformInput{}, err
 	}
@@ -20,7 +21,7 @@ func GetPaymentOperations(start, end uint32, limit int64) ([]OperationTransformI
 	opSlice := []OperationTransformInput{}
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
+		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []OperationTransformInput{}, err
 		}

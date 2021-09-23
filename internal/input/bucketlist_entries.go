@@ -12,13 +12,13 @@ import (
 )
 
 // GetEntriesFromGenesis returns a slice of ledger entries of the specified type for the ledgers starting from the genesis ledger and ending at end (inclusive)
-func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
-	archive, err := utils.CreateHistoryArchiveClient()
+func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType, archiveURLs []string) ([]ingest.Change, error) {
+	archive, err := utils.CreateHistoryArchiveClient(archiveURLs)
 	if err != nil {
 		return []ingest.Change{}, err
 	}
 
-	latestNum, err := utils.GetLatestLedgerSequence()
+	latestNum, err := utils.GetLatestLedgerSequence(archiveURLs)
 	if err != nil {
 		return []ingest.Change{}, err
 	}

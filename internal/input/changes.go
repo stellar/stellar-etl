@@ -11,12 +11,9 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 )
-
-const password = network.PublicNetworkPassphrase
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
@@ -27,12 +24,12 @@ type ChangeBatch struct {
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
-func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*ledgerbackend.CaptiveStellarCore, error) {
+func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env utils.EnvironmentDetails) (*ledgerbackend.CaptiveStellarCore, error) {
 	toml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
 		tomlPath,
 		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  password,
-			HistoryArchiveURLs: utils.ArchiveURLs,
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
 		},
 	)
@@ -44,8 +41,8 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*l
 		ledgerbackend.CaptiveCoreConfig{
 			BinaryPath:         execPath,
 			Toml:               toml,
-			NetworkPassphrase:  password,
-			HistoryArchiveURLs: utils.ArchiveURLs,
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
 		},
 	)
 	if err != nil {
@@ -56,7 +53,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32) (*l
 
 	if end != 0 {
 		ledgerRange = ledgerbackend.BoundedRange(start, end)
-		latest, err := utils.GetLatestLedgerSequence()
+		latest, err := utils.GetLatestLedgerSequence(env.ArchiveURLs)
 		if err != nil {
 			return &ledgerbackend.CaptiveStellarCore{}, err
 		}
@@ -145,7 +142,7 @@ func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, 
 }
 
 // exportBatch gets the changes from the ledgers in the range [batchStart, batchEnd), compacts them, and sends them to the proper channels
-func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) {
+func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *log.Entry) {
 	accChanges := ingest.NewChangeCompactor()
 	offChanges := ingest.NewChangeCompactor()
 	trustChanges := ingest.NewChangeCompactor()
@@ -159,7 +156,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
 		if seq <= latestLedger {
-			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, password, seq)
+			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
@@ -201,7 +198,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 }
 
 // StreamChanges runs a goroutine that reads in ledgers, processes the changes, and send the changes to the channel matching their type
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, accChannel, offChannel, trustChannel chan ChangeBatch, logger *log.Entry) {
+func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, accChannel, offChannel, trustChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *log.Entry) {
 	if end != 0 {
 		totalBatches := uint32(math.Ceil(float64(end-start+1) / float64(batchSize)))
 		for currentBatch := uint32(0); currentBatch < totalBatches; currentBatch++ {
@@ -211,13 +208,13 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 				batchEnd = end + 1
 			}
 
-			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, logger)
+			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, env, logger)
 		}
 	} else {
 		batchStart := start
 		batchEnd := batchStart + batchSize
 		for {
-			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, logger)
+			exportBatch(batchStart, batchEnd, core, accChannel, offChannel, trustChannel, env, logger)
 			batchStart = batchEnd
 			batchEnd = batchStart + batchSize
 		}

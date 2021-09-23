@@ -18,7 +18,7 @@ var transactionsCmd = &cobra.Command{
 	Long:  `Exports the transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
 		var outFile *os.File
@@ -26,7 +26,7 @@ var transactionsCmd = &cobra.Command{
 			outFile = mustOutFile(path)
 		}
 
-		transactions, err := input.GetTransactions(startNum, endNum, limit)
+		transactions, err := input.GetTransactions(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}

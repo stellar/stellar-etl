@@ -76,11 +76,28 @@ var testAccount4 = testAccount4ID.ToMuxedAccount()
 
 var usdtAsset = xdr.Asset{
 	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-	AlphaNum4: &xdr.AssetAlphaNum4{
+	AlphaNum4: &xdr.AlphaNum4{
 		AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x44, 0x54}),
 		Issuer:    testAccount4ID,
 	},
 }
+
+var usdtTrustLineAsset = xdr.TrustLineAsset{
+	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
+	AlphaNum4: &xdr.AlphaNum4{
+		AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x54, 0x54}),
+		Issuer:    testAccount3ID,
+	},
+}
+
+var usdtChangeTrustAsset = xdr.ChangeTrustAsset{
+	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
+	AlphaNum4: &xdr.AlphaNum4{
+		AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x53, 0x44}),
+		Issuer:    testAccount4ID,
+	},
+}
+
 var usdtAssetPath = Path{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "USDT",
@@ -89,11 +106,20 @@ var usdtAssetPath = Path{
 
 var ethAsset = xdr.Asset{
 	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
-	AlphaNum4: &xdr.AssetAlphaNum4{
+	AlphaNum4: &xdr.AlphaNum4{
 		AssetCode: xdr.AssetCode4([4]byte{0x45, 0x54, 0x48}),
 		Issuer:    testAccount3ID,
 	},
 }
+
+var ethTrustLineAsset = xdr.TrustLineAsset{
+	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
+	AlphaNum4: &xdr.AlphaNum4{
+		AssetCode: xdr.AssetCode4([4]byte{0x45, 0x54, 0x48}),
+		Issuer:    testAccount3ID,
+	},
+}
+
 var ethAssetPath = Path{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "ETH",
@@ -104,6 +130,8 @@ var nativeAsset = xdr.MustNewNativeAsset()
 var nativeAssetPath = Path{
 	AssetType: "native",
 }
+
+var nativeTrustLineAsset = xdr.MustNewNativeAsset().ToTrustLineAsset()
 
 var genericClaimableBalance = xdr.ClaimableBalanceId{
 	Type: xdr.ClaimableBalanceIdTypeClaimableBalanceIdTypeV0,
