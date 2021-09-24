@@ -215,6 +215,11 @@ var ethAssetPath = Path{
 	AssetIssuer: testAccount1Address,
 }
 
+var liquidityPoolAsset = xdr.TrustLineAsset{
+	Type:            xdr.AssetTypeAssetTypePoolShare,
+	LiquidityPoolId: &xdr.PoolId{1, 3, 4, 5, 7, 9},
+}
+
 var nativeAsset = xdr.MustNewNativeAsset()
 var nativeAssetPath = Path{
 	AssetType: "native",
