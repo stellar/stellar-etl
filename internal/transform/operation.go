@@ -456,6 +456,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 
 		if transaction.Result.Successful() {
+			allOperationResults, ok := transaction.Result.OperationResults()
+			if !ok {
+				return details, fmt.Errorf("Could not access any results for this transaction")
+			}
+			currentOperationResult := allOperationResults[operationIndex]
 			resultBody, ok := currentOperationResult.GetTr()
 			if !ok {
 				return details, fmt.Errorf("Could not access result body for this operation (index %d)", operationIndex)
@@ -499,6 +504,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 
 		if transaction.Result.Successful() {
+			allOperationResults, ok := transaction.Result.OperationResults()
+			if !ok {
+				return details, fmt.Errorf("Could not access any results for this transaction")
+			}
+			currentOperationResult := allOperationResults[operationIndex]
 			resultBody, ok := currentOperationResult.GetTr()
 			if !ok {
 				return details, fmt.Errorf("Could not access result body for this operation (index %d)", operationIndex)
