@@ -23,13 +23,14 @@ var tradesCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
 		}
 
-		trades, err := input.GetTrades(startNum, endNum, limit, isTest)
+		trades, err := input.GetTradesCaptive(startNum, endNum, limit, env)
 		if err != nil {
 			cmdLogger.Fatal("could not read trades: ", err)
 		}
