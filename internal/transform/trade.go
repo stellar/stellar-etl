@@ -6,11 +6,10 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/toid"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
@@ -27,20 +26,12 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 	operation := transaction.Envelope.Operations()[operationIndex]
 	// operation id is +1 incremented to stay in sync with ingest package
 	outputOperationID := operationID + 1
-	claimedOffers, counterOffer, buyOfferExists, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
+	claimedOffers, counterOffer, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
 	if err != nil {
 		return []TradeOutput{}, err
 	}
 
-	var outputCounterOfferID int64
-	if counterOffer != nil {
-		outputCounterOfferID = int64(counterOffer.OfferId)
-	} else {
-		outputCounterOfferID = toid.EncodeOfferId(uint64(operationID), toid.TOIDType)
-	}
-
 	transformedTrades := []TradeOutput{}
-	sourceAccount := transaction.Envelope.SourceAccount()
 
 	for claimOrder, claimOffer := range claimedOffers {
 		outputOrder := int32(claimOrder)
@@ -51,8 +42,6 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			return []TradeOutput{}, fmt.Errorf("Offer ID is negative (%d) for operation at index %d", outputOfferID, operationIndex)
 		}
 
-		// outputBaseAccountAddress := claimOffer.SellerId().Address()
-
 		var outputBaseAssetType, outputBaseAssetCode, outputBaseAssetIssuer string
 		err = claimOffer.AssetSold().Extract(&outputBaseAssetType, &outputBaseAssetCode, &outputBaseAssetIssuer)
 		if err != nil {
@@ -62,11 +51,6 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		outputBaseAmount := int64(claimOffer.AmountSold())
 		if outputBaseAmount < 0 {
 			return []TradeOutput{}, fmt.Errorf("Amount sold is negative (%d) for operation at index %d", outputBaseAmount, operationIndex)
-		}
-
-		outputCounterAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(sourceAccount)
-		if err != nil {
-			return []TradeOutput{}, err
 		}
 
 		var outputCounterAssetType, outputCounterAssetCode, outputCounterAssetIssuer string
@@ -89,23 +73,36 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 		outputBaseIsSeller := true
 
-		var outputBaseAccountAddress, liquidityPoolID string
+		var outputBaseAccountAddress string
+		var liquidityPoolID null.String
 		var outputPoolFee null.Int
+		var outputBaseOfferID, outputCounterOfferID null.Int
 		if claimOffer.Type == xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
 			id := claimOffer.MustLiquidityPool().LiquidityPoolId
-			liquidityPoolID = PoolIDToString(id)
+			liquidityPoolID = null.StringFrom(PoolIDToString(id))
 			var fee uint32
 			if fee, err = findPoolFee(transaction, operationIndex, id); err != nil {
 				return []TradeOutput{}, fmt.Errorf("Cannot parse fee for liquidity pool %v", liquidityPoolID)
 			}
 			outputPoolFee = null.IntFrom(int64(fee))
 		} else {
-			outputOfferID = int64(claimOffer.OfferId())
+			outputBaseOfferID = null.IntFrom(int64(claimOffer.OfferId()))
 			outputBaseAccountAddress = claimOffer.SellerId().Address()
 		}
 
-		if buyOfferExists {
-			outputCounterOfferID = int64(claimOffer.OfferId())
+		if counterOffer != nil {
+			outputCounterOfferID = null.IntFrom(int64(claimOffer.OfferId()))
+		} else {
+			outputCounterOfferID = null.IntFrom(toid.EncodeOfferId(uint64(operationID), toid.TOIDType))
+		}
+
+		var outputCounterAccountAddress string
+		if buyer := operation.SourceAccount; buyer != nil {
+			accid := buyer.ToAccountId()
+			outputCounterAccountAddress = accid.Address()
+		} else {
+			sa := transaction.Envelope.SourceAccount().ToAccountId()
+			outputCounterAccountAddress = sa.Address()
 		}
 
 		trade := TradeOutput{
@@ -125,8 +122,9 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			BaseIsSeller:          outputBaseIsSeller,
 			PriceN:                outputPriceN,
 			PriceD:                outputPriceD,
-			BaseOfferID:           outputOfferID,
+			BaseOfferID:           outputBaseOfferID,
 			CounterOfferID:        outputCounterOfferID,
+			LiquidityPoolID:       liquidityPoolID,
 			LiquidityPoolFee:      outputPoolFee,
 			HistoryOperationID:    outputOperationID,
 		}
@@ -136,7 +134,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 	return transformedTrades, nil
 }
 
-func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimAtom, counterOffer *xdr.OfferEntry, buyOfferExists bool, err error) {
+func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimAtom, counterOffer *xdr.OfferEntry, err error) {
 	if operationIndex >= int32(len(operationResults)) {
 		err = fmt.Errorf("Operation index of %d is out of bounds in result slice (len = %d)", operationIndex, len(operationResults))
 		return
@@ -164,7 +162,6 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		if success, ok := buyOfferResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
 			counterOffer = success.Offer.Offer
-			_, buyOfferExists = success.Offer.GetOffer()
 			return
 		}
 

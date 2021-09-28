@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -233,17 +234,17 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			AmountBought: 12634,
 		},
 	}
-	offerTwo := xdr.ClaimAtom{
-		Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
-		OrderBook: &xdr.ClaimOfferAtom{
-			SellerId:     testAccount3ID,
-			OfferId:      86106895,
-			AssetSold:    usdtAsset,
-			AssetBought:  nativeAsset,
-			AmountSold:   17339680,
-			AmountBought: 57798933,
-		},
-	}
+	// offerTwo := xdr.ClaimAtom{
+	// 	Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
+	// 	OrderBook: &xdr.ClaimOfferAtom{
+	// 		SellerId:     testAccount3ID,
+	// 		OfferId:      86106895,
+	// 		AssetSold:    usdtAsset,
+	// 		AssetBought:  nativeAsset,
+	// 		AmountSold:   17339680,
+	// 		AmountBought: 57798933,
+	// 	},
+	// }
 	inputOperations := []xdr.Operation{
 
 		xdr.Operation{
@@ -254,38 +255,38 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			},
 		},
 
-		xdr.Operation{
-			SourceAccount: nil,
-			Body: xdr.OperationBody{
-				Type:             xdr.OperationTypeManageBuyOffer,
-				ManageBuyOfferOp: &xdr.ManageBuyOfferOp{},
-			},
-		},
-		xdr.Operation{
-			SourceAccount: nil,
-			Body: xdr.OperationBody{
-				Type: xdr.OperationTypePathPaymentStrictSend,
-				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{
-					Destination: testAccount1,
-				},
-			},
-		},
-		xdr.Operation{
-			SourceAccount: &testAccount3,
-			Body: xdr.OperationBody{
-				Type: xdr.OperationTypePathPaymentStrictReceive,
-				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
-					Destination: testAccount1,
-				},
-			},
-		},
-		xdr.Operation{
-			SourceAccount: nil,
-			Body: xdr.OperationBody{
-				Type:                     xdr.OperationTypeCreatePassiveSellOffer,
-				CreatePassiveSellOfferOp: &xdr.CreatePassiveSellOfferOp{},
-			},
-		},
+		// xdr.Operation{
+		// 	SourceAccount: nil,
+		// 	Body: xdr.OperationBody{
+		// 		Type:             xdr.OperationTypeManageBuyOffer,
+		// 		ManageBuyOfferOp: &xdr.ManageBuyOfferOp{},
+		// 	},
+		// },
+		// xdr.Operation{
+		// 	SourceAccount: nil,
+		// 	Body: xdr.OperationBody{
+		// 		Type: xdr.OperationTypePathPaymentStrictSend,
+		// 		PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{
+		// 			Destination: testAccount1,
+		// 		},
+		// 	},
+		// },
+		// xdr.Operation{
+		// 	SourceAccount: &testAccount3,
+		// 	Body: xdr.OperationBody{
+		// 		Type: xdr.OperationTypePathPaymentStrictReceive,
+		// 		PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
+		// 			Destination: testAccount1,
+		// 		},
+		// 	},
+		// },
+		// xdr.Operation{
+		// 	SourceAccount: nil,
+		// 	Body: xdr.OperationBody{
+		// 		Type:                     xdr.OperationTypeCreatePassiveSellOffer,
+		// 		CreatePassiveSellOfferOp: &xdr.CreatePassiveSellOfferOp{},
+		// 	},
+		// },
 	}
 	inputEnvelope.Tx.Operations = inputOperations
 	results := []xdr.OperationResult{
@@ -304,61 +305,62 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			},
 		},
 
-		xdr.OperationResult{
-			Tr: &xdr.OperationResultTr{
-				Type: xdr.OperationTypeManageBuyOffer,
-				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
-					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
-					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimAtom{
-							offerTwo,
-						},
-					},
-				},
-			},
-		},
-		xdr.OperationResult{
-			Code: xdr.OperationResultCodeOpInner,
-			Tr: &xdr.OperationResultTr{
-				Type: xdr.OperationTypePathPaymentStrictSend,
-				PathPaymentStrictSendResult: &xdr.PathPaymentStrictSendResult{
-					Code: xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess,
-					Success: &xdr.PathPaymentStrictSendResultSuccess{
-						Offers: []xdr.ClaimAtom{
-							offerOne, offerTwo,
-						},
-					},
-				},
-			},
-		},
-		xdr.OperationResult{
-			Code: xdr.OperationResultCodeOpInner,
-			Tr: &xdr.OperationResultTr{
-				Type: xdr.OperationTypePathPaymentStrictReceive,
-				PathPaymentStrictReceiveResult: &xdr.PathPaymentStrictReceiveResult{
-					Code: xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess,
-					Success: &xdr.PathPaymentStrictReceiveResultSuccess{
-						Offers: []xdr.ClaimAtom{
-							offerTwo, offerOne,
-						},
-					},
-				},
-			},
-		},
-		xdr.OperationResult{
-			Tr: &xdr.OperationResultTr{
-				Type: xdr.OperationTypeCreatePassiveSellOffer,
-				CreatePassiveSellOfferResult: &xdr.ManageSellOfferResult{
-					Code: xdr.ManageSellOfferResultCodeManageSellOfferSuccess,
-					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimAtom{},
-					},
-				},
-			},
-		},
+		// xdr.OperationResult{
+		// 	Tr: &xdr.OperationResultTr{
+		// 		Type: xdr.OperationTypeManageBuyOffer,
+		// 		ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
+		// 			Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
+		// 			Success: &xdr.ManageOfferSuccessResult{
+		// 				OffersClaimed: []xdr.ClaimAtom{
+		// 					offerTwo,
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// xdr.OperationResult{
+		// 	Code: xdr.OperationResultCodeOpInner,
+		// 	Tr: &xdr.OperationResultTr{
+		// 		Type: xdr.OperationTypePathPaymentStrictSend,
+		// 		PathPaymentStrictSendResult: &xdr.PathPaymentStrictSendResult{
+		// 			Code: xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess,
+		// 			Success: &xdr.PathPaymentStrictSendResultSuccess{
+		// 				Offers: []xdr.ClaimAtom{
+		// 					offerOne, offerTwo,
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// xdr.OperationResult{
+		// 	Code: xdr.OperationResultCodeOpInner,
+		// 	Tr: &xdr.OperationResultTr{
+		// 		Type: xdr.OperationTypePathPaymentStrictReceive,
+		// 		PathPaymentStrictReceiveResult: &xdr.PathPaymentStrictReceiveResult{
+		// 			Code: xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess,
+		// 			Success: &xdr.PathPaymentStrictReceiveResultSuccess{
+		// 				Offers: []xdr.ClaimAtom{
+		// 					offerTwo, offerOne,
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// xdr.OperationResult{
+		// 	Tr: &xdr.OperationResultTr{
+		// 		Type: xdr.OperationTypeCreatePassiveSellOffer,
+		// 		CreatePassiveSellOfferResult: &xdr.ManageSellOfferResult{
+		// 			Code: xdr.ManageSellOfferResultCodeManageSellOfferSuccess,
+		// 			Success: &xdr.ManageOfferSuccessResult{
+		// 				OffersClaimed: []xdr.ClaimAtom{},
+		// 			},
+		// 		},
+		// 	},
+		// },
 	}
 	inputTransaction.Result.Result.Result.Results = &results
 	inputTransaction.Envelope.V1 = &inputEnvelope
+	inputTransaction.UnsafeMeta = genericLedgerTransaction.UnsafeMeta
 	return
 }
 
@@ -380,8 +382,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		BaseIsSeller:          true,
 		PriceN:                12634,
 		PriceD:                13300347,
-		BaseOfferID:           97684906,
-		CounterOfferID:        4611686018427388004,
+		BaseOfferID:           null.IntFrom(97684906),
+		CounterOfferID:        null.IntFrom(4611686018427388004),
 		HistoryOperationID:    101,
 	}
 	offerTwoOutput := TradeOutput{
@@ -401,8 +403,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		BaseIsSeller:          true,
 		PriceN:                57798933,
 		PriceD:                17339680,
-		BaseOfferID:           86106895,
-		CounterOfferID:        4611686018427388004,
+		BaseOfferID:           null.IntFrom(86106895),
+		CounterOfferID:        null.IntFrom(4611686018427388004),
 		HistoryOperationID:    101,
 	}
 
@@ -422,10 +424,10 @@ func makeTradeTestOutput() [][]TradeOutput {
 
 	output := [][]TradeOutput{
 		[]TradeOutput{offerOneOutput},
-		[]TradeOutput{offerTwoOutput},
-		[]TradeOutput{onePriceIsAmount, offerTwoOutputSecondPlace},
-		[]TradeOutput{twoPriceIsAmount, offerOneOutputSecondPlace},
-		[]TradeOutput{},
+		// []TradeOutput{offerTwoOutput},
+		// []TradeOutput{onePriceIsAmount, offerTwoOutputSecondPlace},
+		// []TradeOutput{twoPriceIsAmount, offerOneOutputSecondPlace},
+		// []TradeOutput{},
 	}
 	return output
 }
