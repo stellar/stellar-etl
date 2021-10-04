@@ -243,7 +243,6 @@ func findTradeSellPrice(t ingest.LedgerTransaction, operationIndex int32, trade 
 	if err := key.SetOffer(trade.SellerId(), uint64(trade.OfferId())); err != nil {
 		return 0, 0, errors.Wrap(err, "Could not create offer ledger key")
 	}
-
 	change, err := findOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, 0, errors.Wrap(err, "could not find change for trade offer")
