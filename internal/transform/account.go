@@ -9,7 +9,7 @@ import (
 
 //TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
-	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
+	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return AccountOutput{}, err
 	}
@@ -87,6 +87,7 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 		ThresholdMedium:      outputThreshMed,
 		ThresholdHigh:        outputThreshHigh,
 		LastModifiedLedger:   outputLastModifiedLedger,
+		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
 	}
 	return transformedAccount, nil

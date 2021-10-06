@@ -56,7 +56,7 @@ func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (Nor
 
 // extractAssets extracts the buying and selling assets as strings of the format code:issuer
 func extractAssets(ledgerChange ingest.Change, transformed OfferOutput) (string, string, error) {
-	ledgerEntry, _, err := utils.ExtractEntryFromChange(ledgerChange)
+	ledgerEntry, _, _, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return "", "", err
 	}

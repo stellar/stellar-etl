@@ -248,7 +248,7 @@ func findTradeSellPrice(t ingest.LedgerTransaction, operationIndex int32, trade 
 		return 0, 0, errors.Wrap(err, "could not find change for trade offer")
 	}
 
-	return int64(change.Pre.Data.Offer.Price.N), int64(change.Pre.Data.Offer.Price.D), nil
+	return int64(change.Pre.Data.MustOffer().Price.N), int64(change.Pre.Data.MustOffer().Price.D), nil
 }
 
 func findOperationChange(t ingest.LedgerTransaction, operationIndex int32, key xdr.LedgerKey) (ingest.Change, error) {

@@ -15,8 +15,8 @@ import (
 
 var exportLedgerEntryChangesCmd = &cobra.Command{
 	Use:   "export_ledger_entry_changes",
-	Short: "This command exports the changes in accounts, offers, and trustlines.",
-	Long: `This command instantiates a stellar-core instance and uses it to export about accounts, offers, and trustlines.
+	Short: "This command exports the changes in accounts, offers, trustlines and liquidity pools.",
+	Long: `This command instantiates a stellar-core instance and uses it to export about accounts, offers, trustlines and liquidity pools.
 The information is exported in batches determined by the batch-size flag. Each exported file will include the changes to the 
 relevent data type that occurred during that batch.
 
@@ -30,7 +30,7 @@ be exported.`,
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
-		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
+		exportAccounts, exportOffers, exportTrustlines, exportPools := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 
 		var folderPath string
 		if !useStdout {
@@ -42,8 +42,8 @@ be exported.`,
 		}
 
 		// If none of the export flags are set, then we assume that everything should be exported
-		if !exportAccounts && !exportOffers && !exportTrustlines {
-			exportAccounts, exportOffers, exportTrustlines = true, true, true
+		if !exportAccounts && !exportOffers && !exportTrustlines && !exportPools {
+			exportAccounts, exportOffers, exportTrustlines, exportPools = true, true, true, true
 		}
 
 		if configPath == "" && endNum == 0 {
@@ -66,21 +66,25 @@ be exported.`,
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
-		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
+		accChannel, offChannel, trustChannel, poolChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines, exportPools)
 
-		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, env, cmdLogger)
+		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, poolChannel, env, cmdLogger)
+		fmt.Printf("end number: %v", endNum)
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
+			cmdLogger.Info("Total batch count: \n", batchCount)
 			for i := uint32(0); i < batchCount; i++ {
 				batchStart := startNum + i*batchSize
 				// Subtract 1 from the end batch number because batches do not include the last batch in the range
 				batchEnd := batchStart + batchSize - 1
+				fmt.Printf("Batch start: %v Batch end: %v \n", batchStart, batchEnd)
+				fmt.Printf("Batch count: %v \n", i)
 				if batchEnd > endNum {
 					batchEnd = endNum
 				}
 
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines)
+				transformedAccounts, transformedOffers, transformedTrustlines, transformedPools := input.ReceiveChanges(accChannel, offChannel, trustChannel, poolChannel, strictExport, cmdLogger)
+				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools)
 			}
 
 		} else {
@@ -88,8 +92,8 @@ be exported.`,
 			for {
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines)
+				transformedAccounts, transformedOffers, transformedTrustlines, transformedPools := input.ReceiveChanges(accChannel, offChannel, trustChannel, poolChannel, strictExport, cmdLogger)
+				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools)
 				batchNum++
 			}
 		}
@@ -133,28 +137,59 @@ func exportEntry(entry interface{}, file *os.File, useStdout, strictExport bool)
 	}
 }
 
-func exportTransformedData(start, end uint32, folderPath string, useStdout, strictExport bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
-	var accountFile, offersFile, trustFile *os.File
-	if !useStdout {
-		accountFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
-		offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
-		trustFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
+func exportTransformedData(
+	start,
+	end uint32,
+	folderPath string,
+	useStdout,
+	strictExport bool,
+	accounts []transform.AccountOutput,
+	offers []transform.OfferOutput,
+	trusts []transform.TrustlineOutput,
+	pools []transform.PoolOutput) {
+	var accountFile, offersFile, trustFile, poolFile *os.File
+	fmt.Printf("Exporting data for batch: %v-%v \n", start, end)
+	if len(accounts) > 0 {
+		fmt.Printf("Records exist for accounts: %v-%v \n", start, end)
+		if !useStdout {
+			fmt.Printf("Creating file %d-%d-accounts.txt \n", start, end)
+			accountFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
+		}
+		for _, acc := range accounts {
+			exportEntry(acc, accountFile, useStdout, strictExport)
+		}
 	}
 
-	for _, acc := range accounts {
-		exportEntry(acc, accountFile, useStdout, strictExport)
+	if len(offers) > 0 {
+		if !useStdout {
+			offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
+		}
+		for _, off := range offers {
+			exportEntry(off, offersFile, useStdout, strictExport)
+		}
 	}
 
-	for _, off := range offers {
-		exportEntry(off, offersFile, useStdout, strictExport)
+	if len(trusts) > 0 {
+		if !useStdout {
+			trustFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
+		}
+		for _, trust := range trusts {
+			exportEntry(trust, trustFile, useStdout, strictExport)
+		}
 	}
 
-	for _, trust := range trusts {
-		exportEntry(trust, trustFile, useStdout, strictExport)
+	if len(pools) > 0 {
+		if !useStdout {
+			poolFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-liquidity-pools.txt", start, end)))
+		}
+		for _, pool := range pools {
+			exportEntry(pool, poolFile, useStdout, strictExport)
+		}
 	}
+
 }
 
-func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan input.ChangeBatch) {
+func createChangeChannels(exportAccounts, exportOffers, exportTrustlines, exportPools bool) (accChan, offChan, trustChan, poolChan chan input.ChangeBatch) {
 	if exportAccounts {
 		accChan = make(chan input.ChangeBatch)
 	}
@@ -165,6 +200,10 @@ func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (
 
 	if exportTrustlines {
 		trustChan = make(chan input.ChangeBatch)
+	}
+
+	if exportPools {
+		poolChan = make(chan input.ChangeBatch)
 	}
 
 	return

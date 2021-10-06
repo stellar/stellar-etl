@@ -220,6 +220,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-accounts", "a", false, "set in order to export account changes")
 	flags.BoolP("export-trustlines", "t", false, "set in order to export trustline changes")
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
+	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger, stdout, and strict-export. If any do not exist, it stops the program fatally using the logger
@@ -308,7 +309,7 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccounts, exportOffers, exportTrustlines bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccounts, exportOffers, exportTrustlines, exportPools bool) {
 	exportAccounts, err := flags.GetBool("export-accounts")
 	if err != nil {
 		logger.Fatal("could not get export accounts flag: ", err)
@@ -322,6 +323,11 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccount
 	exportTrustlines, err = flags.GetBool("export-trustlines")
 	if err != nil {
 		logger.Fatal("could not get export trustlines flag: ", err)
+	}
+
+	exportPools, err = flags.GetBool("export-pools")
+	if err != nil {
+		logger.Fatal("could not export liquidity pools flag: ", err)
 	}
 
 	return
@@ -480,14 +486,14 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, err
 }
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
-func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, bool, error) {
+func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
 	switch changeType := change.LedgerEntryChangeType(); changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-		return *change.Post, false, nil
+		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
-		return *change.Pre, true, nil
+		return *change.Pre, changeType, true, nil
 	default:
-		return xdr.LedgerEntry{}, false, fmt.Errorf("unable to extract ledger entry type from change")
+		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}
 }
 
@@ -503,6 +509,8 @@ func GetMostRecentCheckpoint(seq uint32) uint32 {
 type EnvironmentDetails struct {
 	NetworkPassphrase string
 	ArchiveURLs       []string
+	BinaryPath        string
+	CoreConfig        string
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
@@ -511,11 +519,15 @@ func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
+		details.BinaryPath = "/usr/bin/stellar-core"
+		details.CoreConfig = "docker/stellar-core_testnet.cfg"
 		return details
 	} else {
 		// default: mainnet
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs
+		details.BinaryPath = "/usr/bin/stellar-core"
+		details.CoreConfig = "docker/stellar-core.cfg"
 		return details
 	}
 }

@@ -122,6 +122,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			BuyingLiabilities:  1000,
 			SellingLiabilities: 2000,
 			LastModifiedLedger: 24229503,
+			LedgerEntryChange:  1,
 			Deleted:            false,
 		},
 		{
@@ -135,6 +136,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			BuyingLiabilities:  15000,
 			SellingLiabilities: 5000,
 			LastModifiedLedger: 123456789,
+			LedgerEntryChange:  1,
 			Deleted:            false,
 		},
 	}
