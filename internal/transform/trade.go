@@ -243,15 +243,15 @@ func findTradeSellPrice(t ingest.LedgerTransaction, operationIndex int32, trade 
 	if err := key.SetOffer(trade.SellerId(), uint64(trade.OfferId())); err != nil {
 		return 0, 0, errors.Wrap(err, "Could not create offer ledger key")
 	}
-	change, err := findOperationChange(t, operationIndex, key)
+	change, err := findLatestOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, 0, errors.Wrap(err, "could not find change for trade offer")
 	}
 
-	return int64(change.Pre.Data.Offer.Price.N), int64(change.Pre.Data.Offer.Price.D), nil
+	return int64(change.Pre.Data.MustOffer().Price.N), int64(change.Pre.Data.MustOffer().Price.D), nil
 }
 
-func findOperationChange(t ingest.LedgerTransaction, operationIndex int32, key xdr.LedgerKey) (ingest.Change, error) {
+func findLatestOperationChange(t ingest.LedgerTransaction, operationIndex int32, key xdr.LedgerKey) (ingest.Change, error) {
 	changes, err := t.GetOperationChanges(uint32(operationIndex))
 	if err != nil {
 		return ingest.Change{}, errors.Wrap(err, "could not determine changes for operation")
@@ -274,7 +274,7 @@ func findPoolFee(t ingest.LedgerTransaction, operationIndex int32, poolID xdr.Po
 		return 0, errors.Wrap(err, "Could not create liquidity pool ledger key")
 	}
 
-	change, err := findOperationChange(t, operationIndex, key)
+	change, err := findLatestOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, errors.Wrap(err, "could not find change for liquidity pool")
 	}
