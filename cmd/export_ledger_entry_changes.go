@@ -69,7 +69,6 @@ be exported.`,
 		accChannel, offChannel, trustChannel, poolChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines, exportPools)
 
 		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, poolChannel, env, cmdLogger)
-		fmt.Printf("end number: %v", endNum)
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
 			cmdLogger.Info("Total batch count: \n", batchCount)
@@ -77,8 +76,6 @@ be exported.`,
 				batchStart := startNum + i*batchSize
 				// Subtract 1 from the end batch number because batches do not include the last batch in the range
 				batchEnd := batchStart + batchSize - 1
-				fmt.Printf("Batch start: %v Batch end: %v \n", batchStart, batchEnd)
-				fmt.Printf("Batch count: %v \n", i)
 				if batchEnd > endNum {
 					batchEnd = endNum
 				}
@@ -148,11 +145,8 @@ func exportTransformedData(
 	trusts []transform.TrustlineOutput,
 	pools []transform.PoolOutput) {
 	var accountFile, offersFile, trustFile, poolFile *os.File
-	fmt.Printf("Exporting data for batch: %v-%v \n", start, end)
 	if len(accounts) > 0 {
-		fmt.Printf("Records exist for accounts: %v-%v \n", start, end)
 		if !useStdout {
-			fmt.Printf("Creating file %d-%d-accounts.txt \n", start, end)
 			accountFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
 		}
 		for _, acc := range accounts {
@@ -180,7 +174,7 @@ func exportTransformedData(
 
 	if len(pools) > 0 {
 		if !useStdout {
-			poolFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-liquidity-pools.txt", start, end)))
+			poolFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-liquidity_pools.txt", start, end)))
 		}
 		for _, pool := range pools {
 			exportEntry(pool, poolFile, useStdout, strictExport)

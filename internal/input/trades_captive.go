@@ -30,7 +30,7 @@ func GetTradesCaptive(start, end uint32, limit int64, env utils.EnvironmentDetai
 
 	ctx := context.Background()
 	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		"docker/stellar-core.cfg",
+		env.CoreConfig,
 		ledgerbackend.CaptiveCoreTomlParams{
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
@@ -40,7 +40,7 @@ func GetTradesCaptive(start, end uint32, limit int64, env utils.EnvironmentDetai
 
 	backend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         "/usr/bin/stellar-core",
+			BinaryPath:         env.BinaryPath,
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
