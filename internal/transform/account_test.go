@@ -150,6 +150,7 @@ func makeAccountTestOutput() AccountOutput {
 		ThresholdMedium:      3,
 		ThresholdHigh:        5,
 		LastModifiedLedger:   30705278,
+		LedgerEntryChange:    2,
 		Deleted:              true,
 	}
 }
