@@ -184,12 +184,12 @@ type TradeOutput struct {
 	SellingAssetCode       string      `json:"selling_asset_code"`
 	SellingAssetIssuer     string      `json:"selling_asset_issuer"`
 	SellingAssetType       string      `json:"selling_asset_type"`
-	SellingAmount          int64       `json:"selling_amount"`
+	SellingAmount          float64     `json:"selling_amount"`
 	BuyingAccountAddress   string      `json:"buying_account_address"`
 	BuyingAssetCode        string      `json:"buying_asset_code"`
 	BuyingAssetIssuer      string      `json:"buying_asset_issuer"`
 	BuyingAssetType        string      `json:"buying_asset_type"`
-	BuyingAmount           int64       `json:"buying_amount"`
+	BuyingAmount           float64     `json:"buying_amount"`
 	PriceN                 int64       `json:"price_n"`
 	PriceD                 int64       `json:"price_d"`
 	SellingOfferID         null.Int    `json:"selling_offer_id"`

@@ -9,6 +9,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 )
 
@@ -22,18 +23,41 @@ type TradeTransformInput struct {
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
 func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]TradeTransformInput, error) {
-	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
+	ctx := context.Background()
+	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
+		env.CoreConfig,
+		ledgerbackend.CaptiveCoreTomlParams{
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
+			Strict:             true,
+		},
+	)
+
+	backend, err := ledgerbackend.NewCaptive(
+		ledgerbackend.CaptiveCoreConfig{
+			BinaryPath:         env.BinaryPath,
+			Toml:               captiveCoreToml,
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
+		},
+	)
 	if err != nil {
 		return []TradeTransformInput{}, err
 	}
 
-	ctx := context.Background()
 	tradeSlice := []TradeTransformInput{}
+	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
+	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []TradeTransformInput{}, err
 		}
+		txReader := changeReader.LedgerTransactionReader
+		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+		// if err != nil {
+		// 	return []TradeTransformInput{}, err
+		// }
 
 		closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
 		if err != nil {
