@@ -67,6 +67,7 @@ type AccountOutput struct {
 	ThresholdMedium      int32  `json:"threshold_medium"`
 	ThresholdHigh        int32  `json:"threshold_high"`
 	LastModifiedLedger   uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange    uint32 `json:"ledger_entry_change"`
 	Deleted              bool   `json:"deleted"`
 }
 
@@ -112,6 +113,26 @@ type LiquidityPoolAsset struct {
 	AssetBAmount float64
 }
 
+// PoolOutput is a representation of a liquidity pool that aligns with the Bigquery table liquidity_pools
+type PoolOutput struct {
+	PoolID             string `json:"liquidity_pool_id"`
+	PoolType           string `json:"type"`
+	PoolFee            uint32 `json:"fee"`
+	TrustlineCount     uint64 `json:"trustline_count"`
+	PoolShareCount     uint64 `json:"pool_share_count"`
+	AssetAType         string `json:"asset_a_type"`
+	AssetACode         string `json:"asset_a_code"`
+	AssetAIssuer       string `json:"asset_a_issuer"`
+	AssetAReserve      uint64 `json:"asset_a_amount"`
+	AssetBType         string `json:"asset_b_type"`
+	AssetBCode         string `json:"asset_b_code"`
+	AssetBIssuer       string `json:"asset_b_issuer"`
+	AssetBReserve      uint64 `json:"asset_b_amount"`
+	LastModifiedLedger uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32 `json:"ledger_entry_change"`
+	Deleted            bool   `json:"deleted"`
+}
+
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
 type AssetOutput struct {
 	AssetCode   string `json:"asset_code"`
@@ -134,6 +155,7 @@ type TrustlineOutput struct {
 	SellingLiabilities int64       `json:"selling_liabilities"`
 	Flags              uint32      `json:"flags"`
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Sponsor            null.String `json:"sponsor"`
 	Deleted            bool        `json:"deleted"`
 }
@@ -150,6 +172,7 @@ type OfferOutput struct {
 	Price              float64 `json:"price"`
 	Flags              uint32  `json:"flags"`
 	LastModifiedLedger uint32  `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32  `json:"ledger_entry_change"`
 	Deleted            bool    `json:"deleted"`
 }
 

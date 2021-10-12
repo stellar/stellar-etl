@@ -15,14 +15,13 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// offersCmd represents the offers command
-var offersCmd = &cobra.Command{
-	Use:   "export_offers",
-	Short: "Exports the data on offers made from the genesis ledger to a specified endpoint.",
-	Long: `Exports historical offer data from the genesis ledger to the provided end-ledger to an output file. 
-	The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
-	should be used in an initial data dump. In order to get offer information within a specified ledger range, see 
-	the export_ledger_entry_changes command.`,
+var poolsCmd = &cobra.Command{
+	Use:   "export_pools",
+	Short: "Exports the liquidity pools data.",
+	Long: `Exports historical liquidity pools data from the genesis ledger to the provided end-ledger to an output file. 
+The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
+should be used in an initial data dump. In order to get liqudity pools information within a specified ledger range, see 
+the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
@@ -34,19 +33,20 @@ var offersCmd = &cobra.Command{
 			outFile = mustOutFile(path)
 		}
 
-		offers, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
+		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
 		if err != nil {
-			cmdLogger.Fatal("could not read offers: ", err)
+			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
 		failures := 0
-		for _, offer := range offers {
-			transformed, err := transform.TransformOffer(offer)
+		numBytes := 0
+		for _, pool := range pools {
+			transformed, err := transform.TransformPool(pool)
 			if err != nil {
 				if strictExport {
-					cmdLogger.Fatal("could not transform offer", err)
+					cmdLogger.Fatal("could not transform pool", err)
 				} else {
-					cmdLogger.Warning("could not transform offer", err)
+					cmdLogger.Warning("could not transform pool", err)
 					failures++
 					continue
 				}
@@ -55,37 +55,44 @@ var offersCmd = &cobra.Command{
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
 				if strictExport {
-					cmdLogger.Fatal("could not json encode offer", err)
+					cmdLogger.Fatal("could not json encode account", err)
 				} else {
-					cmdLogger.Warning("could not json encode offer", err)
+					cmdLogger.Warning("could not json encode account", err)
 					failures++
 					continue
 				}
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
+				if err != nil {
+					cmdLogger.Info("Error writing accounts to file: ", err)
+				}
+				numBytes += nb
 				outFile.WriteString("\n")
 			} else {
 				fmt.Println(string(marshalled))
 			}
+
 		}
 
 		if !strictExport {
 			printLog := true
 			if !useStdout {
+				outFile.Close()
 				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
 			}
-			printTransformStats(len(offers), failures, printLog)
+			printTransformStats(len(pools), failures, printLog)
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(offersCmd)
-	utils.AddCommonFlags(offersCmd.Flags())
-	utils.AddBucketFlags("offers", offersCmd.Flags())
-	offersCmd.MarkFlagRequired("end-ledger")
+	rootCmd.AddCommand(poolsCmd)
+	utils.AddCommonFlags(poolsCmd.Flags())
+	utils.AddBucketFlags("pools", poolsCmd.Flags())
+	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)
@@ -94,6 +101,6 @@ func init() {
 
 		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
-			end time as a replacement for end sequence numbers
+			 end time as a replacement for end sequence numbers
 	*/
 }

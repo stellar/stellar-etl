@@ -7,7 +7,6 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -30,9 +29,9 @@ func panicIf(err error) {
 func GetOperationsCaptive(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]OperationTransformInput, error) {
 	ctx := context.Background()
 	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		"docker/stellar-core.cfg",
+		env.CoreConfig,
 		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  network.PublicNetworkPassphrase,
+			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
 		},
@@ -40,9 +39,9 @@ func GetOperationsCaptive(start, end uint32, limit int64, env utils.EnvironmentD
 
 	backend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         "/usr/bin/stellar-core",
+			BinaryPath:         env.BinaryPath,
 			Toml:               captiveCoreToml,
-			NetworkPassphrase:  network.PublicNetworkPassphrase,
+			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 		},
 	)

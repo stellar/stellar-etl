@@ -142,6 +142,7 @@ func makeOfferTestOutput() OfferOutput {
 		Price:              0.5142373444404865,
 		Flags:              2,
 		LastModifiedLedger: 30715263,
+		LedgerEntryChange:  2,
 		Deleted:            true,
 	}
 }
