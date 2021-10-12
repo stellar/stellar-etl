@@ -30,7 +30,7 @@ var tradesCmd = &cobra.Command{
 			outFile = mustOutFile(path)
 		}
 
-		trades, err := input.GetTradesCaptive(startNum, endNum, limit, env)
+		trades, err := input.GetTrades(startNum, endNum, limit, env)
 		if err != nil {
 			cmdLogger.Fatal("could not read trades: ", err)
 		}

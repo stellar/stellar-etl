@@ -129,30 +129,6 @@ func TestTransformTrade(t *testing.T) {
 			}},
 	}, true)
 
-	negOfferIDInput := genericInput
-	negOfferIDEnvelope := genericManageBuyOfferEnvelope
-	negOfferIDInput.transaction.Envelope.V1 = &negOfferIDEnvelope
-	negOfferIDInput.transaction.Result = wrapOperationsResultsSlice([]xdr.OperationResult{
-		xdr.OperationResult{
-			Tr: &xdr.OperationResultTr{
-				Type: xdr.OperationTypeManageBuyOffer,
-				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
-					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
-					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimAtom{
-							xdr.ClaimAtom{
-								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
-								OrderBook: &xdr.ClaimOfferAtom{
-									SellerId: genericAccountID,
-									OfferId:  -3,
-								},
-							},
-						},
-					},
-				},
-			}},
-	}, true)
-
 	tests := []transformTest{
 		{
 			wrongTypeInput,
@@ -181,10 +157,6 @@ func TestTransformTrade(t *testing.T) {
 		{
 			negCounterAmountInput,
 			[]TradeOutput{}, fmt.Errorf("Amount bought is negative (-2) for operation at index 0"),
-		},
-		{
-			negOfferIDInput,
-			[]TradeOutput{}, fmt.Errorf("Offer ID is negative (-3) for operation at index 0"),
 		},
 	}
 
@@ -558,7 +530,6 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 								Type: xdr.LedgerEntryTypeOffer,
 								Offer: &xdr.OfferEntry{
 									SellerId: testAccount1ID,
-									OfferId:  97684906,
 									Price: xdr.Price{
 										N: 12634,
 										D: 1330,
@@ -581,56 +552,52 @@ func makeTradeTestOutput() [][]TradeOutput {
 	offerOneOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
-		OfferID:               97684906,
-		BaseAccountAddress:    testAccount1Address,
-		BaseAssetCode:         "ETH",
-		BaseAssetIssuer:       testAccount3Address,
-		BaseAssetType:         "credit_alphanum4",
-		BaseAmount:            13300347,
-		CounterAccountAddress: testAccount3Address,
-		CounterAssetCode:      "USDT",
-		CounterAssetIssuer:    testAccount4Address,
-		CounterAssetType:      "credit_alphanum4",
-		CounterAmount:         12634,
-		BaseIsSeller:          true,
+		SellingAccountAddress: testAccount1Address,
+		SellingAssetCode:      "ETH",
+		SellingAssetIssuer:    testAccount3Address,
+		SellingAssetType:      "credit_alphanum4",
+		SellingAmount:         13300347,
+		BuyingAccountAddress:  testAccount3Address,
+		BuyingAssetCode:       "USDT",
+		BuyingAssetIssuer:     testAccount4Address,
+		BuyingAssetType:       "credit_alphanum4",
+		BuyingAmount:          12634,
 		PriceN:                12634,
 		PriceD:                13300347,
-		BaseOfferID:           null.IntFrom(97684906),
-		CounterOfferID:        null.IntFrom(4611686018427388004),
+		SellingOfferID:        null.IntFrom(97684906),
+		BuyingOfferID:         null.IntFrom(4611686018427388004),
 		HistoryOperationID:    101,
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
-		OfferID:               86106895,
-		BaseAccountAddress:    testAccount3Address,
-		BaseAssetCode:         "USDT",
-		BaseAssetIssuer:       testAccount4Address,
-		BaseAssetType:         "credit_alphanum4",
-		BaseAmount:            500,
-		CounterAccountAddress: testAccount3Address,
-		CounterAssetCode:      "",
-		CounterAssetIssuer:    "",
-		CounterAssetType:      "native",
-		CounterAmount:         20,
-		BaseIsSeller:          true,
+		SellingAccountAddress: testAccount3Address,
+		SellingAssetCode:      "USDT",
+		SellingAssetIssuer:    testAccount4Address,
+		SellingAssetType:      "credit_alphanum4",
+		SellingAmount:         500,
+		BuyingAccountAddress:  testAccount3Address,
+		BuyingAssetCode:       "",
+		BuyingAssetIssuer:     "",
+		BuyingAssetType:       "native",
+		BuyingAmount:          20,
 		PriceN:                25,
 		PriceD:                1,
-		BaseOfferID:           null.IntFrom(86106895),
-		CounterOfferID:        null.IntFrom(4611686018427388004),
+		SellingOfferID:        null.IntFrom(86106895),
+		BuyingOfferID:         null.IntFrom(4611686018427388004),
 		HistoryOperationID:    101,
 	}
 
 	onePriceIsAmount := offerOneOutput
-	onePriceIsAmount.PriceN = onePriceIsAmount.CounterAmount
-	onePriceIsAmount.PriceD = onePriceIsAmount.BaseAmount
+	onePriceIsAmount.PriceN = onePriceIsAmount.BuyingAmount
+	onePriceIsAmount.PriceD = onePriceIsAmount.SellingAmount
 
 	offerOneOutputSecondPlace := onePriceIsAmount
 	offerOneOutputSecondPlace.Order = 1
 
 	twoPriceIsAmount := offerTwoOutput
-	twoPriceIsAmount.PriceN = twoPriceIsAmount.CounterAmount
-	twoPriceIsAmount.PriceD = twoPriceIsAmount.BaseAmount
+	twoPriceIsAmount.PriceN = twoPriceIsAmount.BuyingAmount
+	twoPriceIsAmount.PriceD = twoPriceIsAmount.SellingAmount
 
 	offerTwoOutputSecondPlace := twoPriceIsAmount
 	offerTwoOutputSecondPlace.Order = 1

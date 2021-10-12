@@ -21,8 +21,7 @@ type TradeTransformInput struct {
 }
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
-func GetTrades(start, end uint32, limit int64, isTest bool) ([]TradeTransformInput, error) {
-	env := utils.GetEnvironmentDetails(isTest)
+func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]TradeTransformInput, error) {
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []TradeTransformInput{}, err
