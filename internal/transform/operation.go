@@ -432,13 +432,6 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("Could not access PathPaymentStrictReceive info for this operation (index %d)", operationIndex)
 		}
 
-		allOperationResults, ok := transaction.Result.OperationResults()
-		if !ok {
-			return details, fmt.Errorf("Could not access any results for this transaction")
-		}
-
-		currentOperationResult := allOperationResults[operationIndex]
-
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
 			return details, err
 		}
@@ -479,13 +472,6 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		if !ok {
 			return details, fmt.Errorf("Could not access PathPaymentStrictSend info for this operation (index %d)", operationIndex)
 		}
-
-		allOperationResults, ok := transaction.Result.OperationResults()
-		if !ok {
-			return details, fmt.Errorf("Could not access any results for this transaction")
-		}
-
-		currentOperationResult := allOperationResults[operationIndex]
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
 			return details, err

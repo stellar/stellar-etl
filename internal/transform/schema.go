@@ -155,25 +155,25 @@ type OfferOutput struct {
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
 type TradeOutput struct {
-	Order                 int32     `json:"order"`
-	LedgerClosedAt        time.Time `json:"ledger_closed_at"`
-	OfferID               int64     `json:"offer_id"`
-	BaseAccountAddress    string    `json:"base_account_address"`
-	BaseAssetCode         string    `json:"base_asset_code"`
-	BaseAssetIssuer       string    `json:"base_asset_issuer"`
-	BaseAssetType         string    `json:"base_asset_type"`
-	BaseAmount            int64     `json:"base_amount"`
-	CounterAccountAddress string    `json:"counter_account_address"`
-	CounterAssetCode      string    `json:"counter_asset_code"`
-	CounterAssetIssuer    string    `json:"counter_asset_issuer"`
-	CounterAssetType      string    `json:"counter_asset_type"`
-	CounterAmount         int64     `json:"counter_amount"`
-	BaseIsSeller          bool      `json:"base_is_seller"`
-	PriceN                int64     `json:"price_n"`
-	PriceD                int64     `json:"price_d"`
-	BaseOfferID           int64     `json:"base_offer_id"`
-	CounterOfferID        int64     `json:"counter_offer_id"`
-	HistoryOperationID    int64     `json:"history_operation_id"`
+	Order                  int32       `json:"order"`
+	LedgerClosedAt         time.Time   `json:"ledger_closed_at"`
+	SellingAccountAddress  string      `json:"selling_account_address"`
+	SellingAssetCode       string      `json:"selling_asset_code"`
+	SellingAssetIssuer     string      `json:"selling_asset_issuer"`
+	SellingAssetType       string      `json:"selling_asset_type"`
+	SellingAmount          int64       `json:"selling_amount"`
+	BuyingAccountAddress   string      `json:"buying_account_address"`
+	BuyingAssetCode        string      `json:"buying_asset_code"`
+	BuyingAssetIssuer      string      `json:"buying_asset_issuer"`
+	BuyingAssetType        string      `json:"buying_asset_type"`
+	BuyingAmount           int64       `json:"buying_amount"`
+	PriceN                 int64       `json:"price_n"`
+	PriceD                 int64       `json:"price_d"`
+	SellingOfferID         null.Int    `json:"selling_offer_id"`
+	BuyingOfferID          null.Int    `json:"buying_offer_id"`
+	SellingLiquidityPoolID null.String `json:"selling_liquidity_pool_id"`
+	LiquidityPoolFee       null.Int    `json:"liquidity_pool_fee"`
+	HistoryOperationID     int64       `json:"history_operation_id"`
 }
 
 //DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts
