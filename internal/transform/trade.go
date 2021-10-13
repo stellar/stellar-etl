@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/guregu/null"
@@ -43,7 +44,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			return []TradeOutput{}, err
 		}
 
-		outputSellingAmount := int64(claimOffer.AmountSold())
+		outputSellingAmount := claimOffer.AmountSold()
 		if outputSellingAmount < 0 {
 			return []TradeOutput{}, fmt.Errorf("Amount sold is negative (%d) for operation at index %d", outputSellingAmount, operationIndex)
 		}
@@ -97,6 +98,16 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			sa := transaction.Envelope.SourceAccount().ToAccountId()
 			outputBuyingAccountAddress = sa.Address()
 		}
+		formatSellingAmount := strconv.FormatFloat(float64(outputSellingAmount)*0.0000001, 'f', 8, 64)
+		finalSellingAmount, err := strconv.ParseFloat(formatSellingAmount, 64)
+		if err != nil {
+			return []TradeOutput{}, err
+		}
+		formatBuyingAmount := strconv.FormatFloat(float64(outputBuyingAmount)*0.0000001, 'f', 8, 64)
+		finalBuyingAmount, err := strconv.ParseFloat(formatBuyingAmount, 64)
+		if err != nil {
+			return []TradeOutput{}, err
+		}
 
 		trade := TradeOutput{
 			Order:                  outputOrder,
@@ -105,12 +116,12 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			SellingAssetType:       outputSellingAssetType,
 			SellingAssetCode:       outputSellingAssetCode,
 			SellingAssetIssuer:     outputSellingAssetIssuer,
-			SellingAmount:          float64(outputSellingAmount) * 0.0000001,
+			SellingAmount:          finalSellingAmount,
 			BuyingAccountAddress:   outputBuyingAccountAddress,
 			BuyingAssetType:        outputBuyingAssetType,
 			BuyingAssetCode:        outputBuyingAssetCode,
 			BuyingAssetIssuer:      outputBuyingAssetIssuer,
-			BuyingAmount:           float64(outputBuyingAmount) * 0.0000001,
+			BuyingAmount:           finalBuyingAmount,
 			PriceN:                 outputPriceN,
 			PriceD:                 outputPriceD,
 			SellingOfferID:         outputSellingOfferID,

@@ -556,12 +556,12 @@ func makeTradeTestOutput() [][]TradeOutput {
 		SellingAssetCode:      "ETH",
 		SellingAssetIssuer:    testAccount3Address,
 		SellingAssetType:      "credit_alphanum4",
-		SellingAmount:         13300347,
+		SellingAmount:         13300347 * 0.0000001,
 		BuyingAccountAddress:  testAccount3Address,
 		BuyingAssetCode:       "USDT",
 		BuyingAssetIssuer:     testAccount4Address,
 		BuyingAssetType:       "credit_alphanum4",
-		BuyingAmount:          12634,
+		BuyingAmount:          12634 * 0.0000001,
 		PriceN:                12634,
 		PriceD:                13300347,
 		SellingOfferID:        null.IntFrom(97684906),
@@ -575,12 +575,12 @@ func makeTradeTestOutput() [][]TradeOutput {
 		SellingAssetCode:      "USDT",
 		SellingAssetIssuer:    testAccount4Address,
 		SellingAssetType:      "credit_alphanum4",
-		SellingAmount:         500,
+		SellingAmount:         500 * 0.0000001,
 		BuyingAccountAddress:  testAccount3Address,
 		BuyingAssetCode:       "",
 		BuyingAssetIssuer:     "",
 		BuyingAssetType:       "native",
-		BuyingAmount:          20,
+		BuyingAmount:          20 * 0.0000001,
 		PriceN:                25,
 		PriceD:                1,
 		SellingOfferID:        null.IntFrom(86106895),
@@ -589,15 +589,15 @@ func makeTradeTestOutput() [][]TradeOutput {
 	}
 
 	onePriceIsAmount := offerOneOutput
-	onePriceIsAmount.PriceN = onePriceIsAmount.BuyingAmount
-	onePriceIsAmount.PriceD = onePriceIsAmount.SellingAmount
+	onePriceIsAmount.PriceN = 12634
+	onePriceIsAmount.PriceD = 13300347
 
 	offerOneOutputSecondPlace := onePriceIsAmount
 	offerOneOutputSecondPlace.Order = 1
 
 	twoPriceIsAmount := offerTwoOutput
-	twoPriceIsAmount.PriceN = twoPriceIsAmount.BuyingAmount
-	twoPriceIsAmount.PriceD = twoPriceIsAmount.SellingAmount
+	twoPriceIsAmount.PriceN = int64(twoPriceIsAmount.BuyingAmount * 10000000)
+	twoPriceIsAmount.PriceD = int64(twoPriceIsAmount.SellingAmount * 10000000)
 
 	offerTwoOutputSecondPlace := twoPriceIsAmount
 	offerTwoOutputSecondPlace.Order = 1
