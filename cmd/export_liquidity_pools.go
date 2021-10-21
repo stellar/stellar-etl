@@ -28,21 +28,19 @@ the export_ledger_entry_changes command.`,
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
+		}
+
 		failures := 0
 		numBytes := 0
-		fmt.Printf("Number of pool changes: %v \n", len(pools))
 		for _, pool := range pools {
-			fmt.Printf("Processing ledger entry type: %v \n", pool.Type)
 			transformed, err := transform.TransformPool(pool)
 			if err != nil {
 				if strictExport {

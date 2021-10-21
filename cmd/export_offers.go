@@ -29,14 +29,14 @@ var offersCmd = &cobra.Command{
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		offers, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read offers: ", err)
+		}
+
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
 		}
 
 		failures := 0

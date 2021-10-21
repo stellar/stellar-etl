@@ -21,14 +21,14 @@ var transactionsCmd = &cobra.Command{
 		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		transactions, err := input.GetTransactions(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read transactions: ", err)
+		}
+
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
 		}
 
 		failures := 0

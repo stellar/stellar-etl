@@ -29,14 +29,14 @@ var trustlinesCmd = &cobra.Command{
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		trustlines, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeTrustline, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read trustlines: ", err)
+		}
+
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
 		}
 
 		failures := 0
