@@ -2,7 +2,6 @@ package transform
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/guregu/null"
@@ -11,6 +10,7 @@ import (
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
@@ -98,16 +98,6 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			sa := transaction.Envelope.SourceAccount().ToAccountId()
 			outputBuyingAccountAddress = sa.Address()
 		}
-		formatSellingAmount := strconv.FormatFloat(float64(outputSellingAmount)*0.0000001, 'f', 8, 64)
-		finalSellingAmount, err := strconv.ParseFloat(formatSellingAmount, 64)
-		if err != nil {
-			return []TradeOutput{}, err
-		}
-		formatBuyingAmount := strconv.FormatFloat(float64(outputBuyingAmount)*0.0000001, 'f', 8, 64)
-		finalBuyingAmount, err := strconv.ParseFloat(formatBuyingAmount, 64)
-		if err != nil {
-			return []TradeOutput{}, err
-		}
 
 		trade := TradeOutput{
 			Order:                  outputOrder,
@@ -116,12 +106,12 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			SellingAssetType:       outputSellingAssetType,
 			SellingAssetCode:       outputSellingAssetCode,
 			SellingAssetIssuer:     outputSellingAssetIssuer,
-			SellingAmount:          finalSellingAmount,
+			SellingAmount:          utils.ConvertStroopValueToReal(outputSellingAmount),
 			BuyingAccountAddress:   outputBuyingAccountAddress,
 			BuyingAssetType:        outputBuyingAssetType,
 			BuyingAssetCode:        outputBuyingAssetCode,
 			BuyingAssetIssuer:      outputBuyingAssetIssuer,
-			BuyingAmount:           finalBuyingAmount,
+			BuyingAmount:           utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
 			PriceN:                 outputPriceN,
 			PriceD:                 outputPriceD,
 			SellingOfferID:         outputSellingOfferID,

@@ -135,7 +135,7 @@ func extractDimMarket(offer OfferOutput, buyingAsset, sellingAsset string) (DimM
 
 // extractDimOffer extracts the DimOffer struct from the provided offer and its buying/selling assets
 func extractDimOffer(offer OfferOutput, buyingAsset, sellingAsset string, marketID, makerID uint64) (DimOffer, error) {
-	importantFields := fmt.Sprintf("%d/%d/%f", offer.OfferID, offer.Amount, offer.Price)
+	importantFields := fmt.Sprintf("%d/%f/%f", offer.OfferID, offer.Amount, offer.Price)
 
 	fnvHasher := fnv.New64a()
 	if _, err := fnvHasher.Write([]byte(importantFields)); err != nil {

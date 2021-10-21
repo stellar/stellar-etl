@@ -40,7 +40,7 @@ func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 		return OfferOutput{}, err
 	}
 
-	outputAmount := int64(offerEntry.Amount)
+	outputAmount := offerEntry.Amount
 	if outputAmount < 0 {
 		return OfferOutput{}, fmt.Errorf("Amount is negative (%d) for offer %d", outputAmount, outputOfferID)
 	}
@@ -73,7 +73,7 @@ func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 		OfferID:            outputOfferID,
 		SellingAsset:       outputSellingAsset.AssetID,
 		BuyingAsset:        outputBuyingAsset.AssetID,
-		Amount:             outputAmount,
+		Amount:             utils.ConvertStroopValueToReal(outputAmount),
 		PriceN:             outputPriceN,
 		PriceD:             outputPriceD,
 		Price:              outputPrice,

@@ -89,7 +89,7 @@ func makeOfferNormalizedTestInput() (ledgerChange ingest.Change, err error) {
 
 func makeOfferNormalizedTestOutput() NormalizedOfferOutput {
 	var dimOfferID, marketID, accountID uint64
-	dimOfferID = 2427794722528467255
+	dimOfferID = 16030420496366177311
 	marketID = 10357275879248593505
 	accountID = 4268167189990212240
 	return NormalizedOfferOutput{
@@ -106,8 +106,8 @@ func makeOfferNormalizedTestOutput() NormalizedOfferOutput {
 			MarketID:      marketID,
 			MakerID:       accountID,
 			Action:        "b",
-			BaseAmount:    2628450327,
-			CounterAmount: 1351647316.1502085,
+			BaseAmount:    262.8450327,
+			CounterAmount: 135.16473161502083,
 			Price:         0.5142373444404865,
 		},
 		Account: DimAccount{
