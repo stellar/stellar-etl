@@ -54,10 +54,6 @@ func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]
 			return []TradeTransformInput{}, err
 		}
 		txReader := changeReader.LedgerTransactionReader
-		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
-		// if err != nil {
-		// 	return []TradeTransformInput{}, err
-		// }
 
 		closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
 		if err != nil {
