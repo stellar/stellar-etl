@@ -121,7 +121,7 @@ func exportEntry(entry interface{}, file *os.File, useStdout, strictExport bool)
 		if strictExport {
 			cmdLogger.Fatal("could not json encode account", err)
 		} else {
-			cmdLogger.Warning("could not json encode account", err)
+			cmdLogger.Warn("could not json encode account", err)
 		}
 	}
 

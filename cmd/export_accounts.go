@@ -46,7 +46,7 @@ the export_ledger_entry_changes command.`,
 				if strictExport {
 					cmdLogger.Fatal("could not transform account", err)
 				} else {
-					cmdLogger.Warning("could not transform account", err)
+					cmdLogger.Warn("could not transform account", err)
 					failures++
 					continue
 				}
@@ -57,7 +57,7 @@ the export_ledger_entry_changes command.`,
 				if strictExport {
 					cmdLogger.Fatal("could not json encode account", err)
 				} else {
-					cmdLogger.Warning("could not json encode account", err)
+					cmdLogger.Warn("could not json encode account", err)
 					failures++
 					continue
 				}

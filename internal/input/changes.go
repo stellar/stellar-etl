@@ -246,7 +246,7 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, stric
 					if strictExport {
 						logger.Fatal(errorMsg, err)
 					} else {
-						logger.Warning(errorMsg, err)
+						logger.Warn(errorMsg, err)
 						continue
 					}
 				}
@@ -270,7 +270,7 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, stric
 					if strictExport {
 						logger.Fatal(errorMsg, err)
 					} else {
-						logger.Warning(errorMsg, err)
+						logger.Warn(errorMsg, err)
 						continue
 					}
 				}
@@ -294,7 +294,7 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, stric
 					if strictExport {
 						logger.Fatal(errorMsg, err)
 					} else {
-						logger.Warning(errorMsg, err)
+						logger.Warn(errorMsg, err)
 						continue
 					}
 				}

@@ -44,7 +44,7 @@ var tradesCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatalf("could not transform trade (%s): %v", locationString, err)
 				} else {
-					cmdLogger.Warningf("could not transform trade (%s): %v", locationString, err)
+					cmdLogger.Warnf("could not transform trade (%s): %v", locationString, err)
 					failures++
 					continue
 				}
@@ -59,7 +59,7 @@ var tradesCmd = &cobra.Command{
 					if strictExport {
 						cmdLogger.Fatalf("could not JSON encode trade (%s): %v", locationString, err)
 					} else {
-						cmdLogger.Warningf("could not JSON encode trade (%s): %v", locationString, err)
+						cmdLogger.Warnf("could not JSON encode trade (%s): %v", locationString, err)
 						failures++
 						continue
 					}

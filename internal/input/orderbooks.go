@@ -42,7 +42,7 @@ func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.Normalized
 		if o.Strict {
 			o.Logger.Fatal(errorMsg, err)
 		} else {
-			o.Logger.Warning(errorMsg, err)
+			o.Logger.Warn(errorMsg, err)
 		}
 	} else {
 		allConvertedOffers[index] = transformed
@@ -82,7 +82,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 				if o.Strict {
 					o.Logger.Fatal(errorMsg, err)
 				} else {
-					o.Logger.Warning(errorMsg, err)
+					o.Logger.Warn(errorMsg, err)
 					continue
 				}
 			}
@@ -98,7 +98,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 				if o.Strict {
 					o.Logger.Fatal(errorMsg, err)
 				} else {
-					o.Logger.Warning(errorMsg, err)
+					o.Logger.Warn(errorMsg, err)
 					continue
 				}
 			}
@@ -114,7 +114,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 				if o.Strict {
 					o.Logger.Fatal(errorMsg, err)
 				} else {
-					o.Logger.Warning(errorMsg, err)
+					o.Logger.Warn(errorMsg, err)
 					continue
 				}
 			}
@@ -129,7 +129,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 			if o.Strict {
 				o.Logger.Fatal(errorMsg, err)
 			} else {
-				o.Logger.Warning(errorMsg, err)
+				o.Logger.Warn(errorMsg, err)
 				continue
 			}
 		} else {

@@ -44,7 +44,7 @@ var trustlinesCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatal("could not transform trustline", err)
 				} else {
-					cmdLogger.Warning("could not transform trustline", err)
+					cmdLogger.Warn("could not transform trustline", err)
 					failures++
 					continue
 				}
@@ -55,7 +55,7 @@ var trustlinesCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatal("could not json encode trustline", err)
 				} else {
-					cmdLogger.Warning("could not json encode trustline", err)
+					cmdLogger.Warn("could not json encode trustline", err)
 					failures++
 					continue
 				}

@@ -44,7 +44,7 @@ var offersCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatal("could not transform offer", err)
 				} else {
-					cmdLogger.Warning("could not transform offer", err)
+					cmdLogger.Warn("could not transform offer", err)
 					failures++
 					continue
 				}
@@ -55,7 +55,7 @@ var offersCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatal("could not json encode offer", err)
 				} else {
-					cmdLogger.Warning("could not json encode offer", err)
+					cmdLogger.Warn("could not json encode offer", err)
 					failures++
 					continue
 				}

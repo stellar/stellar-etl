@@ -41,7 +41,7 @@ var transactionsCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatal(errMsg, err)
 				} else {
-					cmdLogger.Warning(errMsg, err)
+					cmdLogger.Warn(errMsg, err)
 					failures++
 					continue
 				}
@@ -55,7 +55,7 @@ var transactionsCmd = &cobra.Command{
 				if strictExport {
 					cmdLogger.Fatal(errMsg, err)
 				} else {
-					cmdLogger.Warning(errMsg, err)
+					cmdLogger.Warn(errMsg, err)
 					failures++
 					continue
 				}
