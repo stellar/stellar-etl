@@ -53,22 +53,22 @@ type TransactionOutput struct {
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
 type AccountOutput struct {
-	AccountID            string `json:"account_id"` // account address
-	Balance              int64  `json:"balance"`
-	BuyingLiabilities    int64  `json:"buying_liabilities"`
-	SellingLiabilities   int64  `json:"selling_liabilities"`
-	SequenceNumber       int64  `json:"sequence_number"`
-	NumSubentries        uint32 `json:"num_subentries"`
-	InflationDestination string `json:"inflation_destination"`
-	Flags                uint32 `json:"flags"`
-	HomeDomain           string `json:"home_domain"`
-	MasterWeight         int32  `json:"master_weight"`
-	ThresholdLow         int32  `json:"threshold_low"`
-	ThresholdMedium      int32  `json:"threshold_medium"`
-	ThresholdHigh        int32  `json:"threshold_high"`
-	LastModifiedLedger   uint32 `json:"last_modified_ledger"`
-	LedgerEntryChange    uint32 `json:"ledger_entry_change"`
-	Deleted              bool   `json:"deleted"`
+	AccountID            string  `json:"account_id"` // account address
+	Balance              float64 `json:"balance"`
+	BuyingLiabilities    float64 `json:"buying_liabilities"`
+	SellingLiabilities   float64 `json:"selling_liabilities"`
+	SequenceNumber       int64   `json:"sequence_number"`
+	NumSubentries        uint32  `json:"num_subentries"`
+	InflationDestination string  `json:"inflation_destination"`
+	Flags                uint32  `json:"flags"`
+	HomeDomain           string  `json:"home_domain"`
+	MasterWeight         int32   `json:"master_weight"`
+	ThresholdLow         int32   `json:"threshold_low"`
+	ThresholdMedium      int32   `json:"threshold_medium"`
+	ThresholdHigh        int32   `json:"threshold_high"`
+	LastModifiedLedger   uint32  `json:"last_modified_ledger"`
+	LedgerEntryChange    uint32  `json:"ledger_entry_change"`
+	Deleted              bool    `json:"deleted"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -115,22 +115,22 @@ type LiquidityPoolAsset struct {
 
 // PoolOutput is a representation of a liquidity pool that aligns with the Bigquery table liquidity_pools
 type PoolOutput struct {
-	PoolID             string `json:"liquidity_pool_id"`
-	PoolType           string `json:"type"`
-	PoolFee            uint32 `json:"fee"`
-	TrustlineCount     uint64 `json:"trustline_count"`
-	PoolShareCount     uint64 `json:"pool_share_count"`
-	AssetAType         string `json:"asset_a_type"`
-	AssetACode         string `json:"asset_a_code"`
-	AssetAIssuer       string `json:"asset_a_issuer"`
-	AssetAReserve      uint64 `json:"asset_a_amount"`
-	AssetBType         string `json:"asset_b_type"`
-	AssetBCode         string `json:"asset_b_code"`
-	AssetBIssuer       string `json:"asset_b_issuer"`
-	AssetBReserve      uint64 `json:"asset_b_amount"`
-	LastModifiedLedger uint32 `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32 `json:"ledger_entry_change"`
-	Deleted            bool   `json:"deleted"`
+	PoolID             string  `json:"liquidity_pool_id"`
+	PoolType           string  `json:"type"`
+	PoolFee            uint32  `json:"fee"`
+	TrustlineCount     uint64  `json:"trustline_count"`
+	PoolShareCount     float64 `json:"pool_share_count"`
+	AssetAType         string  `json:"asset_a_type"`
+	AssetACode         string  `json:"asset_a_code"`
+	AssetAIssuer       string  `json:"asset_a_issuer"`
+	AssetAReserve      float64 `json:"asset_a_amount"`
+	AssetBType         string  `json:"asset_b_type"`
+	AssetBCode         string  `json:"asset_b_code"`
+	AssetBIssuer       string  `json:"asset_b_issuer"`
+	AssetBReserve      float64 `json:"asset_b_amount"`
+	LastModifiedLedger uint32  `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32  `json:"ledger_entry_change"`
+	Deleted            bool    `json:"deleted"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
@@ -148,11 +148,11 @@ type TrustlineOutput struct {
 	AssetCode          string      `json:"asset_code"`
 	AssetIssuer        string      `json:"asset_issuer"`
 	AssetType          int32       `json:"asset_type"`
-	Balance            int64       `json:"balance"`
+	Balance            float64     `json:"balance"`
 	TrustlineLimit     int64       `json:"trust_line_limit"`
 	LiquidityPoolID    string      `json:"liquidity_pool_id"`
-	BuyingLiabilities  int64       `json:"buying_liabilities"`
-	SellingLiabilities int64       `json:"selling_liabilities"`
+	BuyingLiabilities  float64     `json:"buying_liabilities"`
+	SellingLiabilities float64     `json:"selling_liabilities"`
 	Flags              uint32      `json:"flags"`
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
@@ -166,7 +166,7 @@ type OfferOutput struct {
 	OfferID            int64   `json:"offer_id"`
 	SellingAsset       uint64  `json:"selling_asset"`
 	BuyingAsset        uint64  `json:"buying_asset"`
-	Amount             int64   `json:"amount"`
+	Amount             float64 `json:"amount"`
 	PriceN             int32   `json:"pricen"`
 	PriceD             int32   `json:"priced"`
 	Price              float64 `json:"price"`
@@ -184,12 +184,12 @@ type TradeOutput struct {
 	SellingAssetCode       string      `json:"selling_asset_code"`
 	SellingAssetIssuer     string      `json:"selling_asset_issuer"`
 	SellingAssetType       string      `json:"selling_asset_type"`
-	SellingAmount          int64       `json:"selling_amount"`
+	SellingAmount          float64     `json:"selling_amount"`
 	BuyingAccountAddress   string      `json:"buying_account_address"`
 	BuyingAssetCode        string      `json:"buying_asset_code"`
 	BuyingAssetIssuer      string      `json:"buying_asset_issuer"`
 	BuyingAssetType        string      `json:"buying_asset_type"`
-	BuyingAmount           int64       `json:"buying_amount"`
+	BuyingAmount           float64     `json:"buying_amount"`
 	PriceN                 int64       `json:"price_n"`
 	PriceD                 int64       `json:"price_d"`
 	SellingOfferID         null.Int    `json:"selling_offer_id"`
@@ -212,7 +212,7 @@ type DimOffer struct {
 	MarketID      uint64  `json:"market_id"`
 	MakerID       uint64  `json:"maker_id"`
 	Action        string  `json:"action"`
-	BaseAmount    int64   `json:"base_amount"`
+	BaseAmount    float64 `json:"base_amount"`
 	CounterAmount float64 `json:"counter_amount"`
 	Price         float64 `json:"price"`
 }

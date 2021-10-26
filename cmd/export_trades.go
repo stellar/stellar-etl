@@ -25,14 +25,14 @@ var tradesCmd = &cobra.Command{
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		trades, err := input.GetTrades(startNum, endNum, limit, env)
 		if err != nil {
 			cmdLogger.Fatal("could not read trades: ", err)
+		}
+
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
 		}
 
 		failures := 0

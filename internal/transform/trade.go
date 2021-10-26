@@ -10,6 +10,7 @@ import (
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
@@ -43,7 +44,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			return []TradeOutput{}, err
 		}
 
-		outputSellingAmount := int64(claimOffer.AmountSold())
+		outputSellingAmount := claimOffer.AmountSold()
 		if outputSellingAmount < 0 {
 			return []TradeOutput{}, fmt.Errorf("Amount sold is negative (%d) for operation at index %d", outputSellingAmount, operationIndex)
 		}
@@ -105,12 +106,12 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			SellingAssetType:       outputSellingAssetType,
 			SellingAssetCode:       outputSellingAssetCode,
 			SellingAssetIssuer:     outputSellingAssetIssuer,
-			SellingAmount:          outputSellingAmount,
+			SellingAmount:          utils.ConvertStroopValueToReal(outputSellingAmount),
 			BuyingAccountAddress:   outputBuyingAccountAddress,
 			BuyingAssetType:        outputBuyingAssetType,
 			BuyingAssetCode:        outputBuyingAssetCode,
 			BuyingAssetIssuer:      outputBuyingAssetIssuer,
-			BuyingAmount:           outputBuyingAmount,
+			BuyingAmount:           utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
 			PriceN:                 outputPriceN,
 			PriceD:                 outputPriceD,
 			SellingOfferID:         outputSellingOfferID,
