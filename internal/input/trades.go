@@ -32,6 +32,9 @@ func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]
 			Strict:             true,
 		},
 	)
+	if err != nil {
+		return []TradeTransformInput{}, err
+	}
 
 	backend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
