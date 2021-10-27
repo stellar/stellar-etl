@@ -66,6 +66,9 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 		// Final price should be buy / sell
 		outputPriceN, outputPriceD, err := findTradeSellPrice(transaction, operationIndex, claimOffer)
+		if err != nil {
+			return []TradeOutput{}, err
+		}
 
 		var outputSellingAccountAddress string
 		var liquidityPoolID null.String
