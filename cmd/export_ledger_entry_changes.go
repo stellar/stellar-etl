@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -32,7 +33,10 @@ be exported.`,
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 
-		folderPath := mustCreateFolder(outputFolder)
+		err := os.MkdirAll(outputFolder, os.ModePerm)
+		if err != nil {
+			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
+		}
 
 		if batchSize <= 0 {
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
@@ -47,7 +51,6 @@ be exported.`,
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
-		var err error
 		execPath, err = filepath.Abs(execPath)
 		if err != nil {
 			cmdLogger.Fatal("could not get absolute filepath for stellar-core executable: ", err)
@@ -58,63 +61,82 @@ be exported.`,
 			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
 		}
 
+		if endNum != 0 {
+			endNum = endNum + 1
+		}
 		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
-		accChannel, offChannel, trustChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines)
+		if endNum == 0 {
+			endNum = math.MaxInt32
+		}
 
-		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, env, cmdLogger)
-		if endNum != 0 {
-			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
-			for i := uint32(0); i < batchCount; i++ {
-				batchStart := startNum + i*batchSize
-				// Subtract 1 from the end batch number because batches do not include the last batch in the range
-				batchEnd := batchStart + batchSize - 1
-				if batchEnd > endNum {
-					batchEnd = endNum
+		changeChan := make(chan input.ChangeBatch)
+		closeChan := make(chan int)
+		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+
+		for {
+			select {
+			case <-closeChan:
+				return
+			case batch, ok := <-changeChan:
+				if !ok {
+					continue
+				}
+				transformedAccounts := []transform.AccountOutput{}
+				transformedOffers := []transform.OfferOutput{}
+				transformedTrustlines := []transform.TrustlineOutput{}
+				for entryType, changes := range batch.Changes {
+					switch entryType {
+					case xdr.LedgerEntryTypeAccount:
+						for _, change := range changes {
+							acc, err := transform.TransformAccount(change)
+							if err != nil {
+								entry, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedAccounts = append(transformedAccounts, acc)
+						}
+					case xdr.LedgerEntryTypeOffer:
+						for _, change := range changes {
+							offer, err := transform.TransformOffer(change)
+							if err != nil {
+								entry, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOffers = append(transformedOffers, offer)
+						}
+					case xdr.LedgerEntryTypeTrustline:
+						for _, change := range changes {
+							trust, err := transform.TransformTrustline(change)
+							if err != nil {
+								entry, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedTrustlines = append(transformedTrustlines, trust)
+						}
+					}
 				}
 
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, transformedAccounts, transformedOffers, transformedTrustlines)
-			}
-
-		} else {
-			var batchNum uint32 = 0
-			for {
-				batchStart := startNum + batchNum*batchSize
-				batchEnd := batchStart + batchSize - 1
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, transformedAccounts, transformedOffers, transformedTrustlines)
-				batchNum++
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines)
+				if err != nil {
+					cmdLogger.LogError(err)
+					continue
+				}
 			}
 		}
 	},
 }
 
-func mustCreateFolder(path string) string {
-	absolutePath, err := filepath.Abs(path)
-	if err != nil {
-		cmdLogger.Fatal("could not get absolute filepath: ", err)
-	}
-
-	_, err = os.Stat(path)
-
-	if os.IsNotExist(err) {
-		err := os.Mkdir(path, 0777)
-		if err != nil {
-			cmdLogger.Fatal("could not create folder: ", err)
-		}
-	}
-
-	return absolutePath
-}
-
 func exportTransformedData(start, end uint32, folderPath string, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) error {
-	accountFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
-	offersFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
-	trustFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
+	accountFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end-1)))
+	offersFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end-1)))
+	trustFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end-1)))
 
 	for _, acc := range accounts {
 		_, err := exportEntry(acc, accountFile)
@@ -170,7 +192,6 @@ func init() {
 			end-ledger: the ledger sequence number for the end of the export range
 
 			output-folder: folder that will contain the output files
-			stdout: if true, prints to stdout instead of the command line
 			limit: maximum number of changes to export in a given batch; if negative then everything gets exported
 			batch-size: size of the export batches
 

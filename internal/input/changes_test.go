@@ -11,39 +11,39 @@ import (
 
 func TestSendBatchToChannel(t *testing.T) {
 	type functionInput struct {
-		entry        ChangeBatch
-		accChannel   chan ChangeBatch
-		offChannel   chan ChangeBatch
-		trustChannel chan ChangeBatch
+		entry          ChangeBatch
+		changesChannel chan ChangeBatch
 	}
 	type functionOutput struct {
-		accEntry   *ChangeBatch
-		offEntry   *ChangeBatch
-		trustEntry *ChangeBatch
+		entry *ChangeBatch
 	}
 
-	acc := make(chan ChangeBatch)
-	off := make(chan ChangeBatch)
-	trust := make(chan ChangeBatch)
+	changesChannel := make(chan ChangeBatch)
 
-	accountTestBatch := wrapLedgerEntry(xdr.LedgerEntry{
-		Data: xdr.LedgerEntryData{
-			Type:    xdr.LedgerEntryTypeAccount,
-			Account: &xdr.AccountEntry{},
-		},
-	})
-	offerTestBatch := wrapLedgerEntry(xdr.LedgerEntry{
-		Data: xdr.LedgerEntryData{
-			Type:  xdr.LedgerEntryTypeOffer,
-			Offer: &xdr.OfferEntry{},
-		},
-	})
-	trustTestBatch := wrapLedgerEntry(xdr.LedgerEntry{
-		Data: xdr.LedgerEntryData{
-			Type:      xdr.LedgerEntryTypeTrustline,
-			TrustLine: &xdr.TrustLineEntry{},
-		},
-	})
+	accountTestBatch := wrapLedgerEntry(
+		xdr.LedgerEntryTypeAccount,
+		xdr.LedgerEntry{
+			Data: xdr.LedgerEntryData{
+				Type:    xdr.LedgerEntryTypeAccount,
+				Account: &xdr.AccountEntry{},
+			},
+		})
+	offerTestBatch := wrapLedgerEntry(
+		xdr.LedgerEntryTypeOffer,
+		xdr.LedgerEntry{
+			Data: xdr.LedgerEntryData{
+				Type:  xdr.LedgerEntryTypeOffer,
+				Offer: &xdr.OfferEntry{},
+			},
+		})
+	trustTestBatch := wrapLedgerEntry(
+		xdr.LedgerEntryTypeTrustline,
+		xdr.LedgerEntry{
+			Data: xdr.LedgerEntryData{
+				Type:      xdr.LedgerEntryTypeTrustline,
+				TrustLine: &xdr.TrustLineEntry{},
+			},
+		})
 
 	tests := []struct {
 		name string
@@ -51,74 +51,52 @@ func TestSendBatchToChannel(t *testing.T) {
 		out  functionOutput
 	}{
 		{
-			name: "account",
+			name: "accounts",
 			args: functionInput{
-				entry:        accountTestBatch,
-				accChannel:   acc,
-				offChannel:   off,
-				trustChannel: trust,
+				entry:          accountTestBatch,
+				changesChannel: changesChannel,
 			},
 			out: functionOutput{
-				accEntry: &accountTestBatch,
+				entry: &accountTestBatch,
 			},
 		},
 		{
 			name: "offer",
 			args: functionInput{
-				entry:        offerTestBatch,
-				accChannel:   acc,
-				offChannel:   off,
-				trustChannel: trust,
+				entry:          offerTestBatch,
+				changesChannel: changesChannel,
 			},
 			out: functionOutput{
-				offEntry: &offerTestBatch,
+				entry: &offerTestBatch,
 			},
 		},
 		{
 			name: "trustline",
 			args: functionInput{
-				entry:        trustTestBatch,
-				accChannel:   acc,
-				offChannel:   off,
-				trustChannel: trust,
+				entry:          trustTestBatch,
+				changesChannel: changesChannel,
 			},
 			out: functionOutput{
-				trustEntry: &trustTestBatch,
+				entry: &trustTestBatch,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			go sendBatchToChannels(tt.args.entry, tt.args.accChannel, tt.args.offChannel, tt.args.trustChannel)
-
-			needToReadAcc := tt.out.accEntry != nil
-			needToReadOff := tt.out.offEntry != nil
-			needToReadTrust := tt.out.trustEntry != nil
-
-			for needToReadAcc || needToReadOff || needToReadTrust {
-				select {
-				case read := <-tt.args.accChannel:
-					assert.Equal(t, *tt.out.accEntry, read)
-					needToReadAcc = false
-				case read := <-tt.args.offChannel:
-					assert.Equal(t, *tt.out.offEntry, read)
-					needToReadOff = false
-				case read := <-tt.args.trustChannel:
-					assert.Equal(t, *tt.out.trustEntry, read)
-					needToReadTrust = false
-				}
-			}
-
+			go func() {
+				tt.args.changesChannel <- tt.args.entry
+			}()
+			read := <-tt.args.changesChannel
+			assert.Equal(t, *tt.out.entry, read)
 		})
 	}
 }
 
-func wrapLedgerEntry(entry xdr.LedgerEntry) ChangeBatch {
-	changes := []ingest.Change{
-		{Type: entry.Data.Type, Post: &entry},
+func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) ChangeBatch {
+	changes := map[xdr.LedgerEntryType][]ingest.Change{
+		entryType: []ingest.Change{{Type: entry.Data.Type, Post: &entry}},
 	}
 	return ChangeBatch{
 		Changes: changes,
-		Type:    entry.Data.Type,
 	}
 }
