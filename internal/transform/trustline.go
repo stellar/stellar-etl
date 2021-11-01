@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/guregu/null"
 	"github.com/pkg/errors"
 
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -14,7 +15,7 @@ import (
 
 //TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
 func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
-	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
+	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return TrustlineOutput{}, err
 	}
@@ -29,63 +30,40 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 		return TrustlineOutput{}, err
 	}
 
-	var assetType, outputAssetCode, outputAssetIssuer string
+	var assetType, outputAssetCode, outputAssetIssuer, poolID string
 
 	asset := trustEntry.Asset
-	err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer)
-	if err != nil {
-		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s", outputAccountID))
-	}
 
 	outputLedgerKey, err := trustLineEntryToLedgerKeyString(trustEntry)
 	if err != nil {
 		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not create ledger key string for trustline with account %s and asset %s", outputAccountID, asset.ToAsset().StringCanonical()))
 	}
 
-	outputAssetType := int32(asset.Type)
-
-	outputBalance := int64(trustEntry.Balance)
-	if outputBalance < 0 {
-		return TrustlineOutput{}, fmt.Errorf("Balance is negative (%d) for trustline (account is %s and asset is %s)", outputBalance, outputAccountID, asset.ToAsset().StringCanonical())
-	}
-
-	outputLimit := int64(trustEntry.Limit)
-	if outputLimit < 0 {
-		return TrustlineOutput{}, fmt.Errorf("Limit is negative (%d) for trustline (account is %s and asset is %s)", outputLimit, outputAccountID, asset.ToAsset().StringCanonical())
-	}
-
-	//The V1 struct is the first version of the extender from trustlineEntry. It contains information on liabilities, and in the future
-	//more extensions may contain extra information
-	trustlineExtensionInfo, V1Found := trustEntry.Ext.GetV1()
-	var outputBuyingLiabilities, outputSellingLiabilities int64
-	if V1Found {
-		liabilities := trustlineExtensionInfo.Liabilities
-		outputBuyingLiabilities, outputSellingLiabilities = int64(liabilities.Buying), int64(liabilities.Selling)
-		if outputBuyingLiabilities < 0 {
-			return TrustlineOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputBuyingLiabilities, outputAccountID, asset.ToAsset().StringCanonical())
-		}
-
-		if outputSellingLiabilities < 0 {
-			return TrustlineOutput{}, fmt.Errorf("The selling liabilities count is negative (%d) for trustline (account is %s and asset is %s)", outputSellingLiabilities, outputAccountID, asset.ToAsset().StringCanonical())
+	if asset.Type == xdr.AssetTypeAssetTypePoolShare {
+		poolID = PoolIDToString(trustEntry.Asset.MustLiquidityPoolId())
+	} else {
+		if err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer); err != nil {
+			return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s", outputAccountID))
 		}
 	}
 
-	outputFlags := uint32(trustEntry.Flags)
-
-	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
+	liabilities := trustEntry.Liabilities()
 
 	transformedTrustline := TrustlineOutput{
 		LedgerKey:          outputLedgerKey,
 		AccountID:          outputAccountID,
-		AssetType:          outputAssetType,
+		AssetType:          int32(asset.Type),
 		AssetCode:          outputAssetCode,
 		AssetIssuer:        outputAssetIssuer,
-		Balance:            outputBalance,
-		TrustlineLimit:     outputLimit,
-		BuyingLiabilities:  outputBuyingLiabilities,
-		SellingLiabilities: outputSellingLiabilities,
-		Flags:              outputFlags,
-		LastModifiedLedger: outputLastModifiedLedger,
+		Balance:            utils.ConvertStroopValueToReal(trustEntry.Balance),
+		TrustlineLimit:     int64(trustEntry.Limit),
+		LiquidityPoolID:    poolID,
+		BuyingLiabilities:  utils.ConvertStroopValueToReal(liabilities.Buying),
+		SellingLiabilities: utils.ConvertStroopValueToReal(liabilities.Selling),
+		Flags:              uint32(trustEntry.Flags),
+		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:  uint32(changeType),
+		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 		Deleted:            outputDeleted,
 	}
 
@@ -105,4 +83,16 @@ func trustLineEntryToLedgerKeyString(trustLine xdr.TrustLineEntry) (string, erro
 	}
 
 	return base64.StdEncoding.EncodeToString(key), nil
+
+}
+
+func ledgerEntrySponsorToNullString(entry xdr.LedgerEntry) null.String {
+	sponsoringID := entry.SponsoringID()
+
+	var sponsor null.String
+	if sponsoringID != nil {
+		sponsor.SetValid((*sponsoringID).Address())
+	}
+
+	return sponsor
 }

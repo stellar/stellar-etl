@@ -20,16 +20,17 @@ var operationsCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
+
+		operations, err := input.GetOperations(startNum, endNum, limit, env)
+		if err != nil {
+			cmdLogger.Fatal("could not read operations: ", err)
+		}
 
 		var outFile *os.File
 		if !useStdout {
 			outFile = mustOutFile(path)
 			cmdLogger.Info("Exporting operations to ", path)
-		}
-
-		operations, err := input.GetOperations(startNum, endNum, limit, isTest)
-		if err != nil {
-			cmdLogger.Fatal("could not read operations: ", err)
 		}
 
 		failures := 0

@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 //TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
-	ledgerEntry, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
+	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return AccountOutput{}, err
 	}
@@ -24,7 +25,7 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 		return AccountOutput{}, err
 	}
 
-	outputBalance := int64(accountEntry.Balance)
+	outputBalance := accountEntry.Balance
 	if outputBalance < 0 {
 		return AccountOutput{}, fmt.Errorf("Balance is negative (%d) for account: %s", outputBalance, outputID)
 	}
@@ -32,10 +33,10 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	//The V1 struct is the first version of the extender from accountEntry. It contains information on liabilities, and in the future
 	//more extensions may contain extra information
 	accountExtensionInfo, V1Found := accountEntry.Ext.GetV1()
-	var outputBuyingLiabilities, outputSellingLiabilities int64
+	var outputBuyingLiabilities, outputSellingLiabilities xdr.Int64
 	if V1Found {
 		liabilities := accountExtensionInfo.Liabilities
-		outputBuyingLiabilities, outputSellingLiabilities = int64(liabilities.Buying), int64(liabilities.Selling)
+		outputBuyingLiabilities, outputSellingLiabilities = liabilities.Buying, liabilities.Selling
 		if outputBuyingLiabilities < 0 {
 			return AccountOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for account: %s", outputBuyingLiabilities, outputID)
 		}
@@ -74,9 +75,9 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 
 	transformedAccount := AccountOutput{
 		AccountID:            outputID,
-		Balance:              outputBalance,
-		BuyingLiabilities:    outputBuyingLiabilities,
-		SellingLiabilities:   outputSellingLiabilities,
+		Balance:              utils.ConvertStroopValueToReal(outputBalance),
+		BuyingLiabilities:    utils.ConvertStroopValueToReal(outputBuyingLiabilities),
+		SellingLiabilities:   utils.ConvertStroopValueToReal(outputSellingLiabilities),
 		SequenceNumber:       outputSequenceNumber,
 		NumSubentries:        outputNumSubentries,
 		InflationDestination: outputInflationDest,
@@ -87,6 +88,7 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 		ThresholdMedium:      outputThreshMed,
 		ThresholdHigh:        outputThreshHigh,
 		LastModifiedLedger:   outputLastModifiedLedger,
+		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
 	}
 	return transformedAccount, nil

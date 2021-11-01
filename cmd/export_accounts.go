@@ -28,14 +28,14 @@ the export_ledger_entry_changes command.`,
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
+		}
+
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
 		}
 
 		failures := 0

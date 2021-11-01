@@ -44,6 +44,9 @@ var genericManageBuyOfferEnvelope = xdr.TransactionV1Envelope{
 		},
 	},
 }
+
+var genericTxMeta = utils.CreateSampleTxMeta(29, lpAssetA, lpAssetB)
+
 var genericLedgerTransaction = ingest.LedgerTransaction{
 	Index: 1,
 	Envelope: xdr.TransactionEnvelope{
@@ -51,6 +54,10 @@ var genericLedgerTransaction = ingest.LedgerTransaction{
 		V1:   &genericBumpOperationEnvelope,
 	},
 	Result: utils.CreateSampleResultMeta(true, 10).Result,
+	UnsafeMeta: xdr.TransactionMeta{
+		V:  1,
+		V1: genericTxMeta,
+	},
 }
 var genericLedgerHeaderHistoryEntry = xdr.LedgerHeaderHistoryEntry{}
 var genericCloseTime = time.Unix(0, 0)
@@ -71,6 +78,64 @@ var testAccount3 = testAccount3ID.ToMuxedAccount()
 var testAccount4Address = "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA"
 var testAccount4ID, _ = xdr.AddressToAccountId(testAccount4Address)
 var testAccount4 = testAccount4ID.ToMuxedAccount()
+
+// a selection of hardcoded Liquidity Pools
+var lpDepositChanges = []xdr.OperationMeta{
+	{
+		Changes: xdr.LedgerEntryChanges{
+			xdr.LedgerEntryChange{
+				Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+				State: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LiquidityPoolEntry{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							Body: xdr.LiquidityPoolEntryBody{
+								Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+								ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+									Params: xdr.LiquidityPoolConstantProductParameters{
+										AssetA: lpAssetA,
+										AssetB: lpAssetB,
+										Fee:    30,
+									},
+									ReserveA:                 100000,
+									ReserveB:                 1000,
+									TotalPoolShares:          500,
+									PoolSharesTrustLineCount: 25,
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.LedgerEntryChange{
+				Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+				Updated: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LiquidityPoolEntry{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							Body: xdr.LiquidityPoolEntryBody{
+								Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+								ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+									Params: xdr.LiquidityPoolConstantProductParameters{
+										AssetA: lpAssetA,
+										AssetB: lpAssetB,
+										Fee:    30,
+									},
+									ReserveA:                 101000,
+									ReserveB:                 1100,
+									TotalPoolShares:          502,
+									PoolSharesTrustLineCount: 26,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+}
 
 // a selection of hardcoded assets and their AssetOutput representations
 
@@ -95,6 +160,30 @@ var usdtChangeTrustAsset = xdr.ChangeTrustAsset{
 	AlphaNum4: &xdr.AlphaNum4{
 		AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x53, 0x44}),
 		Issuer:    testAccount4ID,
+	},
+}
+
+var lpAssetA = xdr.Asset{
+	Type: xdr.AssetTypeAssetTypeNative,
+}
+
+var lpAssetB = xdr.Asset{
+	Type: xdr.AssetTypeAssetTypeCreditAlphanum4,
+	AlphaNum4: &xdr.AlphaNum4{
+		AssetCode: xdr.AssetCode4([4]byte{0x55, 0x53, 0x53, 0x44}),
+		Issuer:    testAccount4ID,
+	},
+}
+
+var usdtLiquidityPoolShare = xdr.ChangeTrustAsset{
+	Type: xdr.AssetTypeAssetTypePoolShare,
+	LiquidityPool: &xdr.LiquidityPoolParameters{
+		Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+		ConstantProduct: &xdr.LiquidityPoolConstantProductParameters{
+			AssetA: lpAssetA,
+			AssetB: lpAssetB,
+			Fee:    30,
+		},
 	},
 }
 
@@ -124,6 +213,11 @@ var ethAssetPath = Path{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "ETH",
 	AssetIssuer: testAccount1Address,
+}
+
+var liquidityPoolAsset = xdr.TrustLineAsset{
+	Type:            xdr.AssetTypeAssetTypePoolShare,
+	LiquidityPoolId: &xdr.PoolId{1, 3, 4, 5, 7, 9},
 }
 
 var nativeAsset = xdr.MustNewNativeAsset()

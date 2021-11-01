@@ -157,7 +157,7 @@ func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, env utils.Environme
 				return nil, fmt.Errorf(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
 
-			err = addLedgerChangesToCache(changeReader, nil, offChanges, nil)
+			err = addLedgerChangesToCache(changeReader, nil, offChanges, nil, nil)
 			if err != nil {
 				return nil, fmt.Errorf(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
 			}

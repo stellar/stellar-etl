@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/guregu/null"
+	"github.com/pkg/errors"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
@@ -23,92 +25,103 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 	}
 
 	operation := transaction.Envelope.Operations()[operationIndex]
-	outputOperationID := operationID
-	claimedOffers, counterOffer, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
+	// operation id is +1 incremented to stay in sync with ingest package
+	outputOperationID := operationID + 1
+	claimedOffers, BuyingOffer, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
 	if err != nil {
 		return []TradeOutput{}, err
 	}
 
-	var outputCounterOfferID int64
-	if counterOffer != nil {
-		outputCounterOfferID = int64(counterOffer.OfferId)
-	} else {
-		outputCounterOfferID = toid.EncodeOfferId(uint64(operationID), toid.TOIDType)
-	}
-
 	transformedTrades := []TradeOutput{}
-	sourceAccount := transaction.Envelope.SourceAccount()
 
 	for claimOrder, claimOffer := range claimedOffers {
 		outputOrder := int32(claimOrder)
 		outputLedgerClosedAt := ledgerCloseTime
 
-		outputOfferID := int64(claimOffer.OfferId)
-		if outputOfferID < 0 {
-			return []TradeOutput{}, fmt.Errorf("Offer ID is negative (%d) for operation at index %d", outputOfferID, operationIndex)
-		}
-
-		outputBaseAccountAddress, err := claimOffer.SellerId.GetAddress()
+		var outputSellingAssetType, outputSellingAssetCode, outputSellingAssetIssuer string
+		err = claimOffer.AssetSold().Extract(&outputSellingAssetType, &outputSellingAssetCode, &outputSellingAssetIssuer)
 		if err != nil {
 			return []TradeOutput{}, err
 		}
 
-		var outputBaseAssetType, outputBaseAssetCode, outputBaseAssetIssuer string
-		err = claimOffer.AssetSold.Extract(&outputBaseAssetType, &outputBaseAssetCode, &outputBaseAssetIssuer)
+		outputSellingAmount := claimOffer.AmountSold()
+		if outputSellingAmount < 0 {
+			return []TradeOutput{}, fmt.Errorf("Amount sold is negative (%d) for operation at index %d", outputSellingAmount, operationIndex)
+		}
+
+		var outputBuyingAssetType, outputBuyingAssetCode, outputBuyingAssetIssuer string
+		err = claimOffer.AssetBought().Extract(&outputBuyingAssetType, &outputBuyingAssetCode, &outputBuyingAssetIssuer)
 		if err != nil {
 			return []TradeOutput{}, err
 		}
 
-		outputBaseAmount := int64(claimOffer.AmountSold)
-		if outputBaseAmount < 0 {
-			return []TradeOutput{}, fmt.Errorf("Amount sold is negative (%d) for operation at index %d", outputBaseAmount, operationIndex)
+		outputBuyingAmount := int64(claimOffer.AmountBought())
+		if outputBuyingAmount < 0 {
+			return []TradeOutput{}, fmt.Errorf("Amount bought is negative (%d) for operation at index %d", outputBuyingAmount, operationIndex)
 		}
 
-		outputCounterAccountAddress, err := utils.GetAccountAddressFromMuxedAccount(sourceAccount)
-		if err != nil {
-			return []TradeOutput{}, err
-		}
-
-		var outputCounterAssetType, outputCounterAssetCode, outputCounterAssetIssuer string
-		err = claimOffer.AssetBought.Extract(&outputCounterAssetType, &outputCounterAssetCode, &outputCounterAssetIssuer)
-		if err != nil {
-			return []TradeOutput{}, err
-		}
-
-		outputCounterAmount := int64(claimOffer.AmountBought)
-		if outputCounterAmount < 0 {
-			return []TradeOutput{}, fmt.Errorf("Amount bought is negative (%d) for operation at index %d", outputCounterAmount, operationIndex)
-		}
-
-		if outputBaseAmount == 0 && outputCounterAmount == 0 {
-			return []TradeOutput{}, fmt.Errorf("Both base and counter amount are 0 for operation at index %d", operationIndex)
+		if outputSellingAmount == 0 && outputBuyingAmount == 0 {
+			return []TradeOutput{}, fmt.Errorf("Both Selling and Buying amount are 0 for operation at index %d", operationIndex)
 		}
 
 		// Final price should be buy / sell
-		outputPriceN, outputPriceD := outputCounterAmount, outputBaseAmount
+		outputPriceN, outputPriceD, err := findTradeSellPrice(transaction, operationIndex, claimOffer)
+		if err != nil {
+			return []TradeOutput{}, err
+		}
 
-		outputBaseIsSeller := true
+		var outputSellingAccountAddress string
+		var liquidityPoolID null.String
+		var outputPoolFee null.Int
+		var outputSellingOfferID, outputBuyingOfferID null.Int
+		if claimOffer.Type == xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
+			id := claimOffer.MustLiquidityPool().LiquidityPoolId
+			liquidityPoolID = null.StringFrom(PoolIDToString(id))
+			var fee uint32
+			if fee, err = findPoolFee(transaction, operationIndex, id); err != nil {
+				return []TradeOutput{}, fmt.Errorf("Cannot parse fee for liquidity pool %v", liquidityPoolID)
+			}
+			outputPoolFee = null.IntFrom(int64(fee))
+		} else {
+			outputSellingOfferID = null.IntFrom(int64(claimOffer.OfferId()))
+			outputSellingAccountAddress = claimOffer.SellerId().Address()
+		}
+
+		if BuyingOffer != nil {
+			outputBuyingOfferID = null.IntFrom(int64(claimOffer.OfferId()))
+		} else {
+			outputBuyingOfferID = null.IntFrom(toid.EncodeOfferId(uint64(operationID), toid.TOIDType))
+		}
+
+		var outputBuyingAccountAddress string
+		if buyer := operation.SourceAccount; buyer != nil {
+			accid := buyer.ToAccountId()
+			outputBuyingAccountAddress = accid.Address()
+		} else {
+			sa := transaction.Envelope.SourceAccount().ToAccountId()
+			outputBuyingAccountAddress = sa.Address()
+		}
 
 		trade := TradeOutput{
-			Order:                 outputOrder,
-			LedgerClosedAt:        outputLedgerClosedAt,
-			OfferID:               outputOfferID,
-			BaseAccountAddress:    outputBaseAccountAddress,
-			BaseAssetType:         outputBaseAssetType,
-			BaseAssetCode:         outputBaseAssetCode,
-			BaseAssetIssuer:       outputBaseAssetIssuer,
-			BaseAmount:            outputBaseAmount,
-			CounterAccountAddress: outputCounterAccountAddress,
-			CounterAssetType:      outputCounterAssetType,
-			CounterAssetCode:      outputCounterAssetCode,
-			CounterAssetIssuer:    outputCounterAssetIssuer,
-			CounterAmount:         outputCounterAmount,
-			BaseIsSeller:          outputBaseIsSeller,
-			PriceN:                outputPriceN,
-			PriceD:                outputPriceD,
-			BaseOfferID:           outputOfferID,
-			CounterOfferID:        outputCounterOfferID,
-			HistoryOperationID:    outputOperationID,
+			Order:                  outputOrder,
+			LedgerClosedAt:         outputLedgerClosedAt,
+			SellingAccountAddress:  outputSellingAccountAddress,
+			SellingAssetType:       outputSellingAssetType,
+			SellingAssetCode:       outputSellingAssetCode,
+			SellingAssetIssuer:     outputSellingAssetIssuer,
+			SellingAmount:          utils.ConvertStroopValueToReal(outputSellingAmount),
+			BuyingAccountAddress:   outputBuyingAccountAddress,
+			BuyingAssetType:        outputBuyingAssetType,
+			BuyingAssetCode:        outputBuyingAssetCode,
+			BuyingAssetIssuer:      outputBuyingAssetIssuer,
+			BuyingAmount:           utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
+			PriceN:                 outputPriceN,
+			PriceD:                 outputPriceD,
+			SellingOfferID:         outputSellingOfferID,
+			BuyingOfferID:          outputBuyingOfferID,
+			SellingLiquidityPoolID: liquidityPoolID,
+			LiquidityPoolFee:       outputPoolFee,
+			HistoryOperationID:     outputOperationID,
 		}
 
 		transformedTrades = append(transformedTrades, trade)
@@ -116,7 +129,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 	return transformedTrades, nil
 }
 
-func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimOfferAtom, counterOffer *xdr.OfferEntry, err error) {
+func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimAtom, BuyingOffer *xdr.OfferEntry, err error) {
 	if operationIndex >= int32(len(operationResults)) {
 		err = fmt.Errorf("Operation index of %d is out of bounds in result slice (len = %d)", operationIndex, len(operationResults))
 		return
@@ -142,11 +155,8 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := buyOfferResult.GetSuccess(); ok {
-			if claimedOffers, err = getClaimedOrderBook(success.OffersClaimed); err != nil {
-				err = fmt.Errorf("Could not get orderbook: %v", err)
-				return
-			}
-			counterOffer = success.Offer.Offer
+			claimedOffers = success.OffersClaimed
+			BuyingOffer = success.Offer.Offer
 			return
 		}
 
@@ -160,11 +170,8 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := sellOfferResult.GetSuccess(); ok {
-			if claimedOffers, err = getClaimedOrderBook(success.OffersClaimed); err != nil {
-				err = fmt.Errorf("Could not get orderbook: %v", err)
-				return
-			}
-			counterOffer = success.Offer.Offer
+			claimedOffers = success.OffersClaimed
+			BuyingOffer = success.Offer.Offer
 			return
 		}
 
@@ -175,19 +182,13 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		// with the wrong result arm set.
 		if operationTr.Type == xdr.OperationTypeManageSellOffer {
 			passiveSellResult := operationTr.MustManageSellOfferResult().MustSuccess()
-			if claimedOffers, err = getClaimedOrderBook(passiveSellResult.OffersClaimed); err != nil {
-				err = fmt.Errorf("Could not get orderbook: %v", err)
-				return
-			}
-			counterOffer = passiveSellResult.Offer.Offer
+			claimedOffers = passiveSellResult.OffersClaimed
+			BuyingOffer = passiveSellResult.Offer.Offer
 			return
 		} else {
 			passiveSellResult := operationTr.MustCreatePassiveSellOfferResult().MustSuccess()
-			if claimedOffers, err = getClaimedOrderBook(passiveSellResult.OffersClaimed); err != nil {
-				err = fmt.Errorf("Could not get orderbook: %v", err)
-				return
-			}
-			counterOffer = passiveSellResult.Offer.Offer
+			claimedOffers = passiveSellResult.OffersClaimed
+			BuyingOffer = passiveSellResult.Offer.Offer
 			return
 		}
 
@@ -200,10 +201,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 		success, ok := pathSendResult.GetSuccess()
 		if ok {
-			if claimedOffers, err = getClaimedOrderBook(success.Offers); err != nil {
-				err = fmt.Errorf("Could not get orderbook: %v", err)
-				return
-			}
+			claimedOffers = success.Offers
 			return
 		}
 
@@ -217,10 +215,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		}
 
 		if success, ok := pathReceiveResult.GetSuccess(); ok {
-			if claimedOffers, err = getClaimedOrderBook(success.Offers); err != nil {
-				err = fmt.Errorf("Could not get orderbook: %v", err)
-				return
-			}
+			claimedOffers = success.Offers
 			return
 		}
 
@@ -234,39 +229,50 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 	return
 }
 
-func getClaimedOrderBook(offers []xdr.ClaimAtom) (orderBookOffers []xdr.ClaimOfferAtom, err error) {
-	var singleClaimOfferAtom xdr.ClaimOfferAtom
-	for _, singleOffer := range offers {
-		switch singleOffer.Type {
-		case xdr.ClaimAtomTypeClaimAtomTypeV0:
-			// Protocols 17 and 18 changes the Orderbook structure
-			singleOfferOrders, ok := singleOffer.GetV0()
-			if !ok {
-				err = fmt.Errorf("Could not fetch V0 type for xdr.ClaimAtom")
-				return orderBookOffers, err
-			}
-			singleClaimOfferAtom.SellerId.Ed25519 = &singleOfferOrders.SellerEd25519
-			singleClaimOfferAtom.SellerId.Type = xdr.PublicKeyTypePublicKeyTypeEd25519
-			singleClaimOfferAtom.OfferId = singleOfferOrders.OfferId
-			singleClaimOfferAtom.AssetSold = singleOfferOrders.AssetSold
-			singleClaimOfferAtom.AmountSold = singleOfferOrders.AmountSold
-			singleClaimOfferAtom.AssetBought = singleOfferOrders.AssetBought
-			singleClaimOfferAtom.AmountBought = singleOfferOrders.AmountBought
-			orderBookOffers = append(orderBookOffers, singleClaimOfferAtom)
-
-		case xdr.ClaimAtomTypeClaimAtomTypeOrderBook:
-			singleOfferOrders, ok := singleOffer.GetOrderBook()
-			if !ok {
-				err = fmt.Errorf("Could not fetch Orderbook type for xdr.ClaimAtom")
-				return orderBookOffers, err
-			}
-			orderBookOffers = append(orderBookOffers, singleOfferOrders)
-
-		default:
-			err = fmt.Errorf("Could not parse the ClaimAtomType")
-			return
-		}
+func findTradeSellPrice(t ingest.LedgerTransaction, operationIndex int32, trade xdr.ClaimAtom) (n, d int64, err error) {
+	if trade.Type == xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
+		return int64(trade.AmountBought()), int64(trade.AmountSold()), nil
 	}
 
-	return orderBookOffers, nil
+	key := xdr.LedgerKey{}
+	if err := key.SetOffer(trade.SellerId(), uint64(trade.OfferId())); err != nil {
+		return 0, 0, errors.Wrap(err, "Could not create offer ledger key")
+	}
+	change, err := findLatestOperationChange(t, operationIndex, key)
+	if err != nil {
+		return 0, 0, errors.Wrap(err, "could not find change for trade offer")
+	}
+
+	return int64(change.Pre.Data.MustOffer().Price.N), int64(change.Pre.Data.MustOffer().Price.D), nil
+}
+
+func findLatestOperationChange(t ingest.LedgerTransaction, operationIndex int32, key xdr.LedgerKey) (ingest.Change, error) {
+	changes, err := t.GetOperationChanges(uint32(operationIndex))
+	if err != nil {
+		return ingest.Change{}, errors.Wrap(err, "could not determine changes for operation")
+	}
+
+	var change ingest.Change
+	// traverse through the slice in reverse order
+	for i := len(changes) - 1; i >= 0; i-- {
+		change = changes[i]
+		if change.Pre != nil && key.Equals(change.Pre.LedgerKey()) {
+			return change, nil
+		}
+	}
+	return ingest.Change{}, errors.Errorf("could not find operation for key %v", key)
+}
+
+func findPoolFee(t ingest.LedgerTransaction, operationIndex int32, poolID xdr.PoolId) (fee uint32, err error) {
+	key := xdr.LedgerKey{}
+	if err := key.SetLiquidityPool(poolID); err != nil {
+		return 0, errors.Wrap(err, "Could not create liquidity pool ledger key")
+	}
+
+	change, err := findLatestOperationChange(t, operationIndex, key)
+	if err != nil {
+		return 0, errors.Wrap(err, "could not find change for liquidity pool")
+	}
+
+	return uint32(change.Pre.Data.MustLiquidityPool().Body.MustConstantProduct().Params.Fee), nil
 }

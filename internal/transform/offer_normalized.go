@@ -56,7 +56,7 @@ func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (Nor
 
 // extractAssets extracts the buying and selling assets as strings of the format code:issuer
 func extractAssets(ledgerChange ingest.Change, transformed OfferOutput) (string, string, error) {
-	ledgerEntry, _, err := utils.ExtractEntryFromChange(ledgerChange)
+	ledgerEntry, _, _, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return "", "", err
 	}
@@ -135,7 +135,7 @@ func extractDimMarket(offer OfferOutput, buyingAsset, sellingAsset string) (DimM
 
 // extractDimOffer extracts the DimOffer struct from the provided offer and its buying/selling assets
 func extractDimOffer(offer OfferOutput, buyingAsset, sellingAsset string, marketID, makerID uint64) (DimOffer, error) {
-	importantFields := fmt.Sprintf("%d/%d/%f", offer.OfferID, offer.Amount, offer.Price)
+	importantFields := fmt.Sprintf("%d/%f/%f", offer.OfferID, offer.Amount, offer.Price)
 
 	fnvHasher := fnv.New64a()
 	if _, err := fnvHasher.Write([]byte(importantFields)); err != nil {

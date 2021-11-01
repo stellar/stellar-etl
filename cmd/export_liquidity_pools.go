@@ -15,23 +15,22 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// trustlinesCmd represents the trustlines command
-var trustlinesCmd = &cobra.Command{
-	Use:   "export_trustlines",
-	Short: "Exports the trustline data over a specified range.",
-	Long: `Exports historical trustline data from the genesis ledger to the provided end-ledger to an output file. 
-	The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
-	should be used in an initial data dump. In order to get trustline information within a specified ledger range, see 
-	the export_ledger_entry_changes command.`,
+var poolsCmd = &cobra.Command{
+	Use:   "export_pools",
+	Short: "Exports the liquidity pools data.",
+	Long: `Exports historical liquidity pools data from the genesis ledger to the provided end-ledger to an output file. 
+The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
+should be used in an initial data dump. In order to get liqudity pools information within a specified ledger range, see 
+the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		trustlines, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeTrustline, env.ArchiveURLs)
+		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
 		if err != nil {
-			cmdLogger.Fatal("could not read trustlines: ", err)
+			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
 		var outFile *os.File
@@ -40,13 +39,14 @@ var trustlinesCmd = &cobra.Command{
 		}
 
 		failures := 0
-		for _, trust := range trustlines {
-			transformed, err := transform.TransformTrustline(trust)
+		numBytes := 0
+		for _, pool := range pools {
+			transformed, err := transform.TransformPool(pool)
 			if err != nil {
 				if strictExport {
-					cmdLogger.Fatal("could not transform trustline", err)
+					cmdLogger.Fatal("could not transform pool", err)
 				} else {
-					cmdLogger.Warning("could not transform trustline", err)
+					cmdLogger.Warning("could not transform pool", err)
 					failures++
 					continue
 				}
@@ -55,38 +55,44 @@ var trustlinesCmd = &cobra.Command{
 			marshalled, err := json.Marshal(transformed)
 			if err != nil {
 				if strictExport {
-					cmdLogger.Fatal("could not json encode trustline", err)
+					cmdLogger.Fatal("could not json encode account", err)
 				} else {
-					cmdLogger.Warning("could not json encode trustline", err)
+					cmdLogger.Warning("could not json encode account", err)
 					failures++
 					continue
 				}
 			}
 
 			if !useStdout {
-				outFile.Write(marshalled)
+				nb, err := outFile.Write(marshalled)
+				if err != nil {
+					cmdLogger.Info("Error writing accounts to file: ", err)
+				}
+				numBytes += nb
 				outFile.WriteString("\n")
 			} else {
 				fmt.Println(string(marshalled))
 			}
+
 		}
 
 		if !strictExport {
 			printLog := true
 			if !useStdout {
+				outFile.Close()
 				printLog = false
+				cmdLogger.Info("Number of bytes written: ", numBytes)
 			}
-			printTransformStats(len(trustlines), failures, printLog)
+			printTransformStats(len(pools), failures, printLog)
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(trustlinesCmd)
-	utils.AddCommonFlags(trustlinesCmd.Flags())
-	utils.AddBucketFlags("trustlines", trustlinesCmd.Flags())
-	trustlinesCmd.MarkFlagRequired("end-ledger")
-
+	rootCmd.AddCommand(poolsCmd)
+	utils.AddCommonFlags(poolsCmd.Flags())
+	utils.AddBucketFlags("pools", poolsCmd.Flags())
+	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)

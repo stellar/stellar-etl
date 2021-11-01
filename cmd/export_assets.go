@@ -21,14 +21,14 @@ var assetsCmd = &cobra.Command{
 		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
 		paymentOps, err := input.GetPaymentOperations(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read assets: ", err)
+		}
+
+		var outFile *os.File
+		if !useStdout {
+			outFile = mustOutFile(path)
 		}
 
 		// With seenIDs, the code doesn't export duplicate assets within a single export. Note that across exports, assets may be duplicated
