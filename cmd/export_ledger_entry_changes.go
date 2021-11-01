@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -26,16 +25,14 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 
-		var folderPath string
-		if !useStdout {
-			folderPath = mustCreateFolder(outputFolder)
-		}
+		folderPath := mustCreateFolder(outputFolder)
 
 		if batchSize <= 0 {
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
@@ -79,8 +76,8 @@ be exported.`,
 					batchEnd = endNum
 				}
 
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines)
+				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+				exportTransformedData(batchStart, batchEnd, folderPath, transformedAccounts, transformedOffers, transformedTrustlines)
 			}
 
 		} else {
@@ -88,8 +85,8 @@ be exported.`,
 			for {
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
-				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines)
+				transformedAccounts, transformedOffers, transformedTrustlines := input.ReceiveChanges(accChannel, offChannel, trustChannel, cmdLogger)
+				exportTransformedData(batchStart, batchEnd, folderPath, transformedAccounts, transformedOffers, transformedTrustlines)
 				batchNum++
 			}
 		}
@@ -114,44 +111,33 @@ func mustCreateFolder(path string) string {
 	return absolutePath
 }
 
-// exportEntry exports the provided entry, printing either to the file or to stdout.
-func exportEntry(entry interface{}, file *os.File, useStdout, strictExport bool) {
-	marshalled, err := json.Marshal(entry)
-	if err != nil {
-		if strictExport {
-			cmdLogger.Fatal("could not json encode account", err)
-		} else {
-			cmdLogger.Warn("could not json encode account", err)
+func exportTransformedData(start, end uint32, folderPath string, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) error {
+	accountFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
+	offersFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
+	trustFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
+
+	for _, acc := range accounts {
+		_, err := exportEntry(acc, accountFile)
+		if err != nil {
+			return err
 		}
 	}
 
-	if !useStdout {
-		file.Write(marshalled)
-		file.WriteString("\n")
-	} else {
-		fmt.Println(string(marshalled))
-	}
-}
-
-func exportTransformedData(start, end uint32, folderPath string, useStdout, strictExport bool, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) {
-	var accountFile, offersFile, trustFile *os.File
-	if !useStdout {
-		accountFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
-		offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
-		trustFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
-	}
-
-	for _, acc := range accounts {
-		exportEntry(acc, accountFile, useStdout, strictExport)
-	}
-
 	for _, off := range offers {
-		exportEntry(off, offersFile, useStdout, strictExport)
+		_, err := exportEntry(off, offersFile)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, trust := range trusts {
-		exportEntry(trust, trustFile, useStdout, strictExport)
+		_, err := exportEntry(trust, trustFile)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func createChangeChannels(exportAccounts, exportOffers, exportTrustlines bool) (accChan, offChan, trustChan chan input.ChangeBatch) {

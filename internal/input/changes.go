@@ -11,7 +11,6 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 )
 
@@ -142,7 +141,7 @@ func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, 
 }
 
 // exportBatch gets the changes from the ledgers in the range [batchStart, batchEnd), compacts them, and sends them to the proper channels
-func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *log.Entry) {
+func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, accChannel, offChannel, trustChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	accChanges := ingest.NewChangeCompactor()
 	offChanges := ingest.NewChangeCompactor()
 	trustChanges := ingest.NewChangeCompactor()
@@ -198,7 +197,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 }
 
 // StreamChanges runs a goroutine that reads in ledgers, processes the changes, and send the changes to the channel matching their type
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, accChannel, offChannel, trustChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *log.Entry) {
+func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, accChannel, offChannel, trustChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	if end != 0 {
 		totalBatches := uint32(math.Ceil(float64(end-start+1) / float64(batchSize)))
 		for currentBatch := uint32(0); currentBatch < totalBatches; currentBatch++ {
@@ -224,7 +223,7 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 }
 
 // ReceiveChanges reads in the ledger entries from the provided channels, transforms them, and adds them to the slice with the other transformed entries.
-func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, strictExport bool, logger *log.Entry) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
+func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, logger *utils.EtlLogger) ([]transform.AccountOutput, []transform.OfferOutput, []transform.TrustlineOutput) {
 	transformedAccounts := make([]transform.AccountOutput, 0)
 	transformedOffers := make([]transform.OfferOutput, 0)
 	transformedTrustlines := make([]transform.TrustlineOutput, 0)
@@ -242,13 +241,8 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, stric
 				acc, err := transform.TransformAccount(change)
 				if err != nil {
 					entry, _, _ := utils.ExtractEntryFromChange(change)
-					errorMsg := fmt.Sprintf("error transforming account entry last updated at: %d", entry.LastModifiedLedgerSeq)
-					if strictExport {
-						logger.Fatal(errorMsg, err)
-					} else {
-						logger.Warn(errorMsg, err)
-						continue
-					}
+					logger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+					continue
 				}
 
 				transformedAccounts = append(transformedAccounts, acc)
@@ -266,13 +260,8 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, stric
 				offer, err := transform.TransformOffer(change)
 				if err != nil {
 					entry, _, _ := utils.ExtractEntryFromChange(change)
-					errorMsg := fmt.Sprintf("error transforming offer entry last updated at: %d", entry.LastModifiedLedgerSeq)
-					if strictExport {
-						logger.Fatal(errorMsg, err)
-					} else {
-						logger.Warn(errorMsg, err)
-						continue
-					}
+					logger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+					continue
 				}
 
 				transformedOffers = append(transformedOffers, offer)
@@ -290,13 +279,8 @@ func ReceiveChanges(accChannel, offChannel, trustChannel chan ChangeBatch, stric
 				trust, err := transform.TransformTrustline(change)
 				if err != nil {
 					entry, _, _ := utils.ExtractEntryFromChange(change)
-					errorMsg := fmt.Sprintf("error transforming trustline entry last updated at: %d", entry.LastModifiedLedgerSeq)
-					if strictExport {
-						logger.Fatal(errorMsg, err)
-					} else {
-						logger.Warn(errorMsg, err)
-						continue
-					}
+					logger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d, %s", entry.LastModifiedLedgerSeq, err))
+					continue
 				}
 
 				transformedTrustlines = append(transformedTrustlines, trust)

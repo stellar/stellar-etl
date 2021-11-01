@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,71 +16,41 @@ var operationsCmd = &cobra.Command{
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-			cmdLogger.Info("Exporting operations to ", path)
-		}
+		outFile := mustOutFile(path)
 
 		operations, err := input.GetOperations(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read operations: ", err)
 		}
 
-		failures := 0
-		numBytes := 0
+		numFailures := 0
+		totalNumBytes := 0
 		for _, transformInput := range operations {
 			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
-				errMsg := fmt.Sprintf("could not transform operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum)
-				if strictExport {
-					cmdLogger.Fatal(errMsg, err)
-				} else {
-					cmdLogger.Warn(errMsg, err)
-					failures++
-					continue
-				}
-
+				cmdLogger.LogError(fmt.Errorf("could not transform operation %d in transaction %d in ledger %d: %v", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum, err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile)
 			if err != nil {
-				txIndex := transformInput.Transaction.Index
-				errMsg := fmt.Sprintf("could not json encode operation %d in ledger %d: ", transformInput.OperationIndex, txIndex)
-				if strictExport {
-					cmdLogger.Fatal(errMsg, err)
-				} else {
-					cmdLogger.Warn(errMsg, err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export operation: %v", err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				nb, err := outFile.Write(marshalled)
-				if err != nil {
-					cmdLogger.Info("Error writing operations to file: ", err)
-				}
-				outFile.WriteString("\n")
-				numBytes += nb
-			} else {
-				fmt.Println(string(marshalled))
-			}
+			totalNumBytes += numBytes
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				outFile.Close()
-				printLog = false
-				cmdLogger.Info("Number of bytes written: ", numBytes)
-			}
-			printTransformStats(len(operations), failures, printLog)
-		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(operations), numFailures)
 	},
 }
 

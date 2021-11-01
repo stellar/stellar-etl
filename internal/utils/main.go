@@ -15,7 +15,6 @@ import (
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
-	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -108,8 +107,7 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 // AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
-	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
-	flags.Bool("strict-export", false, "If set, transform errors will be reported as fatal errors instead of warnings.")
+	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 }
 
@@ -144,16 +142,11 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
 }
 
-// MustCommonFlags gets the values of the the flags common to all commands: end-ledger, stdout, and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, useStdout, strictExport, isTest bool) {
+// MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
-	}
-
-	useStdout, err = flags.GetBool("stdout")
-	if err != nil {
-		logger.Fatal("could not get stdout boolean: ", err)
 	}
 
 	strictExport, err = flags.GetBool("strict-export")
@@ -170,7 +163,7 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, us
 }
 
 // MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
-func MustArchiveFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum uint32, path string, limit int64) {
+func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32, path string, limit int64) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -190,7 +183,7 @@ func MustArchiveFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum uint32,
 }
 
 // MustBucketFlags gets the values of the bucket list specific flags: output
-func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (path string) {
+func MustBucketFlags(flags *pflag.FlagSet, logger *EtlLogger) (path string) {
 	path, err := flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
@@ -200,7 +193,7 @@ func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (path string) {
 }
 
 // MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, and output flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, startNum, batchSize uint32, path string) {
+func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPath string, startNum, batchSize uint32, path string) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -230,7 +223,7 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccounts, exportOffers, exportTrustlines bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines bool) {
 	exportAccounts, err := flags.GetBool("export-accounts")
 	if err != nil {
 		logger.Fatal("could not get export accounts flag: ", err)

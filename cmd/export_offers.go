@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -23,59 +21,41 @@ var offersCmd = &cobra.Command{
 	should be used in an initial data dump. In order to get offer information within a specified ledger range, see 
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
+		outFile := mustOutFile(path)
 
 		offers, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read offers: ", err)
 		}
 
-		failures := 0
+		numFailures := 0
+		totalNumBytes := 0
 		for _, offer := range offers {
 			transformed, err := transform.TransformOffer(offer)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not transform offer", err)
-				} else {
-					cmdLogger.Warn("could not transform offer", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not transform offer %+v: %v", offer, err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not json encode offer", err)
-				} else {
-					cmdLogger.Warn("could not json encode offer", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export offer %+v: %v", offer, err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				outFile.Write(marshalled)
-				outFile.WriteString("\n")
-			} else {
-				fmt.Println(string(marshalled))
-			}
+			totalNumBytes += numBytes
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				printLog = false
-			}
-			printTransformStats(len(offers), failures, printLog)
-		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(offers), numFailures)
 	},
 }
 
@@ -88,7 +68,6 @@ func init() {
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)
 			output-file: filename of the output file
-			stdout: if set, output is printed to stdout
 
 		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)

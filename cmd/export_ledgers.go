@@ -31,6 +31,11 @@ func mustOutFile(path string) *os.File {
 		cmdLogger.Fatal("could not get absolute filepath: ", err)
 	}
 
+	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		cmdLogger.Fatalf("could not create directory %s: ", path, err)
+	}
+
 	err = createOutputFile(absolutePath)
 	if err != nil {
 		cmdLogger.Fatal("could not create output file: ", err)
@@ -44,8 +49,26 @@ func mustOutFile(path string) *os.File {
 	return outFile
 }
 
+func exportEntry(entry interface{}, outFile *os.File) (int, error) {
+	marshalled, err := json.Marshal(entry)
+	if err != nil {
+		return 0, fmt.Errorf("could not json encode %+v: %s", entry, err)
+	}
+
+	cmdLogger.Info("Writing entry to %s", outFile.Name)
+	numBytes, err := outFile.Write(marshalled)
+	if err != nil {
+		cmdLogger.Errorf("Error writing %+v to file: ", entry, err)
+	}
+	newLineNumBytes, err := outFile.WriteString("\n")
+	if err != nil {
+		cmdLogger.Error("Error writing new line to file %s: ", outFile.Name, err)
+	}
+	return numBytes + newLineNumBytes, nil
+}
+
 // Prints the number of attempted, failed, and successful transformations as a JSON object
-func printTransformStats(attempts, failures int, printLog bool) {
+func printTransformStats(attempts, failures int) {
 	resultsMap := map[string]int{
 		"attempted_transforms":  attempts,
 		"failed_transforms":     failures,
@@ -54,14 +77,10 @@ func printTransformStats(attempts, failures int, printLog bool) {
 
 	results, err := json.Marshal(resultsMap)
 	if err != nil {
-		cmdLogger.Fatal("Could not marshall results: ", err)
+		cmdLogger.Fatal("Could not marshal results: ", err)
 	}
 
-	if printLog {
-		fmt.Println(string(results))
-	} else {
-		cmdLogger.Info(string(results))
-	}
+	cmdLogger.Info(string(results))
 }
 
 var ledgersCmd = &cobra.Command{
@@ -70,67 +89,40 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
+		outFile := mustOutFile(path)
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
 
-		failures := 0
-		numBytes := 0
+		numFailures := 0
+		totalNumBytes := 0
 		for i, lcm := range ledgers {
 			transformed, err := transform.TransformLedger(lcm)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i))
-				if strictExport {
-					cmdLogger.Fatal(errMsg, err)
-				} else {
-					cmdLogger.Warn(errMsg, err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not json transform ledger %d: %s", startNum+uint32(i), err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i))
-				if strictExport {
-					cmdLogger.Fatal(errMsg, err)
-				} else {
-					cmdLogger.Warn(errMsg, err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %s", startNum+uint32(i), err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				nb, err := outFile.Write(marshalled)
-				if err != nil {
-					cmdLogger.Info("Error writing ledgers to file: ", err)
-				}
-				numBytes += nb
-				outFile.WriteString("\n")
-			} else {
-				fmt.Println(string(marshalled))
-			}
+			totalNumBytes += numBytes
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				outFile.Close()
-				printLog = false
-				cmdLogger.Info("Number of bytes written: ", numBytes)
-			}
-			printTransformStats(len(ledgers), failures, printLog)
-		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(ledgers), numFailures)
 	},
 }
 

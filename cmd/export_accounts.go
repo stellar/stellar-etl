@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -24,12 +23,13 @@ should be used in an initial data dump. In order to get account information with
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 
-		var outFile *os.File
-		if !useStdout {
+		outFile := os.Stdout
+		if path != "" {
 			outFile = mustOutFile(path)
 		}
 
@@ -38,52 +38,29 @@ the export_ledger_entry_changes command.`,
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
-		failures := 0
-		numBytes := 0
+		numFailures := 0
+		totalNumBytes := 0
 		for _, acc := range accounts {
 			transformed, err := transform.TransformAccount(acc)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not transform account", err)
-				} else {
-					cmdLogger.Warn("could not transform account", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not json transform account: %v", err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not json encode account", err)
-				} else {
-					cmdLogger.Warn("could not json encode account", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export entry: %v", err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				nb, err := outFile.Write(marshalled)
-				if err != nil {
-					cmdLogger.Info("Error writing accounts to file: ", err)
-				}
-				numBytes += nb
-				outFile.WriteString("\n")
-			} else {
-				fmt.Println(string(marshalled))
-			}
+			totalNumBytes += numBytes
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				outFile.Close()
-				printLog = false
-				cmdLogger.Info("Number of bytes written: ", numBytes)
-			}
-			printTransformStats(len(accounts), failures, printLog)
-		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(accounts), numFailures)
 	},
 }
 
@@ -96,7 +73,6 @@ func init() {
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)
 			output-file: filename of the output file
-			stdout: if set, output is printed to stdout
 
 		TODO: implement extra flags if possible
 			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
