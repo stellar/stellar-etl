@@ -3,10 +3,12 @@ module github.com/stellar/stellar-etl
 go 1.16
 
 require (
+	cloud.google.com/go/storage v1.10.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-errors/errors v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/guregu/null v2.1.3-0.20151024101046-79c5bd36b615+incompatible

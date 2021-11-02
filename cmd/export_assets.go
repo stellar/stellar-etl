@@ -17,6 +17,7 @@ var assetsCmd = &cobra.Command{
 		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 
@@ -54,9 +55,11 @@ var assetsCmd = &cobra.Command{
 		}
 
 		outFile.Close()
-		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+		cmdLogger.Infof("%d bytes written to %s: %d ", totalNumBytes, outFile.Name())
 
 		printTransformStats(len(paymentOps), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
 	},
 }
 
@@ -64,6 +67,7 @@ func init() {
 	rootCmd.AddCommand(assetsCmd)
 	utils.AddCommonFlags(assetsCmd.Flags())
 	utils.AddArchiveFlags("assets", assetsCmd.Flags())
+	utils.AddGcsFlags(assetsCmd.Flags())
 	operationsCmd.MarkFlagRequired("end-ledger")
 
 	/*

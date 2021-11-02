@@ -25,6 +25,7 @@ var trustlinesCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 
@@ -57,6 +58,8 @@ var trustlinesCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(trustlines), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
 	},
 }
 
@@ -64,6 +67,7 @@ func init() {
 	rootCmd.AddCommand(trustlinesCmd)
 	utils.AddCommonFlags(trustlinesCmd.Flags())
 	utils.AddBucketFlags("trustlines", trustlinesCmd.Flags())
+	utils.AddGcsFlags(trustlinesCmd.Flags())
 	trustlinesCmd.MarkFlagRequired("end-ledger")
 
 	/*

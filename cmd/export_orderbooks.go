@@ -31,6 +31,8 @@ var exportOrderbooksCmd = &cobra.Command{
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		runId := generateRunId()
 
 		if batchSize <= 0 {
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
@@ -78,7 +80,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				}
 
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, runId)
 			}
 		} else {
 			// otherwise, we export in an unbounded manner where batches are constantly exported
@@ -87,7 +89,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, runId)
 				batchNum++
 			}
 		}
@@ -103,22 +105,33 @@ func writeSlice(file *os.File, slice [][]byte) {
 	file.Close()
 }
 
-func exportOrderbook(start, end uint32, folderPath string, parser *input.OrderbookParser) {
-	marketsFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimMarkets.txt", start, end)))
-	offersFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimOffers.txt", start, end)))
-	accountsFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimAccounts.txt", start, end)))
-	eventsFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-factEvents.txt", start, end)))
+func exportOrderbook(start, end uint32, folderPath string, parser *input.OrderbookParser, gcpCredentials, gcsBucket, runId string) {
+	marketsFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimMarkets.txt", start, end))
+	offersFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimOffers.txt", start, end))
+	accountsFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimAccounts.txt", start, end))
+	eventsFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-factEvents.txt", start, end))
+
+	marketsFile := mustOutFile(marketsFilePath)
+	offersFile := mustOutFile(offersFilePath)
+	accountsFile := mustOutFile(accountsFilePath)
+	eventsFile := mustOutFile(eventsFilePath)
 
 	writeSlice(marketsFile, parser.Markets)
 	writeSlice(offersFile, parser.Offers)
 	writeSlice(accountsFile, parser.Accounts)
 	writeSlice(eventsFile, parser.Events)
+
+	maybeUpload(gcpCredentials, gcsBucket, runId, marketsFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, runId, offersFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, runId, accountsFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, runId, eventsFilePath)
 }
 
 func init() {
 	rootCmd.AddCommand(exportOrderbooksCmd)
 	utils.AddCommonFlags(exportOrderbooksCmd.Flags())
 	utils.AddCoreFlags(exportOrderbooksCmd.Flags(), "orderbooks_output/")
+	utils.AddGcsFlags(exportOrderbooksCmd.Flags())
 
 	exportOrderbooksCmd.MarkFlagRequired("start-ledger")
 	/*

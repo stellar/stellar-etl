@@ -1,11 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"time"
 
+	"cloud.google.com/go/storage"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -55,7 +60,7 @@ func exportEntry(entry interface{}, outFile *os.File) (int, error) {
 		return 0, fmt.Errorf("could not json encode %+v: %s", entry, err)
 	}
 
-	cmdLogger.Info("Writing entry to %s", outFile.Name)
+	cmdLogger.Debugf("Writing entry to %s", outFile.Name)
 	numBytes, err := outFile.Write(marshalled)
 	if err != nil {
 		cmdLogger.Errorf("Error writing %+v to file: ", entry, err)
@@ -83,6 +88,53 @@ func printTransformStats(attempts, failures int) {
 	cmdLogger.Info(string(results))
 }
 
+func generateRunId() string {
+	return uuid.New().String()
+}
+
+func uploadToGcs(credentialsPath, bucket, runId, path string) error {
+	// Use credentials file in dev/local runs. Otherwise, derive credentials from the service account.
+	if len(credentialsPath) > 0 {
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath)
+		cmdLogger.Infof("Using credentials found at: %s", credentialsPath)
+	}
+
+	reader, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %v", path, err)
+	}
+
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create client: %v", err)
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
+	defer cancel()
+
+	objectPath := filepath.Join(runId, path)
+	wc := client.Bucket(bucket).Object(objectPath).NewWriter(ctx)
+	defer wc.Close()
+
+	cmdLogger.Infof("Uploading %s to gs://%s/%s ", path, bucket, objectPath)
+
+	if _, err := io.Copy(wc, reader); err != nil {
+		return fmt.Errorf("unable to copy: %v", err)
+	}
+	return nil
+}
+
+func maybeUpload(gcpCredentials, gcsBucket, runId, path string) {
+	if len(gcsBucket) > 0 {
+		err := uploadToGcs(gcpCredentials, gcsBucket, runId, path)
+		if err != nil {
+			cmdLogger.Errorf("Unable to upload output to GCS: %s", err)
+		}
+	}
+}
+
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data.",
@@ -92,8 +144,12 @@ var ledgersCmd = &cobra.Command{
 		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		outFile := mustOutFile(path)
+		outFile := os.Stdout
+		if path != "" {
+			outFile = mustOutFile(path)
+		}
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest)
 		if err != nil {
@@ -123,6 +179,7 @@ var ledgersCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(ledgers), numFailures)
+		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
 	},
 }
 
@@ -130,6 +187,7 @@ func init() {
 	rootCmd.AddCommand(ledgersCmd)
 	utils.AddCommonFlags(ledgersCmd.Flags())
 	utils.AddArchiveFlags("ledgers", ledgersCmd.Flags())
+	utils.AddGcsFlags(ledgersCmd.Flags())
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

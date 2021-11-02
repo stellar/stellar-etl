@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -27,11 +26,9 @@ the export_ledger_entry_changes command.`,
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		outFile := os.Stdout
-		if path != "" {
-			outFile = mustOutFile(path)
-		}
+		outFile := mustOutFile(path)
 
 		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
 		if err != nil {
@@ -61,6 +58,8 @@ the export_ledger_entry_changes command.`,
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(accounts), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
 	},
 }
 
@@ -68,6 +67,7 @@ func init() {
 	rootCmd.AddCommand(accountsCmd)
 	utils.AddCommonFlags(accountsCmd.Flags())
 	utils.AddBucketFlags("accounts", accountsCmd.Flags())
+	utils.AddGcsFlags(accountsCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

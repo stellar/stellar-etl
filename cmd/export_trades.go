@@ -22,6 +22,7 @@ var tradesCmd = &cobra.Command{
 		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 		trades, err := input.GetTrades(startNum, endNum, limit, isTest)
@@ -55,6 +56,8 @@ var tradesCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(trades), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
 	},
 }
 
@@ -62,6 +65,7 @@ func init() {
 	rootCmd.AddCommand(tradesCmd)
 	utils.AddCommonFlags(tradesCmd.Flags())
 	utils.AddArchiveFlags("trades", tradesCmd.Flags())
+	utils.AddGcsFlags(tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
 
 	/*

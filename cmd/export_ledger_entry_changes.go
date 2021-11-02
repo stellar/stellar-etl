@@ -32,6 +32,9 @@ be exported.`,
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+
+		runId := generateRunId()
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
@@ -123,7 +126,7 @@ be exported.`,
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines)
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines, gcpCredentials, gcsBucket, runId)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
@@ -133,10 +136,14 @@ be exported.`,
 	},
 }
 
-func exportTransformedData(start, end uint32, folderPath string, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput) error {
-	accountFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end-1)))
-	offersFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end-1)))
-	trustFile := mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end-1)))
+func exportTransformedData(start, end uint32, folderPath string, accounts []transform.AccountOutput, offers []transform.OfferOutput, trusts []transform.TrustlineOutput, gcpCredentials, gcsBucket, runId string) error {
+	accountPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end-1))
+	offersPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end-1))
+	trustPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end-1))
+
+	accountFile := mustOutFile(accountPath)
+	offersFile := mustOutFile(offersPath)
+	trustFile := mustOutFile(trustPath)
 
 	for _, acc := range accounts {
 		_, err := exportEntry(acc, accountFile)
@@ -159,6 +166,9 @@ func exportTransformedData(start, end uint32, folderPath string, accounts []tran
 		}
 	}
 
+	maybeUpload(gcpCredentials, gcsBucket, runId, accountPath)
+	maybeUpload(gcpCredentials, gcsBucket, runId, offersPath)
+	maybeUpload(gcpCredentials, gcsBucket, runId, trustPath)
 	return nil
 }
 
@@ -183,6 +193,7 @@ func init() {
 	utils.AddCommonFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags(), "changes_output/")
 	utils.AddExportTypeFlags(exportLedgerEntryChangesCmd.Flags())
+	utils.AddGcsFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")

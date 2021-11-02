@@ -19,6 +19,7 @@ var operationsCmd = &cobra.Command{
 		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 
@@ -51,6 +52,8 @@ var operationsCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(operations), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
 	},
 }
 
@@ -58,6 +61,7 @@ func init() {
 	rootCmd.AddCommand(operationsCmd)
 	utils.AddCommonFlags(operationsCmd.Flags())
 	utils.AddArchiveFlags("operations", operationsCmd.Flags())
+	utils.AddGcsFlags(operationsCmd.Flags())
 	operationsCmd.MarkFlagRequired("end-ledger")
 
 	/*

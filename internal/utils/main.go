@@ -124,6 +124,13 @@ func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 }
 
+// AddGcsFlags adds the gcs-related flags: gcs-bucket, gcp-credentials
+func AddGcsFlags(flags *pflag.FlagSet) {
+	flags.String("gcs-bucket", "stellar-etl-cli", "GCS bucket to export to.")
+	flags.StringP("gcp-credentials", "g", "", "Path to GOOGLE_APPLICATION_CREDENTIALS, service account json. Only used for local/dev purposes. "+
+		"When run on GCP, credentials should be inferred by service account.")
+}
+
 // AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, and output flags
 func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
@@ -187,6 +194,20 @@ func MustBucketFlags(flags *pflag.FlagSet, logger *EtlLogger) (path string) {
 	path, err := flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
+	}
+
+	return
+}
+
+// MustGcsFlags gets the values of the bucket list specific flags: gcp-project and gcs-bucket
+func MustGcsFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, credentials string) {
+	bucket, err := flags.GetString("gcs-bucket")
+	if err != nil {
+		logger.Fatal("could not get gcs bucket: ", err)
+	}
+	credentials, err = flags.GetString("gcp-credentials")
+	if err != nil {
+		logger.Fatal("could not get GOOGLE_APPLICATION_CREDENTIALS file: ", err)
 	}
 
 	return
