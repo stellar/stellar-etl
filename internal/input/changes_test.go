@@ -44,6 +44,14 @@ func TestSendBatchToChannel(t *testing.T) {
 				TrustLine: &xdr.TrustLineEntry{},
 			},
 		})
+	poolTestBatch := wrapLedgerEntry(
+		xdr.LedgerEntryTypeLiquidityPool,
+		xdr.LedgerEntry{
+			Data: xdr.LedgerEntryData{
+				Type:          xdr.LedgerEntryTypeLiquidityPool,
+				LiquidityPool: &xdr.LiquidityPoolEntry{},
+			},
+		})
 
 	tests := []struct {
 		name string
@@ -78,6 +86,16 @@ func TestSendBatchToChannel(t *testing.T) {
 			},
 			out: functionOutput{
 				entry: &trustTestBatch,
+			},
+		},
+		{
+			name: "pool",
+			args: functionInput{
+				entry:          poolTestBatch,
+				changesChannel: changesChannel,
+			},
+			out: functionOutput{
+				entry: &poolTestBatch,
 			},
 		},
 	}

@@ -28,13 +28,12 @@ the export_ledger_entry_changes command.`,
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		outFile := mustOutFile(path)
-
 		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
+		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, acc := range accounts {

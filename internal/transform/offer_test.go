@@ -136,12 +136,13 @@ func makeOfferTestOutput() OfferOutput {
 		OfferID:            260678439,
 		SellingAsset:       12638146518625398189,
 		BuyingAsset:        13488700931717487949,
-		Amount:             2628450327,
+		Amount:             262.8450327,
 		PriceN:             920936891,
 		PriceD:             1790879058,
 		Price:              0.5142373444404865,
 		Flags:              2,
 		LastModifiedLedger: 30715263,
+		LedgerEntryChange:  2,
 		Deleted:            true,
 	}
 }

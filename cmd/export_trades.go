@@ -22,14 +22,15 @@ var tradesCmd = &cobra.Command{
 		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		outFile := mustOutFile(path)
-		trades, err := input.GetTrades(startNum, endNum, limit, isTest)
+		trades, err := input.GetTrades(startNum, endNum, limit, env)
 		if err != nil {
 			cmdLogger.Fatal("could not read trades ", err)
 		}
 
+		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, tradeInput := range trades {

@@ -104,6 +104,84 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 	}
 }
 
+func CreateSampleTxMeta(subOperationCount int, AssetA, AssetB xdr.Asset) *xdr.TransactionMetaV1 {
+	operationMeta := []xdr.OperationMeta{}
+	for i := 0; i < subOperationCount; i++ {
+		operationMeta = append(operationMeta, xdr.OperationMeta{
+			Changes: xdr.LedgerEntryChanges{},
+		})
+	}
+
+	operationMeta = AddLPOperations(operationMeta, AssetA, AssetB)
+	operationMeta = AddLPOperations(operationMeta, AssetA, AssetB)
+
+	operationMeta = append(operationMeta, xdr.OperationMeta{
+		Changes: xdr.LedgerEntryChanges{},
+	})
+
+	return &xdr.TransactionMetaV1{
+		Operations: operationMeta,
+	}
+}
+
+func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr.OperationMeta {
+	txMeta = append(txMeta, xdr.OperationMeta{
+		Changes: xdr.LedgerEntryChanges{
+			xdr.LedgerEntryChange{
+				Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+				State: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LiquidityPoolEntry{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							Body: xdr.LiquidityPoolEntryBody{
+								Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+								ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+									Params: xdr.LiquidityPoolConstantProductParameters{
+										AssetA: AssetA,
+										AssetB: AssetB,
+										Fee:    30,
+									},
+									ReserveA:                 100000,
+									ReserveB:                 1000,
+									TotalPoolShares:          500,
+									PoolSharesTrustLineCount: 25,
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.LedgerEntryChange{
+				Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+				Updated: &xdr.LedgerEntry{
+					Data: xdr.LedgerEntryData{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LiquidityPoolEntry{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							Body: xdr.LiquidityPoolEntryBody{
+								Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+								ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+									Params: xdr.LiquidityPoolConstantProductParameters{
+										AssetA: AssetA,
+										AssetB: AssetB,
+										Fee:    30,
+									},
+									ReserveA:                 101000,
+									ReserveB:                 1100,
+									TotalPoolShares:          502,
+									PoolSharesTrustLineCount: 26,
+								},
+							},
+						},
+					},
+				},
+			},
+		}})
+
+	return txMeta
+}
+
 // AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
@@ -147,6 +225,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-accounts", "a", false, "set in order to export account changes")
 	flags.BoolP("export-trustlines", "t", false, "set in order to export trustline changes")
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
+	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
@@ -244,7 +323,7 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools bool) {
 	exportAccounts, err := flags.GetBool("export-accounts")
 	if err != nil {
 		logger.Fatal("could not get export accounts flag: ", err)
@@ -258,6 +337,11 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccount
 	exportTrustlines, err = flags.GetBool("export-trustlines")
 	if err != nil {
 		logger.Fatal("could not get export trustlines flag: ", err)
+	}
+
+	exportPools, err = flags.GetBool("export-pools")
+	if err != nil {
+		logger.Fatal("could not export liquidity pools flag: ", err)
 	}
 
 	return
@@ -416,14 +500,14 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, err
 }
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
-func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, bool, error) {
+func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
 	switch changeType := change.LedgerEntryChangeType(); changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
-		return *change.Post, false, nil
+		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
-		return *change.Pre, true, nil
+		return *change.Pre, changeType, true, nil
 	default:
-		return xdr.LedgerEntry{}, false, fmt.Errorf("unable to extract ledger entry type from change")
+		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}
 }
 
@@ -439,6 +523,8 @@ func GetMostRecentCheckpoint(seq uint32) uint32 {
 type EnvironmentDetails struct {
 	NetworkPassphrase string
 	ArchiveURLs       []string
+	BinaryPath        string
+	CoreConfig        string
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
@@ -447,11 +533,15 @@ func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
+		details.BinaryPath = "/usr/bin/stellar-core"
+		details.CoreConfig = "docker/stellar-core_testnet.cfg"
 		return details
 	} else {
 		// default: mainnet
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs
+		details.BinaryPath = "/usr/bin/stellar-core"
+		details.CoreConfig = "docker/stellar-core.cfg"
 		return details
 	}
 }

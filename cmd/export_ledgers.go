@@ -146,16 +146,12 @@ var ledgersCmd = &cobra.Command{
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		outFile := os.Stdout
-		if path != "" {
-			outFile = mustOutFile(path)
-		}
-
 		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
 
+		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for i, lcm := range ledgers {

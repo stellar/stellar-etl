@@ -20,14 +20,14 @@ var operationsCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 
-		outFile := mustOutFile(path)
-
-		operations, err := input.GetOperations(startNum, endNum, limit, isTest)
+		operations, err := input.GetOperations(startNum, endNum, limit, env)
 		if err != nil {
 			cmdLogger.Fatal("could not read operations: ", err)
 		}
 
+		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, transformInput := range operations {

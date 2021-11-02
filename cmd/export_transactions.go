@@ -21,13 +21,12 @@ var transactionsCmd = &cobra.Command{
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		outFile := mustOutFile(path)
-
 		transactions, err := input.GetTransactions(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}
 
+		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, transformInput := range transactions {

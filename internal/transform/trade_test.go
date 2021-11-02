@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -128,30 +129,6 @@ func TestTransformTrade(t *testing.T) {
 			}},
 	}, true)
 
-	negOfferIDInput := genericInput
-	negOfferIDEnvelope := genericManageBuyOfferEnvelope
-	negOfferIDInput.transaction.Envelope.V1 = &negOfferIDEnvelope
-	negOfferIDInput.transaction.Result = wrapOperationsResultsSlice([]xdr.OperationResult{
-		xdr.OperationResult{
-			Tr: &xdr.OperationResultTr{
-				Type: xdr.OperationTypeManageBuyOffer,
-				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
-					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
-					Success: &xdr.ManageOfferSuccessResult{
-						OffersClaimed: []xdr.ClaimAtom{
-							xdr.ClaimAtom{
-								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
-								OrderBook: &xdr.ClaimOfferAtom{
-									SellerId: genericAccountID,
-									OfferId:  -3,
-								},
-							},
-						},
-					},
-				},
-			}},
-	}, true)
-
 	tests := []transformTest{
 		{
 			wrongTypeInput,
@@ -180,10 +157,6 @@ func TestTransformTrade(t *testing.T) {
 		{
 			negCounterAmountInput,
 			[]TradeOutput{}, fmt.Errorf("Amount bought is negative (-2) for operation at index 0"),
-		},
-		{
-			negOfferIDInput,
-			[]TradeOutput{}, fmt.Errorf("Offer ID is negative (-3) for operation at index 0"),
 		},
 	}
 
@@ -240,8 +213,8 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			OfferId:      86106895,
 			AssetSold:    usdtAsset,
 			AssetBought:  nativeAsset,
-			AmountSold:   17339680,
-			AmountBought: 57798933,
+			AmountSold:   500,
+			AmountBought: 20,
 		},
 	}
 	inputOperations := []xdr.Operation{
@@ -357,8 +330,221 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			},
 		},
 	}
+
+	unsafeMeta := xdr.TransactionMetaV1{
+		Operations: []xdr.OperationMeta{
+			xdr.OperationMeta{
+				Changes: xdr.LedgerEntryChanges{
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									OfferId:  97684906,
+									Price: xdr.Price{
+										N: 12634,
+										D: 13300347,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									OfferId:  97684906,
+									Price: xdr.Price{
+										N: 2,
+										D: 4,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.OperationMeta{
+				Changes: xdr.LedgerEntryChanges{
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount3ID,
+									OfferId:  86106895,
+									Price: xdr.Price{
+										N: 25,
+										D: 1,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount3ID,
+									OfferId:  86106895,
+									Price: xdr.Price{
+										N: 1111,
+										D: 12,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.OperationMeta{
+				Changes: xdr.LedgerEntryChanges{
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									OfferId:  97684906,
+									Price: xdr.Price{
+										N: 12634,
+										D: 13300347,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									OfferId:  97684906,
+									Price: xdr.Price{
+										N: 1111,
+										D: 12,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount3ID,
+									OfferId:  86106895,
+									Price: xdr.Price{
+										N: 20,
+										D: 500,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount3ID,
+									OfferId:  86106895,
+									Price: xdr.Price{
+										N: 1111,
+										D: 12,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.OperationMeta{
+				Changes: xdr.LedgerEntryChanges{
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount3ID,
+									OfferId:  86106895,
+									Price: xdr.Price{
+										N: 20,
+										D: 500,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									OfferId:  97684906,
+									Price: xdr.Price{
+										N: 12634,
+										D: 13300347,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									OfferId:  97684906,
+									Price: xdr.Price{
+										N: 12634,
+										D: 13300347,
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeOffer,
+								Offer: &xdr.OfferEntry{
+									SellerId: testAccount1ID,
+									Price: xdr.Price{
+										N: 12634,
+										D: 1330,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}}
+
 	inputTransaction.Result.Result.Result.Results = &results
 	inputTransaction.Envelope.V1 = &inputEnvelope
+	inputTransaction.UnsafeMeta.V1 = &unsafeMeta
 	return
 }
 
@@ -366,56 +552,52 @@ func makeTradeTestOutput() [][]TradeOutput {
 	offerOneOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
-		OfferID:               97684906,
-		BaseAccountAddress:    testAccount1Address,
-		BaseAssetCode:         "ETH",
-		BaseAssetIssuer:       testAccount3Address,
-		BaseAssetType:         "credit_alphanum4",
-		BaseAmount:            13300347,
-		CounterAccountAddress: testAccount3Address,
-		CounterAssetCode:      "USDT",
-		CounterAssetIssuer:    testAccount4Address,
-		CounterAssetType:      "credit_alphanum4",
-		CounterAmount:         12634,
-		BaseIsSeller:          true,
+		SellingAccountAddress: testAccount1Address,
+		SellingAssetCode:      "ETH",
+		SellingAssetIssuer:    testAccount3Address,
+		SellingAssetType:      "credit_alphanum4",
+		SellingAmount:         13300347 * 0.0000001,
+		BuyingAccountAddress:  testAccount3Address,
+		BuyingAssetCode:       "USDT",
+		BuyingAssetIssuer:     testAccount4Address,
+		BuyingAssetType:       "credit_alphanum4",
+		BuyingAmount:          12634 * 0.0000001,
 		PriceN:                12634,
 		PriceD:                13300347,
-		BaseOfferID:           97684906,
-		CounterOfferID:        4611686018427388004,
-		HistoryOperationID:    100,
+		SellingOfferID:        null.IntFrom(97684906),
+		BuyingOfferID:         null.IntFrom(4611686018427388004),
+		HistoryOperationID:    101,
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
-		OfferID:               86106895,
-		BaseAccountAddress:    testAccount3Address,
-		BaseAssetCode:         "USDT",
-		BaseAssetIssuer:       testAccount4Address,
-		BaseAssetType:         "credit_alphanum4",
-		BaseAmount:            17339680,
-		CounterAccountAddress: testAccount3Address,
-		CounterAssetCode:      "",
-		CounterAssetIssuer:    "",
-		CounterAssetType:      "native",
-		CounterAmount:         57798933,
-		BaseIsSeller:          true,
-		PriceN:                57798933,
-		PriceD:                17339680,
-		BaseOfferID:           86106895,
-		CounterOfferID:        4611686018427388004,
-		HistoryOperationID:    100,
+		SellingAccountAddress: testAccount3Address,
+		SellingAssetCode:      "USDT",
+		SellingAssetIssuer:    testAccount4Address,
+		SellingAssetType:      "credit_alphanum4",
+		SellingAmount:         500 * 0.0000001,
+		BuyingAccountAddress:  testAccount3Address,
+		BuyingAssetCode:       "",
+		BuyingAssetIssuer:     "",
+		BuyingAssetType:       "native",
+		BuyingAmount:          20 * 0.0000001,
+		PriceN:                25,
+		PriceD:                1,
+		SellingOfferID:        null.IntFrom(86106895),
+		BuyingOfferID:         null.IntFrom(4611686018427388004),
+		HistoryOperationID:    101,
 	}
 
 	onePriceIsAmount := offerOneOutput
-	onePriceIsAmount.PriceN = onePriceIsAmount.CounterAmount
-	onePriceIsAmount.PriceD = onePriceIsAmount.BaseAmount
+	onePriceIsAmount.PriceN = 12634
+	onePriceIsAmount.PriceD = 13300347
 
 	offerOneOutputSecondPlace := onePriceIsAmount
 	offerOneOutputSecondPlace.Order = 1
 
 	twoPriceIsAmount := offerTwoOutput
-	twoPriceIsAmount.PriceN = twoPriceIsAmount.CounterAmount
-	twoPriceIsAmount.PriceD = twoPriceIsAmount.BaseAmount
+	twoPriceIsAmount.PriceN = int64(twoPriceIsAmount.BuyingAmount * 10000000)
+	twoPriceIsAmount.PriceD = int64(twoPriceIsAmount.SellingAmount * 10000000)
 
 	offerTwoOutputSecondPlace := twoPriceIsAmount
 	offerTwoOutputSecondPlace.Order = 1

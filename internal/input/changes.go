@@ -69,7 +69,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 	return captiveBackend, nil
 }
 
-func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, offCache, trustCache *ingest.ChangeCompactor) error {
+func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, offCache, trustCache, poolCache *ingest.ChangeCompactor) error {
 	for {
 		change, err := changeReader.Read()
 		if err == io.EOF {
@@ -96,6 +96,11 @@ func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, 
 				trustCache.AddChange(change)
 			}
 
+		case xdr.LedgerEntryTypeLiquidityPool:
+			if poolCache != nil {
+				poolCache.AddChange(change)
+			}
+
 		default:
 			// there is also a data entry type, which is not tracked right now
 		}
@@ -107,6 +112,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 	accChanges := ingest.NewChangeCompactor()
 	offChanges := ingest.NewChangeCompactor()
 	trustChanges := ingest.NewChangeCompactor()
+	poolChanges := ingest.NewChangeCompactor()
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
 		latestLedger, err := core.GetLatestLedgerSequence(ctx)
@@ -122,7 +128,7 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
 
-			err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges)
+			err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges, poolChanges)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
 			}
@@ -135,9 +141,10 @@ func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellar
 
 	batch := ChangeBatch{
 		Changes: map[xdr.LedgerEntryType][]ingest.Change{
-			xdr.LedgerEntryTypeAccount:   accChanges.GetChanges(),
-			xdr.LedgerEntryTypeOffer:     offChanges.GetChanges(),
-			xdr.LedgerEntryTypeTrustline: trustChanges.GetChanges(),
+			xdr.LedgerEntryTypeAccount:       accChanges.GetChanges(),
+			xdr.LedgerEntryTypeOffer:         offChanges.GetChanges(),
+			xdr.LedgerEntryTypeTrustline:     trustChanges.GetChanges(),
+			xdr.LedgerEntryTypeLiquidityPool: poolChanges.GetChanges(),
 		},
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,

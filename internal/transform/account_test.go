@@ -137,9 +137,9 @@ func makeAccountTestInput() ingest.Change {
 func makeAccountTestOutput() AccountOutput {
 	return AccountOutput{
 		AccountID:            testAccount1Address,
-		Balance:              10959979,
-		BuyingLiabilities:    1000,
-		SellingLiabilities:   1500,
+		Balance:              1.0959979,
+		BuyingLiabilities:    0.0001,
+		SellingLiabilities:   0.00015,
 		SequenceNumber:       117801117454198833,
 		NumSubentries:        141,
 		InflationDestination: testAccount2Address,
@@ -150,6 +150,7 @@ func makeAccountTestOutput() AccountOutput {
 		ThresholdMedium:      3,
 		ThresholdHigh:        5,
 		LastModifiedLedger:   30705278,
+		LedgerEntryChange:    2,
 		Deleted:              true,
 	}
 }
