@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -34,7 +36,7 @@ var assetsCmd = &cobra.Command{
 			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
-				cmdLogger.Errorf("could not extract asset from operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum)
+				cmdLogger.LogError(fmt.Errorf("could not extract asset from operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum))
 				numFailures += 1
 				continue
 			}

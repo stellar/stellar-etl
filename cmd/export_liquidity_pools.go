@@ -39,13 +39,9 @@ the export_ledger_entry_changes command.`,
 		for _, pool := range pools {
 			transformed, err := transform.TransformPool(pool)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not transform pool", err)
-				} else {
-					cmdLogger.Warning("could not transform pool", err)
-					numFailures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))
+				numFailures += 1
+				continue
 			}
 
 			numBytes, err := exportEntry(transformed, outFile)

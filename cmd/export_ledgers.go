@@ -111,18 +111,24 @@ func uploadToGcs(credentialsPath, bucket, runId, path string) error {
 	}
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
+	ctx, cancel := context.WithTimeout(ctx, time.Hour)
 	defer cancel()
 
 	objectPath := filepath.Join(runId, path)
 	wc := client.Bucket(bucket).Object(objectPath).NewWriter(ctx)
-	defer wc.Close()
 
-	cmdLogger.Infof("Uploading %s to gs://%s/%s ", path, bucket, objectPath)
+	cmdLogger.Infof("Uploading %s to gs://%s/%s", path, bucket, objectPath)
 
-	if _, err := io.Copy(wc, reader); err != nil {
+	var written int64
+	if written, err = io.Copy(wc, reader); err != nil {
 		return fmt.Errorf("unable to copy: %v", err)
 	}
+	err = wc.Close()
+	if err != nil {
+		return err
+	}
+
+	cmdLogger.Infof("Successfully uploaded %d bytes to gs://%s/%s", written, bucket, objectPath)
 	return nil
 }
 
