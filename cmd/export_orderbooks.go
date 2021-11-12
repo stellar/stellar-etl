@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"encoding/json"
 	"math"
 	"os"
 	"path/filepath"
@@ -26,13 +26,12 @@ var exportOrderbooksCmd = &cobra.Command{
 	If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
 	confirmed by the Stellar network. In this unbounded case, a stellar-core config path is required to utilize the Captive Core toml.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
-		runId := generateRunId()
 
 		if batchSize <= 0 {
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
@@ -80,7 +79,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				}
 
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, runId)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
 			}
 		} else {
 			// otherwise, we export in an unbounded manner where batches are constantly exported
@@ -89,7 +88,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, runId)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
 				batchNum++
 			}
 		}
@@ -97,34 +96,68 @@ var exportOrderbooksCmd = &cobra.Command{
 }
 
 // writeSlice writes the slice either to a file.
-func writeSlice(file *os.File, slice [][]byte) {
-	for _, v := range slice {
-		file.WriteString(string(v) + "\n")
+func writeSlice(file *os.File, slice [][]byte, extra map[string]string) error {
+
+	for _, data := range slice {
+		bytesToWrite := data
+		if len(extra) > 0 {
+			i := map[string]interface{}{}
+			err := json.Unmarshal(data, &i)
+			if err != nil {
+				return err
+			}
+			for k, v := range extra {
+				i[k] = v
+			}
+			bytesToWrite, err = json.Marshal(i)
+			if err != nil {
+				return err
+			}
+		}
+		file.WriteString(string(bytesToWrite) + "\n")
 	}
 
 	file.Close()
+	return nil
 }
 
-func exportOrderbook(start, end uint32, folderPath string, parser *input.OrderbookParser, gcpCredentials, gcsBucket, runId string) {
-	marketsFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimMarkets.txt", start, end))
-	offersFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimOffers.txt", start, end))
-	accountsFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-dimAccounts.txt", start, end))
-	eventsFilePath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-factEvents.txt", start, end))
+func exportOrderbook(
+	start, end uint32,
+	folderPath string,
+	parser *input.OrderbookParser,
+	gcpCredentials, gcsBucket string,
+	extra map[string]string) {
+	marketsFilePath := filepath.Join(folderPath, exportFilename(start, end, "dimMarkets"))
+	offersFilePath := filepath.Join(folderPath, exportFilename(start, end, "dimOffers"))
+	accountsFilePath := filepath.Join(folderPath, exportFilename(start, end, "dimAccounts"))
+	eventsFilePath := filepath.Join(folderPath, exportFilename(start, end, "factEvents"))
 
 	marketsFile := mustOutFile(marketsFilePath)
 	offersFile := mustOutFile(offersFilePath)
 	accountsFile := mustOutFile(accountsFilePath)
 	eventsFile := mustOutFile(eventsFilePath)
 
-	writeSlice(marketsFile, parser.Markets)
-	writeSlice(offersFile, parser.Offers)
-	writeSlice(accountsFile, parser.Accounts)
-	writeSlice(eventsFile, parser.Events)
+	err := writeSlice(marketsFile, parser.Markets, extra)
+	if err != nil {
+		cmdLogger.LogError(err)
+	}
+	err = writeSlice(offersFile, parser.Offers, extra)
+	if err != nil {
+		cmdLogger.LogError(err)
+	}
+	err = writeSlice(accountsFile, parser.Accounts, extra)
+	if err != nil {
+		cmdLogger.LogError(err)
+	}
+	err = writeSlice(eventsFile, parser.Events, extra)
+	if err != nil {
+		cmdLogger.LogError(err)
+	}
 
-	maybeUpload(gcpCredentials, gcsBucket, runId, marketsFilePath)
-	maybeUpload(gcpCredentials, gcsBucket, runId, offersFilePath)
-	maybeUpload(gcpCredentials, gcsBucket, runId, accountsFilePath)
-	maybeUpload(gcpCredentials, gcsBucket, runId, eventsFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, marketsFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, offersFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, accountsFilePath)
+	maybeUpload(gcpCredentials, gcsBucket, eventsFilePath)
 }
 
 func init() {

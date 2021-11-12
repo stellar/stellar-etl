@@ -112,7 +112,7 @@ func TestSendBatchToChannel(t *testing.T) {
 
 func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) ChangeBatch {
 	changes := map[xdr.LedgerEntryType][]ingest.Change{
-		entryType: []ingest.Change{{Type: entry.Data.Type, Post: &entry}},
+		entryType: {{Type: entry.Data.Type, Post: &entry}},
 	}
 	return ChangeBatch{
 		Changes: changes,

@@ -26,15 +26,13 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
-
-		runId := generateRunId()
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
@@ -137,7 +135,7 @@ be exported.`,
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools, gcpCredentials, gcsBucket, runId)
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools, gcpCredentials, gcsBucket, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
@@ -154,56 +152,49 @@ func exportTransformedData(
 	offers []transform.OfferOutput,
 	trusts []transform.TrustlineOutput,
 	pools []transform.PoolOutput,
-	gcpCredentials, gcsBucket, runId string) error {
+	gcpCredentials, gcsBucket string,
+	extra map[string]string) error {
 
-	accountPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end-1))
-	offersPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end-1))
-	trustPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end-1))
-	poolPath := filepath.Join(folderPath, fmt.Sprintf("%d-%d-liquidity_pools.txt", start, end-1))
+	accountsPath := filepath.Join(folderPath, exportFilename(start, end, "accounts"))
+	offersPath := filepath.Join(folderPath, exportFilename(start, end, "offers"))
+	trustPath := filepath.Join(folderPath, exportFilename(start, end, "trustlines"))
+	poolPath := filepath.Join(folderPath, exportFilename(start, end, "liquidity_pools"))
 
-	accountFile := mustOutFile(accountPath)
+	accountFile := mustOutFile(accountsPath)
 	offersFile := mustOutFile(offersPath)
 	trustFile := mustOutFile(trustPath)
 	poolFile := mustOutFile(poolPath)
 
 	for _, acc := range accounts {
-		_, err := exportEntry(acc, accountFile)
+		_, err := exportEntry(acc, accountFile, extra)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, off := range offers {
-		_, err := exportEntry(off, offersFile)
+		_, err := exportEntry(off, offersFile, extra)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, trust := range trusts {
-		_, err := exportEntry(trust, trustFile)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, trust := range trusts {
-		_, err := exportEntry(trust, trustFile)
+		_, err := exportEntry(trust, trustFile, extra)
 		if err != nil {
 			return err
 		}
 	}
 	for _, pool := range pools {
-		_, err := exportEntry(pool, poolFile)
+		_, err := exportEntry(pool, poolFile, extra)
 		if err != nil {
 			return err
 		}
 	}
-
-	maybeUpload(gcpCredentials, gcsBucket, runId, accountPath)
-	maybeUpload(gcpCredentials, gcsBucket, runId, offersPath)
-	maybeUpload(gcpCredentials, gcsBucket, runId, trustPath)
-	maybeUpload(gcpCredentials, gcsBucket, runId, poolPath)
+	maybeUpload(gcpCredentials, gcsBucket, accountsPath)
+	maybeUpload(gcpCredentials, gcsBucket, offersPath)
+	maybeUpload(gcpCredentials, gcsBucket, trustPath)
+	maybeUpload(gcpCredentials, gcsBucket, poolPath)
 	return nil
 }
 

@@ -204,7 +204,7 @@ func removeCoreLogging(loggerOutput string) string {
 		return ""
 	}
 
-	return loggerOutput[endIndex:len(loggerOutput)]
+	return loggerOutput[endIndex:]
 }
 
 func getLastSeqNum(archiveURLs []string) uint32 {

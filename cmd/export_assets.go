@@ -16,7 +16,7 @@ var assetsCmd = &cobra.Command{
 	Long:  `Exports the assets that are created from payment operations over a specified ledger range`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
@@ -47,7 +47,7 @@ var assetsCmd = &cobra.Command{
 			}
 
 			seenIDs[transformed.AssetID] = true
-			numBytes, err := exportEntry(transformed, outFile)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
 				cmdLogger.Error(err)
 				numFailures += 1
@@ -61,7 +61,7 @@ var assetsCmd = &cobra.Command{
 
 		printTransformStats(len(paymentOps), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 

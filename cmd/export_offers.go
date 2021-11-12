@@ -23,7 +23,7 @@ var offersCmd = &cobra.Command{
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
@@ -45,7 +45,7 @@ var offersCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export offer %+v: %v", offer, err))
 				numFailures += 1
@@ -59,7 +59,7 @@ var offersCmd = &cobra.Command{
 
 		printTransformStats(len(offers), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 

@@ -19,7 +19,7 @@ var tradesCmd = &cobra.Command{
 	Long:  `Exports trade data within the specified range to an output file`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest)
@@ -43,7 +43,7 @@ var tradesCmd = &cobra.Command{
 			}
 
 			for _, transformed := range trades {
-				numBytes, err := exportEntry(transformed, outFile)
+				numBytes, err := exportEntry(transformed, outFile, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					numFailures += 1
@@ -58,7 +58,7 @@ var tradesCmd = &cobra.Command{
 
 		printTransformStats(len(trades), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 

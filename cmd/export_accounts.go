@@ -22,7 +22,7 @@ should be used in an initial data dump. In order to get account information with
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
@@ -44,7 +44,7 @@ the export_ledger_entry_changes command.`,
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export entry: %v", err))
 				numFailures += 1
@@ -58,7 +58,7 @@ the export_ledger_entry_changes command.`,
 
 		printTransformStats(len(accounts), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 

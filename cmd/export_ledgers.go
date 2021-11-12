@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -54,12 +53,25 @@ func mustOutFile(path string) *os.File {
 	return outFile
 }
 
-func exportEntry(entry interface{}, outFile *os.File) (int, error) {
-	marshalled, err := json.Marshal(entry)
+func exportEntry(entry interface{}, outFile *os.File, extra map[string]string) (int, error) {
+	// This entra marshalling/unmarshalling is silly, but it's required to properly handle the null.[String|Int*] types, and add the extra fields.
+	m, err := json.Marshal(entry)
+	if err != nil {
+		cmdLogger.Errorf("Error marshalling %+v: %v ", entry, err)
+	}
+	i := map[string]interface{}{}
+	err = json.Unmarshal(m, &i)
+	if err != nil {
+		cmdLogger.Errorf("Error unmarshalling %+v: %v ", i, err)
+	}
+	for k, v := range extra {
+		i[k] = v
+	}
+
+	marshalled, err := json.Marshal(i)
 	if err != nil {
 		return 0, fmt.Errorf("could not json encode %+v: %s", entry, err)
 	}
-
 	cmdLogger.Debugf("Writing entry to %s", outFile.Name)
 	numBytes, err := outFile.Write(marshalled)
 	if err != nil {
@@ -88,11 +100,11 @@ func printTransformStats(attempts, failures int) {
 	cmdLogger.Info(string(results))
 }
 
-func generateRunId() string {
-	return uuid.New().String()
+func exportFilename(start, end uint32, dataType string) string {
+	return fmt.Sprintf("%d-%d-%s.txt", start, end-1, dataType)
 }
 
-func uploadToGcs(credentialsPath, bucket, runId, path string) error {
+func uploadToGcs(credentialsPath, bucket, path string) error {
 	// Use credentials file in dev/local runs. Otherwise, derive credentials from the service account.
 	if len(credentialsPath) > 0 {
 		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath)
@@ -114,10 +126,10 @@ func uploadToGcs(credentialsPath, bucket, runId, path string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Hour)
 	defer cancel()
 
-	objectPath := filepath.Join(runId, path)
-	wc := client.Bucket(bucket).Object(objectPath).NewWriter(ctx)
+	wc := client.Bucket(bucket).Object(path).NewWriter(ctx)
 
-	cmdLogger.Infof("Uploading %s to gs://%s/%s", path, bucket, objectPath)
+	uploadLocation := fmt.Sprintf("gs://%s/%s", bucket, path)
+	cmdLogger.Infof("Uploading %s to %s", path, uploadLocation)
 
 	var written int64
 	if written, err = io.Copy(wc, reader); err != nil {
@@ -128,16 +140,23 @@ func uploadToGcs(credentialsPath, bucket, runId, path string) error {
 		return err
 	}
 
-	cmdLogger.Infof("Successfully uploaded %d bytes to gs://%s/%s", written, bucket, objectPath)
+	cmdLogger.Infof("Successfully uploaded %d bytes to gs://%s/%s", written, bucket, path)
 	return nil
 }
 
-func maybeUpload(gcpCredentials, gcsBucket, runId, path string) {
+func maybeUpload(gcpCredentials, gcsBucket, path string) {
 	if len(gcsBucket) > 0 {
-		err := uploadToGcs(gcpCredentials, gcsBucket, runId, path)
+		err := uploadToGcs(gcpCredentials, gcsBucket, path)
 		if err != nil {
 			cmdLogger.Errorf("Unable to upload output to GCS: %s", err)
+			return
 		}
+		err = os.RemoveAll(path)
+		if err != nil {
+			cmdLogger.Errorf("Unable to remove %s: %s", path, err)
+			return
+		}
+		cmdLogger.Infof("Successfully deleted %s", path)
 	}
 }
 
@@ -147,7 +166,7 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
@@ -158,6 +177,7 @@ var ledgersCmd = &cobra.Command{
 		}
 
 		outFile := mustOutFile(path)
+
 		numFailures := 0
 		totalNumBytes := 0
 		for i, lcm := range ledgers {
@@ -168,7 +188,7 @@ var ledgersCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1
@@ -181,7 +201,8 @@ var ledgersCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(ledgers), numFailures)
-		maybeUpload(gcpCredentials, gcsBucket, generateRunId(), path)
+
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 

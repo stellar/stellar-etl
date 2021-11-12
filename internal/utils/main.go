@@ -187,6 +187,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
 	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
+	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 }
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
@@ -194,7 +195,6 @@ func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
-
 }
 
 // AddBucketFlags adds the bucket list specifc flags: output
@@ -229,7 +229,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool) {
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, extra map[string]string) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
@@ -245,6 +245,10 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, st
 		logger.Fatal("could not get testnet boolean: ", err)
 	}
 
+	extra, err = flags.GetStringToString("extra-fields")
+	if err != nil {
+		logger.Fatal("could not get extra fields string: ", err)
+	}
 	return
 }
 
@@ -288,7 +292,6 @@ func MustGcsFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, credentials 
 	if err != nil {
 		logger.Fatal("could not get GOOGLE_APPLICATION_CREDENTIALS file: ", err)
 	}
-
 	return
 }
 
