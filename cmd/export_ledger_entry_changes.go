@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -26,15 +26,17 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		var folderPath string
-		if !useStdout {
-			folderPath = mustCreateFolder(outputFolder)
+		err := os.MkdirAll(outputFolder, os.ModePerm)
+		if err != nil {
+			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
 		}
 
 		if batchSize <= 0 {
@@ -50,7 +52,6 @@ be exported.`,
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
-		var err error
 		execPath, err = filepath.Abs(execPath)
 		if err != nil {
 			cmdLogger.Fatal("could not get absolute filepath for stellar-core executable: ", err)
@@ -61,126 +62,140 @@ be exported.`,
 			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
 		}
 
+		if endNum != 0 {
+			endNum = endNum + 1
+		}
 		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
 
-		accChannel, offChannel, trustChannel, poolChannel := createChangeChannels(exportAccounts, exportOffers, exportTrustlines, exportPools)
+		if endNum == 0 {
+			endNum = math.MaxInt32
+		}
 
-		go input.StreamChanges(core, startNum, endNum, batchSize, accChannel, offChannel, trustChannel, poolChannel, env, cmdLogger)
-		if endNum != 0 {
-			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
-			cmdLogger.Info("Total batch count: \n", batchCount)
-			for i := uint32(0); i < batchCount; i++ {
-				batchStart := startNum + i*batchSize
-				// Subtract 1 from the end batch number because batches do not include the last batch in the range
-				batchEnd := batchStart + batchSize - 1
-				if batchEnd > endNum {
-					batchEnd = endNum
+		changeChan := make(chan input.ChangeBatch)
+		closeChan := make(chan int)
+		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+
+		for {
+			select {
+			case <-closeChan:
+				return
+			case batch, ok := <-changeChan:
+				if !ok {
+					continue
+				}
+				transformedAccounts := []transform.AccountOutput{}
+				transformedOffers := []transform.OfferOutput{}
+				transformedTrustlines := []transform.TrustlineOutput{}
+				transformedPools := []transform.PoolOutput{}
+				for entryType, changes := range batch.Changes {
+					switch entryType {
+					case xdr.LedgerEntryTypeAccount:
+						for _, change := range changes {
+							acc, err := transform.TransformAccount(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedAccounts = append(transformedAccounts, acc)
+						}
+					case xdr.LedgerEntryTypeOffer:
+						for _, change := range changes {
+							offer, err := transform.TransformOffer(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOffers = append(transformedOffers, offer)
+						}
+					case xdr.LedgerEntryTypeTrustline:
+						for _, change := range changes {
+							trust, err := transform.TransformTrustline(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedTrustlines = append(transformedTrustlines, trust)
+						}
+					case xdr.LedgerEntryTypeLiquidityPool:
+						for _, change := range changes {
+							pool, err := transform.TransformPool(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedPools = append(transformedPools, pool)
+						}
+					}
 				}
 
-				transformedAccounts, transformedOffers, transformedTrustlines, transformedPools := input.ReceiveChanges(accChannel, offChannel, trustChannel, poolChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools)
-			}
-
-		} else {
-			var batchNum uint32 = 0
-			for {
-				batchStart := startNum + batchNum*batchSize
-				batchEnd := batchStart + batchSize - 1
-				transformedAccounts, transformedOffers, transformedTrustlines, transformedPools := input.ReceiveChanges(accChannel, offChannel, trustChannel, poolChannel, strictExport, cmdLogger)
-				exportTransformedData(batchStart, batchEnd, folderPath, useStdout, strictExport, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools)
-				batchNum++
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools, gcpCredentials, gcsBucket, extra)
+				if err != nil {
+					cmdLogger.LogError(err)
+					continue
+				}
 			}
 		}
 	},
 }
 
-func mustCreateFolder(path string) string {
-	absolutePath, err := filepath.Abs(path)
-	if err != nil {
-		cmdLogger.Fatal("could not get absolute filepath: ", err)
-	}
-
-	_, err = os.Stat(path)
-
-	if os.IsNotExist(err) {
-		err := os.Mkdir(path, 0777)
-		if err != nil {
-			cmdLogger.Fatal("could not create folder: ", err)
-		}
-	}
-
-	return absolutePath
-}
-
-// exportEntry exports the provided entry, printing either to the file or to stdout.
-func exportEntry(entry interface{}, file *os.File, useStdout, strictExport bool) {
-	marshalled, err := json.Marshal(entry)
-	if err != nil {
-		if strictExport {
-			cmdLogger.Fatal("could not json encode account", err)
-		} else {
-			cmdLogger.Warning("could not json encode account", err)
-		}
-	}
-
-	if !useStdout {
-		file.Write(marshalled)
-		file.WriteString("\n")
-	} else {
-		fmt.Println(string(marshalled))
-	}
-}
-
 func exportTransformedData(
-	start,
-	end uint32,
+	start, end uint32,
 	folderPath string,
-	useStdout,
-	strictExport bool,
 	accounts []transform.AccountOutput,
 	offers []transform.OfferOutput,
 	trusts []transform.TrustlineOutput,
-	pools []transform.PoolOutput) {
-	var accountFile, offersFile, trustFile, poolFile *os.File
-	if len(accounts) > 0 {
-		if !useStdout {
-			accountFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-accounts.txt", start, end)))
-		}
-		for _, acc := range accounts {
-			exportEntry(acc, accountFile, useStdout, strictExport)
+	pools []transform.PoolOutput,
+	gcpCredentials, gcsBucket string,
+	extra map[string]string) error {
+
+	accountsPath := filepath.Join(folderPath, exportFilename(start, end, "accounts"))
+	offersPath := filepath.Join(folderPath, exportFilename(start, end, "offers"))
+	trustPath := filepath.Join(folderPath, exportFilename(start, end, "trustlines"))
+	poolPath := filepath.Join(folderPath, exportFilename(start, end, "liquidity_pools"))
+
+	accountFile := mustOutFile(accountsPath)
+	offersFile := mustOutFile(offersPath)
+	trustFile := mustOutFile(trustPath)
+	poolFile := mustOutFile(poolPath)
+
+	for _, acc := range accounts {
+		_, err := exportEntry(acc, accountFile, extra)
+		if err != nil {
+			return err
 		}
 	}
 
-	if len(offers) > 0 {
-		if !useStdout {
-			offersFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-offers.txt", start, end)))
-		}
-		for _, off := range offers {
-			exportEntry(off, offersFile, useStdout, strictExport)
+	for _, off := range offers {
+		_, err := exportEntry(off, offersFile, extra)
+		if err != nil {
+			return err
 		}
 	}
 
-	if len(trusts) > 0 {
-		if !useStdout {
-			trustFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-trustlines.txt", start, end)))
-		}
-		for _, trust := range trusts {
-			exportEntry(trust, trustFile, useStdout, strictExport)
+	for _, trust := range trusts {
+		_, err := exportEntry(trust, trustFile, extra)
+		if err != nil {
+			return err
 		}
 	}
-
-	if len(pools) > 0 {
-		if !useStdout {
-			poolFile = mustOutFile(filepath.Join(folderPath, fmt.Sprintf("%d-%d-liquidity_pools.txt", start, end)))
-		}
-		for _, pool := range pools {
-			exportEntry(pool, poolFile, useStdout, strictExport)
+	for _, pool := range pools {
+		_, err := exportEntry(pool, poolFile, extra)
+		if err != nil {
+			return err
 		}
 	}
-
+	maybeUpload(gcpCredentials, gcsBucket, accountsPath)
+	maybeUpload(gcpCredentials, gcsBucket, offersPath)
+	maybeUpload(gcpCredentials, gcsBucket, trustPath)
+	maybeUpload(gcpCredentials, gcsBucket, poolPath)
+	return nil
 }
 
 func createChangeChannels(exportAccounts, exportOffers, exportTrustlines, exportPools bool) (accChan, offChan, trustChan, poolChan chan input.ChangeBatch) {
@@ -208,6 +223,7 @@ func init() {
 	utils.AddCommonFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags(), "changes_output/")
 	utils.AddExportTypeFlags(exportLedgerEntryChangesCmd.Flags())
+	utils.AddGcsFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
@@ -217,7 +233,6 @@ func init() {
 			end-ledger: the ledger sequence number for the end of the export range
 
 			output-folder: folder that will contain the output files
-			stdout: if true, prints to stdout instead of the command line
 			limit: maximum number of changes to export in a given batch; if negative then everything gets exported
 			batch-size: size of the export batches
 

@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -25,59 +23,44 @@ var trustlinesCmd = &cobra.Command{
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		trustlines, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeTrustline, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read trustlines: ", err)
 		}
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
-		failures := 0
+		outFile := mustOutFile(path)
+		numFailures := 0
+		totalNumBytes := 0
 		for _, trust := range trustlines {
 			transformed, err := transform.TransformTrustline(trust)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not transform trustline", err)
-				} else {
-					cmdLogger.Warning("could not transform trustline", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not json transform trustline %+v: %v", trust, err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not json encode trustline", err)
-				} else {
-					cmdLogger.Warning("could not json encode trustline", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export trustline %+v: %v", trust, err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				outFile.Write(marshalled)
-				outFile.WriteString("\n")
-			} else {
-				fmt.Println(string(marshalled))
-			}
+			totalNumBytes += numBytes
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				printLog = false
-			}
-			printTransformStats(len(trustlines), failures, printLog)
-		}
+		outFile.Close()
+
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(trustlines), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 
@@ -85,6 +68,7 @@ func init() {
 	rootCmd.AddCommand(trustlinesCmd)
 	utils.AddCommonFlags(trustlinesCmd.Flags())
 	utils.AddBucketFlags("trustlines", trustlinesCmd.Flags())
+	utils.AddGcsFlags(trustlinesCmd.Flags())
 	trustlinesCmd.MarkFlagRequired("end-ledger")
 
 	/*

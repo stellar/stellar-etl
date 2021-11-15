@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -31,6 +35,11 @@ func mustOutFile(path string) *os.File {
 		cmdLogger.Fatal("could not get absolute filepath: ", err)
 	}
 
+	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		cmdLogger.Fatalf("could not create directory %s: ", path, err)
+	}
+
 	err = createOutputFile(absolutePath)
 	if err != nil {
 		cmdLogger.Fatal("could not create output file: ", err)
@@ -44,8 +53,39 @@ func mustOutFile(path string) *os.File {
 	return outFile
 }
 
+func exportEntry(entry interface{}, outFile *os.File, extra map[string]string) (int, error) {
+	// This entra marshalling/unmarshalling is silly, but it's required to properly handle the null.[String|Int*] types, and add the extra fields.
+	m, err := json.Marshal(entry)
+	if err != nil {
+		cmdLogger.Errorf("Error marshalling %+v: %v ", entry, err)
+	}
+	i := map[string]interface{}{}
+	err = json.Unmarshal(m, &i)
+	if err != nil {
+		cmdLogger.Errorf("Error unmarshalling %+v: %v ", i, err)
+	}
+	for k, v := range extra {
+		i[k] = v
+	}
+
+	marshalled, err := json.Marshal(i)
+	if err != nil {
+		return 0, fmt.Errorf("could not json encode %+v: %s", entry, err)
+	}
+	cmdLogger.Debugf("Writing entry to %s", outFile.Name)
+	numBytes, err := outFile.Write(marshalled)
+	if err != nil {
+		cmdLogger.Errorf("Error writing %+v to file: ", entry, err)
+	}
+	newLineNumBytes, err := outFile.WriteString("\n")
+	if err != nil {
+		cmdLogger.Error("Error writing new line to file %s: ", outFile.Name, err)
+	}
+	return numBytes + newLineNumBytes, nil
+}
+
 // Prints the number of attempted, failed, and successful transformations as a JSON object
-func printTransformStats(attempts, failures int, printLog bool) {
+func printTransformStats(attempts, failures int) {
 	resultsMap := map[string]int{
 		"attempted_transforms":  attempts,
 		"failed_transforms":     failures,
@@ -54,13 +94,69 @@ func printTransformStats(attempts, failures int, printLog bool) {
 
 	results, err := json.Marshal(resultsMap)
 	if err != nil {
-		cmdLogger.Fatal("Could not marshall results: ", err)
+		cmdLogger.Fatal("Could not marshal results: ", err)
 	}
 
-	if printLog {
-		fmt.Println(string(results))
-	} else {
-		cmdLogger.Info(string(results))
+	cmdLogger.Info(string(results))
+}
+
+func exportFilename(start, end uint32, dataType string) string {
+	return fmt.Sprintf("%d-%d-%s.txt", start, end-1, dataType)
+}
+
+func uploadToGcs(credentialsPath, bucket, path string) error {
+	// Use credentials file in dev/local runs. Otherwise, derive credentials from the service account.
+	if len(credentialsPath) > 0 {
+		os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", credentialsPath)
+		cmdLogger.Infof("Using credentials found at: %s", credentialsPath)
+	}
+
+	reader, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %v", path, err)
+	}
+
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create client: %v", err)
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Hour)
+	defer cancel()
+
+	wc := client.Bucket(bucket).Object(path).NewWriter(ctx)
+
+	uploadLocation := fmt.Sprintf("gs://%s/%s", bucket, path)
+	cmdLogger.Infof("Uploading %s to %s", path, uploadLocation)
+
+	var written int64
+	if written, err = io.Copy(wc, reader); err != nil {
+		return fmt.Errorf("unable to copy: %v", err)
+	}
+	err = wc.Close()
+	if err != nil {
+		return err
+	}
+
+	cmdLogger.Infof("Successfully uploaded %d bytes to gs://%s/%s", written, bucket, path)
+	return nil
+}
+
+func maybeUpload(gcpCredentials, gcsBucket, path string) {
+	if len(gcsBucket) > 0 {
+		err := uploadToGcs(gcpCredentials, gcsBucket, path)
+		if err != nil {
+			cmdLogger.Errorf("Unable to upload output to GCS: %s", err)
+			return
+		}
+		err = os.RemoveAll(path)
+		if err != nil {
+			cmdLogger.Errorf("Unable to remove %s: %s", path, err)
+			return
+		}
+		cmdLogger.Infof("Successfully deleted %s", path)
 	}
 }
 
@@ -70,67 +166,43 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
+		outFile := mustOutFile(path)
 
-		failures := 0
-		numBytes := 0
+		numFailures := 0
+		totalNumBytes := 0
 		for i, lcm := range ledgers {
 			transformed, err := transform.TransformLedger(lcm)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not transform ledger %d: ", startNum+uint32(i))
-				if strictExport {
-					cmdLogger.Fatal(errMsg, err)
-				} else {
-					cmdLogger.Warning(errMsg, err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not json transform ledger %d: %s", startNum+uint32(i), err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				errMsg := fmt.Sprintf("could not json encode ledger %d: ", startNum+uint32(i))
-				if strictExport {
-					cmdLogger.Fatal(errMsg, err)
-				} else {
-					cmdLogger.Warning(errMsg, err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %s", startNum+uint32(i), err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				nb, err := outFile.Write(marshalled)
-				if err != nil {
-					cmdLogger.Info("Error writing ledgers to file: ", err)
-				}
-				numBytes += nb
-				outFile.WriteString("\n")
-			} else {
-				fmt.Println(string(marshalled))
-			}
+			totalNumBytes += numBytes
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				outFile.Close()
-				printLog = false
-				cmdLogger.Info("Number of bytes written: ", numBytes)
-			}
-			printTransformStats(len(ledgers), failures, printLog)
-		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(ledgers), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 
@@ -138,6 +210,7 @@ func init() {
 	rootCmd.AddCommand(ledgersCmd)
 	utils.AddCommonFlags(ledgersCmd.Flags())
 	utils.AddArchiveFlags("ledgers", ledgersCmd.Flags())
+	utils.AddGcsFlags(ledgersCmd.Flags())
 	ledgersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

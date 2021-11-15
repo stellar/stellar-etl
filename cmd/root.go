@@ -8,11 +8,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/stellar/go/support/log"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 var cfgFile string
-var cmdLogger = log.New()
+
+var cmdLogger = utils.NewEtlLogger()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

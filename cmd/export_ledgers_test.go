@@ -1,12 +1,16 @@
 package cmd
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -19,12 +23,14 @@ var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
 var archiveURLs = []string{archiveURL}
 var latestLedger = getLastSeqNum(archiveURLs)
 var update = flag.Bool("update", false, "update the golden files of this test")
+var gotFolder = "testdata/got/"
 
 type cliTest struct {
-	name    string
-	args    []string
-	golden  string
-	wantErr error
+	name              string
+	args              []string
+	golden            string
+	wantErr           error
+	sortForComparison bool
 }
 
 func TestMain(m *testing.M) {
@@ -45,53 +51,57 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
+func gotTestDir(t *testing.T, filename string) string {
+	return filepath.Join(gotFolder, t.Name(), filename)
+}
+
 func TestExportLedger(t *testing.T) {
 	tests := []cliTest{
 		{
 			name:    "end before start",
-			args:    []string{"export_ledgers", "-s", "100", "-e", "50", "--stdout"},
+			args:    []string{"export_ledgers", "-s", "100", "-e", "50"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: End sequence number is less than start (50 < 100)"),
 		},
 		{
 			name:    "start too large",
-			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295", "--stdout"},
+			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than start sequence number (%d < 4294967295)", latestLedger),
 		},
 		{
 			name:    "end too large",
-			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295", "--stdout"},
+			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than end sequence number (%d < 4294967295)", latestLedger),
 		},
 		{
 			name:    "start is 0",
-			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295", "--stdout"},
+			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
 		},
 		{
 			name:    "end is 0",
-			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295", "--stdout"},
+			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("could not read ledgers: End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
 		},
 		{
 			name:    "single ledger",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "--stdout"},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "-o", gotTestDir(t, "single_ledger.txt")},
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "10 ledgers",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "--stdout"},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-o", gotTestDir(t, "10_ledgers.txt")},
 			golden:  "10_ledgers.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range too large",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "--stdout"},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", gotTestDir(t, "large_range_ledgers.txt")},
 			golden:  "large_range_ledgers.golden",
 			wantErr: nil,
 		},
@@ -102,31 +112,82 @@ func TestExportLedger(t *testing.T) {
 	}
 }
 
+func indexOf(l []string, s string) int {
+	for idx, e := range l {
+		if e == s {
+			return idx
+		}
+	}
+	return -1
+}
+
+func sortByName(files []os.FileInfo) {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name() < files[j].Name()
+	})
+}
+
 func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
 
 		cmd := exec.Command(path.Join(dir, executableName), test.args...)
-		testOutput, actualError := cmd.CombinedOutput()
+		errOut, actualError := cmd.CombinedOutput()
 
+		idxOfOutputArg := indexOf(test.args, "-o")
+		testOutput := []byte{}
+		if idxOfOutputArg > -1 {
+			outLocation := test.args[idxOfOutputArg+1]
+			stat, err := os.Stat(outLocation)
+			assert.NoError(t, err)
+
+			// If the output arg specified is a directory, concat the contents for comparison.
+			if stat.IsDir() {
+				files, err := ioutil.ReadDir(outLocation)
+				if err != nil {
+					log.Fatal(err)
+				}
+				var buf bytes.Buffer
+				sortByName(files)
+				for _, f := range files {
+					b, err := ioutil.ReadFile(filepath.Join(outLocation, f.Name()))
+					if err != nil {
+						log.Fatal(err)
+					}
+					buf.Write(b)
+				}
+				testOutput = buf.Bytes()
+			} else {
+				// If the output is written to a file, read the contents of the file for comparison.
+				testOutput, err = ioutil.ReadFile(outLocation)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
 		// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
 		// Instead, it's wrapped in other os/system errors
 		// By reading the error text from the logger, we can extract the lower level error that the user would see
 		if test.golden == "" {
-			errorMsg := fmt.Errorf(extractErrorMsg(string(testOutput)))
+			errorMsg := fmt.Errorf(extractErrorMsg(string(errOut)))
 			assert.Equal(t, test.wantErr, errorMsg)
+			return
 		}
 
-		// Real test output should always be in stdout
-		if test.golden != "" {
-			assert.Equal(t, test.wantErr, actualError)
-			actualString := removeCoreLogging(string(testOutput))
-
-			wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
-			assert.NoError(t, err)
-			assert.Equal(t, wantString, actualString)
+		assert.Equal(t, test.wantErr, actualError)
+		actualString := string(testOutput)
+		if test.sortForComparison {
+			trimmed := strings.Trim(actualString, "\n")
+			lines := strings.Split(trimmed, "\n")
+			sort.Strings(lines)
+			actualString = strings.Join(lines, "\n")
+			actualString = fmt.Sprintf("%s\n", actualString)
 		}
+
+		wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
+		assert.NoError(t, err)
+		assert.Equal(t, wantString, actualString)
 	})
 }
 
@@ -143,7 +204,7 @@ func removeCoreLogging(loggerOutput string) string {
 		return ""
 	}
 
-	return loggerOutput[endIndex:len(loggerOutput)]
+	return loggerOutput[endIndex:]
 }
 
 func getLastSeqNum(archiveURLs []string) uint32 {

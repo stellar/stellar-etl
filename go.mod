@@ -3,6 +3,7 @@ module github.com/stellar/stellar-etl
 go 1.16
 
 require (
+	cloud.google.com/go/storage v1.10.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-errors/errors v1.1.1 // indirect

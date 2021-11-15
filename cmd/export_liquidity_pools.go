@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,67 +22,42 @@ should be used in an initial data dump. In order to get liqudity pools informati
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
-		failures := 0
-		numBytes := 0
+		outFile := mustOutFile(path)
+		numFailures := 0
+		totalNumBytes := 0
 		for _, pool := range pools {
 			transformed, err := transform.TransformPool(pool)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not transform pool", err)
-				} else {
-					cmdLogger.Warning("could not transform pool", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))
+				numFailures += 1
+				continue
 			}
 
-			marshalled, err := json.Marshal(transformed)
+			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				if strictExport {
-					cmdLogger.Fatal("could not json encode account", err)
-				} else {
-					cmdLogger.Warning("could not json encode account", err)
-					failures++
-					continue
-				}
+				cmdLogger.LogError(fmt.Errorf("could not export pool %+v: %v", pool, err))
+				numFailures += 1
+				continue
 			}
-
-			if !useStdout {
-				nb, err := outFile.Write(marshalled)
-				if err != nil {
-					cmdLogger.Info("Error writing accounts to file: ", err)
-				}
-				numBytes += nb
-				outFile.WriteString("\n")
-			} else {
-				fmt.Println(string(marshalled))
-			}
-
+			totalNumBytes += numBytes
 		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				outFile.Close()
-				printLog = false
-				cmdLogger.Info("Number of bytes written: ", numBytes)
-			}
-			printTransformStats(len(pools), failures, printLog)
-		}
+		printTransformStats(len(pools), numFailures)
+		maybeUpload(gcpCredentials, gcsBucket, path)
+
 	},
 }
 

@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/stellar-etl/internal/toid"
@@ -21,73 +19,46 @@ var tradesCmd = &cobra.Command{
 	Long:  `Exports trade data within the specified range to an output file`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, useStdout, strictExport, isTest := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		trades, err := input.GetTrades(startNum, endNum, limit, env)
 		if err != nil {
-			cmdLogger.Fatal("could not read trades: ", err)
+			cmdLogger.Fatal("could not read trades ", err)
 		}
 
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
-		}
-
-		failures := 0
-		numBytes := 0
+		outFile := mustOutFile(path)
+		numFailures := 0
+		totalNumBytes := 0
 		for _, tradeInput := range trades {
 			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 			if err != nil {
 				parsedID := toid.Parse(tradeInput.OperationHistoryID)
-				locationString := fmt.Sprintf("from ledger %d, transaction %d, operation %d", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder)
-				if strictExport {
-					cmdLogger.Fatalf("could not transform trade (%s): %v", locationString, err)
-				} else {
-					cmdLogger.Warningf("could not transform trade (%s): %v", locationString, err)
-					failures++
+				cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder))
+				numFailures += 1
+				continue
+			}
+
+			for _, transformed := range trades {
+				numBytes, err := exportEntry(transformed, outFile, extra)
+				if err != nil {
+					cmdLogger.LogError(err)
+					numFailures += 1
 					continue
 				}
-			}
-
-			// We can get multiple trades from each transform, so we need to ensure they are all exported
-			for _, transformed := range trades {
-				marshalled, err := json.Marshal(transformed)
-				if err != nil {
-					parsedID := toid.Parse(tradeInput.OperationHistoryID)
-					locationString := fmt.Sprintf("from ledger %d, transaction %d, operation %d", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder)
-					if strictExport {
-						cmdLogger.Fatalf("could not JSON encode trade (%s): %v", locationString, err)
-					} else {
-						cmdLogger.Warningf("could not JSON encode trade (%s): %v", locationString, err)
-						failures++
-						continue
-					}
-				}
-
-				if !useStdout {
-					nb, err := outFile.Write(marshalled)
-					if err != nil {
-						cmdLogger.Info("Error writing trades to file: ", err)
-					}
-					numBytes += nb
-					outFile.WriteString("\n")
-				} else {
-					fmt.Println(string(marshalled))
-				}
+				totalNumBytes += numBytes
 			}
 		}
 
-		if !strictExport {
-			printLog := true
-			if !useStdout {
-				outFile.Close()
-				printLog = false
-				cmdLogger.Info("Number of bytes written: ", numBytes)
-			}
-			printTransformStats(len(trades), failures, printLog)
-		}
+		outFile.Close()
+		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+		printTransformStats(len(trades), numFailures)
+
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
 }
 
@@ -95,6 +66,7 @@ func init() {
 	rootCmd.AddCommand(tradesCmd)
 	utils.AddCommonFlags(tradesCmd.Flags())
 	utils.AddArchiveFlags("trades", tradesCmd.Flags())
+	utils.AddGcsFlags(tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
 
 	/*

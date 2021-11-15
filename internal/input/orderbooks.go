@@ -9,7 +9,6 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/log"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -30,26 +29,21 @@ type OrderbookParser struct {
 	SeenOfferHashes   map[uint64]bool
 	Accounts          [][]byte
 	SeenAccountHashes map[uint64]bool
-	Logger            *log.Entry
-	Strict            bool
+	Logger            *utils.EtlLogger
 }
 
 func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.NormalizedOfferOutput, index int, offer ingest.Change, seq uint32, wg *sync.WaitGroup) {
 	defer wg.Done()
 	transformed, err := transform.TransformOfferNormalized(offer, seq)
 	if err != nil {
-		errorMsg := fmt.Sprintf("error json marshalling offer #%d in ledger sequence number #%d", index, seq)
-		if o.Strict {
-			o.Logger.Fatal(errorMsg, err)
-		} else {
-			o.Logger.Warning(errorMsg, err)
-		}
+		errorMsg := fmt.Errorf("error json marshalling offer #%d in ledger sequence number #%d: %s", index, seq, err)
+		o.Logger.LogError(errorMsg)
 	} else {
 		allConvertedOffers[index] = transformed
 	}
 }
 
-func NewOrderbookParser(strictExport bool, logger *log.Entry) OrderbookParser {
+func NewOrderbookParser(logger *utils.EtlLogger) OrderbookParser {
 	return OrderbookParser{
 		Events:            make([][]byte, 0),
 		Markets:           make([][]byte, 0),
@@ -59,7 +53,6 @@ func NewOrderbookParser(strictExport bool, logger *log.Entry) OrderbookParser {
 		Accounts:          make([][]byte, 0),
 		SeenAccountHashes: make(map[uint64]bool),
 		Logger:            logger,
-		Strict:            strictExport,
 	}
 }
 
@@ -78,13 +71,9 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 			o.SeenMarketHashes[converted.Market.ID] = true
 			marshalledMarket, err := json.Marshal(converted.Market)
 			if err != nil {
-				errorMsg := fmt.Sprintf("error json marshalling market for offer: %d", converted.Offer.HorizonID)
-				if o.Strict {
-					o.Logger.Fatal(errorMsg, err)
-				} else {
-					o.Logger.Warning(errorMsg, err)
-					continue
-				}
+				errorMsg := fmt.Errorf("error json marshalling market for offer  %d: %s", converted.Offer.HorizonID, err)
+				o.Logger.LogError(errorMsg)
+				continue
 			}
 
 			o.Markets = append(o.Markets, marshalledMarket)
@@ -94,13 +83,9 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 			o.SeenAccountHashes[converted.Account.ID] = true
 			marshalledAccount, err := json.Marshal(converted.Account)
 			if err != nil {
-				errorMsg := fmt.Sprintf("error json marshalling account for offer: %d", converted.Offer.HorizonID)
-				if o.Strict {
-					o.Logger.Fatal(errorMsg, err)
-				} else {
-					o.Logger.Warning(errorMsg, err)
-					continue
-				}
+				errorMsg := fmt.Errorf("error json marshalling account for offer  %d: %s", converted.Offer.HorizonID, err)
+				o.Logger.LogError(errorMsg)
+				continue
 			}
 
 			o.Accounts = append(o.Accounts, marshalledAccount)
@@ -110,13 +95,9 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 			o.SeenOfferHashes[converted.Offer.DimOfferID] = true
 			marshalledOffer, err := json.Marshal(converted.Offer)
 			if err != nil {
-				errorMsg := fmt.Sprintf("error json marshalling offer: %d", converted.Offer.HorizonID)
-				if o.Strict {
-					o.Logger.Fatal(errorMsg, err)
-				} else {
-					o.Logger.Warning(errorMsg, err)
-					continue
-				}
+				errorMsg := fmt.Errorf("error json marshalling offer %d: %s", converted.Offer.HorizonID, err)
+				o.Logger.LogError(errorMsg)
+				continue
 			}
 
 			o.Offers = append(o.Offers, marshalledOffer)
@@ -125,13 +106,9 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 
 		marshalledEvent, err := json.Marshal(converted.Event)
 		if err != nil {
-			errorMsg := fmt.Sprintf("error json marshalling event for offer: %d", converted.Offer.HorizonID)
-			if o.Strict {
-				o.Logger.Fatal(errorMsg, err)
-			} else {
-				o.Logger.Warning(errorMsg, err)
-				continue
-			}
+			errorMsg := fmt.Errorf("error json marshalling event for offer %d: %s", converted.Offer.HorizonID, err)
+			o.Logger.LogError(errorMsg)
+			continue
 		} else {
 			o.Events = append(o.Events, marshalledEvent)
 		}
@@ -170,7 +147,7 @@ func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, env utils.Environme
 	return offChanges, nil
 }
 
-func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, orderbookChan chan OrderbookBatch, startOrderbook []ingest.Change, env utils.EnvironmentDetails, logger *log.Entry) {
+func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, orderbookChan chan OrderbookBatch, startOrderbook []ingest.Change, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	batchMap := make(map[uint32][]ingest.Change)
 	batchMap[batchStart] = make([]ingest.Change, len(startOrderbook))
 	copy(batchMap[batchStart], startOrderbook)
@@ -205,7 +182,7 @@ func exportOrderbookBatch(batchStart, batchEnd uint32, core *ledgerbackend.Capti
 }
 
 // UpdateOrderbook updates an orderbook at ledger start to its state at ledger end
-func UpdateOrderbook(start, end uint32, orderbook []ingest.Change, core *ledgerbackend.CaptiveStellarCore, env utils.EnvironmentDetails, logger *log.Entry) {
+func UpdateOrderbook(start, end uint32, orderbook []ingest.Change, core *ledgerbackend.CaptiveStellarCore, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	if start > end {
 		logger.Fatalf("unable to update orderbook start ledger %d is after end %d: ", start, end)
 	}
@@ -223,7 +200,7 @@ func UpdateOrderbook(start, end uint32, orderbook []ingest.Change, core *ledgerb
 }
 
 // StreamOrderbooks exports all the batches of orderbooks between start and end to the orderbookChannel. If end is 0, then it exports in an unbounded fashion
-func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, orderbookChannel chan OrderbookBatch, startOrderbook []ingest.Change, env utils.EnvironmentDetails, logger *log.Entry) {
+func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, orderbookChannel chan OrderbookBatch, startOrderbook []ingest.Change, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	// The initial orderbook is at the checkpoint sequence, not the start of the range, so it needs to be updated
 	checkpointSeq := utils.GetMostRecentCheckpoint(start)
 	UpdateOrderbook(checkpointSeq, start, startOrderbook, core, env, logger)
@@ -251,8 +228,8 @@ func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchS
 }
 
 // ReceiveParsedOrderbooks reads a batch from the orderbookChannel, parses it using an orderbook parser, and returns the parser.
-func ReceiveParsedOrderbooks(orderbookChannel chan OrderbookBatch, strictExport bool, logger *log.Entry) *OrderbookParser {
-	batchParser := NewOrderbookParser(strictExport, logger)
+func ReceiveParsedOrderbooks(orderbookChannel chan OrderbookBatch, logger *utils.EtlLogger) *OrderbookParser {
+	batchParser := NewOrderbookParser(logger)
 	batchRead := false
 	for {
 		select {

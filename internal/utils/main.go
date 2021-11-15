@@ -15,7 +15,6 @@ import (
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
-	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -186,9 +185,9 @@ func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr
 // AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
-	flags.Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
-	flags.Bool("strict-export", false, "If set, transform errors will be reported as fatal errors instead of warnings.")
+	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
+	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 }
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
@@ -196,12 +195,18 @@ func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
-
 }
 
 // AddBucketFlags adds the bucket list specifc flags: output
 func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
+}
+
+// AddGcsFlags adds the gcs-related flags: gcs-bucket, gcp-credentials
+func AddGcsFlags(flags *pflag.FlagSet) {
+	flags.String("gcs-bucket", "stellar-etl-cli", "GCS bucket to export to.")
+	flags.StringP("gcp-credentials", "g", "", "Path to GOOGLE_APPLICATION_CREDENTIALS, service account json. Only used for local/dev purposes. "+
+		"When run on GCP, credentials should be inferred by service account.")
 }
 
 // AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, and output flags
@@ -223,16 +228,11 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
 }
 
-// MustCommonFlags gets the values of the the flags common to all commands: end-ledger, stdout, and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, useStdout, strictExport, isTest bool) {
+// MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, extra map[string]string) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
-	}
-
-	useStdout, err = flags.GetBool("stdout")
-	if err != nil {
-		logger.Fatal("could not get stdout boolean: ", err)
 	}
 
 	strictExport, err = flags.GetBool("strict-export")
@@ -245,11 +245,15 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *log.Entry) (endNum uint32, us
 		logger.Fatal("could not get testnet boolean: ", err)
 	}
 
+	extra, err = flags.GetStringToString("extra-fields")
+	if err != nil {
+		logger.Fatal("could not get extra fields string: ", err)
+	}
 	return
 }
 
 // MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
-func MustArchiveFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum uint32, path string, limit int64) {
+func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32, path string, limit int64) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -269,7 +273,7 @@ func MustArchiveFlags(flags *pflag.FlagSet, logger *log.Entry) (startNum uint32,
 }
 
 // MustBucketFlags gets the values of the bucket list specific flags: output
-func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (path string) {
+func MustBucketFlags(flags *pflag.FlagSet, logger *EtlLogger) (path string) {
 	path, err := flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
@@ -278,8 +282,21 @@ func MustBucketFlags(flags *pflag.FlagSet, logger *log.Entry) (path string) {
 	return
 }
 
+// MustGcsFlags gets the values of the bucket list specific flags: gcp-project and gcs-bucket
+func MustGcsFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, credentials string) {
+	bucket, err := flags.GetString("gcs-bucket")
+	if err != nil {
+		logger.Fatal("could not get gcs bucket: ", err)
+	}
+	credentials, err = flags.GetString("gcp-credentials")
+	if err != nil {
+		logger.Fatal("could not get GOOGLE_APPLICATION_CREDENTIALS file: ", err)
+	}
+	return
+}
+
 // MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, and output flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPath string, startNum, batchSize uint32, path string) {
+func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPath string, startNum, batchSize uint32, path string) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -309,7 +326,7 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *log.Entry) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *log.Entry) (exportAccounts, exportOffers, exportTrustlines, exportPools bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools bool) {
 	exportAccounts, err := flags.GetBool("export-accounts")
 	if err != nil {
 		logger.Fatal("could not get export accounts flag: ", err)

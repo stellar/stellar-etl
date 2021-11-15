@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/stellar/stellar-etl/internal/input"
@@ -40,19 +39,9 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get output path: ", err)
 		}
 
-		useStdout, err := cmd.Flags().GetBool("stdout")
-		if err != nil {
-			cmdLogger.Fatal("could not get stdout boolean: ", err)
-		}
-
 		isTest, err := cmd.Flags().GetBool("testnet")
 		if err != nil {
 			cmdLogger.Fatal("could not get testnet boolean: ", err)
-		}
-
-		var outFile *os.File
-		if !useStdout {
-			outFile = mustOutFile(path)
 		}
 
 		formatString := "2006-01-02T15:04:05-07:00"
@@ -77,9 +66,11 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not json encode ledger range", err)
 		}
 
-		if !useStdout {
+		if path != "" {
+			outFile := mustOutFile(path)
 			outFile.Write(marshalled)
 			outFile.WriteString("\n")
+			outFile.Close()
 		} else {
 			fmt.Println(string(marshalled))
 		}
@@ -92,7 +83,6 @@ func init() {
 	getLedgerRangeFromTimesCmd.Flags().StringP("start-time", "s", "", "The start time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("end-time", "e", "", "The end time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
-	getLedgerRangeFromTimesCmd.Flags().Bool("stdout", false, "If set, the output will be printed to stdout instead of to a file")
 	getLedgerRangeFromTimesCmd.Flags().Bool("testnet", false, "If set, the batch job will connect to testnet instead of mainnet.")
 
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("start-time")
