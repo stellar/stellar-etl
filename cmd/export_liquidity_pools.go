@@ -65,6 +65,7 @@ func init() {
 	rootCmd.AddCommand(poolsCmd)
 	utils.AddCommonFlags(poolsCmd.Flags())
 	utils.AddBucketFlags("pools", poolsCmd.Flags())
+	utils.AddGcsFlags(poolsCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
