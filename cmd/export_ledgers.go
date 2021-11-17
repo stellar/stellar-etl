@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -60,7 +61,10 @@ func exportEntry(entry interface{}, outFile *os.File, extra map[string]string) (
 		cmdLogger.Errorf("Error marshalling %+v: %v ", entry, err)
 	}
 	i := map[string]interface{}{}
-	err = json.Unmarshal(m, &i)
+	// Use a decoder here so that 'UseNumber' ensures large ints are properly decoded
+	decoder := json.NewDecoder(bytes.NewReader(m))
+	decoder.UseNumber()
+	err = decoder.Decode(&i)
 	if err != nil {
 		cmdLogger.Errorf("Error unmarshalling %+v: %v ", i, err)
 	}

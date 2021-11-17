@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"math"
 	"os"
@@ -102,7 +103,9 @@ func writeSlice(file *os.File, slice [][]byte, extra map[string]string) error {
 		bytesToWrite := data
 		if len(extra) > 0 {
 			i := map[string]interface{}{}
-			err := json.Unmarshal(data, &i)
+			decoder := json.NewDecoder(bytes.NewReader(data))
+			decoder.UseNumber()
+			err := decoder.Decode(&i)
 			if err != nil {
 				return err
 			}
