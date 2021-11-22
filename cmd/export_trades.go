@@ -37,7 +37,7 @@ var tradesCmd = &cobra.Command{
 			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 			if err != nil {
 				parsedID := toid.Parse(tradeInput.OperationHistoryID)
-				cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder))
+				cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))
 				numFailures += 1
 				continue
 			}
