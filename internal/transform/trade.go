@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -61,7 +62,8 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		}
 
 		if outputSellingAmount == 0 && outputBuyingAmount == 0 {
-			return []TradeOutput{}, fmt.Errorf("Both Selling and Buying amount are 0 for operation at index %d", operationIndex)
+			log.Debugf("Both Selling and Buying amount are 0 for operation at index %d", operationIndex)
+			return []TradeOutput{}, nil
 		}
 
 		// Final price should be buy / sell

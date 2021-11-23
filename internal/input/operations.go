@@ -36,6 +36,9 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 			Strict:             true,
 		},
 	)
+	if err != nil {
+		return []OperationTransformInput{}, err
+	}
 
 	backend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
