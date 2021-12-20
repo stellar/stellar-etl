@@ -69,88 +69,73 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 	return captiveBackend, nil
 }
 
-func addLedgerChangesToCache(changeReader *ingest.LedgerChangeReader, accCache, offCache, trustCache, poolCache *ingest.ChangeCompactor) error {
-	for {
-		change, err := changeReader.Read()
-		if err == io.EOF {
-			return nil
-		}
 
-		if err != nil {
-			return err
-		}
+// extractBatch gets the changes from the ledgers in the range [batchStart, batchEnd] and compacts them
+func extractBatch(
+	batchStart, batchEnd uint32,
+	core *ledgerbackend.CaptiveStellarCore,
+	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 
-		switch change.Type {
-		case xdr.LedgerEntryTypeAccount:
-			if accCache != nil {
-				accCache.AddChange(change)
-			}
+	dataTypes := []xdr.LedgerEntryType{
+		xdr.LedgerEntryTypeAccount,
+		xdr.LedgerEntryTypeOffer,
+		xdr.LedgerEntryTypeTrustline,
+		xdr.LedgerEntryTypeLiquidityPool,
+		xdr.LedgerEntryTypeClaimableBalance}
 
-		case xdr.LedgerEntryTypeOffer:
-			if offCache != nil {
-				offCache.AddChange(change)
-			}
-
-		case xdr.LedgerEntryTypeTrustline:
-			if trustCache != nil {
-				trustCache.AddChange(change)
-			}
-
-		case xdr.LedgerEntryTypeLiquidityPool:
-			if poolCache != nil {
-				poolCache.AddChange(change)
-			}
-
-		default:
-			// there is also a data entry type, which is not tracked right now
-		}
+	changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
+	for _, dt := range dataTypes {
+		changeCompactors[dt] = ingest.NewChangeCompactor()
 	}
-}
 
-// exportBatch gets the changes from the ledgers in the range [batchStart, batchEnd], compacts them, and sends them to the proper channels
-func exportBatch(batchStart, batchEnd uint32, core *ledgerbackend.CaptiveStellarCore, changeChannel chan ChangeBatch, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
-	accChanges := ingest.NewChangeCompactor()
-	offChanges := ingest.NewChangeCompactor()
-	trustChanges := ingest.NewChangeCompactor()
-	poolChanges := ingest.NewChangeCompactor()
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
 		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
-			logger.Fatal("unable to get the lastest ledger sequence: ", err)
+			logger.Fatal("unable to get the latest ledger sequence: ", err)
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
-		// Otherwise, nothing is incremented and we try again on the next iteration of the loop
+		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
 		if seq <= latestLedger {
 			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
 
-			err = addLedgerChangesToCache(changeReader, accChanges, offChanges, trustChanges, poolChanges)
-			if err != nil {
-				logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+			for {
+				change, err := changeReader.Read()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+				}
+				cache, ok := changeCompactors[change.Type]
+				if !ok {
+					// TODO: once LedgerEntryTypeData is tracked as well, all types should be addressed,
+					// so this info log should be a warning.
+					logger.Infof("change type: %v not tracked", change.Type)
+				} else {
+					cache.AddChange(change)
+				}
 			}
 
 			changeReader.Close()
 			seq++
 		}
-
 	}
 
-	batch := ChangeBatch{
-		Changes: map[xdr.LedgerEntryType][]ingest.Change{
-			xdr.LedgerEntryTypeAccount:       accChanges.GetChanges(),
-			xdr.LedgerEntryTypeOffer:         offChanges.GetChanges(),
-			xdr.LedgerEntryTypeTrustline:     trustChanges.GetChanges(),
-			xdr.LedgerEntryTypeLiquidityPool: poolChanges.GetChanges(),
-		},
+	changes := map[xdr.LedgerEntryType][]ingest.Change{}
+	for dataType, compactor := range changeCompactors {
+		changes[dataType] = compactor.GetChanges()
+	}
+
+	return ChangeBatch{
+		Changes:    changes,
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,
 	}
-
-	changeChannel <- batch
 }
 
 // StreamChanges reads in ledgers, processes the changes, and send the changes to the channel matching their type
@@ -159,7 +144,8 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 	batchStart := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
-		exportBatch(batchStart, batchEnd, core, changeChannel, env, logger)
+		batch := extractBatch(batchStart, batchEnd, core, env, logger)
+		changeChannel <- batch
 		batchStart = uint32(math.Min(float64(batchEnd), float64(end)))
 		batchEnd = uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	}

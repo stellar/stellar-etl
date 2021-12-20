@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"sync"
 
@@ -134,9 +135,16 @@ func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, env utils.Environme
 				return nil, fmt.Errorf(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
 
-			err = addLedgerChangesToCache(changeReader, nil, offChanges, nil, nil)
-			if err != nil {
-				return nil, fmt.Errorf(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+			for {
+				change, err := changeReader.Read()
+				if err == io.EOF {
+					break
+				}
+
+				if err != nil {
+					return nil, fmt.Errorf(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
+				}
+				offChanges.AddChange(change)
 			}
 
 			changeReader.Close()

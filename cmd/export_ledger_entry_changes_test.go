@@ -25,7 +25,7 @@ func TestExportChanges(t *testing.T) {
 		},
 		{
 			name:    "changes from single ledger",
-			args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "140116", "-e", "140116", "-o", gotTestDir(t, "single/"), "-g", "stellar-etl-cli", "--gcp-credentials", "test-hubble-319619-0e26e3083439.json"},
+			args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "140116", "-e", "140116", "-o", gotTestDir(t, "single/")},
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},

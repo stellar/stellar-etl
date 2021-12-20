@@ -87,6 +87,7 @@ be exported.`,
 					continue
 				}
 				transformedAccounts := []transform.AccountOutput{}
+				transformedClaimableBalances := []transform.ClaimableBalanceOutput{}
 				transformedOffers := []transform.OfferOutput{}
 				transformedTrustlines := []transform.TrustlineOutput{}
 				transformedPools := []transform.PoolOutput{}
@@ -101,6 +102,16 @@ be exported.`,
 								continue
 							}
 							transformedAccounts = append(transformedAccounts, acc)
+						}
+					case xdr.LedgerEntryTypeClaimableBalance:
+						for _, change := range changes {
+							balance, err := transform.TransformClaimableBalance(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedClaimableBalances = append(transformedClaimableBalances, balance)
 						}
 					case xdr.LedgerEntryTypeOffer:
 						for _, change := range changes {
@@ -135,7 +146,7 @@ be exported.`,
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedOffers, transformedTrustlines, transformedPools, gcpCredentials, gcsBucket, extra)
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedClaimableBalances, transformedOffers, transformedTrustlines, transformedPools, gcpCredentials, gcsBucket, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
@@ -149,6 +160,7 @@ func exportTransformedData(
 	start, end uint32,
 	folderPath string,
 	accounts []transform.AccountOutput,
+	balances []transform.ClaimableBalanceOutput,
 	offers []transform.OfferOutput,
 	trusts []transform.TrustlineOutput,
 	pools []transform.PoolOutput,
@@ -156,17 +168,26 @@ func exportTransformedData(
 	extra map[string]string) error {
 
 	accountsPath := filepath.Join(folderPath, exportFilename(start, end, "accounts"))
+	balancesPath := filepath.Join(folderPath, exportFilename(start, end, "claimable_balances"))
 	offersPath := filepath.Join(folderPath, exportFilename(start, end, "offers"))
 	trustPath := filepath.Join(folderPath, exportFilename(start, end, "trustlines"))
 	poolPath := filepath.Join(folderPath, exportFilename(start, end, "liquidity_pools"))
 
 	accountFile := mustOutFile(accountsPath)
+	balancesFile := mustOutFile(balancesPath)
 	offersFile := mustOutFile(offersPath)
 	trustFile := mustOutFile(trustPath)
 	poolFile := mustOutFile(poolPath)
 
 	for _, acc := range accounts {
 		_, err := exportEntry(acc, accountFile, extra)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, bal := range balances {
+		_, err := exportEntry(bal, balancesFile, extra)
 		if err != nil {
 			return err
 		}
@@ -185,13 +206,16 @@ func exportTransformedData(
 			return err
 		}
 	}
+
 	for _, pool := range pools {
 		_, err := exportEntry(pool, poolFile, extra)
 		if err != nil {
 			return err
 		}
 	}
+
 	maybeUpload(gcpCredentials, gcsBucket, accountsPath)
+	maybeUpload(gcpCredentials, gcsBucket, balancesPath)
 	maybeUpload(gcpCredentials, gcsBucket, offersPath)
 	maybeUpload(gcpCredentials, gcsBucket, trustPath)
 	maybeUpload(gcpCredentials, gcsBucket, poolPath)
