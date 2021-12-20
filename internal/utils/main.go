@@ -446,7 +446,7 @@ func CreateBackend(start, end uint32, archiveURLs []string) (ledgerbackend.Ledge
 var mainArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-live/core_live_001",
 	"https://history.stellar.org/prd/core-live/core_live_002",
-	"https://history.stellar.org/prd/core-live/core_live_003",
+	//"https://history.stellar.org/prd/core-live/core_live_003",
 }
 
 // testnet is only used for local testing with new Protocol features
