@@ -82,6 +82,21 @@ type OperationOutput struct {
 	OperationID        int64                  `json:"id"`
 }
 
+// ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
+type ClaimableBalanceOutput struct {
+	BalanceID          string      `json:"balance_id"`
+	Claimants          []Claimant  `json:"claimants"`
+	AssetCode          string      `json:"asset_code"`
+	AssetIssuer        string      `json:"asset_issuer"`
+	AssetType          string      `json:"asset_type"`
+	AssetAmount        float64     `json:"asset_amount"`
+	Sponsor            null.String `json:"sponsor"`
+	Flags              uint32      `json:"flags"`
+	LastModifiedLedger uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
+	Deleted            bool        `json:"deleted"`
+}
+
 // Claimants
 type Claimant struct {
 	Destination string             `json:"destination"`

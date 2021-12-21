@@ -692,15 +692,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		op := operation.Body.MustCreateClaimableBalanceOp()
 		details["asset"] = op.Asset.StringCanonical()
 		details["amount"] = utils.ConvertStroopValueToReal(op.Amount)
-		var claimants []Claimant
-		for _, c := range op.Claimants {
-			cv0 := c.MustV0()
-			claimants = append(claimants, Claimant{
-				Destination: cv0.Destination.Address(),
-				Predicate:   cv0.Predicate,
-			})
-		}
-		details["claimants"] = claimants
+		details["claimants"] = transformClaimants(op.Claimants)
 
 	case xdr.OperationTypeClaimClaimableBalance:
 		op := operation.Body.MustClaimClaimableBalanceOp()
