@@ -29,8 +29,11 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20211004213516-a1db2a6b1fd3
+	github.com/stellar/go v0.0.0-20211221164636-a58b746a6de5
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
+	google.golang.org/api v0.50.0 // indirect
+	google.golang.org/grpc v1.38.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
