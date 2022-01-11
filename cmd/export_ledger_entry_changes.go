@@ -86,11 +86,14 @@ be exported.`,
 				if !ok {
 					continue
 				}
-				transformedAccounts := []transform.AccountOutput{}
-				transformedClaimableBalances := []transform.ClaimableBalanceOutput{}
-				transformedOffers := []transform.OfferOutput{}
-				transformedTrustlines := []transform.TrustlineOutput{}
-				transformedPools := []transform.PoolOutput{}
+				transformedOutputs := map[string][]interface{}{
+					"accounts":           {},
+					"signers":            {},
+					"claimable_balances": {},
+					"offers":             {},
+					"trustlines":         {},
+					"liquidity_pools":    {},
+				}
 				for entryType, changes := range batch.Changes {
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
@@ -101,7 +104,18 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedAccounts = append(transformedAccounts, acc)
+							transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
+							if change.AccountSignersChanged() {
+								signers, err := transform.TransformSigners(change)
+								if err != nil {
+									entry, _, _, _ := utils.ExtractEntryFromChange(change)
+									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
+									continue
+								}
+								for _, s := range signers {
+									transformedOutputs["signers"] = append(transformedOutputs["signers"], s)
+								}
+							}
 						}
 					case xdr.LedgerEntryTypeClaimableBalance:
 						for _, change := range changes {
@@ -111,7 +125,7 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedClaimableBalances = append(transformedClaimableBalances, balance)
+							transformedOutputs["claimable_balances"] = append(transformedOutputs["claimable_balances"], balance)
 						}
 					case xdr.LedgerEntryTypeOffer:
 						for _, change := range changes {
@@ -121,7 +135,7 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOffers = append(transformedOffers, offer)
+							transformedOutputs["offers"] = append(transformedOutputs["offers"], offer)
 						}
 					case xdr.LedgerEntryTypeTrustline:
 						for _, change := range changes {
@@ -131,7 +145,7 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedTrustlines = append(transformedTrustlines, trust)
+							transformedOutputs["trustlines"] = append(transformedOutputs["trustlines"], trust)
 						}
 					case xdr.LedgerEntryTypeLiquidityPool:
 						for _, change := range changes {
@@ -141,12 +155,12 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedPools = append(transformedPools, pool)
+							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
 						}
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedAccounts, transformedClaimableBalances, transformedOffers, transformedTrustlines, transformedPools, gcpCredentials, gcsBucket, extra)
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
@@ -159,87 +173,23 @@ be exported.`,
 func exportTransformedData(
 	start, end uint32,
 	folderPath string,
-	accounts []transform.AccountOutput,
-	balances []transform.ClaimableBalanceOutput,
-	offers []transform.OfferOutput,
-	trusts []transform.TrustlineOutput,
-	pools []transform.PoolOutput,
+	transformedOutput map[string][]interface{},
 	gcpCredentials, gcsBucket string,
 	extra map[string]string) error {
 
-	accountsPath := filepath.Join(folderPath, exportFilename(start, end, "accounts"))
-	balancesPath := filepath.Join(folderPath, exportFilename(start, end, "claimable_balances"))
-	offersPath := filepath.Join(folderPath, exportFilename(start, end, "offers"))
-	trustPath := filepath.Join(folderPath, exportFilename(start, end, "trustlines"))
-	poolPath := filepath.Join(folderPath, exportFilename(start, end, "liquidity_pools"))
-
-	accountFile := mustOutFile(accountsPath)
-	balancesFile := mustOutFile(balancesPath)
-	offersFile := mustOutFile(offersPath)
-	trustFile := mustOutFile(trustPath)
-	poolFile := mustOutFile(poolPath)
-
-	for _, acc := range accounts {
-		_, err := exportEntry(acc, accountFile, extra)
-		if err != nil {
-			return err
+	for resource, output := range transformedOutput {
+		path := filepath.Join(folderPath, exportFilename(start, end, resource))
+		outFile := mustOutFile(path)
+		for _, o := range output {
+			_, err := exportEntry(o, outFile, extra)
+			if err != nil {
+				return err
+			}
 		}
+		maybeUpload(gcpCredentials, gcsBucket, path)
 	}
 
-	for _, bal := range balances {
-		_, err := exportEntry(bal, balancesFile, extra)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, off := range offers {
-		_, err := exportEntry(off, offersFile, extra)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, trust := range trusts {
-		_, err := exportEntry(trust, trustFile, extra)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, pool := range pools {
-		_, err := exportEntry(pool, poolFile, extra)
-		if err != nil {
-			return err
-		}
-	}
-
-	maybeUpload(gcpCredentials, gcsBucket, accountsPath)
-	maybeUpload(gcpCredentials, gcsBucket, balancesPath)
-	maybeUpload(gcpCredentials, gcsBucket, offersPath)
-	maybeUpload(gcpCredentials, gcsBucket, trustPath)
-	maybeUpload(gcpCredentials, gcsBucket, poolPath)
 	return nil
-}
-
-func createChangeChannels(exportAccounts, exportOffers, exportTrustlines, exportPools bool) (accChan, offChan, trustChan, poolChan chan input.ChangeBatch) {
-	if exportAccounts {
-		accChan = make(chan input.ChangeBatch)
-	}
-
-	if exportOffers {
-		offChan = make(chan input.ChangeBatch)
-	}
-
-	if exportTrustlines {
-		trustChan = make(chan input.ChangeBatch)
-	}
-
-	if exportPools {
-		poolChan = make(chan input.ChangeBatch)
-	}
-
-	return
 }
 
 func init() {

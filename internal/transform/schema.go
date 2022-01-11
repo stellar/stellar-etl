@@ -71,6 +71,17 @@ type AccountOutput struct {
 	Deleted              bool    `json:"deleted"`
 }
 
+// AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
+type AccountSignerOutput struct {
+	AccountID          string      `json:"account_id"`
+	Signer             string      `json:"signer"`
+	Weight             int32       `json:"weight"`
+	Sponsor            null.String `json:"sponsor"`
+	LastModifiedLedger uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
+	Deleted            bool        `json:"deleted"`
+}
+
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
 type OperationOutput struct {
 	SourceAccount      string                 `json:"source_account"`
