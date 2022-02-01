@@ -69,7 +69,6 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 	return captiveBackend, nil
 }
 
-
 // extractBatch gets the changes from the ledgers in the range [batchStart, batchEnd] and compacts them
 func extractBatch(
 	batchStart, batchEnd uint32,
@@ -83,13 +82,14 @@ func extractBatch(
 		xdr.LedgerEntryTypeLiquidityPool,
 		xdr.LedgerEntryTypeClaimableBalance}
 
-	changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
-	for _, dt := range dataTypes {
-		changeCompactors[dt] = ingest.NewChangeCompactor()
-	}
-
+	changes := map[xdr.LedgerEntryType][]ingest.Change{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
+		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
+		for _, dt := range dataTypes {
+			changeCompactors[dt] = ingest.NewChangeCompactor()
+		}
+
 		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			logger.Fatal("unable to get the latest ledger sequence: ", err)
@@ -124,11 +124,11 @@ func extractBatch(
 			changeReader.Close()
 			seq++
 		}
-	}
 
-	changes := map[xdr.LedgerEntryType][]ingest.Change{}
-	for dataType, compactor := range changeCompactors {
-		changes[dataType] = compactor.GetChanges()
+		for dataType, compactor := range changeCompactors {
+			changes[dataType] = compactor.GetChanges()
+		}
+
 	}
 
 	return ChangeBatch{
