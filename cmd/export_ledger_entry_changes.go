@@ -98,13 +98,18 @@ be exported.`,
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
 						for _, change := range changes {
-							acc, err := transform.TransformAccount(change)
-							if err != nil {
-								entry, _, _, _ := utils.ExtractEntryFromChange(change)
-								cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+							if changed, err := change.AccountChangedExceptSigners(); err != nil {
+								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
 								continue
+							} else if changed {
+								acc, err := transform.TransformAccount(change)
+								if err != nil {
+									entry, _, _, _ := utils.ExtractEntryFromChange(change)
+									cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+									continue
+								}
+								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
-							transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							if change.AccountSignersChanged() {
 								signers, err := transform.TransformSigners(change)
 								if err != nil {
