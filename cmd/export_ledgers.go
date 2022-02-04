@@ -55,7 +55,7 @@ func mustOutFile(path string) *os.File {
 }
 
 func exportEntry(entry interface{}, outFile *os.File, extra map[string]string) (int, error) {
-	// This entra marshalling/unmarshalling is silly, but it's required to properly handle the null.[String|Int*] types, and add the extra fields.
+	// This extra marshalling/unmarshalling is silly, but it's required to properly handle the null.[String|Int*] types, and add the extra fields.
 	m, err := json.Marshal(entry)
 	if err != nil {
 		cmdLogger.Errorf("Error marshalling %+v: %v ", entry, err)
