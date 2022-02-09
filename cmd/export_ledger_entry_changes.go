@@ -65,9 +65,14 @@ be exported.`,
 		if endNum != 0 {
 			endNum = endNum + 1
 		}
-		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
+		// core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
+		// if err != nil {
+		// 	cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
+		// }
+
+		core, err := utils.CreateGCSBackend("/etl/test-hubble-319619-643ea0a0738c.json", "horizon-archive-poc", startNum, endNum)
 		if err != nil {
-			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
+			cmdLogger.Fatal("error creating a GCS ledger backend instance: ", err)
 		}
 
 		if endNum == 0 {

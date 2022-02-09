@@ -19,7 +19,7 @@ type LedgerTransformInput struct {
 // GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTransformInput, error) {
 	env := utils.GetEnvironmentDetails(isTest)
-	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
+	backend, err := utils.CreateGCSBackend("/etl/test-hubble-319619-643ea0a0738c.json", "horizon-archive-poc", start, end)
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
@@ -27,7 +27,12 @@ func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTrans
 	var txSlice []LedgerTransformInput
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+		ledger, err := backend.GetLedger(ctx, seq)
+		if err != nil {
+			return []LedgerTransformInput{}, err
+		}
+
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledger)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
