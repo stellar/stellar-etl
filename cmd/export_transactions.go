@@ -52,7 +52,10 @@ var transactionsCmd = &cobra.Command{
 
 		printTransformStats(len(transactions), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		if totalNumBytes > 0 {
+			maybeUpload(gcpCredentials, gcsBucket, path)
+		}
+
 	},
 }
 

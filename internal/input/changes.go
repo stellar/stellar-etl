@@ -69,11 +69,10 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 	return captiveBackend, nil
 }
 
-
 // extractBatch gets the changes from the ledgers in the range [batchStart, batchEnd] and compacts them
 func extractBatch(
 	batchStart, batchEnd uint32,
-	core *ledgerbackend.CaptiveStellarCore,
+	core ledgerbackend.LedgerBackend,
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 
 	dataTypes := []xdr.LedgerEntryType{
@@ -98,7 +97,13 @@ func extractBatch(
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
 		if seq <= latestLedger {
-			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
+			ledger, err := core.GetLedger(ctx, seq)
+			if err != nil {
+				logger.Fatal(fmt.Sprintf("unable to fetch ledger %d: ", seq), err)
+			}
+			fmt.Printf("Ledger sequence: %v \n", seq)
+
+			changeReader, err := ingest.NewLedgerChangeReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledger)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
@@ -140,7 +145,7 @@ func extractBatch(
 
 // StreamChanges reads in ledgers, processes the changes, and send the changes to the channel matching their type
 // Ledgers are processed in batches of size <batchSize>.
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
+func StreamChanges(core ledgerbackend.LedgerBackend, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	batchStart := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
