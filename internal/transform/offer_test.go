@@ -1,9 +1,11 @@
 package transform
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 
+	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/go/ingest"
@@ -124,6 +126,12 @@ func makeOfferTestInput() (ledgerChange ingest.Change, err error) {
 					Flags: 2,
 				},
 			},
+			Ext: xdr.LedgerEntryExt{
+				V: 1,
+				V1: &xdr.LedgerEntryExtensionV1{
+					SponsoringId: &testAccount3ID,
+				},
+			},
 		},
 		Post: nil,
 	}
@@ -134,8 +142,12 @@ func makeOfferTestOutput() OfferOutput {
 	return OfferOutput{
 		SellerID:           testAccount1Address,
 		OfferID:            260678439,
-		SellingAsset:       12638146518625398189,
-		BuyingAsset:        13488700931717487949,
+		SellingAssetType:   "native",
+		SellingAssetCode:   "",
+		SellingAssetIssuer: "",
+		BuyingAssetType:    "credit_alphanum4",
+		BuyingAssetCode:    "ETH",
+		BuyingAssetIssuer:  testAccount3Address,
 		Amount:             262.8450327,
 		PriceN:             920936891,
 		PriceD:             1790879058,
@@ -144,5 +156,11 @@ func makeOfferTestOutput() OfferOutput {
 		LastModifiedLedger: 30715263,
 		LedgerEntryChange:  2,
 		Deleted:            true,
+		Sponsor: null.String{
+			NullString: sql.NullString{
+				String: testAccount3Address,
+				Valid:  true,
+			},
+		},
 	}
 }

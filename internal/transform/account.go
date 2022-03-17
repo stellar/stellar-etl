@@ -88,6 +88,9 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 		ThresholdMedium:      outputThreshMed,
 		ThresholdHigh:        outputThreshHigh,
 		LastModifiedLedger:   outputLastModifiedLedger,
+		Sponsor:              ledgerEntrySponsorToNullString(ledgerEntry),
+		NumSponsored:         uint32(accountEntry.NumSponsored()),
+		NumSponsoring:        uint32(accountEntry.NumSponsoring()),
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
 	}

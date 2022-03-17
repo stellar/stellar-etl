@@ -71,8 +71,12 @@ func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 	transformedOffer := OfferOutput{
 		SellerID:           outputSellerID,
 		OfferID:            outputOfferID,
-		SellingAsset:       outputSellingAsset.AssetID,
-		BuyingAsset:        outputBuyingAsset.AssetID,
+		SellingAssetType:   outputSellingAsset.AssetType,
+		SellingAssetCode:   outputSellingAsset.AssetCode,
+		SellingAssetIssuer: outputSellingAsset.AssetIssuer,
+		BuyingAssetType:    outputBuyingAsset.AssetType,
+		BuyingAssetCode:    outputBuyingAsset.AssetCode,
+		BuyingAssetIssuer:  outputBuyingAsset.AssetIssuer,
 		Amount:             utils.ConvertStroopValueToReal(outputAmount),
 		PriceN:             outputPriceN,
 		PriceD:             outputPriceD,
@@ -81,6 +85,7 @@ func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 		LastModifiedLedger: outputLastModifiedLedger,
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
+		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 	}
 	return transformedOffer, nil
 }

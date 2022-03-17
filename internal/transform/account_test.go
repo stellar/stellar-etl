@@ -1,9 +1,11 @@
 package transform
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 
+	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/go/ingest"
@@ -102,6 +104,7 @@ func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingest.Ch
 }
 
 func makeAccountTestInput() ingest.Change {
+
 	ledgerEntry := xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 30705278,
 		Data: xdr.LedgerEntryData{
@@ -122,8 +125,21 @@ func makeAccountTestInput() ingest.Change {
 							Buying:  1000,
 							Selling: 1500,
 						},
+						Ext: xdr.AccountEntryExtensionV1Ext{
+							V: 2,
+							V2: &xdr.AccountEntryExtensionV2{
+								NumSponsored:  3,
+								NumSponsoring: 1,
+							},
+						},
 					},
 				},
+			},
+		},
+		Ext: xdr.LedgerEntryExt{
+			V: 1,
+			V1: &xdr.LedgerEntryExtensionV1{
+				SponsoringId: &testAccount3ID,
 			},
 		},
 	}
@@ -149,8 +165,16 @@ func makeAccountTestOutput() AccountOutput {
 		ThresholdLow:         1,
 		ThresholdMedium:      3,
 		ThresholdHigh:        5,
-		LastModifiedLedger:   30705278,
-		LedgerEntryChange:    2,
-		Deleted:              true,
+		Sponsor: null.String{
+			NullString: sql.NullString{
+				String: testAccount3Address,
+				Valid:  true,
+			},
+		},
+		NumSponsored:       3,
+		NumSponsoring:      1,
+		LastModifiedLedger: 30705278,
+		LedgerEntryChange:  2,
+		Deleted:            true,
 	}
 }
