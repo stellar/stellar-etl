@@ -53,22 +53,25 @@ type TransactionOutput struct {
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
 type AccountOutput struct {
-	AccountID            string  `json:"account_id"` // account address
-	Balance              float64 `json:"balance"`
-	BuyingLiabilities    float64 `json:"buying_liabilities"`
-	SellingLiabilities   float64 `json:"selling_liabilities"`
-	SequenceNumber       int64   `json:"sequence_number"`
-	NumSubentries        uint32  `json:"num_subentries"`
-	InflationDestination string  `json:"inflation_destination"`
-	Flags                uint32  `json:"flags"`
-	HomeDomain           string  `json:"home_domain"`
-	MasterWeight         int32   `json:"master_weight"`
-	ThresholdLow         int32   `json:"threshold_low"`
-	ThresholdMedium      int32   `json:"threshold_medium"`
-	ThresholdHigh        int32   `json:"threshold_high"`
-	LastModifiedLedger   uint32  `json:"last_modified_ledger"`
-	LedgerEntryChange    uint32  `json:"ledger_entry_change"`
-	Deleted              bool    `json:"deleted"`
+	AccountID            string      `json:"account_id"` // account address
+	Balance              float64     `json:"balance"`
+	BuyingLiabilities    float64     `json:"buying_liabilities"`
+	SellingLiabilities   float64     `json:"selling_liabilities"`
+	SequenceNumber       int64       `json:"sequence_number"`
+	NumSubentries        uint32      `json:"num_subentries"`
+	InflationDestination string      `json:"inflation_destination"`
+	Flags                uint32      `json:"flags"`
+	HomeDomain           string      `json:"home_domain"`
+	MasterWeight         int32       `json:"master_weight"`
+	ThresholdLow         int32       `json:"threshold_low"`
+	ThresholdMedium      int32       `json:"threshold_medium"`
+	ThresholdHigh        int32       `json:"threshold_high"`
+	Sponsor              null.String `json:"sponsor"`
+	NumSponsored         uint32      `json:"num_sponsored"`
+	NumSponsoring        uint32      `json:"num_sponsoring"`
+	LastModifiedLedger   uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
+	Deleted              bool        `json:"deleted"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
@@ -188,18 +191,23 @@ type TrustlineOutput struct {
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
-	SellerID           string  `json:"seller_id"` // Account address of the seller
-	OfferID            int64   `json:"offer_id"`
-	SellingAsset       uint64  `json:"selling_asset"`
-	BuyingAsset        uint64  `json:"buying_asset"`
-	Amount             float64 `json:"amount"`
-	PriceN             int32   `json:"pricen"`
-	PriceD             int32   `json:"priced"`
-	Price              float64 `json:"price"`
-	Flags              uint32  `json:"flags"`
-	LastModifiedLedger uint32  `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32  `json:"ledger_entry_change"`
-	Deleted            bool    `json:"deleted"`
+	SellerID           string      `json:"seller_id"` // Account address of the seller
+	OfferID            int64       `json:"offer_id"`
+	SellingAssetType   string      `json:"selling_asset_type"`
+	SellingAssetCode   string      `json:"selling_asset_code"`
+	SellingAssetIssuer string      `json:"selling_asset_issuer"`
+	BuyingAssetType    string      `json:"buying_asset_type"`
+	BuyingAssetCode    string      `json:"buying_asset_code"`
+	BuyingAssetIssuer  string      `json:"buying_asset_issuer"`
+	Amount             float64     `json:"amount"`
+	PriceN             int32       `json:"pricen"`
+	PriceD             int32       `json:"priced"`
+	Price              float64     `json:"price"`
+	Flags              uint32      `json:"flags"`
+	LastModifiedLedger uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
+	Deleted            bool        `json:"deleted"`
+	Sponsor            null.String `json:"sponsor"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
