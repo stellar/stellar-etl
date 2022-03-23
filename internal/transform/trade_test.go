@@ -591,14 +591,6 @@ func makeTradeTestOutput() [][]TradeOutput {
 		TradeType:             1,
 	}
 
-	// offerOnePathPayment := offerOneOutput
-	// offerOnePathPayment.SellerIsExact = null.Bool{
-	// 	NullBool: sql.NullBool{
-	// 		Bool:  false,
-	// 		Valid: true,
-	// 	},
-	// }
-
 	onePriceIsAmount := offerOneOutput
 	onePriceIsAmount.PriceN = 12634
 	onePriceIsAmount.PriceD = 13300347
