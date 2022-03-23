@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -567,6 +568,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 		SellingOfferID:        null.IntFrom(97684906),
 		BuyingOfferID:         null.IntFrom(4611686018427388004),
 		HistoryOperationID:    101,
+		TradeType:             1,
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
@@ -586,21 +588,54 @@ func makeTradeTestOutput() [][]TradeOutput {
 		SellingOfferID:        null.IntFrom(86106895),
 		BuyingOfferID:         null.IntFrom(4611686018427388004),
 		HistoryOperationID:    101,
+		TradeType:             1,
 	}
+
+	// offerOnePathPayment := offerOneOutput
+	// offerOnePathPayment.SellerIsExact = null.Bool{
+	// 	NullBool: sql.NullBool{
+	// 		Bool:  false,
+	// 		Valid: true,
+	// 	},
+	// }
 
 	onePriceIsAmount := offerOneOutput
 	onePriceIsAmount.PriceN = 12634
 	onePriceIsAmount.PriceD = 13300347
+	onePriceIsAmount.SellerIsExact = null.Bool{
+		NullBool: sql.NullBool{
+			Bool:  false,
+			Valid: true,
+		},
+	}
 
 	offerOneOutputSecondPlace := onePriceIsAmount
 	offerOneOutputSecondPlace.Order = 1
+	offerOneOutputSecondPlace.SellerIsExact = null.Bool{
+		NullBool: sql.NullBool{
+			Bool:  true,
+			Valid: true,
+		},
+	}
 
 	twoPriceIsAmount := offerTwoOutput
 	twoPriceIsAmount.PriceN = int64(twoPriceIsAmount.BuyingAmount * 10000000)
 	twoPriceIsAmount.PriceD = int64(twoPriceIsAmount.SellingAmount * 10000000)
+	twoPriceIsAmount.SellerIsExact = null.Bool{
+		NullBool: sql.NullBool{
+			Bool:  true,
+			Valid: true,
+		},
+	}
 
 	offerTwoOutputSecondPlace := twoPriceIsAmount
 	offerTwoOutputSecondPlace.Order = 1
+	offerTwoOutputSecondPlace.SellerIsExact = null.Bool{
+		NullBool: sql.NullBool{
+			Bool:  false,
+			Valid: true,
+		},
+	}
 
 	output := [][]TradeOutput{
 		[]TradeOutput{offerOneOutput},

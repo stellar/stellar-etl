@@ -1,4 +1,4 @@
-FROM golang:1.17.5
+FROM docker.io/golang:1.18
 
 COPY . /etl
 WORKDIR /etl
