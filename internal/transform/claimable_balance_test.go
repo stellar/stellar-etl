@@ -1,12 +1,12 @@
 package transform
 
 import (
-	"database/sql"
+	"testing"
+
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestTransformClaimableBalance(t *testing.T) {
@@ -63,7 +63,7 @@ func makeClaimableBalanceTestInput() ingest.Change {
 				Asset: xdr.Asset{
 					Type: xdr.AssetTypeAssetTypeCreditAlphanum12,
 					AlphaNum12: &xdr.AlphaNum12{
-						AssetCode: xdr.AssetCode12{1,2,3,4,5,6,7,8,9},
+						AssetCode: xdr.AssetCode12{1, 2, 3, 4, 5, 6, 7, 8, 9},
 						Issuer:    testAccount3ID,
 					},
 				},
@@ -98,16 +98,11 @@ func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 				},
 			},
 		},
-		AssetIssuer: "GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN",
-		AssetType:   "credit_alphanum12",
-		AssetCode:   "\x01\x02\x03\x04\x05\x06\a\b\t",
-		AssetAmount:      999,
-		Sponsor: null.String{
-			NullString: sql.NullString{
-				String: "GAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABO3W",
-				Valid:  true,
-			},
-		},
+		AssetIssuer:        "GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN",
+		AssetType:          "credit_alphanum12",
+		AssetCode:          "\x01\x02\x03\x04\x05\x06\a\b\t",
+		AssetAmount:        999,
+		Sponsor:            null.StringFrom("GAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABO3W"),
 		Flags:              10,
 		LastModifiedLedger: 30705278,
 		LedgerEntryChange:  2,

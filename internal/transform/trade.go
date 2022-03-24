@@ -2,11 +2,13 @@ package transform
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
 
+	"github.com/stellar/go/exp/orderbook"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
@@ -28,7 +30,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 	operation := transaction.Envelope.Operations()[operationIndex]
 	// operation id is +1 incremented to stay in sync with ingest package
 	outputOperationID := operationID + 1
-	claimedOffers, BuyingOffer, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
+	claimedOffers, BuyingOffer, sellerIsExact, err := extractClaimedOffers(operationResults, operationIndex, operation.Body.Type)
 	if err != nil {
 		return []TradeOutput{}, err
 	}
@@ -74,19 +76,33 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 		var outputSellingAccountAddress string
 		var liquidityPoolID null.String
-		var outputPoolFee null.Int
+		var outputPoolFee, roundingSlippageBips null.Int
 		var outputSellingOfferID, outputBuyingOfferID null.Int
+		var tradeType int32
 		if claimOffer.Type == xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
 			id := claimOffer.MustLiquidityPool().LiquidityPoolId
 			liquidityPoolID = null.StringFrom(PoolIDToString(id))
+			tradeType = int32(2)
 			var fee uint32
 			if fee, err = findPoolFee(transaction, operationIndex, id); err != nil {
 				return []TradeOutput{}, fmt.Errorf("Cannot parse fee for liquidity pool %v", liquidityPoolID)
 			}
 			outputPoolFee = null.IntFrom(int64(fee))
+
+			change, err := liquidityPoolChange(transaction, operationIndex, claimOffer)
+			if err != nil {
+				return nil, err
+			}
+			if change != nil {
+				roundingSlippageBips, err = roundingSlippage(transaction, operationIndex, claimOffer, change)
+				if err != nil {
+					return nil, err
+				}
+			}
 		} else {
 			outputSellingOfferID = null.IntFrom(int64(claimOffer.OfferId()))
 			outputSellingAccountAddress = claimOffer.SellerId().Address()
+			tradeType = int32(1)
 		}
 
 		if BuyingOffer != nil {
@@ -124,6 +140,9 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			SellingLiquidityPoolID: liquidityPoolID,
 			LiquidityPoolFee:       outputPoolFee,
 			HistoryOperationID:     outputOperationID,
+			TradeType:              tradeType,
+			RoundingSlippage:       roundingSlippageBips,
+			SellerIsExact:          sellerIsExact,
 		}
 
 		transformedTrades = append(transformedTrades, trade)
@@ -131,7 +150,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 	return transformedTrades, nil
 }
 
-func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimAtom, BuyingOffer *xdr.OfferEntry, err error) {
+func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimAtom, BuyingOffer *xdr.OfferEntry, sellerIsExact null.Bool, err error) {
 	if operationIndex >= int32(len(operationResults)) {
 		err = fmt.Errorf("Operation index of %d is out of bounds in result slice (len = %d)", operationIndex, len(operationResults))
 		return
@@ -147,7 +166,6 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		err = fmt.Errorf("Could not get result Tr for operation at index %d", operationIndex)
 		return
 	}
-
 	switch operationType {
 	case xdr.OperationTypeManageBuyOffer:
 		var buyOfferResult xdr.ManageBuyOfferResult
@@ -196,6 +214,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		var pathSendResult xdr.PathPaymentStrictSendResult
+		sellerIsExact = null.BoolFrom(false)
 		if pathSendResult, ok = operationTr.GetPathPaymentStrictSendResult(); !ok {
 			err = fmt.Errorf("Could not get PathPaymentStrictSendResult for operation at index %d", operationIndex)
 			return
@@ -211,6 +230,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 	case xdr.OperationTypePathPaymentStrictReceive:
 		var pathReceiveResult xdr.PathPaymentStrictReceiveResult
+		sellerIsExact = null.BoolFrom(true)
 		if pathReceiveResult, ok = operationTr.GetPathPaymentStrictReceiveResult(); !ok {
 			err = fmt.Errorf("Could not get PathPaymentStrictReceiveResult for operation at index %d", operationIndex)
 			return
@@ -270,11 +290,89 @@ func findPoolFee(t ingest.LedgerTransaction, operationIndex int32, poolID xdr.Po
 	if err := key.SetLiquidityPool(poolID); err != nil {
 		return 0, errors.Wrap(err, "Could not create liquidity pool ledger key")
 	}
-
 	change, err := findLatestOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, errors.Wrap(err, "could not find change for liquidity pool")
 	}
 
 	return uint32(change.Pre.Data.MustLiquidityPool().Body.MustConstantProduct().Params.Fee), nil
+}
+
+func liquidityPoolChange(t ingest.LedgerTransaction, operationIndex int32, trade xdr.ClaimAtom) (*ingest.Change, error) {
+	if trade.Type != xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
+		return nil, nil
+	}
+
+	poolID := trade.LiquidityPool.LiquidityPoolId
+
+	key := xdr.LedgerKey{}
+	if err := key.SetLiquidityPool(poolID); err != nil {
+		return nil, errors.Wrap(err, "Could not create liquidity pool ledger key")
+	}
+
+	change, err := findLatestOperationChange(t, operationIndex, key)
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not find change for liquidity pool")
+	}
+
+	return &change, nil
+}
+
+func liquidityPoolReserves(trade xdr.ClaimAtom, change *ingest.Change) (int64, int64) {
+	pre := change.Pre.Data.MustLiquidityPool().Body.ConstantProduct
+	a := int64(pre.ReserveA)
+	b := int64(pre.ReserveB)
+	if !trade.AssetSold().Equals(pre.Params.AssetA) {
+		a, b = b, a
+	}
+
+	return a, b
+}
+
+func roundingSlippage(t ingest.LedgerTransaction, operationIndex int32, trade xdr.ClaimAtom, change *ingest.Change) (null.Int, error) {
+	disbursedReserves, depositedReserves := liquidityPoolReserves(trade, change)
+
+	pre := change.Pre.Data.MustLiquidityPool().Body.ConstantProduct
+
+	op, found := t.GetOperation(uint32(operationIndex))
+	if !found {
+		return null.Int{}, errors.New("Could not find operation")
+	}
+
+	amountDeposited := trade.AmountBought()
+	amountDisbursed := trade.AmountSold()
+
+	switch op.Body.Type {
+	case xdr.OperationTypePathPaymentStrictReceive:
+		// User specified the disbursed amount
+		_, roundingSlippageBips, ok := orderbook.CalculatePoolPayout(
+			xdr.Int64(depositedReserves),
+			xdr.Int64(disbursedReserves),
+			amountDisbursed,
+			pre.Params.Fee,
+			true,
+		)
+		if !ok {
+			// This is a temporary workaround and will be addressed when
+			// https://github.com/stellar/go/issues/4203 is closed
+			roundingSlippageBips = xdr.Int64(math.MaxInt64)
+		}
+		return null.IntFrom(int64(roundingSlippageBips)), nil
+	case xdr.OperationTypePathPaymentStrictSend:
+		// User specified the deposited amount
+		_, roundingSlippageBips, ok := orderbook.CalculatePoolPayout(
+			xdr.Int64(depositedReserves),
+			xdr.Int64(disbursedReserves),
+			amountDeposited,
+			pre.Params.Fee,
+			true,
+		)
+		if !ok {
+			return null.Int{}, errors.New("Liquidity pool overflows from this exchange")
+		}
+		return null.IntFrom(int64(roundingSlippageBips)), nil
+	default:
+		return null.Int{}, fmt.Errorf("Unexpected trade operation type: %v", op.Body.Type)
+	}
+
 }

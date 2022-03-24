@@ -231,6 +231,9 @@ type TradeOutput struct {
 	SellingLiquidityPoolID null.String `json:"selling_liquidity_pool_id"`
 	LiquidityPoolFee       null.Int    `json:"liquidity_pool_fee"`
 	HistoryOperationID     int64       `json:"history_operation_id"`
+	TradeType              int32       `json:"trade_type"`
+	RoundingSlippage       null.Int    `json:"rounding_slippage"`
+	SellerIsExact          null.Bool   `json:"seller_is_exact"`
 }
 
 //DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts
