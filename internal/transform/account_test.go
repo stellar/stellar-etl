@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 
@@ -165,16 +164,11 @@ func makeAccountTestOutput() AccountOutput {
 		ThresholdLow:         1,
 		ThresholdMedium:      3,
 		ThresholdHigh:        5,
-		Sponsor: null.String{
-			NullString: sql.NullString{
-				String: testAccount3Address,
-				Valid:  true,
-			},
-		},
-		NumSponsored:       3,
-		NumSponsoring:      1,
-		LastModifiedLedger: 30705278,
-		LedgerEntryChange:  2,
-		Deleted:            true,
+		Sponsor:              null.StringFrom(testAccount3Address),
+		NumSponsored:         3,
+		NumSponsoring:        1,
+		LastModifiedLedger:   30705278,
+		LedgerEntryChange:    2,
+		Deleted:              true,
 	}
 }

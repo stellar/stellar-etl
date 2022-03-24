@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 
@@ -156,11 +155,6 @@ func makeOfferTestOutput() OfferOutput {
 		LastModifiedLedger: 30715263,
 		LedgerEntryChange:  2,
 		Deleted:            true,
-		Sponsor: null.String{
-			NullString: sql.NullString{
-				String: testAccount3Address,
-				Valid:  true,
-			},
-		},
+		Sponsor:            null.StringFrom(testAccount3Address),
 	}
 }

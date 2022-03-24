@@ -1,10 +1,10 @@
 package transform
 
 import (
-	"database/sql"
 	"fmt"
-	"github.com/guregu/null"
 	"testing"
+
+	"github.com/guregu/null"
 
 	"github.com/stretchr/testify/assert"
 
@@ -114,34 +114,29 @@ func makeSignersTestInput() ingest.Change {
 func makeSignersTestOutput() []AccountSignerOutput {
 	return []AccountSignerOutput{
 		{
-			AccountID: testAccount1ID.Address(),
-			Signer:    "GCEODJVUUVYVFD5KT4TOEDTMXQ76OPFOQC2EMYYMLPXQCUVPOB6XRWPQ",
-			Weight:    2.0,
-			Sponsor:   null.String{},
+			AccountID:          testAccount1ID.Address(),
+			Signer:             "GCEODJVUUVYVFD5KT4TOEDTMXQ76OPFOQC2EMYYMLPXQCUVPOB6XRWPQ",
+			Weight:             2.0,
+			Sponsor:            null.String{},
 			LastModifiedLedger: 30705278,
-			LedgerEntryChange: 2,
-			Deleted: true,
+			LedgerEntryChange:  2,
+			Deleted:            true,
 		}, {
-			AccountID: testAccount1ID.Address(),
-			Signer:    "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
-			Weight:    10.0,
-			Sponsor: null.String{
-				NullString: sql.NullString{
-					String: "GBADGWKHSUFOC4C7E3KXKINZSRX5KPHUWHH67UGJU77LEORGVLQ3BN3B",
-					Valid:  true,
-				},
-			},
+			AccountID:          testAccount1ID.Address(),
+			Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
+			Weight:             10.0,
+			Sponsor:            null.StringFrom("GBADGWKHSUFOC4C7E3KXKINZSRX5KPHUWHH67UGJU77LEORGVLQ3BN3B"),
 			LastModifiedLedger: 30705278,
-			LedgerEntryChange: 2,
-			Deleted: true,
+			LedgerEntryChange:  2,
+			Deleted:            true,
 		}, {
-			AccountID: testAccount1ID.Address(),
-			Signer:    "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
-			Weight:    20.0,
-			Sponsor:   null.String{},
+			AccountID:          testAccount1ID.Address(),
+			Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
+			Weight:             20.0,
+			Sponsor:            null.String{},
 			LastModifiedLedger: 30705278,
-			LedgerEntryChange: 2,
-			Deleted: true,
+			LedgerEntryChange:  2,
+			Deleted:            true,
 		},
 	}
 }

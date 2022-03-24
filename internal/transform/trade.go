@@ -290,7 +290,6 @@ func findPoolFee(t ingest.LedgerTransaction, operationIndex int32, poolID xdr.Po
 	if err := key.SetLiquidityPool(poolID); err != nil {
 		return 0, errors.Wrap(err, "Could not create liquidity pool ledger key")
 	}
-
 	change, err := findLatestOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, errors.Wrap(err, "could not find change for liquidity pool")

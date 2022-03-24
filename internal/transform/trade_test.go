@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -218,6 +217,28 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			AmountBought: 20,
 		},
 	}
+	lPOne := xdr.ClaimAtom{
+		Type: xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool,
+		LiquidityPool: &xdr.ClaimLiquidityAtom{
+			LiquidityPoolId: xdr.PoolId{4, 5, 6},
+			AssetSold:       xdr.MustNewCreditAsset("WER", testAccount4Address),
+			AmountSold:      123,
+			AssetBought:     xdr.MustNewCreditAsset("NIJ", testAccount1Address),
+			AmountBought:    456,
+		},
+	}
+
+	lPTwo := xdr.ClaimAtom{
+		Type: xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool,
+		LiquidityPool: &xdr.ClaimLiquidityAtom{
+			LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6},
+			AssetSold:       xdr.MustNewCreditAsset("HAH", testAccount1Address),
+			AmountSold:      1,
+			AssetBought:     xdr.MustNewCreditAsset("WHO", testAccount4Address),
+			AmountBought:    1,
+		},
+	}
+
 	inputOperations := []xdr.Operation{
 
 		xdr.Operation{
@@ -251,6 +272,20 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
 					Destination: testAccount1,
 				},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: &testAccount3,
+			Body: xdr.OperationBody{
+				Type:                    xdr.OperationTypePathPaymentStrictSend,
+				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{},
+			},
+		},
+		xdr.Operation{
+			SourceAccount: &testAccount3,
+			Body: xdr.OperationBody{
+				Type:                       xdr.OperationTypePathPaymentStrictReceive,
+				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
 			},
 		},
 		xdr.Operation{
@@ -314,6 +349,32 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					Success: &xdr.PathPaymentStrictReceiveResultSuccess{
 						Offers: []xdr.ClaimAtom{
 							offerTwo, offerOne,
+						},
+					},
+				},
+			},
+		},
+		xdr.OperationResult{
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypePathPaymentStrictSend,
+				PathPaymentStrictSendResult: &xdr.PathPaymentStrictSendResult{
+					Code: xdr.PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess,
+					Success: &xdr.PathPaymentStrictSendResultSuccess{
+						Offers: []xdr.ClaimAtom{
+							lPOne,
+						},
+					},
+				},
+			},
+		},
+		xdr.OperationResult{
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypePathPaymentStrictReceive,
+				PathPaymentStrictReceiveResult: &xdr.PathPaymentStrictReceiveResult{
+					Code: xdr.PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess,
+					Success: &xdr.PathPaymentStrictReceiveResultSuccess{
+						Offers: []xdr.ClaimAtom{
+							lPTwo,
 						},
 					},
 				},
@@ -541,6 +602,115 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
+			xdr.OperationMeta{
+				Changes: xdr.LedgerEntryChanges{
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeLiquidityPool,
+								LiquidityPool: &xdr.LiquidityPoolEntry{
+									LiquidityPoolId: xdr.PoolId{4, 5, 6},
+									Body: xdr.LiquidityPoolEntryBody{
+										Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+										ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+											Params: xdr.LiquidityPoolConstantProductParameters{
+												AssetA: xdr.MustNewCreditAsset("NIJ", testAccount1Address),
+												AssetB: xdr.MustNewCreditAsset("WER", testAccount4Address),
+												Fee:    xdr.LiquidityPoolFeeV18,
+											},
+											ReserveA:                 400,
+											ReserveB:                 800,
+											TotalPoolShares:          40,
+											PoolSharesTrustLineCount: 50,
+										},
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeLiquidityPool,
+								LiquidityPool: &xdr.LiquidityPoolEntry{
+									LiquidityPoolId: xdr.PoolId{4, 5, 6},
+									Body: xdr.LiquidityPoolEntryBody{
+										Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+										ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+											Params: xdr.LiquidityPoolConstantProductParameters{
+												AssetA: xdr.MustNewCreditAsset("NIJ", testAccount1Address),
+												AssetB: xdr.MustNewCreditAsset("WER", testAccount4Address),
+												Fee:    xdr.LiquidityPoolFeeV18,
+											},
+											ReserveA:                 500,
+											ReserveB:                 750,
+											TotalPoolShares:          40,
+											PoolSharesTrustLineCount: 50,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.OperationMeta{
+				Changes: xdr.LedgerEntryChanges{
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeLiquidityPool,
+								LiquidityPool: &xdr.LiquidityPoolEntry{
+									LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6},
+									Body: xdr.LiquidityPoolEntryBody{
+										Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+										ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+											Params: xdr.LiquidityPoolConstantProductParameters{
+												AssetA: xdr.MustNewCreditAsset("HAH", testAccount4Address),
+												AssetB: xdr.MustNewCreditAsset("WHO", testAccount1Address),
+												Fee:    xdr.LiquidityPoolFeeV18,
+											},
+											ReserveA:                 100000,
+											ReserveB:                 10000,
+											TotalPoolShares:          40,
+											PoolSharesTrustLineCount: 50,
+										},
+									},
+								},
+							},
+						},
+					},
+					xdr.LedgerEntryChange{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeLiquidityPool,
+								LiquidityPool: &xdr.LiquidityPoolEntry{
+									LiquidityPoolId: xdr.PoolId{4, 5, 6},
+									Body: xdr.LiquidityPoolEntryBody{
+										Type: xdr.LiquidityPoolTypeLiquidityPoolConstantProduct,
+										ConstantProduct: &xdr.LiquidityPoolEntryConstantProduct{
+											Params: xdr.LiquidityPoolConstantProductParameters{
+												AssetA: xdr.MustNewCreditAsset("HAH", testAccount4Address),
+												AssetB: xdr.MustNewCreditAsset("WHO", testAccount1Address),
+												Fee:    xdr.LiquidityPoolFeeV18,
+											},
+											ReserveA:                 999999,
+											ReserveB:                 10001,
+											TotalPoolShares:          40,
+											PoolSharesTrustLineCount: 50,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			xdr.OperationMeta{},
 		}}
 
 	inputTransaction.Result.Result.Result.Results = &results
@@ -591,49 +761,77 @@ func makeTradeTestOutput() [][]TradeOutput {
 		TradeType:             1,
 	}
 
+	lPOneOutput := TradeOutput{
+		Order:                  0,
+		LedgerClosedAt:         genericCloseTime,
+		SellingAssetCode:       "WER",
+		SellingAssetIssuer:     testAccount4Address,
+		SellingAssetType:       "credit_alphanum4",
+		SellingAmount:          123 * 0.0000001,
+		BuyingAccountAddress:   testAccount3Address,
+		BuyingAssetCode:        "NIJ",
+		BuyingAssetIssuer:      testAccount1Address,
+		BuyingAssetType:        "credit_alphanum4",
+		BuyingAmount:           456 * 0.0000001,
+		PriceN:                 456,
+		PriceD:                 123,
+		BuyingOfferID:          null.IntFrom(4611686018427388004),
+		SellingLiquidityPoolID: null.StringFrom("0405060000000000000000000000000000000000000000000000000000000000"),
+		LiquidityPoolFee:       null.IntFrom(30),
+		HistoryOperationID:     101,
+		TradeType:              2,
+		RoundingSlippage:       null.IntFrom(0),
+		SellerIsExact:          null.BoolFrom(false),
+	}
+
+	lPTwoOutput := TradeOutput{
+		Order:                  0,
+		LedgerClosedAt:         genericCloseTime,
+		SellingAssetCode:       "HAH",
+		SellingAssetIssuer:     testAccount1Address,
+		SellingAssetType:       "credit_alphanum4",
+		SellingAmount:          1 * 0.0000001,
+		BuyingAccountAddress:   testAccount3Address,
+		BuyingAssetCode:        "WHO",
+		BuyingAssetIssuer:      testAccount4Address,
+		BuyingAssetType:        "credit_alphanum4",
+		BuyingAmount:           1 * 0.0000001,
+		PriceN:                 1,
+		PriceD:                 1,
+		BuyingOfferID:          null.IntFrom(4611686018427388004),
+		SellingLiquidityPoolID: null.StringFrom("0102030405060000000000000000000000000000000000000000000000000000"),
+		LiquidityPoolFee:       null.IntFrom(30),
+		HistoryOperationID:     101,
+		TradeType:              2,
+		RoundingSlippage:       null.IntFrom(100),
+		SellerIsExact:          null.BoolFrom(true),
+	}
+
 	onePriceIsAmount := offerOneOutput
 	onePriceIsAmount.PriceN = 12634
 	onePriceIsAmount.PriceD = 13300347
-	onePriceIsAmount.SellerIsExact = null.Bool{
-		NullBool: sql.NullBool{
-			Bool:  false,
-			Valid: true,
-		},
-	}
+	onePriceIsAmount.SellerIsExact = null.BoolFrom(false)
 
 	offerOneOutputSecondPlace := onePriceIsAmount
 	offerOneOutputSecondPlace.Order = 1
-	offerOneOutputSecondPlace.SellerIsExact = null.Bool{
-		NullBool: sql.NullBool{
-			Bool:  true,
-			Valid: true,
-		},
-	}
+	offerOneOutputSecondPlace.SellerIsExact = null.BoolFrom(true)
 
 	twoPriceIsAmount := offerTwoOutput
 	twoPriceIsAmount.PriceN = int64(twoPriceIsAmount.BuyingAmount * 10000000)
 	twoPriceIsAmount.PriceD = int64(twoPriceIsAmount.SellingAmount * 10000000)
-	twoPriceIsAmount.SellerIsExact = null.Bool{
-		NullBool: sql.NullBool{
-			Bool:  true,
-			Valid: true,
-		},
-	}
+	twoPriceIsAmount.SellerIsExact = null.BoolFrom(true)
 
 	offerTwoOutputSecondPlace := twoPriceIsAmount
 	offerTwoOutputSecondPlace.Order = 1
-	offerTwoOutputSecondPlace.SellerIsExact = null.Bool{
-		NullBool: sql.NullBool{
-			Bool:  false,
-			Valid: true,
-		},
-	}
+	offerTwoOutputSecondPlace.SellerIsExact = null.BoolFrom(false)
 
 	output := [][]TradeOutput{
 		[]TradeOutput{offerOneOutput},
 		[]TradeOutput{offerTwoOutput},
 		[]TradeOutput{onePriceIsAmount, offerTwoOutputSecondPlace},
 		[]TradeOutput{twoPriceIsAmount, offerOneOutputSecondPlace},
+		[]TradeOutput{lPOneOutput},
+		[]TradeOutput{lPTwoOutput},
 		[]TradeOutput{},
 	}
 	return output
