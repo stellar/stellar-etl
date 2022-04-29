@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/guregu/null"
 	"github.com/lib/pq"
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -85,51 +84,22 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 	}
 
-	ledgerBound := transaction.Envelope.LedgerBounds()
-	outputLedgerBound := ""
-	if ledgerBound != nil {
-		outputLedgerBound = fmt.Sprintf("[%d,%d)", int64(ledgerBound.MinLedger), int64(ledgerBound.MaxLedger))
-	}
-
-	minSequenceNumber := transaction.Envelope.MinSeqNum()
-	outputMinSequence := null.Int{}
-	if minSequenceNumber != nil {
-		outputMinSequence = null.IntFrom(int64(minSequenceNumber))
-	}
-
-	minSequenceAge := transaction.Envelope.MinSeqAge()
-	outputMinSequenceAge := null.Int{}
-	if minSequenceAge != nil {
-		outputMinSequenceAge = null.IntFrom(int64(minSequenceAge))
-	}
-
-	minSequenceLedgerGap := transaction.Envelope.MinSeqLedgerGap()
-	outputMinSequenceLedgerGap := null.Int{}
-	if minSequenceLedgerGap != nil {
-		outputMinSequenceLedgerGap = null.IntFrom(int64(minSequenceLedgerGap))
-	}
-
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
-		TransactionHash:             outputTransactionHash,
-		LedgerSequence:              outputLedgerSequence,
-		ApplicationOrder:            outputApplicationOrder,
-		TransactionID:               outputTransactionID,
-		Account:                     outputAccount,
-		AccountSequence:             outputAccountSequence,
-		MaxFee:                      outputMaxFee,
-		FeeCharged:                  outputFeeCharged,
-		OperationCount:              outputOperationCount,
-		CreatedAt:                   outputCreatedAt,
-		MemoType:                    outputMemoType,
-		Memo:                        outputMemoContents,
-		TimeBounds:                  outputTimeBounds,
-		Successful:                  outputSuccessful,
-		LedgerBounds:                outputLedgerBound,
-		MinAccountSequence:          outputMinSequence,
-		MinAccountSequenceAge:       outputMinSequenceAge,
-		MinAccountSequenceLedgerGap: outputMinSequenceLedgerGap,
-		ExtraSigners:                formatSigners(transaction.Envelope.ExtraSigners()),
+		TransactionHash:  outputTransactionHash,
+		LedgerSequence:   outputLedgerSequence,
+		ApplicationOrder: outputApplicationOrder,
+		TransactionID:    outputTransactionID,
+		Account:          outputAccount,
+		AccountSequence:  outputAccountSequence,
+		MaxFee:           outputMaxFee,
+		FeeCharged:       outputFeeCharged,
+		OperationCount:   outputOperationCount,
+		CreatedAt:        outputCreatedAt,
+		MemoType:         outputMemoType,
+		Memo:             outputMemoContents,
+		TimeBounds:       outputTimeBounds,
+		Successful:       outputSuccessful,
 	}
 
 	// Add Muxed Account Details, if exists

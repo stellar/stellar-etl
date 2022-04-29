@@ -65,7 +65,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 		if outputSellingAmount == 0 && outputBuyingAmount == 0 {
 			log.Debugf("Both Selling and Buying amount are 0 for operation at index %d", operationIndex)
-			return []TradeOutput{}, nil
+			continue
 		}
 
 		// Final price should be buy / sell
@@ -173,7 +173,6 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 			err = fmt.Errorf("Could not get ManageBuyOfferResult for operation at index %d", operationIndex)
 			return
 		}
-
 		if success, ok := buyOfferResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
 			BuyingOffer = success.Offer.Offer
