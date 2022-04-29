@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/lib/pq"
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -127,13 +126,4 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	}
 
 	return transformedTransaction, nil
-}
-
-func formatSigners(s []xdr.SignerKey) pq.StringArray {
-	signers := make([]string, len(s))
-	for i, key := range s {
-		signers[i] = key.Address()
-	}
-
-	return signers
 }
