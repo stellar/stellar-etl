@@ -106,9 +106,9 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		}
 
 		if BuyingOffer != nil {
-			outputBuyingOfferID = null.IntFrom(int64(claimOffer.OfferId()))
+			outputBuyingOfferID = null.IntFrom(int64(BuyingOffer.OfferId))
 		} else {
-			outputBuyingOfferID = null.IntFrom(toid.EncodeOfferId(uint64(operationID), toid.TOIDType))
+			outputBuyingOfferID = null.IntFrom(toid.EncodeOfferId(uint64(operationID)+1, toid.TOIDType))
 		}
 
 		var outputBuyingAccountAddress string
