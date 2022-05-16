@@ -89,7 +89,7 @@ func makeClaimableBalanceTestInput() ingest.Change {
 
 func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 	return ClaimableBalanceOutput{
-		BalanceID: "0102030405060708090000000000000000000000000000000000000000000000",
+		BalanceID: "000000000102030405060708090000000000000000000000000000000000000000000000",
 		Claimants: []Claimant{
 			{
 				Destination: "GCEODJVUUVYVFD5KT4TOEDTMXQ76OPFOQC2EMYYMLPXQCUVPOB6XRWPQ",

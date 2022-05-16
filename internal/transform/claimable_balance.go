@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -30,9 +31,9 @@ func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutp
 	if !balanceFound {
 		return ClaimableBalanceOutput{}, fmt.Errorf("could not extract claimable balance data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
-	outputId, foundId := balanceEntry.BalanceId.GetV0()
-	if !foundId {
-		return ClaimableBalanceOutput{}, fmt.Errorf("could not extract claimable balance id from ledger entry: %v", balanceEntry.BalanceId)
+	balanceID, err := xdr.MarshalHex(balanceEntry.BalanceId)
+	if err != nil {
+		return ClaimableBalanceOutput{}, fmt.Errorf("Invalid balanceId in op: %d", uint32(ledgerEntry.LastModifiedLedgerSeq))
 	}
 	outputFlags := uint32(balanceEntry.Flags())
 	outputAsset, err := transformSingleAsset(balanceEntry.Asset)
@@ -45,7 +46,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutp
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
 	transformed := ClaimableBalanceOutput{
-		BalanceID:          outputId.HexString(),
+		BalanceID:          balanceID,
 		AssetCode:          outputAsset.AssetCode,
 		AssetIssuer:        outputAsset.AssetIssuer,
 		AssetType:          outputAsset.AssetType,
