@@ -104,7 +104,6 @@ func extractBatch(
 			}
 
 			for {
-
 				change, err := changeReader.Read()
 				if err == io.EOF {
 					break
@@ -119,13 +118,10 @@ func extractBatch(
 					logger.Infof("change type: %v not tracked", change.Type)
 				} else {
 					cache.AddChange(change)
-
 				}
-
 			}
 
 			changeReader.Close()
-
 			seq++
 		}
 
