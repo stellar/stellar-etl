@@ -31,7 +31,7 @@ be exported.`,
 		env := utils.GetEnvironmentDetails(isTest)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
-		exportAccounts, exportOffers, exportTrustlines, exportPools := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
+		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
@@ -44,8 +44,8 @@ be exported.`,
 		}
 
 		// If none of the export flags are set, then we assume that everything should be exported
-		if !exportAccounts && !exportOffers && !exportTrustlines && !exportPools {
-			exportAccounts, exportOffers, exportTrustlines, exportPools = true, true, true, true
+		if !exportAccounts && !exportOffers && !exportTrustlines && !exportPools && !exportBalances {
+			exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances = true, true, true, true, true
 		}
 
 		if configPath == "" && endNum == 0 {

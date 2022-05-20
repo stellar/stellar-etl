@@ -104,6 +104,7 @@ func extractBatch(
 			}
 
 			for {
+
 				change, err := changeReader.Read()
 				if err == io.EOF {
 					break
@@ -118,15 +119,20 @@ func extractBatch(
 					logger.Infof("change type: %v not tracked", change.Type)
 				} else {
 					cache.AddChange(change)
+
 				}
+
 			}
 
 			changeReader.Close()
+
 			seq++
 		}
 
 		for dataType, compactor := range changeCompactors {
-			changes[dataType] = compactor.GetChanges()
+			for _, change := range compactor.GetChanges() {
+				changes[dataType] = append(changes[dataType], change)
+			}
 		}
 
 	}

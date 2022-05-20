@@ -226,6 +226,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-trustlines", "t", false, "set in order to export trustline changes")
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
 	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
+	flags.BoolP("export-balances", "l", false, "set in order to export claimable balance changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
@@ -326,7 +327,7 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances bool) {
 	exportAccounts, err := flags.GetBool("export-accounts")
 	if err != nil {
 		logger.Fatal("could not get export accounts flag: ", err)
@@ -345,6 +346,11 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccount
 	exportPools, err = flags.GetBool("export-pools")
 	if err != nil {
 		logger.Fatal("could not export liquidity pools flag: ", err)
+	}
+
+	exportBalances, err = flags.GetBool("export-balances")
+	if err != nil {
+		logger.Fatal("could not export claimable balances flag: ", err)
 	}
 
 	return
