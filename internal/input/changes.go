@@ -126,7 +126,9 @@ func extractBatch(
 		}
 
 		for dataType, compactor := range changeCompactors {
-			changes[dataType] = compactor.GetChanges()
+			for _, change := range compactor.GetChanges() {
+				changes[dataType] = append(changes[dataType], change)
+			}
 		}
 
 	}
