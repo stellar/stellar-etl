@@ -1,9 +1,11 @@
 package input
 
 import (
-	"testing"
-
+	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/log"
+	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -116,5 +118,107 @@ func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) Chang
 	}
 	return ChangeBatch{
 		Changes: changes,
+	}
+}
+
+func mockExtractBatch(
+	batchStart, batchEnd uint32,
+	core *ledgerbackend.CaptiveStellarCore,
+	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
+	log.Errorf("mock called")
+	return ChangeBatch{
+		Changes:    map[xdr.LedgerEntryType][]ingest.Change{},
+		BatchStart: batchStart,
+		BatchEnd:   batchEnd,
+	}
+}
+
+func TestStreamChangesBatchNumbers(t *testing.T) {
+	type batchRange struct {
+		batchStart uint32
+		batchEnd   uint32
+	}
+	type input struct {
+		batchStart uint32
+		batchEnd   uint32
+	}
+	type output struct {
+		batchRanges []batchRange
+	}
+	tests := []struct {
+		name string
+		args input
+		out  output
+	}{
+		{
+			name: "single",
+			args: input{batchStart: 1, batchEnd: 65},
+			out: output{
+				batchRanges: []batchRange{
+					batchRange{
+						batchStart: 1, batchEnd: 65,
+					},
+				},
+			},
+		}, {
+			name: "one extra",
+			args: input{batchStart: 1, batchEnd: 66},
+			out: output{
+				batchRanges: []batchRange{
+					batchRange{
+						batchStart: 1, batchEnd: 64,
+					}, batchRange{
+						batchStart: 64, batchEnd: 66,
+					},
+				},
+			},
+		}, {
+			name: "multiple",
+			args: input{batchStart: 1, batchEnd: 128},
+			out: output{
+				batchRanges: []batchRange{
+					batchRange{
+						batchStart: 1, batchEnd: 64,
+					},
+					batchRange{
+						batchStart: 64, batchEnd: 128,
+					},
+				},
+			},
+		}, {
+			name: "partial",
+			args: input{batchStart: 1, batchEnd: 32},
+			out: output{
+				batchRanges: []batchRange{
+					batchRange{
+						batchStart: 1, batchEnd: 32,
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			batchSize := uint32(64)
+			changeChan := make(chan ChangeBatch, 10)
+			closeChan := make(chan int)
+			env := utils.EnvironmentDetails{
+				NetworkPassphrase: "",
+				ArchiveURLs:       nil,
+				BinaryPath:        "",
+				CoreConfig:        "",
+			}
+			logger := utils.NewEtlLogger()
+			ExtractBatch = mockExtractBatch
+			go StreamChanges(nil, tt.args.batchStart, tt.args.batchEnd, batchSize, changeChan, closeChan, env, logger)
+			var got []batchRange
+			for b := range changeChan {
+				got = append(got, batchRange{
+					b.BatchStart,
+					b.BatchEnd,
+				})
+			}
+			assert.Equal(t, tt.out.batchRanges, got)
+		})
 	}
 }
