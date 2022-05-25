@@ -62,9 +62,6 @@ be exported.`,
 			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
 		}
 
-		if endNum != 0 {
-			endNum = endNum + 1
-		}
 		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)

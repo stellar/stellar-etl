@@ -146,6 +146,9 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 	batchStart := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
+		if batchEnd < end {
+			batchEnd = uint32(batchEnd - 1)
+		}
 		batch := extractBatch(batchStart, batchEnd, core, env, logger)
 		changeChannel <- batch
 		batchStart = uint32(math.Min(float64(batchEnd), float64(end)))
