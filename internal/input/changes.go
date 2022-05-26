@@ -13,6 +13,10 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+var (
+	ExtractBatch = extractBatch
+)
+
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
 	Changes    map[xdr.LedgerEntryType][]ingest.Change
@@ -149,7 +153,7 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 		if batchEnd < end {
 			batchEnd = uint32(batchEnd - 1)
 		}
-		batch := extractBatch(batchStart, batchEnd, core, env, logger)
+		batch := ExtractBatch(batchStart, batchEnd, core, env, logger)
 		changeChannel <- batch
 		batchStart = uint32(math.Min(float64(batchEnd), float64(end)))
 		batchEnd = uint32(math.Min(float64(batchStart+batchSize), float64(end)))

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	cloud.google.com/go/storage v1.10.0
+	github.com/google/martian v2.1.0+incompatible
 	github.com/guregu/null v2.1.3-0.20151024101046-79c5bd36b615+incompatible
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1

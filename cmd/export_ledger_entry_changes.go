@@ -18,7 +18,7 @@ var exportLedgerEntryChangesCmd = &cobra.Command{
 	Short: "This command exports the changes in accounts, offers, trustlines and liquidity pools.",
 	Long: `This command instantiates a stellar-core instance and uses it to export about accounts, offers, trustlines and liquidity pools.
 The information is exported in batches determined by the batch-size flag. Each exported file will include the changes to the 
-relevent data type that occurred during that batch.
+relevant data type that occurred during that batch.
 
 If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
 confirmed by the Stellar network. 
