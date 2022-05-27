@@ -1,11 +1,12 @@
 package input
 
 import (
+	"testing"
+
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
-	"testing"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -168,7 +169,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 					batchRange{
 						batchStart: 1, batchEnd: 64,
 					}, batchRange{
-						batchStart: 64, batchEnd: 66,
+						batchStart: 65, batchEnd: 66,
 					},
 				},
 			},
@@ -181,7 +182,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 						batchStart: 1, batchEnd: 64,
 					},
 					batchRange{
-						batchStart: 64, batchEnd: 128,
+						batchStart: 65, batchEnd: 128,
 					},
 				},
 			},
