@@ -155,7 +155,9 @@ func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize
 		}
 		batch := ExtractBatch(batchStart, batchEnd, core, env, logger)
 		changeChannel <- batch
-		batchStart = uint32(math.Min(float64(batchEnd), float64(end)))
+		// batchStart and batchEnd should not overlap
+		// overlapping batches causes duplicate record loads
+		batchStart = uint32(math.Min(float64(batchEnd), float64(end)) + 1)
 		batchEnd = uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	}
 	close(changeChannel)

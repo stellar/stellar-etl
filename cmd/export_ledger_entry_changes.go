@@ -180,7 +180,10 @@ func exportTransformedData(
 	extra map[string]string) error {
 
 	for resource, output := range transformedOutput {
-		path := filepath.Join(folderPath, exportFilename(start, end, resource))
+		// Filenames are typically exclusive of end point. This processor
+		// is different and we have to increment by 1 since the end batch number
+		// is included in this filename.
+		path := filepath.Join(folderPath, exportFilename(start, end+1, resource))
 		outFile := mustOutFile(path)
 		for _, o := range output {
 			_, err := exportEntry(o, outFile, extra)
