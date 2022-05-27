@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 
+	"github.com/guregu/null/zero"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -50,6 +51,8 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	if outputSequenceNumber < 0 {
 		return AccountOutput{}, fmt.Errorf("Account sequence number is negative (%d) for account: %s", outputSequenceNumber, outputID)
 	}
+	outputSequenceLedger := accountEntry.SeqLedger()
+	outputSequenceTime := accountEntry.SeqTime()
 
 	outputNumSubentries := uint32(accountEntry.NumSubEntries)
 
@@ -79,6 +82,8 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 		BuyingLiabilities:    utils.ConvertStroopValueToReal(outputBuyingLiabilities),
 		SellingLiabilities:   utils.ConvertStroopValueToReal(outputSellingLiabilities),
 		SequenceNumber:       outputSequenceNumber,
+		SequenceLedger:       zero.IntFrom(int64(outputSequenceLedger)),
+		SequenceTime:         zero.IntFrom(int64(outputSequenceTime)),
 		NumSubentries:        outputNumSubentries,
 		InflationDestination: outputInflationDest,
 		Flags:                outputFlags,

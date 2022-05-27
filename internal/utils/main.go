@@ -63,8 +63,8 @@ func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
 					BumpTo: int64(sequence),
 				},
 			},
-			BaseFee:    txnbuild.MinBaseFee,
-			Timebounds: txnbuild.NewInfiniteTimeout(),
+			BaseFee:       txnbuild.MinBaseFee,
+			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
 	PanicOnError(err)

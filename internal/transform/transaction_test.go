@@ -29,7 +29,7 @@ func TestTransformTransaction(t *testing.T) {
 
 	badTimeboundInput := genericInput
 	badTimeboundEnvelope := genericBumpOperationEnvelope
-	badTimeboundEnvelope.Tx.TimeBounds = &xdr.TimeBounds{
+	badTimeboundEnvelope.Tx.Cond.TimeBounds = &xdr.TimeBounds{
 		MinTime: 1594586912,
 		MaxTime: 100,
 	}
@@ -134,9 +134,11 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							Text: &hardCodedMemoText,
 						},
 						Fee: 90000,
-						TimeBounds: &xdr.TimeBounds{
-							MinTime: 0,
-							MaxTime: 1594272628,
+						Cond: xdr.Preconditions{
+							TimeBounds: &xdr.TimeBounds{
+								MinTime: 0,
+								MaxTime: 1594272628,
+							},
 						},
 						Operations: []xdr.Operation{
 							xdr.Operation{
@@ -181,9 +183,11 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 										Type: xdr.MemoTypeMemoText,
 										Text: &hardCodedMemoText,
 									},
-									TimeBounds: &xdr.TimeBounds{
-										MinTime: 0,
-										MaxTime: 1594272628,
+									Cond: xdr.Preconditions{
+										TimeBounds: &xdr.TimeBounds{
+											MinTime: 0,
+											MaxTime: 1594272628,
+										},
 									},
 									Operations: []xdr.Operation{
 										xdr.Operation{
