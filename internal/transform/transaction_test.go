@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/guregu/null"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/go/ingest"
@@ -29,6 +31,7 @@ func TestTransformTransaction(t *testing.T) {
 
 	badTimeboundInput := genericInput
 	badTimeboundEnvelope := genericBumpOperationEnvelope
+	badTimeboundEnvelope.Tx.Cond.Type = xdr.PreconditionTypePrecondTime
 	badTimeboundEnvelope.Tx.Cond.TimeBounds = &xdr.TimeBounds{
 		MinTime: 1594586912,
 		MaxTime: 100,
@@ -114,12 +117,40 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			FeeAccount:           testAccount3Address,
 			NewMaxFee:            7200,
 		},
+		TransactionOutput{
+			TransactionHash:             "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			LedgerSequence:              30521818,
+			ApplicationOrder:            1,
+			TransactionID:               131090210124468224,
+			Account:                     testAccount2Address,
+			AccountSequence:             118426953012574851,
+			MaxFee:                      100,
+			FeeCharged:                  100,
+			OperationCount:              1,
+			CreatedAt:                   correctTime,
+			MemoType:                    "MemoTypeMemoText",
+			Memo:                        "HL5aCgozQHIW7sSc5XdcfmR",
+			TimeBounds:                  "[0,1594272628)",
+			Successful:                  false,
+			LedgerBounds:                "[5,10)",
+			ExtraSigners:                pq.StringArray{"GABQEAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB7QL"},
+			MinAccountSequenceAge:       null.IntFrom(0),
+			MinAccountSequenceLedgerGap: null.IntFrom(0),
+		},
 	}
 	return
 }
 func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, historyHeader []xdr.LedgerHeaderHistoryEntry, err error) {
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
+	source := xdr.MuxedAccount{
+		Type:    xdr.CryptoKeyTypeKeyTypeEd25519,
+		Ed25519: &xdr.Uint256{3, 2, 1},
+	}
+	signerKey := xdr.SignerKey{
+		Type:    xdr.SignerKeyTypeSignerKeyTypeEd25519,
+		Ed25519: source.Ed25519,
+	}
 	transaction = []ingest.LedgerTransaction{
 		ingest.LedgerTransaction{
 			Index: 1,
@@ -135,6 +166,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 						},
 						Fee: 90000,
 						Cond: xdr.Preconditions{
+							Type: xdr.PreconditionTypePrecondTime,
 							TimeBounds: &xdr.TimeBounds{
 								MinTime: 0,
 								MaxTime: 1594272628,
@@ -184,6 +216,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 										Text: &hardCodedMemoText,
 									},
 									Cond: xdr.Preconditions{
+										Type: xdr.PreconditionTypePrecondTime,
 										TimeBounds: &xdr.TimeBounds{
 											MinTime: 0,
 											MaxTime: 1594272628,
@@ -229,6 +262,58 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 				},
 			},
 		},
+		ingest.LedgerTransaction{
+			Index: 1,
+			Envelope: xdr.TransactionEnvelope{
+				Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+				V1: &xdr.TransactionV1Envelope{
+					Tx: xdr.Transaction{
+						SourceAccount: testAccount2,
+						SeqNum:        118426953012574851,
+						Memo: xdr.Memo{
+							Type: xdr.MemoTypeMemoText,
+							Text: &hardCodedMemoText,
+						},
+						Fee: 100,
+						Cond: xdr.Preconditions{
+							Type: xdr.PreconditionTypePrecondV2,
+							V2: &xdr.PreconditionsV2{
+								TimeBounds: &xdr.TimeBounds{
+									MinTime: 0,
+									MaxTime: 1594272628,
+								},
+								LedgerBounds: &xdr.LedgerBounds{
+									MinLedger: 5,
+									MaxLedger: 10,
+								},
+								ExtraSigners: []xdr.SignerKey{signerKey},
+							},
+						},
+						Operations: []xdr.Operation{
+							xdr.Operation{
+								SourceAccount: &testAccount4,
+								Body: xdr.OperationBody{
+									Type:                       xdr.OperationTypePathPaymentStrictReceive,
+									PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+								},
+							},
+						},
+					},
+				},
+			},
+			Result: xdr.TransactionResultPair{
+				TransactionHash: hardCodedTransactionHash,
+				Result: xdr.TransactionResult{
+					FeeCharged: 100,
+					Result: xdr.TransactionResultResult{
+						Code: xdr.TransactionResultCodeTxFailed,
+						Results: &[]xdr.OperationResult{
+							xdr.OperationResult{},
+						},
+					},
+				},
+			},
+		},
 	}
 	historyHeader = []xdr.LedgerHeaderHistoryEntry{
 		xdr.LedgerHeaderHistoryEntry{
@@ -240,6 +325,12 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 		xdr.LedgerHeaderHistoryEntry{
 			Header: xdr.LedgerHeader{
 				LedgerSeq: 30521817,
+				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
+			},
+		},
+		xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				LedgerSeq: 30521818,
 				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
 			},
 		},

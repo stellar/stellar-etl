@@ -68,7 +68,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	}
 
 	outputMemoType := memoObject.Type.String()
-	timeBound := transaction.Envelope.Preconditions().TimeBounds
+	timeBound := transaction.Envelope.TimeBounds()
 	outputTimeBounds := ""
 	if timeBound != nil {
 		if timeBound.MaxTime < timeBound.MinTime && timeBound.MaxTime != 0 {
