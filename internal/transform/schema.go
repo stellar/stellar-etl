@@ -41,6 +41,10 @@ type TransactionOutput struct {
 	MaxFee                      uint32         `json:"max_fee"`
 	FeeCharged                  int64          `json:"fee_charged"`
 	OperationCount              int32          `json:"operation_count"`
+	TxEnvelope                  string         `json:"tx_envelope"`
+	TxResult                    string         `json:"tx_result"`
+	TxMeta                      string         `json:"tx_meta"`
+	TxFeeMeta                   string         `json:"tx_fee_meta"`
 	CreatedAt                   time.Time      `json:"created_at"`
 	MemoType                    string         `json:"memo_type"`
 	Memo                        string         `json:"memo"`

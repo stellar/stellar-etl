@@ -47,6 +47,24 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	}
 
 	outputOperationCount := int32(len(transaction.Envelope.Operations()))
+
+	outputTxEnvelope, err := xdr.MarshalBase64(transaction.Envelope)
+	if err != nil {
+		return TransactionOutput{}, err
+	}
+	outputTxResult, err := xdr.MarshalBase64(&transaction.Result.Result)
+	if err != nil {
+		return TransactionOutput{}, err
+	}
+	outputTxMeta, err := xdr.MarshalBase64(transaction.UnsafeMeta)
+	if err != nil {
+		return TransactionOutput{}, err
+	}
+	outputTxFeeMeta, err := xdr.MarshalBase64(transaction.FeeChanges)
+	if err != nil {
+		return TransactionOutput{}, err
+	}
+
 	outputCreatedAt, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
 		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, outputApplicationOrder, outputTransactionID, err)
@@ -120,6 +138,10 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		MaxFee:                      outputMaxFee,
 		FeeCharged:                  outputFeeCharged,
 		OperationCount:              outputOperationCount,
+		TxEnvelope:                  outputTxEnvelope,
+		TxResult:                    outputTxResult,
+		TxMeta:                      outputTxMeta,
+		TxFeeMeta:                   outputTxFeeMeta,
 		CreatedAt:                   outputCreatedAt,
 		MemoType:                    outputMemoType,
 		Memo:                        outputMemoContents,
