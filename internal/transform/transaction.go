@@ -56,7 +56,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	if err != nil {
 		return TransactionOutput{}, err
 	}
-	outputTxMeta, err := xdr.MarshalBase64(transaction.UnsafeMeta)
+	outputTxMeta, err := xdr.MarshalBase64(transaction.UnsafeMeta.V)
 	if err != nil {
 		return TransactionOutput{}, err
 	}
