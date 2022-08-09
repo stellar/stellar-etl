@@ -7,6 +7,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 )
 
@@ -19,7 +20,28 @@ type LedgerTransformInput struct {
 // GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTransformInput, error) {
 	env := utils.GetEnvironmentDetails(isTest)
-	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
+	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
+		env.CoreConfig,
+		ledgerbackend.CaptiveCoreTomlParams{
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
+			Strict:             true,
+		},
+	)
+
+	if err != nil {
+		return []LedgerTransformInput{}, err
+	}
+
+	backend, err := ledgerbackend.NewCaptive(
+		ledgerbackend.CaptiveCoreConfig{
+			BinaryPath:         env.BinaryPath,
+			Toml:               captiveCoreToml,
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
+		},
+	)
+
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
@@ -27,6 +49,10 @@ func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTrans
 	var txSlice []LedgerTransformInput
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
+		err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
+		if err != nil {
+			return []LedgerTransformInput{}, err
+		}
 		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []LedgerTransformInput{}, err
