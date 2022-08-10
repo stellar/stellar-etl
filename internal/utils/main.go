@@ -209,10 +209,10 @@ func AddGcsFlags(flags *pflag.FlagSet) {
 		"When run on GCP, credentials should be inferred by service account.")
 }
 
-// AddCoreFlags adds the captive core specifc flags: core-executable, core-config, batch-size, and output flags
+// AddCoreFlags adds the captive core specific flags: core-executable, core-config, batch-size, and output flags
 func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
-	flags.StringP("core-config", "c", "", "Filepath to the a config file for stellar-core")
+	flags.StringP("core-config", "c", "", "Filepath to the config file for stellar-core")
 
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
