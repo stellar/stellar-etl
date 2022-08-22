@@ -34,7 +34,6 @@ type LedgerOutput struct {
 type TransactionOutput struct {
 	TransactionHash             string         `json:"transaction_hash"`
 	LedgerSequence              uint32         `json:"ledger_sequence"`
-	ApplicationOrder            uint32         `json:"application_order"`
 	Account                     string         `json:"account"`
 	AccountMuxed                string         `json:"account_muxed,omitempty"`
 	AccountSequence             int64          `json:"account_sequence"`
@@ -99,7 +98,6 @@ type OperationOutput struct {
 	SourceAccount      string                 `json:"source_account"`
 	SourceAccountMuxed string                 `json:"source_account_muxed,omitempty"`
 	Type               int32                  `json:"type"`
-	ApplicationOrder   int32                  `json:"application_order"`
 	OperationDetails   map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
 	TransactionID      int64                  `json:"transaction_id"`
 	OperationID        int64                  `json:"id"`
@@ -245,7 +243,7 @@ type TradeOutput struct {
 	SellerIsExact          null.Bool   `json:"seller_is_exact"`
 }
 
-//DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts
+// DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts
 type DimAccount struct {
 	ID      uint64 `json:"account_id"`
 	Address string `json:"address"`

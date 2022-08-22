@@ -113,7 +113,6 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	transformedTransaction := TransactionOutput{
 		TransactionHash:             outputTransactionHash,
 		LedgerSequence:              outputLedgerSequence,
-		ApplicationOrder:            outputApplicationOrder,
 		TransactionID:               outputTransactionID,
 		Account:                     outputAccount,
 		AccountSequence:             outputAccountSequence,
