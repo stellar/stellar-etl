@@ -64,6 +64,65 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 	return transformedOperation, nil
 }
 
+func mapOperationType(operation xdr.Operation) (string, error) {
+	var op_string_type string
+	operationType := operation.Body.Type
+
+	switch operationType {
+	case xdr.OperationTypeCreateAccount:
+		op_string_type = "create_account"
+	case xdr.OperationTypePayment:
+		op_string_type = "payment"
+	case xdr.OperationTypePathPaymentStrictReceive:
+		op_string_type = "path_payment_strict_receive"
+	case xdr.OperationTypePathPaymentStrictSend:
+		op_string_type = "path_payment_strict_send"
+	case xdr.OperationTypeManageBuyOffer:
+		op_string_type = "manage_buy_offer"
+	case xdr.OperationTypeManageSellOffer:
+		op_string_type = "manage_sell_offer"
+	case xdr.OperationTypeCreatePassiveSellOffer:
+		op_string_type = "create_passive_sell_offer"
+	case xdr.OperationTypeSetOptions:
+		op_string_type = "set_options"
+	case xdr.OperationTypeChangeTrust:
+		op_string_type = "change_trust"
+	case xdr.OperationTypeAllowTrust:
+		op_string_type = "allow_trust"
+	case xdr.OperationTypeAccountMerge:
+		op_string_type = "account_merge"
+	case xdr.OperationTypeInflation:
+		op_string_type = "inflation"
+	case xdr.OperationTypeManageData:
+		op_string_type = "manage_data"
+	case xdr.OperationTypeBumpSequence:
+		op_string_type = "bump_sequence"
+	case xdr.OperationTypeCreateClaimableBalance:
+		op_string_type = "create_claimable_balance"
+	case xdr.OperationTypeClaimClaimableBalance:
+		op_string_type = "claim_claimable_balance"
+	case xdr.OperationTypeBeginSponsoringFutureReserves:
+		op_string_type = "begin_sponsoring_future_reserves"
+	case xdr.OperationTypeEndSponsoringFutureReserves:
+		op_string_type = "end_sponsoring_future_reserves"
+	case xdr.OperationTypeRevokeSponsorship:
+		op_string_type = "revoke_sponsorship"
+	case xdr.OperationTypeClawback:
+		op_string_type = "clawback"
+	case xdr.OperationTypeClawbackClaimableBalance:
+		op_string_type = "clawback_claimable_balance"
+	case xdr.OperationTypeSetTrustLineFlags:
+		op_string_type = "set_trust_line_flags"
+	case xdr.OperationTypeLiquidityPoolDeposit:
+		op_string_type = "liquidity_pool_deposit"
+	case xdr.OperationTypeLiquidityPoolWithdraw:
+		op_string_type = "liquidity_pool_withdraw"
+	default:
+		return op_string_type, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
+	}
+	return op_string_type, nil
+}
+
 func PoolIDToString(id xdr.PoolId) string {
 	return xdr.Hash(id).HexString()
 }
