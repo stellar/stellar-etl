@@ -561,6 +561,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		OperationOutput{
 			SourceAccount: hardCodedSourceAccountAddress,
 			Type:          0,
+			TypeString:    "create_account",
 			TransactionID: 4096,
 			OperationID:   4097,
 			OperationDetails: map[string]interface{}{
@@ -571,6 +572,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          1,
+			TypeString:    "payment",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4098,
@@ -585,6 +587,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          1,
+			TypeString:    "payment",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4099,
@@ -597,6 +600,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          2,
+			TypeString:    "path_payment_strict_receive",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4100,
@@ -613,6 +617,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          3,
+			TypeString:    "manage_sell_offer",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4101,
@@ -632,6 +637,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          4,
+			TypeString:    "create_passive_sell_offer",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4102,
@@ -650,6 +656,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          5,
+			TypeString:    "set_options",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4103,
@@ -670,6 +677,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          6,
+			TypeString:    "change_trust",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4104,
@@ -684,6 +692,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          6,
+			TypeString:    "change_trust",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4105,
@@ -696,6 +705,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          7,
+			TypeString:    "allow_trust",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4106,
@@ -710,6 +720,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          8,
+			TypeString:    "account_merge",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4107,
@@ -720,6 +731,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:             9,
+			TypeString:       "inflation",
 			SourceAccount:    hardCodedSourceAccountAddress,
 			TransactionID:    4096,
 			OperationID:      4108,
@@ -727,6 +739,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          10,
+			TypeString:    "manage_data",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4109,
@@ -737,6 +750,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          11,
+			TypeString:    "bump_sequence",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4110,
@@ -746,6 +760,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          12,
+			TypeString:    "manage_buy_offer",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4111,
@@ -765,6 +780,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          13,
+			TypeString:    "path_payment_strict_send",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4112,
@@ -781,6 +797,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          14,
+			TypeString:    "create_claimable_balance",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4113,
@@ -792,6 +809,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          15,
+			TypeString:    "claim_claimable_balance",
 			SourceAccount: testAccount3Address,
 			TransactionID: 4096,
 			OperationID:   4114,
@@ -802,6 +820,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          16,
+			TypeString:    "begin_sponsoring_future_reserves",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4115,
@@ -811,6 +830,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4116,
@@ -821,6 +841,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4117,
@@ -830,6 +851,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4118,
@@ -839,6 +861,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4119,
@@ -849,6 +872,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4120,
@@ -858,6 +882,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4121,
@@ -868,6 +893,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          18,
+			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4122,
@@ -877,6 +903,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          19,
+			TypeString:    "clawback",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4123,
@@ -890,6 +917,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          20,
+			TypeString:    "clawback_claimable_balance",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4124,
@@ -899,6 +927,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          21,
+			TypeString:    "set_trust_line_flags",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4125,
@@ -915,6 +944,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          22,
+			TypeString:    "liquidity_pool_deposit",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4126,
@@ -943,6 +973,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 		},
 		OperationOutput{
 			Type:          23,
+			TypeString:    "liquidity_pool_withdraw",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4127,
