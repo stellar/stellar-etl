@@ -86,12 +86,20 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 		resultCode = xdr.TransactionResultCodeTxSuccess
 	}
 	operationResults := []xdr.OperationResult{}
+	operationResultTr := &xdr.OperationResultTr{
+		Type: xdr.OperationTypeCreateAccount,
+		CreateAccountResult: &xdr.CreateAccountResult{
+			Code: 0,
+		},
+	}
+
 	for i := 0; i < subOperationCount; i++ {
 		operationResults = append(operationResults, xdr.OperationResult{
 			Code: xdr.OperationResultCodeOpInner,
-			Tr:   &xdr.OperationResultTr{},
+			Tr:   operationResultTr,
 		})
 	}
+
 	return xdr.TransactionResultMeta{
 		Result: xdr.TransactionResultPair{
 			Result: xdr.TransactionResult{

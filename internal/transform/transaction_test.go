@@ -147,6 +147,10 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 		Type:    xdr.CryptoKeyTypeKeyTypeEd25519,
 		Ed25519: &xdr.Uint256{3, 2, 1},
 	}
+	destination := xdr.MuxedAccount{
+		Type:    xdr.CryptoKeyTypeKeyTypeEd25519,
+		Ed25519: &xdr.Uint256{1, 2, 3},
+	}
 	signerKey := xdr.SignerKey{
 		Type:    xdr.SignerKeyTypeSignerKeyTypeEd25519,
 		Ed25519: source.Ed25519,
@@ -154,6 +158,10 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 	transaction = []ingest.LedgerTransaction{
 		ingest.LedgerTransaction{
 			Index: 1,
+			UnsafeMeta: xdr.TransactionMeta{
+				V:  1,
+				V1: genericTxMeta,
+			},
 			Envelope: xdr.TransactionEnvelope{
 				Type: xdr.EnvelopeTypeEnvelopeTypeTx,
 				V1: &xdr.TransactionV1Envelope{
@@ -176,8 +184,10 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							xdr.Operation{
 								SourceAccount: &testAccount2,
 								Body: xdr.OperationBody{
-									Type:                       xdr.OperationTypePathPaymentStrictReceive,
-									PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+									Type: xdr.OperationTypePathPaymentStrictReceive,
+									PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
+										Destination: destination,
+									},
 								},
 							},
 						},
@@ -191,7 +201,14 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 					Result: xdr.TransactionResultResult{
 						Code: xdr.TransactionResultCodeTxFailed,
 						Results: &[]xdr.OperationResult{
-							xdr.OperationResult{},
+							xdr.OperationResult{
+								Tr: &xdr.OperationResultTr{
+									Type: xdr.OperationTypeCreateAccount,
+									CreateAccountResult: &xdr.CreateAccountResult{
+										Code: 0,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -226,8 +243,10 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 										xdr.Operation{
 											SourceAccount: &testAccount2,
 											Body: xdr.OperationBody{
-												Type:                       xdr.OperationTypePathPaymentStrictReceive,
-												PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+												Type: xdr.OperationTypePathPaymentStrictReceive,
+												PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
+													Destination: destination,
+												},
 											},
 										},
 									},
@@ -293,8 +312,10 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							xdr.Operation{
 								SourceAccount: &testAccount4,
 								Body: xdr.OperationBody{
-									Type:                       xdr.OperationTypePathPaymentStrictReceive,
-									PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
+									Type: xdr.OperationTypePathPaymentStrictReceive,
+									PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
+										Destination: destination,
+									},
 								},
 							},
 						},
