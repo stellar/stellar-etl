@@ -17,9 +17,9 @@ type LedgerTransformInput struct {
 	LedgerHistory xdr.LedgerHeaderHistoryEntry
 }
 
-// GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTransformInput, error) {
-	env := utils.GetEnvironmentDetails(isTest)
+// GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
+func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]LedgerTransformInput, error) {
+	ctx := context.Background()
 	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
 		env.CoreConfig,
 		ledgerbackend.CaptiveCoreTomlParams{
@@ -46,17 +46,15 @@ func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTrans
 		return []LedgerTransformInput{}, err
 	}
 
-	var txSlice []LedgerTransformInput
-	ctx := context.Background()
+	txSlice := []LedgerTransformInput{}
+	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
+	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
+		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
-		if err != nil {
-			return []LedgerTransformInput{}, err
-		}
+		txReader := changeReader.LedgerTransactionReader
 
 		lhe := txReader.GetHeader()
 		// A negative limit value means that all input should be processed
