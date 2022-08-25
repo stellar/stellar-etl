@@ -25,12 +25,12 @@ func TestTransformTransaction(t *testing.T) {
 	}
 	genericInput := inputStruct{genericLedgerTransaction, genericLedgerHeaderHistoryEntry}
 	negativeSeqInput := genericInput
-	negativeSeqEnvelope := genericBumpOperationEnvelope
+	negativeSeqEnvelope := genericBumpOperationEnvelopeForTransaction
 	negativeSeqEnvelope.Tx.SeqNum = xdr.SequenceNumber(-1)
 	negativeSeqInput.transaction.Envelope.V1 = &negativeSeqEnvelope
 
 	badTimeboundInput := genericInput
-	badTimeboundEnvelope := genericBumpOperationEnvelope
+	badTimeboundEnvelope := genericBumpOperationEnvelopeForTransaction
 	badTimeboundEnvelope.Tx.Cond.Type = xdr.PreconditionTypePrecondTime
 	badTimeboundEnvelope.Tx.Cond.TimeBounds = &xdr.TimeBounds{
 		MinTime: 1594586912,
