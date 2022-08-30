@@ -20,8 +20,9 @@ var transactionsCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest)
 
-		transactions, err := input.GetTransactions(startNum, endNum, limit, isTest)
+		transactions, err := input.GetTransactions(startNum, endNum, limit, env)
 		if err != nil {
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}
@@ -40,7 +41,7 @@ var transactionsCmd = &cobra.Command{
 
 			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				cmdLogger.LogError(err)
+				cmdLogger.LogError(fmt.Errorf("could not export transaction: %v", err))
 				numFailures += 1
 				continue
 			}

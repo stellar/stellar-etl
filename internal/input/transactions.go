@@ -7,6 +7,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 )
 
@@ -16,16 +17,38 @@ type LedgerTransformInput struct {
 	LedgerHistory xdr.LedgerHeaderHistoryEntry
 }
 
-// GetTransactions returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTransformInput, error) {
-	env := utils.GetEnvironmentDetails(isTest)
-	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
+// GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
+func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]LedgerTransformInput, error) {
+	ctx := context.Background()
+	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
+		env.CoreConfig,
+		ledgerbackend.CaptiveCoreTomlParams{
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
+			Strict:             true,
+		},
+	)
+
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
 
-	var txSlice []LedgerTransformInput
-	ctx := context.Background()
+	backend, err := ledgerbackend.NewCaptive(
+		ledgerbackend.CaptiveCoreConfig{
+			BinaryPath:         env.BinaryPath,
+			Toml:               captiveCoreToml,
+			NetworkPassphrase:  env.NetworkPassphrase,
+			HistoryArchiveURLs: env.ArchiveURLs,
+		},
+	)
+
+	if err != nil {
+		return []LedgerTransformInput{}, err
+	}
+
+	txSlice := []LedgerTransformInput{}
+	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
+	panicIf(err)
 	for seq := start; seq <= end; seq++ {
 		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
