@@ -89,7 +89,6 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			TxFeeMeta:        "AAAAAA==",
 			TransactionHash:  "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 			LedgerSequence:   30521816,
-			ApplicationOrder: 1,
 			TransactionID:    131090201534533632,
 			Account:          testAccount1Address,
 			AccountSequence:  112351890582290871,
