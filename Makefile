@@ -12,4 +12,4 @@ docker-build:
 
 docker-push:
 	$(SUDO) docker push $(ETLHASH)
-	$(SUOD) docker push stellar/stellar-etl:latest
+	$(SUDO) docker push stellar/stellar-etl:latest

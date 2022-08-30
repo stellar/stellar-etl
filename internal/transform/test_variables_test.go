@@ -35,6 +35,22 @@ var genericBumpOperationEnvelope = xdr.TransactionV1Envelope{
 		},
 	},
 }
+var genericBumpOperationForTransaction = xdr.Operation{
+	SourceAccount: &genericSourceAccount,
+	Body: xdr.OperationBody{
+		Type:           xdr.OperationTypeBumpSequence,
+		BumpSequenceOp: &xdr.BumpSequenceOp{},
+	},
+}
+var genericBumpOperationEnvelopeForTransaction = xdr.TransactionV1Envelope{
+	Tx: xdr.Transaction{
+		SourceAccount: genericSourceAccount,
+		Memo:          xdr.Memo{},
+		Operations: []xdr.Operation{
+			genericBumpOperationForTransaction,
+		},
+	},
+}
 var genericManageBuyOfferEnvelope = xdr.TransactionV1Envelope{
 	Tx: xdr.Transaction{
 		SourceAccount: genericSourceAccount,
