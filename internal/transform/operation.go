@@ -12,6 +12,7 @@ import (
 
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/xdr"
 )
 
