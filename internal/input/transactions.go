@@ -17,7 +17,7 @@ type LedgerTransformInput struct {
 	LedgerHistory xdr.LedgerHeaderHistoryEntry
 }
 
-// GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
+// GetTransactions returns a slice of transactions for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]LedgerTransformInput, error) {
 	ctx := context.Background()
 	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
