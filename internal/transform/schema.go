@@ -302,7 +302,6 @@ type EffectOutput struct {
 	Details      map[string]interface{} `json:"details"`
 	Type         int32                  `json:"type"`
 	TypeString   string                 `json:"type_string"`
-	Order        uint32                 `json:"order"`
 }
 
 // EffectType is the numeric type for an effect
@@ -426,4 +425,14 @@ type TradeEffectDetails struct {
 	BoughtAssetType   string `json:"bought_asset_type"`
 	BoughtAssetCode   string `json:"bought_asset_code,omitempty"`
 	BoughtAssetIssuer string `json:"bought_asset_issuer,omitempty"`
+}
+
+// TestTransaction transaction meta
+type TestTransaction struct {
+	Index         uint32
+	EnvelopeXDR   string
+	ResultXDR     string
+	FeeChangesXDR string
+	MetaXDR       string
+	Hash          string
 }

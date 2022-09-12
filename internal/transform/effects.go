@@ -152,7 +152,6 @@ func (e *effectsWrapper) add(address string, addressMuxed null.String, effectTyp
 		OperationID:  e.operation.ID(),
 		TypeString:   EffectTypeNames[effectType],
 		Type:         int32(effectType),
-		Order:        uint32(len(e.effects) + 1),
 		Details:      details,
 	})
 }
