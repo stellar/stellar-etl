@@ -163,6 +163,16 @@ This command exports transactions within the provided range.
 
 This command exports operations within the provided range.
 
+#### export_effects
+
+```bash
+> stellar-etl export_operations --start-ledger 1000 \
+--end-ledger 500000 --output exported_effects.txt
+```
+
+This command exports effects within the provided range.
+
+
 ### Utility Commands
 #### get_ledger_range_from_times
 ```bash
