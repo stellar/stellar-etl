@@ -101,23 +101,6 @@ These commands export information using the history archives. This allows users 
 ```
 
 This command exports ledgers within the provided range. 
-#### export_transactions
-
-```bash
-> stellar-etl export_transactions --start-ledger 1000 \
---end-ledger 500000 --output exported_transactions.txt
-```
-
-This command exports transactions within the provided range.
-
-#### export_operations
-
-```bash
-> stellar-etl export_operations --start-ledger 1000 \
---end-ledger 500000 --output exported_operations.txt
-```
-
-This command exports operations within the provided range.
 
 ### Stellar Core Commands
 
@@ -161,6 +144,24 @@ This command has two modes: bounded and unbounded.
  
 ##### Unbounded
 If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, the Stellar Core connects to the Stellar network and processes new orderbooks as they occur on the network. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new Stellar Core instances.
+
+#### export_transactions
+
+```bash
+> stellar-etl export_transactions --start-ledger 1000 \
+--end-ledger 500000 --output exported_transactions.txt
+```
+
+This command exports transactions within the provided range.
+
+#### export_operations
+
+```bash
+> stellar-etl export_operations --start-ledger 1000 \
+--end-ledger 500000 --output exported_operations.txt
+```
+
+This command exports operations within the provided range.
 
 ### Utility Commands
 #### get_ledger_range_from_times
