@@ -443,7 +443,7 @@ func (e *effectsWrapper) pathPaymentStrictReceiveEffects() error {
 		details,
 	)
 
-	return e.addIngestTradeEffects(*source, resultSuccess.Offers)
+	return e.addIngestTradeEffects(*source, resultSuccess.Offers, false)
 }
 
 func (e *effectsWrapper) addPathPaymentStrictSendEffects() error {
@@ -460,19 +460,19 @@ func (e *effectsWrapper) addPathPaymentStrictSendEffects() error {
 	addAssetDetails(details, op.SendAsset, "")
 	e.addMuxed(source, EffectAccountDebited, details)
 
-	return e.addIngestTradeEffects(*source, resultSuccess.Offers)
+	return e.addIngestTradeEffects(*source, resultSuccess.Offers, true)
 }
 
 func (e *effectsWrapper) addManageSellOfferEffects() error {
 	source := e.operation.SourceAccount()
 	result := e.operation.OperationResult().MustManageSellOfferResult().MustSuccess()
-	return e.addIngestTradeEffects(*source, result.OffersClaimed)
+	return e.addIngestTradeEffects(*source, result.OffersClaimed, false)
 }
 
 func (e *effectsWrapper) addManageBuyOfferEffects() error {
 	source := e.operation.SourceAccount()
 	result := e.operation.OperationResult().MustManageBuyOfferResult().MustSuccess()
-	return e.addIngestTradeEffects(*source, result.OffersClaimed)
+	return e.addIngestTradeEffects(*source, result.OffersClaimed, false)
 }
 
 func (e *effectsWrapper) addCreatePassiveSellOfferEffect() error {
@@ -489,7 +489,7 @@ func (e *effectsWrapper) addCreatePassiveSellOfferEffect() error {
 		claims = result.MustCreatePassiveSellOfferResult().MustSuccess().OffersClaimed
 	}
 
-	return e.addIngestTradeEffects(*source, claims)
+	return e.addIngestTradeEffects(*source, claims, false)
 }
 
 func (e *effectsWrapper) addSetOptionsEffects() error {
@@ -937,7 +937,7 @@ func (e *effectsWrapper) addClaimClaimableBalanceEffects(changes []ingest.Change
 	return nil
 }
 
-func (e *effectsWrapper) addIngestTradeEffects(buyer xdr.MuxedAccount, claims []xdr.ClaimAtom) error {
+func (e *effectsWrapper) addIngestTradeEffects(buyer xdr.MuxedAccount, claims []xdr.ClaimAtom, isPathPayment bool) error {
 	for _, claim := range claims {
 		if claim.AmountSold() == 0 && claim.AmountBought() == 0 {
 			continue
@@ -948,27 +948,41 @@ func (e *effectsWrapper) addIngestTradeEffects(buyer xdr.MuxedAccount, claims []
 				return err
 			}
 		default:
-			e.addClaimTradeEffects(buyer, claim)
+			e.addClaimTradeEffects(buyer, claim, isPathPayment)
 		}
 	}
 	return nil
 }
 
-func (e *effectsWrapper) addClaimTradeEffects(buyer xdr.MuxedAccount, claim xdr.ClaimAtom) {
+func (e *effectsWrapper) addClaimTradeEffects(buyer xdr.MuxedAccount, claim xdr.ClaimAtom, isPathPayment bool) {
 	seller := claim.SellerId()
 	bd, sd := tradeDetails(buyer, seller, claim)
 
-	e.addMuxed(
-		&buyer,
+	tradeEffects := []EffectType{
 		EffectTrade,
-		bd,
-	)
+		EffectOfferUpdated,
+		EffectOfferRemoved,
+		EffectOfferCreated,
+	}
 
-	e.addUnmuxed(
-		&seller,
-		EffectTrade,
-		sd,
-	)
+	for n, effect := range tradeEffects {
+		// skip EffectOfferCreated if OperationType is path_payment
+		if n == 3 && isPathPayment {
+			continue
+		}
+
+		e.addMuxed(
+			&buyer,
+			effect,
+			bd,
+		)
+
+		e.addUnmuxed(
+			&seller,
+			effect,
+			sd,
+		)
+	}
 }
 
 func (e *effectsWrapper) addClaimLiquidityPoolTradeEffect(claim xdr.ClaimAtom) error {
