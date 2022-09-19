@@ -199,7 +199,7 @@ In general, in order to add new commands, you need to add these files:
 	 - This file will parse flags, create output files, get the transformed data from the input package, and then export the data.
  - `export_new_data_structure_test.go` in the `cmd` folder
 	 - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
-	 - Test data should be stored in the `testate/new_data_structure` folder
+	 - Test data should be stored in the `testdata/new_data_structure` folder
  - `new_data_structure.go` in the `internal/input` folder
 	 - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, or a captive core instance. 
 	 - This file should extract the data and transform it, and return the transformed data.
