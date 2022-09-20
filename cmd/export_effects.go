@@ -23,7 +23,7 @@ var effectsCmd = &cobra.Command{
 
 		operations, err := input.GetOperations(startNum, endNum, limit, env)
 		if err != nil {
-			cmdLogger.Fatal("could not read effects: ", err)
+			cmdLogger.Fatalf("could not read operations in [%d, %d] (limit=%d): %v", startNum, endNum, limit, err)
 		}
 
 		outFile := mustOutFile(path)
