@@ -145,6 +145,9 @@ This command has two modes: bounded and unbounded.
 ##### Unbounded
 If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, the Stellar Core connects to the Stellar network and processes new orderbooks as they occur on the network. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new Stellar Core instances.
 
+### Stellar Core Commands bounded mode only
+These commands require [Stellar Core](#stellar-core-commands) like above but they only work on bounded mode.
+
 #### export_transactions
 
 ```bash
