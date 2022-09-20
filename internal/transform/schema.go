@@ -294,7 +294,7 @@ type SponsorshipOutput struct {
 	OperationIndex uint32
 }
 
-// // EffectOutput is a representation of an operation that aligns with the BigQuery table history_effects
+// EffectOutput is a representation of an operation that aligns with the BigQuery table history_effects
 type EffectOutput struct {
 	Address      string                 `json:"address"`
 	AddressMuxed null.String            `json:"address_muxed,omitempty"`
