@@ -101,23 +101,6 @@ These commands export information using the history archives. This allows users 
 ```
 
 This command exports ledgers within the provided range. 
-#### export_transactions
-
-```bash
-> stellar-etl export_transactions --start-ledger 1000 \
---end-ledger 500000 --output exported_transactions.txt
-```
-
-This command exports transactions within the provided range.
-
-#### export_operations
-
-```bash
-> stellar-etl export_operations --start-ledger 1000 \
---end-ledger 500000 --output exported_operations.txt
-```
-
-This command exports operations within the provided range.
 
 ### Stellar Core Commands
 
@@ -162,6 +145,37 @@ This command has two modes: bounded and unbounded.
 ##### Unbounded
 If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, the Stellar Core connects to the Stellar network and processes new orderbooks as they occur on the network. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new Stellar Core instances.
 
+### Stellar Core Commands bounded mode only
+These commands require [Stellar Core](#stellar-core-commands) like above but they only work on bounded mode.
+
+#### export_transactions
+
+```bash
+> stellar-etl export_transactions --start-ledger 1000 \
+--end-ledger 500000 --output exported_transactions.txt
+```
+
+This command exports transactions within the provided range.
+
+#### export_operations
+
+```bash
+> stellar-etl export_operations --start-ledger 1000 \
+--end-ledger 500000 --output exported_operations.txt
+```
+
+This command exports operations within the provided range.
+
+#### export_effects
+
+```bash
+> stellar-etl export_operations --start-ledger 1000 \
+--end-ledger 500000 --output exported_effects.txt
+```
+
+This command exports effects within the provided range.
+
+
 ### Utility Commands
 #### get_ledger_range_from_times
 ```bash
@@ -188,7 +202,7 @@ In general, in order to add new commands, you need to add these files:
 	 - This file will parse flags, create output files, get the transformed data from the input package, and then export the data.
  - `export_new_data_structure_test.go` in the `cmd` folder
 	 - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
-	 - Test data should be stored in the `testate/new_data_structure` folder
+	 - Test data should be stored in the `testdata/new_data_structure` folder
  - `new_data_structure.go` in the `internal/input` folder
 	 - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, or a captive core instance. 
 	 - This file should extract the data and transform it, and return the transformed data.
