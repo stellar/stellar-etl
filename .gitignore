@@ -5,6 +5,7 @@
 /.vscode/*.sql
 /.vscode/settings.json
 /.vscode/launch.json
+/captive-core*
 .idea
 debug
 .bundle
@@ -12,4 +13,5 @@ debug
 *.crt
 *.csr
 *.key
+*.txt
 stellar-etl
