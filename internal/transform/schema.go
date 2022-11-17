@@ -63,27 +63,34 @@ type TransactionOutput struct {
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
 type AccountOutput struct {
-	AccountID            string      `json:"account_id"` // account address
-	Balance              float64     `json:"balance"`
-	BuyingLiabilities    float64     `json:"buying_liabilities"`
-	SellingLiabilities   float64     `json:"selling_liabilities"`
-	SequenceNumber       int64       `json:"sequence_number"`
-	SequenceLedger       zero.Int    `json:"sequence_ledger"`
-	SequenceTime         zero.Int    `json:"sequence_time"`
-	NumSubentries        uint32      `json:"num_subentries"`
-	InflationDestination string      `json:"inflation_destination"`
-	Flags                uint32      `json:"flags"`
-	HomeDomain           string      `json:"home_domain"`
-	MasterWeight         int32       `json:"master_weight"`
-	ThresholdLow         int32       `json:"threshold_low"`
-	ThresholdMedium      int32       `json:"threshold_medium"`
-	ThresholdHigh        int32       `json:"threshold_high"`
-	Sponsor              null.String `json:"sponsor"`
-	NumSponsored         uint32      `json:"num_sponsored"`
-	NumSponsoring        uint32      `json:"num_sponsoring"`
-	LastModifiedLedger   uint32      `json:"last_modified_ledger"`
-	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
-	Deleted              bool        `json:"deleted"`
+	AccountID             string      `json:"account_id"` // account address
+	RawBalance            xdr.Int64   `json:"-"`
+	RawBuyingLiabilities  xdr.Int64   `json:"-"`
+	RawSellingLiabilities xdr.Int64   `json:"-"`
+	Balance               float64     `json:"balance"`
+	BuyingLiabilities     float64     `json:"buying_liabilities"`
+	SellingLiabilities    float64     `json:"selling_liabilities"`
+	SequenceNumber        int64       `json:"sequence_number"`
+	SequenceLedger        zero.Int    `json:"sequence_ledger"`
+	SequenceTime          zero.Int    `json:"sequence_time"`
+	NumSubentries         uint32      `json:"num_subentries"`
+	InflationDestination  string      `json:"inflation_destination"`
+	Flags                 uint32      `json:"flags"`
+	HomeDomain            string      `json:"home_domain"`
+	MasterWeight          int32       `json:"master_weight"`
+	ThresholdLow          int32       `json:"threshold_low"`
+	ThresholdMedium       int32       `json:"threshold_medium"`
+	ThresholdHigh         int32       `json:"threshold_high"`
+	Sponsor               null.String `json:"sponsor"`
+	NumSponsored          uint32      `json:"num_sponsored"`
+	NumSponsoring         uint32      `json:"num_sponsoring"`
+	LastModifiedLedger    uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange     uint32      `json:"ledger_entry_change"`
+	Deleted               bool        `json:"deleted"`
+	RawMasterWeight       byte        `json:"-"`
+	RawThresholdLow       byte        `json:"-"`
+	RawThresholdMedium    byte        `json:"-"`
+	RawThresholdHigh      byte        `json:"-"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
