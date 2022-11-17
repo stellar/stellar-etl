@@ -199,12 +199,17 @@ type TrustlineOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Sponsor            null.String `json:"sponsor"`
 	Deleted            bool        `json:"deleted"`
+	RawBuying          xdr.Int64   `json:"-"`
+	RawSelling         xdr.Int64   `json:"-"`
+	RawBalance         xdr.Int64   `json:"-"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
 	SellerID           string      `json:"seller_id"` // Account address of the seller
 	OfferID            int64       `json:"offer_id"`
+	SellingAsset       xdr.Asset   `json:"-"`
+	BuyingAsset        xdr.Asset   `json:"-"`
 	SellingAssetType   string      `json:"selling_asset_type"`
 	SellingAssetCode   string      `json:"selling_asset_code"`
 	SellingAssetIssuer string      `json:"selling_asset_issuer"`
@@ -212,6 +217,7 @@ type OfferOutput struct {
 	BuyingAssetCode    string      `json:"buying_asset_code"`
 	BuyingAssetIssuer  string      `json:"buying_asset_issuer"`
 	Amount             float64     `json:"amount"`
+	RawAmount          xdr.Int64   `json:"-"`
 	PriceN             int32       `json:"pricen"`
 	PriceD             int32       `json:"priced"`
 	Price              float64     `json:"price"`
