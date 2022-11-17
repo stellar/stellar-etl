@@ -119,10 +119,12 @@ type OperationOutput struct {
 type ClaimableBalanceOutput struct {
 	BalanceID          string      `json:"balance_id"`
 	Claimants          []Claimant  `json:"claimants"`
+	Asset              xdr.Asset   `json:"-"`
 	AssetCode          string      `json:"asset_code"`
 	AssetIssuer        string      `json:"asset_issuer"`
 	AssetType          string      `json:"asset_type"`
 	AssetAmount        float64     `json:"asset_amount"`
+	RawAssetAmount     xdr.Int64   `json:"-"`
 	Sponsor            null.String `json:"sponsor"`
 	Flags              uint32      `json:"flags"`
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
