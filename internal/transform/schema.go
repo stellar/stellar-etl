@@ -457,3 +457,12 @@ type TestTransaction struct {
 	MetaXDR       string
 	Hash          string
 }
+
+type TransformedOutputType struct {
+	Accounts           []AccountOutput
+	Signers            []AccountSignerOutput
+	Claimable_balances []ClaimableBalanceOutput
+	Offers             []OfferOutput
+	Trustlines         []TrustlineOutput
+	Liquidity_pools    []PoolOutput
+}
