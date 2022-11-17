@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
@@ -11,7 +12,10 @@ import (
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/internal/utils/verify"
 )
+
+const verifyBatchSize = 50000
 
 var exportLedgerEntryChangesCmd = &cobra.Command{
 	Use:   "export_ledger_entry_changes",
@@ -26,13 +30,15 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		// endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, _ := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
-
+		archive, _ := utils.CreateHistoryArchiveClient(env.ArchiveURLs) // to verify ledger
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		// gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		ctx := context.Background()
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
@@ -71,6 +77,7 @@ be exported.`,
 			endNum = math.MaxInt32
 		}
 
+		verifyOutputs := make(map[uint32]transform.TransformedOutputType, endNum)
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
 		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
@@ -83,119 +90,161 @@ be exported.`,
 				if !ok {
 					continue
 				}
-				transformedOutputs := map[string][]interface{}{
-					"accounts":           {},
-					"signers":            {},
-					"claimable_balances": {},
-					"offers":             {},
-					"trustlines":         {},
-					"liquidity_pools":    {},
-				}
+				var transformedOutputs transform.TransformedOutputType
 				for entryType, changes := range batch.Changes {
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
 						for _, change := range changes {
+							entry, _, _, _ := utils.ExtractEntryFromChange(change)
 							if changed, err := change.AccountChangedExceptSigners(); err != nil {
 								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
 								continue
 							} else if changed {
 								acc, err := transform.TransformAccount(change)
 								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 									continue
 								}
-								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
+								transformedOutputs.Accounts = append(transformedOutputs.Accounts, acc)
+
+								if ok, actualLedger := utils.LedgerIsCheckpoint(entry.LastModifiedLedgerSeq); ok {
+									x := verifyOutputs[actualLedger]
+									x.Accounts = append(x.Accounts, acc)
+									verifyOutputs[actualLedger] = x
+								}
 							}
 							if change.AccountSignersChanged() {
 								signers, err := transform.TransformSigners(change)
 								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
 									continue
 								}
 								for _, s := range signers {
-									transformedOutputs["signers"] = append(transformedOutputs["signers"], s)
+									transformedOutputs.Signers = append(transformedOutputs.Signers, s)
+
+									if ok, actualLedger := utils.LedgerIsCheckpoint(entry.LastModifiedLedgerSeq); ok {
+										x := verifyOutputs[actualLedger]
+										x.Signers = append(x.Signers, s)
+										verifyOutputs[actualLedger] = x
+									}
 								}
 							}
 						}
 					case xdr.LedgerEntryTypeClaimableBalance:
 						for _, change := range changes {
+							entry, _, _, _ := utils.ExtractEntryFromChange(change)
 							balance, err := transform.TransformClaimableBalance(change)
 							if err != nil {
-								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["claimable_balances"] = append(transformedOutputs["claimable_balances"], balance)
+							transformedOutputs.Claimable_balances = append(transformedOutputs.Claimable_balances, balance)
+
+							if ok, actualLedger := utils.LedgerIsCheckpoint(entry.LastModifiedLedgerSeq); ok {
+								x := verifyOutputs[actualLedger]
+								x.Claimable_balances = append(x.Claimable_balances, balance)
+								verifyOutputs[actualLedger] = x
+							}
 						}
 					case xdr.LedgerEntryTypeOffer:
 						for _, change := range changes {
+							entry, _, _, _ := utils.ExtractEntryFromChange(change)
 							offer, err := transform.TransformOffer(change)
 							if err != nil {
-								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["offers"] = append(transformedOutputs["offers"], offer)
+							transformedOutputs.Offers = append(transformedOutputs.Offers, offer)
+
+							if ok, actualLedger := utils.LedgerIsCheckpoint(entry.LastModifiedLedgerSeq); ok {
+								x := verifyOutputs[actualLedger]
+								x.Offers = append(x.Offers, offer)
+								verifyOutputs[actualLedger] = x
+							}
 						}
 					case xdr.LedgerEntryTypeTrustline:
 						for _, change := range changes {
+							entry, _, _, _ := utils.ExtractEntryFromChange(change)
 							trust, err := transform.TransformTrustline(change)
 							if err != nil {
-								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["trustlines"] = append(transformedOutputs["trustlines"], trust)
+							transformedOutputs.Trustlines = append(transformedOutputs.Trustlines, trust)
+
+							if ok, actualLedger := utils.LedgerIsCheckpoint(entry.LastModifiedLedgerSeq); ok {
+								x := verifyOutputs[actualLedger]
+								x.Trustlines = append(x.Trustlines, trust)
+								verifyOutputs[actualLedger] = x
+							}
 						}
 					case xdr.LedgerEntryTypeLiquidityPool:
 						for _, change := range changes {
+							entry, _, _, _ := utils.ExtractEntryFromChange(change)
 							pool, err := transform.TransformPool(change)
 							if err != nil {
-								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+							transformedOutputs.Liquidity_pools = append(transformedOutputs.Liquidity_pools, pool)
+
+							if ok, actualLedger := utils.LedgerIsCheckpoint(entry.LastModifiedLedgerSeq); ok {
+								x := verifyOutputs[actualLedger]
+								x.Liquidity_pools = append(x.Liquidity_pools, pool)
+								verifyOutputs[actualLedger] = x
+							}
 						}
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
+				// err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
 				}
 			}
+
+			for checkpointLedgers := range verifyOutputs {
+				v, err := verify.VerifyState(ctx, verifyOutputs[checkpointLedgers], archive, checkpointLedgers, verifyBatchSize)
+				if err != nil {
+					panic(err)
+				}
+
+				print(v)
+			}
 		}
 	},
 }
 
-func exportTransformedData(
-	start, end uint32,
-	folderPath string,
-	transformedOutput map[string][]interface{},
-	gcpCredentials, gcsBucket string,
-	extra map[string]string) error {
+// func exportTransformedData(
+// 	start, end uint32,
+// 	folderPath string,
+// 	transformedOutput transform.TransformedOutputType,
+// 	gcpCredentials, gcsBucket string,
+// 	extra map[string]string) error {
 
-	for resource, output := range transformedOutput {
-		// Filenames are typically exclusive of end point. This processor
-		// is different and we have to increment by 1 since the end batch number
-		// is included in this filename.
-		path := filepath.Join(folderPath, exportFilename(start, end+1, resource))
-		outFile := mustOutFile(path)
-		for _, o := range output {
-			_, err := exportEntry(o, outFile, extra)
-			if err != nil {
-				return err
-			}
-		}
-		maybeUpload(gcpCredentials, gcsBucket, path)
-	}
+// 	values := reflect.ValueOf(transformedOutput)
+// 	typesOf := values.Type()
 
-	return nil
-}
+// 	for i := 0; i < values.NumField(); i++ {
+// 		// Filenames are typically exclusive of end point. This processor
+// 		// is different and we have to increment by 1 since the end batch number
+// 		// is included in this filename.
+// 		path := filepath.Join(folderPath, exportFilename(start, end+1, typesOf.Field(i).Name))
+// 		outFile := mustOutFile(path)
+
+// 		output := (values.Field(i).Interface()).([]interface{})
+// 		for _, o := range output {
+// 			_, err := exportEntry(o, outFile, extra)
+// 			if err != nil {
+// 				return err
+// 			}
+// 		}
+// 		maybeUpload(gcpCredentials, gcsBucket, path)
+// 	}
+
+// 	return nil
+// }
 
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
