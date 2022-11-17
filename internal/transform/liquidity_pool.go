@@ -8,7 +8,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
+// TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
 func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
@@ -46,14 +46,17 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 
 	transformedPool := PoolOutput{
 		PoolID:             PoolIDToString(lp.LiquidityPoolId),
+		RawPoolType:        lp.Body.Type,
 		PoolType:           poolType,
 		PoolFee:            uint32(cp.Params.Fee),
 		TrustlineCount:     uint64(cp.PoolSharesTrustLineCount),
 		PoolShareCount:     utils.ConvertStroopValueToReal(cp.TotalPoolShares),
+		AssetA:             cp.Params.AssetA,
 		AssetAType:         assetAType,
 		AssetACode:         assetACode,
 		AssetAIssuer:       assetAIssuer,
 		AssetAReserve:      utils.ConvertStroopValueToReal(cp.ReserveA),
+		AssetB:             cp.Params.AssetB,
 		AssetBType:         assetBType,
 		AssetBCode:         assetBCode,
 		AssetBIssuer:       assetBIssuer,
@@ -61,6 +64,9 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
+		RawAssetAReserve:   cp.ReserveA,
+		RawAssetBReserve:   cp.ReserveB,
+		RawPoolShareCount:  cp.TotalPoolShares,
 	}
 	return transformedPool, nil
 }
