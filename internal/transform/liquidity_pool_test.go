@@ -107,5 +107,11 @@ func makePoolTestOutput() PoolOutput {
 		LastModifiedLedger: 30705278,
 		LedgerEntryChange:  2,
 		Deleted:            true,
+		AssetA:             xdr.MustNewNativeAsset(),
+		AssetB:             xdr.MustNewCreditAsset("USSD", "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA"),
+		RawAssetAReserve:   105,
+		RawAssetBReserve:   10,
+		RawPoolShareCount:  35,
+		RawPoolType:        0,
 	}
 }

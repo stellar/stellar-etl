@@ -156,5 +156,8 @@ func makeOfferTestOutput() OfferOutput {
 		LedgerEntryChange:  2,
 		Deleted:            true,
 		Sponsor:            null.StringFrom(testAccount3Address),
+		SellingAsset:       xdr.MustNewNativeAsset(),
+		BuyingAsset:        xdr.MustNewCreditAsset("ETH", "GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN"),
+		RawAmount:          2628450327,
 	}
 }
