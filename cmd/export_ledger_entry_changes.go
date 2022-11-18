@@ -6,6 +6,8 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/stellar/go/xdr"
@@ -30,14 +32,13 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		endNum, strictExport, isTest, _ := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
 		archive, _ := utils.CreateHistoryArchiveClient(env.ArchiveURLs) // to verify ledger
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
-		// gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 		ctx := context.Background()
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
@@ -197,54 +198,99 @@ be exported.`,
 					}
 				}
 
-				// err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
+				for checkpointLedgers := range verifyOutputs {
+					_, err := verify.VerifyState(ctx, verifyOutputs[checkpointLedgers], archive, checkpointLedgers, verifyBatchSize)
+					if err != nil {
+						panic(err)
+					}
+				}
+
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
 				}
 			}
-
-			for checkpointLedgers := range verifyOutputs {
-				v, err := verify.VerifyState(ctx, verifyOutputs[checkpointLedgers], archive, checkpointLedgers, verifyBatchSize)
-				if err != nil {
-					panic(err)
-				}
-
-				print(v)
-			}
 		}
 	},
 }
 
-// func exportTransformedData(
-// 	start, end uint32,
-// 	folderPath string,
-// 	transformedOutput transform.TransformedOutputType,
-// 	gcpCredentials, gcsBucket string,
-// 	extra map[string]string) error {
+func exportTransformedData(
+	start, end uint32,
+	folderPath string,
+	transformedOutput transform.TransformedOutputType,
+	gcpCredentials, gcsBucket string,
+	extra map[string]string) error {
 
-// 	values := reflect.ValueOf(transformedOutput)
-// 	typesOf := values.Type()
+	values := reflect.ValueOf(transformedOutput)
+	typesOf := values.Type()
 
-// 	for i := 0; i < values.NumField(); i++ {
-// 		// Filenames are typically exclusive of end point. This processor
-// 		// is different and we have to increment by 1 since the end batch number
-// 		// is included in this filename.
-// 		path := filepath.Join(folderPath, exportFilename(start, end+1, typesOf.Field(i).Name))
-// 		outFile := mustOutFile(path)
+	for i := 0; i < values.NumField(); i++ {
+		// Filenames are typically exclusive of end point. This processor
+		// is different and we have to increment by 1 since the end batch number
+		// is included in this filename.
+		resource := strings.ToLower(typesOf.Field(i).Name)
+		path := filepath.Join(folderPath, exportFilename(start, end+1, resource))
+		outFile := mustOutFile(path)
 
-// 		output := (values.Field(i).Interface()).([]interface{})
-// 		for _, o := range output {
-// 			_, err := exportEntry(o, outFile, extra)
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 		maybeUpload(gcpCredentials, gcsBucket, path)
-// 	}
+		switch resource {
+		case "accounts":
+			output := values.Field(i).Interface().([]transform.AccountOutput)
+			for _, o := range output {
+				_, err := exportEntry(o, outFile, extra)
+				if err != nil {
+					return err
+				}
+			}
+		case "signers":
+			output := values.Field(i).Interface().([]transform.AccountSignerOutput)
+			for _, o := range output {
+				_, err := exportEntry(o, outFile, extra)
+				if err != nil {
+					return err
+				}
+			}
+		case "claimable_balances":
+			output := values.Field(i).Interface().([]transform.ClaimableBalanceOutput)
+			for _, o := range output {
+				_, err := exportEntry(o, outFile, extra)
+				if err != nil {
+					return err
+				}
+			}
+		case "offers":
+			output := values.Field(i).Interface().([]transform.OfferOutput)
+			for _, o := range output {
+				_, err := exportEntry(o, outFile, extra)
+				if err != nil {
+					return err
+				}
+			}
+		case "trustlines":
+			output := values.Field(i).Interface().([]transform.TrustlineOutput)
+			for _, o := range output {
+				_, err := exportEntry(o, outFile, extra)
+				if err != nil {
+					return err
+				}
+			}
+		case "liquidity_pools":
+			output := values.Field(i).Interface().([]transform.PoolOutput)
+			for _, o := range output {
+				_, err := exportEntry(o, outFile, extra)
+				if err != nil {
+					return err
+				}
+			}
+		default:
+			fmt.Println("unknown")
+		}
 
-// 	return nil
-// }
+		maybeUpload(gcpCredentials, gcsBucket, path)
+	}
+
+	return nil
+}
 
 func init() {
 	rootCmd.AddCommand(exportLedgerEntryChangesCmd)
