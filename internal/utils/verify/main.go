@@ -1,3 +1,6 @@
+// lucas zanotelli dos santos 2022-11-18
+// this package was copied from https://github.com/stellar/go/blob/master/services/horizon/internal/ingest/verify/main.go
+
 // Package verify provides helpers used for verifying if the ingested data is
 // correct.
 
