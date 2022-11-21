@@ -165,13 +165,12 @@ func (v *StateVerifier) Write(entry xdr.LedgerEntry) error {
 	}
 
 	if !bytes.Equal(actualEntryMarshaled, expectedEntryMarshaled) {
-		return nil
-		// return ingest.NewStateError(errors.Errorf(
-		// 	"Entry does not match the fetched entry. Expected (history archive): %s (pretransform = %s), actual (horizon): %s",
-		// 	base64.StdEncoding.EncodeToString(expectedEntryMarshaled),
-		// 	base64.StdEncoding.EncodeToString(preTransformExpectedEntryMarshaled),
-		// 	base64.StdEncoding.EncodeToString(actualEntryMarshaled),
-		// ))
+		return ingest.NewStateError(errors.Errorf(
+			"Entry does not match the fetched entry. Expected (history archive): %s (pretransform = %s), actual (horizon): %s",
+			base64.StdEncoding.EncodeToString(expectedEntryMarshaled),
+			base64.StdEncoding.EncodeToString(preTransformExpectedEntryMarshaled),
+			base64.StdEncoding.EncodeToString(actualEntryMarshaled),
+		))
 	}
 
 	return nil
