@@ -33,7 +33,7 @@ be exported.`,
 		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
-		archive, _ := utils.CreateHistoryArchiveClient(env.ArchiveURLs) // to verify ledger
+		archive, _ := utils.CreateHistoryArchiveClient(env.ArchiveURLs)
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
@@ -97,7 +97,7 @@ be exported.`,
 					"trustlines":         {},
 					"liquidity_pools":    {},
 				}
-				// var transformedOutputs transform.TransformedOutputType
+
 				for entryType, changes := range batch.Changes {
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
