@@ -19,19 +19,20 @@ var effectsCmd = &cobra.Command{
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest)
 
-		operations, err := input.GetOperations(startNum, endNum, limit, env)
+		transactions, err := input.GetTransactions(startNum, endNum, limit, env)
 		if err != nil {
-			cmdLogger.Fatalf("could not read operations in [%d, %d] (limit=%d): %v", startNum, endNum, limit, err)
+			cmdLogger.Fatalf("could not read transactions in [%d, %d] (limit=%d): %v", startNum, endNum, limit, err)
 		}
 
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
-		for _, transformInput := range operations {
-			effects, err := transform.TransformEffect(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
+		for _, transformInput := range transactions {
+			LedgerSeq := uint32(transformInput.LedgerHistory.Header.LedgerSeq)
+			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
-				cmdLogger.Errorf("could not transform operation %d in transaction %d in ledger %d: %v", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum, err)
+				cmdLogger.Errorf("could not transform transaction %d in ledger %d: %v", txIndex, LedgerSeq, err)
 				numFailures += 1
 				continue
 			}
@@ -50,7 +51,7 @@ var effectsCmd = &cobra.Command{
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(operations), numFailures)
+		printTransformStats(len(transactions), numFailures)
 
 		maybeUpload(gcpCredentials, gcsBucket, path)
 	},
