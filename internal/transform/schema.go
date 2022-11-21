@@ -458,7 +458,7 @@ type TestTransaction struct {
 	Hash          string
 }
 
-type TransformedOutputType struct {
+type TransformedOutput struct {
 	Accounts           []AccountOutput
 	Signers            []AccountSignerOutput
 	Claimable_balances []ClaimableBalanceOutput

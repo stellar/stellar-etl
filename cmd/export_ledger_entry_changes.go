@@ -76,7 +76,7 @@ be exported.`,
 			endNum = math.MaxInt32
 		}
 
-		verifyOutputs := make(map[uint32]transform.TransformedOutputType, endNum)
+		verifyOutputs := make(map[uint32]transform.TransformedOutput, endNum)
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
 		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)

@@ -30,7 +30,7 @@ import (
 // running it exits.
 func VerifyState(
 	ctx context.Context,
-	transformedOutput transform.TransformedOutputType,
+	transformedOutput transform.TransformedOutput,
 	archive historyarchive.ArchiveInterface,
 	ledgerSequence uint32,
 	verifyBatchSize int) (bool, error) {
