@@ -26,7 +26,7 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
-            UseDB:              true,
+			UseDB:              true,
 		},
 	)
 
@@ -40,7 +40,7 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
-            UseDB:              true,
+			UseDB:              true,
 		},
 	)
 

@@ -32,7 +32,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
-            UseDB:              true,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
@@ -45,7 +45,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			Toml:               toml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
-            UseDB:              true,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
