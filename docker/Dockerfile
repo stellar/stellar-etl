@@ -19,7 +19,6 @@ WORKDIR /etl/docker/
 
 COPY --from=build /usr/local/bin/stellar-etl /usr/local/bin/stellar-etl
 COPY --from=build /usr/src/etl/docker docker
-COPY --from=build /usr/src/etl/testdata testdata
 
 # clear entrypoint from stellar-core image
 ENTRYPOINT []
