@@ -1,22 +1,24 @@
-# docker image stellar/stellar-core version 19, pinned by sha digest
-FROM stellar/stellar-core@sha256:b4e85991ea5a72667a147e2d49018269c252c096dfc2a845d13142e615ea4dd3
+# stage 1: build stellar-etl app
+# golang 1.19, pinned by sha digest
+FROM golang@sha256:04f76f956e51797a44847e066bde1341c01e09054d3878ae88c7f77f09897c4d AS build
 
-WORKDIR /tmp
+WORKDIR /usr/src/etl
 
-# download, validate and extract go binaries
-RUN wget https://go.dev/dl/go1.18.5.linux-amd64.tar.gz
-RUN echo '9e5de37f9c49942c601b191ac5fba404b868bfc21d446d6960acc12283d6e5f2 go1.18.5.linux-amd64.tar.gz' > go1.18.5.linux-amd64.tar.gz.checksum
-RUN sha256sum -c go1.18.5.linux-amd64.tar.gz.checksum && tar -C /usr/local -xvf go1.18.5.linux-amd64.tar.gz
-
-# define PATH
-ENV PATH /usr/local/go/bin:$PATH
-
-# install stellar-etl as 'stellar' user to avoid docker shim errors
-USER stellar
-WORKDIR /home/stellar/etl
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
 
 COPY . .
-RUN go install
+RUN go build -v -o /usr/local/bin ./...
+
+# stage 2: runtime enviroment
+# stellar/stellar-core 19, pinned by sha digest
+FROM stellar/stellar-core@sha256:41107f7e3c8f5cbdf385bfda897bb56f862d1a9a757e948ba881ec566eb7dc72 AS run
+
+WORKDIR /etl/docker/
+
+COPY --from=build /usr/local/bin/stellar-etl /usr/local/bin/stellar-etl
+COPY --from=build /usr/src/etl/docker docker
 
 # clear entrypoint from stellar-core image
 ENTRYPOINT []
