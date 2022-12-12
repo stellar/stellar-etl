@@ -34,6 +34,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
@@ -46,6 +47,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
