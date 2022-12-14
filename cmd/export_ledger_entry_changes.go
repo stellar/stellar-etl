@@ -33,13 +33,17 @@ be exported.`,
 		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest)
-		archive, _ := utils.CreateHistoryArchiveClient(env.ArchiveURLs)
+		archive, err := utils.CreateHistoryArchiveClient(env.ArchiveURLs)
+		if err != nil {
+			cmdLogger.Fatalf("error creating history archive: ", err)
+		}
+
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 		ctx := context.Background()
 
-		err := os.MkdirAll(outputFolder, os.ModePerm)
+		err = os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
 			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
 		}
