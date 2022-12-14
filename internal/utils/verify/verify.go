@@ -13,6 +13,7 @@ import (
 
 	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/ingest/verify"
 	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 )
@@ -86,7 +87,7 @@ func doesElementExist(s map[string]int32, str string) bool {
 }
 
 func addAccountsToStateVerifier(ctx context.Context,
-	verifier *StateVerifier,
+	verifier *verify.StateVerifier,
 	accounts []transform.AccountOutput,
 	signers []transform.AccountSignerOutput,
 ) error {
@@ -213,7 +214,7 @@ func addAccountsToStateVerifier(ctx context.Context,
 
 func addOffersToStateVerifier(
 	ctx context.Context,
-	verifier *StateVerifier,
+	verifier *verify.StateVerifier,
 	offers []transform.OfferOutput,
 ) error {
 	if len(offers) == 0 {
@@ -259,7 +260,7 @@ func offerToXDR(row transform.OfferOutput) xdr.OfferEntry {
 
 func addClaimableBalanceToStateVerifier(
 	ctx context.Context,
-	verifier *StateVerifier,
+	verifier *verify.StateVerifier,
 	claims []transform.ClaimableBalanceOutput,
 ) error {
 	if len(claims) == 0 {
@@ -317,7 +318,7 @@ func addClaimableBalanceToStateVerifier(
 
 func addLiquidityPoolsToStateVerifier(
 	ctx context.Context,
-	verifier *StateVerifier,
+	verifier *verify.StateVerifier,
 	lPools []transform.PoolOutput,
 ) error {
 	if len(lPools) == 0 {
@@ -395,7 +396,7 @@ func addLedgerEntrySponsor(entry *xdr.LedgerEntry, sponsor null.String) {
 
 func addTrustLinesToStateVerifier(
 	ctx context.Context,
-	verifier *StateVerifier,
+	verifier *verify.StateVerifier,
 	trusts []transform.TrustlineOutput,
 ) error {
 	if len(trusts) == 0 {
