@@ -205,7 +205,7 @@ be exported.`,
 				}
 
 				for checkpointLedgers := range verifyOutputs {
-					_, err := verify.VerifyState(ctx, verifyOutputs[checkpointLedgers], archive, checkpointLedgers, verifyBatchSize)
+					err = verify.VerifyState(ctx, verifyOutputs[checkpointLedgers], archive, checkpointLedgers, verifyBatchSize)
 					if err != nil {
 						panic(err)
 					}

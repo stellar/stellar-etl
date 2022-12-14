@@ -34,47 +34,47 @@ func VerifyState(
 	transformedOutput transform.TransformedOutput,
 	archive historyarchive.ArchiveInterface,
 	ledgerSequence uint32,
-	verifyBatchSize int) (bool, error) {
+	verifyBatchSize int) error {
 
 	stateReader, _ := ingest.NewCheckpointChangeReader(ctx, archive, ledgerSequence)
-	verifier := NewStateVerifier(stateReader, nil)
+	verifier := verify.NewStateVerifier(stateReader, nil)
 
 	var keys []xdr.LedgerKey
 	keys, err := verifier.GetLedgerKeys(verifyBatchSize)
 	if err != nil {
-		return false, errors.Wrap(err, "verifier.GetLedgerKeys")
+		return errors.Wrap(err, "verifier.GetLedgerKeys")
 	}
 
 	if len(keys) == 0 {
-		return false, errors.Wrap(err, "no keys")
+		return errors.Wrap(err, "no keys")
 	}
 
 	err = addAccountsToStateVerifier(ctx, verifier, transformedOutput.Accounts, transformedOutput.Signers)
 	if err != nil {
-		return false, errors.Wrap(err, "addAccountsToStateVerifier failed")
+		return errors.Wrap(err, "addAccountsToStateVerifier failed")
 	}
 
 	err = addOffersToStateVerifier(ctx, verifier, transformedOutput.Offers)
 	if err != nil {
-		return false, errors.Wrap(err, "addOffersToStateVerifier failed")
+		return errors.Wrap(err, "addOffersToStateVerifier failed")
 	}
 
 	err = addTrustLinesToStateVerifier(ctx, verifier, transformedOutput.Trustlines)
 	if err != nil {
-		return false, errors.Wrap(err, "addTrustLinesToStateVerifier failed")
+		return errors.Wrap(err, "addTrustLinesToStateVerifier failed")
 	}
 
 	err = addClaimableBalanceToStateVerifier(ctx, verifier, transformedOutput.Claimable_balances)
 	if err != nil {
-		return false, errors.Wrap(err, "addClaimableBalanceToStateVerifier failed")
+		return errors.Wrap(err, "addClaimableBalanceToStateVerifier failed")
 	}
 
 	err = addLiquidityPoolsToStateVerifier(ctx, verifier, transformedOutput.Liquidity_pools)
 	if err != nil {
-		return false, errors.Wrap(err, "addLiquidityPoolsToStateVerifier failed")
+		return errors.Wrap(err, "addLiquidityPoolsToStateVerifier failed")
 	}
 
-	return true, nil
+	return nil
 }
 
 func doesElementExist(s map[string]int32, str string) bool {
