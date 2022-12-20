@@ -62,7 +62,6 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		SourceAccountMuxed: outputSourceAccountMuxed.String,
 		Type:               outputOperationType,
 		ApplicationOrder:   operationIndex + 1, // Application order is 1-indexed
-		TypeString:         outputOperationTypeString,
 		TransactionID:      outputTransactionID,
 		OperationID:        outputOperationID,
 		OperationDetails:   outputDetails,
