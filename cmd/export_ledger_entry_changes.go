@@ -15,7 +15,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils/verify"
 )
 
-const verifyBatchSize = 50000
+const verifyBatchSize = 24000
 
 var exportLedgerEntryChangesCmd = &cobra.Command{
 	Use:   "export_ledger_entry_changes",
