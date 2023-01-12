@@ -77,15 +77,6 @@ func VerifyState(
 	return nil
 }
 
-func doesElementExist(s map[string]int32, str string) bool {
-	for v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
 func addAccountsToStateVerifier(ctx context.Context,
 	verifier *verify.StateVerifier,
 	accounts []transform.AccountOutput,
@@ -131,7 +122,7 @@ func addAccountsToStateVerifier(ctx context.Context,
 		}
 
 		// Ensure master weight matches, if not it's a state error!
-		if int32(row.MasterWeight) != masterWeightMap[row.AccountID] && doesElementExist(masterWeightMap, row.AccountID) {
+		if int32(row.MasterWeight) != masterWeightMap[row.AccountID] {
 			return ingest.NewStateError(
 				fmt.Errorf(
 					"master key weight in account %s does not match (expected=%d, actual=%d)",
