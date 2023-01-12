@@ -100,6 +100,9 @@ func addAccountsToStateVerifier(ctx context.Context,
 
 	sponsoringSignersMap := make(map[string]map[string]string)
 	for _, row := range signers {
+		if row.Deleted {
+			break
+		}
 		if row.AccountID == row.Signer {
 			masterWeightMap[row.AccountID] = row.Weight
 		} else {
