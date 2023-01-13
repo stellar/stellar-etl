@@ -122,15 +122,17 @@ func addAccountsToStateVerifier(ctx context.Context,
 		}
 
 		// Ensure master weight matches, if not it's a state error!
-		if int32(row.MasterWeight) != masterWeightMap[row.AccountID] {
-			return ingest.NewStateError(
-				fmt.Errorf(
-					"master key weight in account %s does not match (expected=%d, actual=%d)",
-					row.AccountID,
-					masterWeightMap[row.AccountID],
-					int32(row.MasterWeight),
-				),
-			)
+		if masterWeight, found := masterWeightMap[row.AccountID]; found {
+			if int32(row.MasterWeight) != masterWeight {
+				return ingest.NewStateError(
+					fmt.Errorf(
+						"master key weight in account %s does not match (expected=%d, actual=%d)",
+						row.AccountID,
+						masterWeightMap[row.AccountID],
+						int32(row.MasterWeight),
+					),
+				)
+			}
 		}
 
 		signers := xdr.SortSignersByKey(signersMap[row.AccountID])
