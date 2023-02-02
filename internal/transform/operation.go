@@ -52,11 +52,16 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
+	outputOperationTypeString, err := mapOperationType(operation)
+	if err != nil {
+		return OperationOutput{}, err
+	}
+
 	transformedOperation := OperationOutput{
 		SourceAccount:      outputSourceAccount,
 		SourceAccountMuxed: outputSourceAccountMuxed.String,
 		Type:               outputOperationType,
-		ApplicationOrder:   operationIndex + 1, // Application order is 1-indexed
+		TypeString:         outputOperationTypeString,
 		TransactionID:      outputTransactionID,
 		OperationID:        outputOperationID,
 		OperationDetails:   outputDetails,
