@@ -102,7 +102,7 @@ type OperationOutput struct {
 	SourceAccount      string                 `json:"source_account"`
 	SourceAccountMuxed string                 `json:"source_account_muxed,omitempty"`
 	Type               int32                  `json:"type"`
-	ApplicationOrder   int32                  `json:"application_order"`
+	TypeString         string                 `json:"type_string"`
 	OperationDetails   map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
 	TransactionID      int64                  `json:"transaction_id"`
 	OperationID        int64                  `json:"id"`
