@@ -544,6 +544,13 @@ type EnvironmentDetails struct {
 	CoreConfig        string
 }
 
+func LedgerIsCheckpoint(ledger xdr.Uint32) (bool, uint32) {
+	actualLedger := uint32(ledger)
+	actualLedgerIsCheckpoint := uint32(GetMostRecentCheckpoint(uint32(actualLedger)))
+
+	return actualLedger == actualLedgerIsCheckpoint, actualLedger
+}
+
 // GetPassphrase returns the correct Network Passphrase based on env preference
 func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 	if isTest {

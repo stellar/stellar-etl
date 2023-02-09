@@ -9,7 +9,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
+// TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
@@ -77,27 +77,34 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
 	transformedAccount := AccountOutput{
-		AccountID:            outputID,
-		Balance:              utils.ConvertStroopValueToReal(outputBalance),
-		BuyingLiabilities:    utils.ConvertStroopValueToReal(outputBuyingLiabilities),
-		SellingLiabilities:   utils.ConvertStroopValueToReal(outputSellingLiabilities),
-		SequenceNumber:       outputSequenceNumber,
-		SequenceLedger:       zero.IntFrom(int64(outputSequenceLedger)),
-		SequenceTime:         zero.IntFrom(int64(outputSequenceTime)),
-		NumSubentries:        outputNumSubentries,
-		InflationDestination: outputInflationDest,
-		Flags:                outputFlags,
-		HomeDomain:           outputHomeDomain,
-		MasterWeight:         outputMasterWeight,
-		ThresholdLow:         outputThreshLow,
-		ThresholdMedium:      outputThreshMed,
-		ThresholdHigh:        outputThreshHigh,
-		LastModifiedLedger:   outputLastModifiedLedger,
-		Sponsor:              ledgerEntrySponsorToNullString(ledgerEntry),
-		NumSponsored:         uint32(accountEntry.NumSponsored()),
-		NumSponsoring:        uint32(accountEntry.NumSponsoring()),
-		LedgerEntryChange:    uint32(changeType),
-		Deleted:              outputDeleted,
+		AccountID:             outputID,
+		RawBalance:            outputBalance,
+		RawBuyingLiabilities:  outputBuyingLiabilities,
+		RawSellingLiabilities: outputSellingLiabilities,
+		Balance:               utils.ConvertStroopValueToReal(outputBalance),
+		BuyingLiabilities:     utils.ConvertStroopValueToReal(outputBuyingLiabilities),
+		SellingLiabilities:    utils.ConvertStroopValueToReal(outputSellingLiabilities),
+		SequenceNumber:        outputSequenceNumber,
+		SequenceLedger:        zero.IntFrom(int64(outputSequenceLedger)),
+		SequenceTime:          zero.IntFrom(int64(outputSequenceTime)),
+		NumSubentries:         outputNumSubentries,
+		InflationDestination:  outputInflationDest,
+		Flags:                 outputFlags,
+		HomeDomain:            outputHomeDomain,
+		MasterWeight:          outputMasterWeight,
+		ThresholdLow:          outputThreshLow,
+		ThresholdMedium:       outputThreshMed,
+		ThresholdHigh:         outputThreshHigh,
+		LastModifiedLedger:    outputLastModifiedLedger,
+		Sponsor:               ledgerEntrySponsorToNullString(ledgerEntry),
+		NumSponsored:          uint32(accountEntry.NumSponsored()),
+		NumSponsoring:         uint32(accountEntry.NumSponsoring()),
+		LedgerEntryChange:     uint32(changeType),
+		Deleted:               outputDeleted,
+		RawMasterWeight:       accountEntry.MasterKeyWeight(),
+		RawThresholdLow:       accountEntry.ThresholdLow(),
+		RawThresholdMedium:    accountEntry.ThresholdMedium(),
+		RawThresholdHigh:      accountEntry.ThresholdHigh(),
 	}
 	return transformedAccount, nil
 }

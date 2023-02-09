@@ -63,27 +63,34 @@ type TransactionOutput struct {
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
 type AccountOutput struct {
-	AccountID            string      `json:"account_id"` // account address
-	Balance              float64     `json:"balance"`
-	BuyingLiabilities    float64     `json:"buying_liabilities"`
-	SellingLiabilities   float64     `json:"selling_liabilities"`
-	SequenceNumber       int64       `json:"sequence_number"`
-	SequenceLedger       zero.Int    `json:"sequence_ledger"`
-	SequenceTime         zero.Int    `json:"sequence_time"`
-	NumSubentries        uint32      `json:"num_subentries"`
-	InflationDestination string      `json:"inflation_destination"`
-	Flags                uint32      `json:"flags"`
-	HomeDomain           string      `json:"home_domain"`
-	MasterWeight         int32       `json:"master_weight"`
-	ThresholdLow         int32       `json:"threshold_low"`
-	ThresholdMedium      int32       `json:"threshold_medium"`
-	ThresholdHigh        int32       `json:"threshold_high"`
-	Sponsor              null.String `json:"sponsor"`
-	NumSponsored         uint32      `json:"num_sponsored"`
-	NumSponsoring        uint32      `json:"num_sponsoring"`
-	LastModifiedLedger   uint32      `json:"last_modified_ledger"`
-	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
-	Deleted              bool        `json:"deleted"`
+	AccountID             string      `json:"account_id"` // account address
+	RawBalance            xdr.Int64   `json:"-"`
+	RawBuyingLiabilities  xdr.Int64   `json:"-"`
+	RawSellingLiabilities xdr.Int64   `json:"-"`
+	Balance               float64     `json:"balance"`
+	BuyingLiabilities     float64     `json:"buying_liabilities"`
+	SellingLiabilities    float64     `json:"selling_liabilities"`
+	SequenceNumber        int64       `json:"sequence_number"`
+	SequenceLedger        zero.Int    `json:"sequence_ledger"`
+	SequenceTime          zero.Int    `json:"sequence_time"`
+	NumSubentries         uint32      `json:"num_subentries"`
+	InflationDestination  string      `json:"inflation_destination"`
+	Flags                 uint32      `json:"flags"`
+	HomeDomain            string      `json:"home_domain"`
+	MasterWeight          int32       `json:"master_weight"`
+	ThresholdLow          int32       `json:"threshold_low"`
+	ThresholdMedium       int32       `json:"threshold_medium"`
+	ThresholdHigh         int32       `json:"threshold_high"`
+	Sponsor               null.String `json:"sponsor"`
+	NumSponsored          uint32      `json:"num_sponsored"`
+	NumSponsoring         uint32      `json:"num_sponsoring"`
+	LastModifiedLedger    uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange     uint32      `json:"ledger_entry_change"`
+	Deleted               bool        `json:"deleted"`
+	RawMasterWeight       byte        `json:"-"`
+	RawThresholdLow       byte        `json:"-"`
+	RawThresholdMedium    byte        `json:"-"`
+	RawThresholdHigh      byte        `json:"-"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
@@ -112,10 +119,12 @@ type OperationOutput struct {
 type ClaimableBalanceOutput struct {
 	BalanceID          string      `json:"balance_id"`
 	Claimants          []Claimant  `json:"claimants"`
+	Asset              xdr.Asset   `json:"-"`
 	AssetCode          string      `json:"asset_code"`
 	AssetIssuer        string      `json:"asset_issuer"`
 	AssetType          string      `json:"asset_type"`
 	AssetAmount        float64     `json:"asset_amount"`
+	RawAssetAmount     xdr.Int64   `json:"-"`
 	Sponsor            null.String `json:"sponsor"`
 	Flags              uint32      `json:"flags"`
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
@@ -156,22 +165,28 @@ type LiquidityPoolAsset struct {
 
 // PoolOutput is a representation of a liquidity pool that aligns with the Bigquery table liquidity_pools
 type PoolOutput struct {
-	PoolID             string  `json:"liquidity_pool_id"`
-	PoolType           string  `json:"type"`
-	PoolFee            uint32  `json:"fee"`
-	TrustlineCount     uint64  `json:"trustline_count"`
-	PoolShareCount     float64 `json:"pool_share_count"`
-	AssetAType         string  `json:"asset_a_type"`
-	AssetACode         string  `json:"asset_a_code"`
-	AssetAIssuer       string  `json:"asset_a_issuer"`
-	AssetAReserve      float64 `json:"asset_a_amount"`
-	AssetBType         string  `json:"asset_b_type"`
-	AssetBCode         string  `json:"asset_b_code"`
-	AssetBIssuer       string  `json:"asset_b_issuer"`
-	AssetBReserve      float64 `json:"asset_b_amount"`
-	LastModifiedLedger uint32  `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32  `json:"ledger_entry_change"`
-	Deleted            bool    `json:"deleted"`
+	PoolID             string                `json:"liquidity_pool_id"`
+	RawPoolType        xdr.LiquidityPoolType `json:"-"`
+	PoolType           string                `json:"type"`
+	PoolFee            uint32                `json:"fee"`
+	TrustlineCount     uint64                `json:"trustline_count"`
+	PoolShareCount     float64               `json:"pool_share_count"`
+	AssetA             xdr.Asset             `json:"-"`
+	AssetAType         string                `json:"asset_a_type"`
+	AssetACode         string                `json:"asset_a_code"`
+	AssetAIssuer       string                `json:"asset_a_issuer"`
+	AssetAReserve      float64               `json:"asset_a_amount"`
+	AssetB             xdr.Asset             `json:"-"`
+	AssetBType         string                `json:"asset_b_type"`
+	AssetBCode         string                `json:"asset_b_code"`
+	AssetBIssuer       string                `json:"asset_b_issuer"`
+	AssetBReserve      float64               `json:"asset_b_amount"`
+	LastModifiedLedger uint32                `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32                `json:"ledger_entry_change"`
+	Deleted            bool                  `json:"deleted"`
+	RawAssetAReserve   xdr.Int64             `json:"-"`
+	RawAssetBReserve   xdr.Int64             `json:"-"`
+	RawPoolShareCount  xdr.Int64             `json:"-"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
@@ -199,12 +214,17 @@ type TrustlineOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Sponsor            null.String `json:"sponsor"`
 	Deleted            bool        `json:"deleted"`
+	RawBuying          xdr.Int64   `json:"-"`
+	RawSelling         xdr.Int64   `json:"-"`
+	RawBalance         xdr.Int64   `json:"-"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
 	SellerID           string      `json:"seller_id"` // Account address of the seller
 	OfferID            int64       `json:"offer_id"`
+	SellingAsset       xdr.Asset   `json:"-"`
+	BuyingAsset        xdr.Asset   `json:"-"`
 	SellingAssetType   string      `json:"selling_asset_type"`
 	SellingAssetCode   string      `json:"selling_asset_code"`
 	SellingAssetIssuer string      `json:"selling_asset_issuer"`
@@ -212,6 +232,7 @@ type OfferOutput struct {
 	BuyingAssetCode    string      `json:"buying_asset_code"`
 	BuyingAssetIssuer  string      `json:"buying_asset_issuer"`
 	Amount             float64     `json:"amount"`
+	RawAmount          xdr.Int64   `json:"-"`
 	PriceN             int32       `json:"pricen"`
 	PriceD             int32       `json:"priced"`
 	Price              float64     `json:"price"`
@@ -435,4 +456,13 @@ type TestTransaction struct {
 	FeeChangesXDR string
 	MetaXDR       string
 	Hash          string
+}
+
+type TransformedOutput struct {
+	Accounts           []AccountOutput
+	Signers            []AccountSignerOutput
+	Claimable_balances []ClaimableBalanceOutput
+	Offers             []OfferOutput
+	Trustlines         []TrustlineOutput
+	Liquidity_pools    []PoolOutput
 }
