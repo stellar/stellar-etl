@@ -467,7 +467,7 @@ var testArchiveURLs = []string{
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
-	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{})
+	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ArchiveOptions{})
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence
