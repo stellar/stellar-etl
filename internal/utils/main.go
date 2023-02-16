@@ -452,6 +452,19 @@ func CreateBackend(start, end uint32, archiveURLs []string) (ledgerbackend.Ledge
 	return historyArchiveBackend{client: client, ledgers: ledgers}, nil
 }
 
+func CreateGCSBackend(bucket string) (metaarchive.MetaArchive, error) {
+	s, err := storage.ConnectBackend(
+		bucket, storage.ConnectOptions{
+			GCSEndpoint: "",
+		},
+	)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return metaarchive.NewMetaArchive(s), nil
+}
+
 // mainnet history archive URLs
 var mainArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-live/core_live_001",
