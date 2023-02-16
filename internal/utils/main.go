@@ -498,6 +498,21 @@ func GetLatestLedgerSequence(archiveURLs []string) (uint32, error) {
 	return root.CurrentLedger, nil
 }
 
+// GetLatestLedgerSequence returns the latest ledger sequence from GCS backend
+func GetLatestLedgerSequenceFromGCSBackend(bucket string) (uint32, error) {
+	backend, err := CreateGCSBackend(bucket)
+	if err != nil {
+		return 0, err
+	}
+
+	latest, err := backend.GetLatestLedgerSequence(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	return latest, nil
+}
+
 // GetCheckpointNum gets the ledger sequence number of the checkpoint containing the provided ledger. If the checkpoint does not exist, an error is returned
 func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
 	/*
