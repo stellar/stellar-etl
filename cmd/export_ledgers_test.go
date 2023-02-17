@@ -88,19 +88,19 @@ func TestExportLedger(t *testing.T) {
 		},
 		{
 			name:    "single ledger",
-			args:    []string{"export_ledgers", "-s", "1410100", "-e", "1410100", "-o", gotTestDir(t, "single_ledger.txt")},
+			args:    []string{"export_ledgers", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410100", "-o", gotTestDir(t, "single_ledger.txt")},
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "10 ledgers",
-			args:    []string{"export_ledgers", "-s", "1410100", "-e", "1410110", "-o", gotTestDir(t, "10_ledgers.txt")},
+			args:    []string{"export_ledgers", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410110", "-o", gotTestDir(t, "10_ledgers.txt")},
 			golden:  "10_ledgers.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range too large",
-			args:    []string{"export_ledgers", "-s", "1410100", "-e", "1410125", "-l", "5", "-o", gotTestDir(t, "large_range_ledgers.txt")},
+			args:    []string{"export_ledgers", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410125", "-l", "5", "-o", gotTestDir(t, "large_range_ledgers.txt")},
 			golden:  "large_range_ledgers.golden",
 			wantErr: nil,
 		},
