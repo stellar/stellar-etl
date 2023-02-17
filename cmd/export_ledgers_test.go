@@ -18,10 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var mainBucket = "gcs://horizon-archive-poc-slcm"
 var executableName = "stellar-etl"
-var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
-var archiveURLs = []string{archiveURL}
-var latestLedger = getLastSeqNum(archiveURLs)
+var latestLedger, _ = utils.GetLatestLedgerSequenceFromGCSBackend(mainBucket)
 var update = flag.Bool("update", false, "update the golden files of this test")
 var gotFolder = "testdata/got/"
 
