@@ -196,28 +196,12 @@ func extractErrorMsg(loggerOutput string) string {
 	return loggerOutput[errIndex : errIndex+endIndex]
 }
 
-func removeCoreLogging(loggerOutput string) string {
-	endIndex := strings.Index(loggerOutput, "{\"")
-	// if there is no bracket, then nothing was exported except logs
-	if endIndex == -1 {
-		return ""
-	}
-
-	return loggerOutput[endIndex:]
-}
-
-func getLastSeqNum(archiveURLs []string) uint32 {
-	num, err := utils.GetLatestLedgerSequence(archiveURLs)
-	if err != nil {
-		panic(err)
-	}
-	return num
-}
-
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
 	t.Helper()
 	f, err := os.OpenFile(goldenFile, os.O_RDWR, 0644)
-	defer f.Close()
+	defer func() {
+		err = f.Close()
+	}()
 	if err != nil {
 		return "", err
 	}
