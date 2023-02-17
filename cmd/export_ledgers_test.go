@@ -121,7 +121,7 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func sortByName(files []os.FileInfo) {
+func sortByName(files []os.DirEntry) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
 	})
@@ -144,14 +144,14 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 
 			// If the output arg specified is a directory, concat the contents for comparison.
 			if stat.IsDir() {
-				files, err := ioutil.ReadDir(outLocation)
+				files, err := os.ReadDir(outLocation)
 				if err != nil {
 					log.Fatal(err)
 				}
 				var buf bytes.Buffer
 				sortByName(files)
 				for _, f := range files {
-					b, err := ioutil.ReadFile(filepath.Join(outLocation, f.Name()))
+					b, err := os.ReadFile(filepath.Join(outLocation, f.Name()))
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -160,7 +160,7 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 				testOutput = buf.Bytes()
 			} else {
 				// If the output is written to a file, read the contents of the file for comparison.
-				testOutput, err = ioutil.ReadFile(outLocation)
+				testOutput, err = os.ReadFile(outLocation)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -239,7 +239,7 @@ func getGolden(t *testing.T, goldenFile string, actual string, update bool) (str
 		return actual, nil
 	}
 
-	wantOutput, err := ioutil.ReadAll(f)
+	wantOutput, err := io.ReadAll(f)
 	if err != nil {
 		return "", err
 	}
