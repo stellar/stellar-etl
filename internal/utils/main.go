@@ -14,7 +14,10 @@ import (
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/metaarchive"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/support/log"
+	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -412,26 +415,19 @@ func (h historyArchiveBackend) Close() error {
 
 // ValidateLedgerRange validates the given ledger range
 func ValidateLedgerRange(start, end, latestNum uint32) error {
-	if start == 0 {
-		return fmt.Errorf("Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+	log.Infof("processing requested range of -start-ledger=%v, -end-ledger=%v", start, end)
+	if start < 2 {
+		return fmt.Errorf("-start-ledger must be >= 2")
 	}
-
-	if end == 0 {
-		return fmt.Errorf("End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+	if end != 0 && end < start {
+		return fmt.Errorf("-end-ledger must be >= -start-ledger")
 	}
-
-	if end < start {
-		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
-	}
-
 	if latestNum < start {
-		return fmt.Errorf("Latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
+		return fmt.Errorf("latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
 	}
-
 	if latestNum < end {
-		return fmt.Errorf("Latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
+		return fmt.Errorf("latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
 	}
-
 	return nil
 }
 
@@ -456,6 +452,19 @@ func CreateBackend(start, end uint32, archiveURLs []string) (ledgerbackend.Ledge
 	return historyArchiveBackend{client: client, ledgers: ledgers}, nil
 }
 
+func CreateGCSBackend(bucket string) (metaarchive.MetaArchive, error) {
+	s, err := storage.ConnectBackend(
+		bucket, storage.ConnectOptions{
+			GCSEndpoint: "",
+		},
+	)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return metaarchive.NewMetaArchive(s), nil
+}
+
 // mainnet history archive URLs
 var mainArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-live/core_live_001",
@@ -471,7 +480,7 @@ var testArchiveURLs = []string{
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
-	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{})
+	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ArchiveOptions{})
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence
@@ -487,6 +496,21 @@ func GetLatestLedgerSequence(archiveURLs []string) (uint32, error) {
 	}
 
 	return root.CurrentLedger, nil
+}
+
+// GetLatestLedgerSequence returns the latest ledger sequence from GCS backend
+func GetLatestLedgerSequenceFromGCSBackend(bucket string) (uint32, error) {
+	backend, err := CreateGCSBackend(bucket)
+	if err != nil {
+		return 0, err
+	}
+
+	latest, err := backend.GetLatestLedgerSequence(context.Background())
+	if err != nil {
+		return 0, err
+	}
+
+	return latest, nil
 }
 
 // GetCheckpointNum gets the ledger sequence number of the checkpoint containing the provided ledger. If the checkpoint does not exist, an error is returned

@@ -10,58 +10,55 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-//TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
-func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
+// TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
+func TransformLedger(inputLedgerMeta xdr.SerializedLedgerCloseMeta) (LedgerOutput, error) {
 	ledger, ok := inputLedgerMeta.GetV0()
 	if !ok {
 		return LedgerOutput{}, fmt.Errorf("Could not access the v0 information for given ledger")
 	}
 
-	ledgerHeaderHistory := ledger.LedgerHeader
-	ledgerHeader := ledgerHeaderHistory.Header
-
-	outputSequence := uint32(ledgerHeader.LedgerSeq)
+	outputSequence := uint32(ledger.V0.LedgerHeader.Header.LedgerSeq)
 
 	outputLedgerID := toid.New(int32(outputSequence), 0, 0).ToInt64()
 
-	outputLedgerHash := utils.HashToHexString(ledgerHeaderHistory.Hash)
-	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
+	outputLedgerHash := ledger.LedgerHash().HexString()
+	outputPreviousHash := ledger.PreviousLedgerHash().HexString()
 
-	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
+	outputLedgerHeader, err := xdr.MarshalBase64(ledger.V0.LedgerHeader.Header)
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(ledger)
+	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(*ledger.V0)
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
+	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledger.V0.LedgerHeader.Header.ScpValue.CloseTime)
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputTotalCoins := int64(ledgerHeader.TotalCoins)
+	outputTotalCoins := int64(ledger.V0.LedgerHeader.Header.TotalCoins)
 	if outputTotalCoins < 0 {
 		return LedgerOutput{}, fmt.Errorf("The total number of coins (%d) is negative for ledger %d (ledger id=%d)", outputTotalCoins, outputSequence, outputLedgerID)
 	}
 
-	outputFeePool := int64(ledgerHeader.FeePool)
+	outputFeePool := int64(ledger.V0.LedgerHeader.Header.FeePool)
 	if outputFeePool < 0 {
 		return LedgerOutput{}, fmt.Errorf("The fee pool (%d) is negative for ledger %d (ledger id=%d)", outputFeePool, outputSequence, outputLedgerID)
 	}
 
-	outputBaseFee := uint32(ledgerHeader.BaseFee)
+	outputBaseFee := uint32(ledger.V0.LedgerHeader.Header.BaseFee)
 
-	outputBaseReserve := uint32(ledgerHeader.BaseReserve)
+	outputBaseReserve := uint32(ledger.V0.LedgerHeader.Header.BaseReserve)
 
-	outputMaxTxSetSize := uint32(ledgerHeader.MaxTxSetSize)
+	outputMaxTxSetSize := uint32(ledger.V0.LedgerHeader.Header.MaxTxSetSize)
 	if int64(outputMaxTxSetSize) < int64(outputTransactionCount) {
 		return LedgerOutput{}, fmt.Errorf("The transaction count is greater than the maximum transaction set size (%d > %d) for ledger %d (ledger id=%d)", outputTransactionCount, outputMaxTxSetSize, outputSequence, outputLedgerID)
 	}
 
-	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
+	outputProtocolVersion := uint32(ledger.V0.LedgerHeader.Header.LedgerVersion)
 
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,
