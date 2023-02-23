@@ -1,13 +1,12 @@
 package input
 
 import (
-	"context"
 	"io"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 )
 
@@ -18,39 +17,16 @@ type LedgerTransformInput struct {
 }
 
 // GetTransactions returns a slice of transactions for the ledgers in the provided range (inclusive on both ends)
-func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]LedgerTransformInput, error) {
-	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
-
-	if err != nil {
-		return []LedgerTransformInput{}, err
-	}
-
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
-
-	if err != nil {
-		return []LedgerTransformInput{}, err
-	}
-
+func GetTransactions(start, end uint32, limit int64, isTest bool) ([]LedgerTransformInput, error) {
 	txSlice := []LedgerTransformInput{}
-	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
-	panicIf(err)
-	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+	env := utils.GetEnvironmentDetails(isTest)
+	slcm, err := GetLedgers(start, end, limit, isTest)
+	if err != nil {
+		log.Error("Error creating GCS backend:", err)
+		return []LedgerTransformInput{}, err
+	}
+	for seq := uint32(0); seq <= end-start; seq++ {
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, *slcm[seq].V0)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
