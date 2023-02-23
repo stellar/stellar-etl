@@ -10,6 +10,7 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/metaarchive"
 	"github.com/stellar/go/xdr"
 )
 
@@ -76,8 +77,8 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 // extractBatch gets the changes from the ledgers in the range [batchStart, batchEnd] and compacts them
 func extractBatch(
 	batchStart, batchEnd uint32,
-	core *ledgerbackend.CaptiveStellarCore,
-	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
+	backend metaarchive.MetaArchive,
+	isTest bool, logger *utils.EtlLogger) ChangeBatch {
 
 	dataTypes := []xdr.LedgerEntryType{
 		xdr.LedgerEntryTypeAccount,
@@ -88,21 +89,26 @@ func extractBatch(
 
 	changes := map[xdr.LedgerEntryType][]ingest.Change{}
 	ctx := context.Background()
-	for seq := batchStart; seq <= batchEnd; {
+	for seq := uint32(0); seq <= batchEnd-batchStart; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
 		for _, dt := range dataTypes {
 			changeCompactors[dt] = ingest.NewChangeCompactor()
 		}
 
-		latestLedger, err := core.GetLatestLedgerSequence(ctx)
+		env := utils.GetEnvironmentDetails(isTest)
+		slcm, err := GetLedgers(batchStart, batchEnd, -1, isTest)
+		if err != nil {
+			logger.Error("Error creating GCS backend:", err)
+		}
+		latestLedger, err := backend.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			logger.Fatal("unable to get the latest ledger sequence: ", err)
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
-		if seq <= latestLedger {
-			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
+		if seq <= latestLedger-batchStart {
+			changeReader, err := ingest.NewLedgerChangeReaderFromLedgerCloseMeta(env.NetworkPassphrase, *slcm[seq].V0)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
@@ -130,9 +136,7 @@ func extractBatch(
 		}
 
 		for dataType, compactor := range changeCompactors {
-			for _, change := range compactor.GetChanges() {
-				changes[dataType] = append(changes[dataType], change)
-			}
+			changes[dataType] = append(changes[dataType], compactor.GetChanges()...)
 		}
 
 	}
@@ -146,14 +150,14 @@ func extractBatch(
 
 // StreamChanges reads in ledgers, processes the changes, and send the changes to the channel matching their type
 // Ledgers are processed in batches of size <batchSize>.
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
+func StreamChanges(backend metaarchive.MetaArchive, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, isTest bool, logger *utils.EtlLogger) {
 	batchStart := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
 		if batchEnd < end {
 			batchEnd = uint32(batchEnd - 1)
 		}
-		batch := ExtractBatch(batchStart, batchEnd, core, env, logger)
+		batch := ExtractBatch(batchStart, batchEnd, backend, isTest, logger)
 		changeChannel <- batch
 		// batchStart and batchEnd should not overlap
 		// overlapping batches causes duplicate record loads
