@@ -1,7 +1,6 @@
 package input
 
 import (
-	"context"
 	"io"
 	"time"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 )
 
@@ -22,41 +21,19 @@ type TradeTransformInput struct {
 }
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
-func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]TradeTransformInput, error) {
-	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
-	if err != nil {
-		return []TradeTransformInput{}, err
-	}
-
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
-	if err != nil {
-		return []TradeTransformInput{}, err
-	}
-
+func GetTrades(start, end uint32, limit int64, isTest bool) ([]TradeTransformInput, error) {
 	tradeSlice := []TradeTransformInput{}
-	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
-	panicIf(err)
-	for seq := start; seq <= end; seq++ {
-		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
+	env := utils.GetEnvironmentDetails(isTest)
+	slcm, err := GetLedgers(start, end, limit, isTest)
+	if err != nil {
+		log.Error("Error creating GCS backend:", err)
+		return []TradeTransformInput{}, err
+	}
+	for seq := uint32(0); seq <= end-start; seq++ {
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, *slcm[seq].V0)
 		if err != nil {
 			return []TradeTransformInput{}, err
 		}
-		txReader := changeReader.LedgerTransactionReader
 
 		closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
 		if err != nil {
