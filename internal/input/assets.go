@@ -1,27 +1,26 @@
 package input
 
 import (
-	"context"
 	"io"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 )
 
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
 func GetPaymentOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
 	env := utils.GetEnvironmentDetails(isTest)
-	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
+	opSlice := []OperationTransformInput{}
+	slcm, err := GetLedgers(start, end, limit, isTest)
 	if err != nil {
+		log.Error("Error creating GCS backend:", err)
 		return []OperationTransformInput{}, err
 	}
-
-	opSlice := []OperationTransformInput{}
-	ctx := context.Background()
-	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+	for seq := uint32(0); seq <= end-start; seq++ {
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, *slcm[seq].V0)
 		if err != nil {
 			return []OperationTransformInput{}, err
 		}
