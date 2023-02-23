@@ -22,6 +22,9 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// fix bucket path for now
+const BUCKET_POC = "gcs://horizon-archive-poc-slcm"
+
 // PanicOnError is a function that panics if the provided error is not nil
 func PanicOnError(err error) {
 	if err != nil {
