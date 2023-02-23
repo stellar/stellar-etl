@@ -1,12 +1,11 @@
 package input
 
 import (
-	"context"
 	"fmt"
 	"io"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -26,42 +25,19 @@ func panicIf(err error) {
 }
 
 // GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
-func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]OperationTransformInput, error) {
-	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
-	if err != nil {
-		return []OperationTransformInput{}, err
-	}
-
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
-	if err != nil {
-		return []OperationTransformInput{}, err
-	}
-
+func GetOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
 	opSlice := []OperationTransformInput{}
-	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
-	panicIf(err)
-	for seq := start; seq <= end; seq++ {
-		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
-		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
+	env := utils.GetEnvironmentDetails(isTest)
+	slcm, err := GetLedgers(start, end, limit, isTest)
+	if err != nil {
+		log.Error("Error creating GCS backend:", err)
+		return []OperationTransformInput{}, err
+	}
+	for seq := uint32(0); seq <= end-start; seq++ {
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, *slcm[seq].V0)
 		if err != nil {
 			return []OperationTransformInput{}, err
 		}
-		txReader := changeReader.LedgerTransactionReader
 
 		for int64(len(opSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
