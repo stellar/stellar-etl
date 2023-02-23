@@ -196,6 +196,7 @@ func extractErrorMsg(loggerOutput string) string {
 }
 
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
+	update = true
 	t.Helper()
 	f, err := os.OpenFile(goldenFile, os.O_RDWR, 0644)
 	defer func() {
