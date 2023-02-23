@@ -24,7 +24,7 @@ type TradeTransformInput struct {
 func GetTrades(start, end uint32, limit int64, isTest bool) ([]TradeTransformInput, error) {
 	tradeSlice := []TradeTransformInput{}
 	env := utils.GetEnvironmentDetails(isTest)
-	slcm, err := GetLedgers(start, end, limit, isTest)
+	slcm, err := GetLedgers(start, end, -1, isTest)
 	if err != nil {
 		log.Error("Error creating GCS backend:", err)
 		return []TradeTransformInput{}, err

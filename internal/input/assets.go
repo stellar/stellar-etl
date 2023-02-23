@@ -14,7 +14,7 @@ import (
 func GetPaymentOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
 	env := utils.GetEnvironmentDetails(isTest)
 	opSlice := []OperationTransformInput{}
-	slcm, err := GetLedgers(start, end, limit, isTest)
+	slcm, err := GetLedgers(start, end, -1, isTest)
 	if err != nil {
 		log.Error("Error creating GCS backend:", err)
 		return []OperationTransformInput{}, err

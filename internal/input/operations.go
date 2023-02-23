@@ -28,7 +28,7 @@ func panicIf(err error) {
 func GetOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
 	opSlice := []OperationTransformInput{}
 	env := utils.GetEnvironmentDetails(isTest)
-	slcm, err := GetLedgers(start, end, limit, isTest)
+	slcm, err := GetLedgers(start, end, -1, isTest)
 	if err != nil {
 		log.Error("Error creating GCS backend:", err)
 		return []OperationTransformInput{}, err
