@@ -18,9 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var mainBucket = "gcs://horizon-archive-poc-slcm"
 var executableName = "stellar-etl"
-var latestLedger, _ = utils.GetLatestLedgerSequenceFromGCSBackend(mainBucket)
+var latestLedger, _ = utils.GetLatestLedgerSequenceFromGCSBackend(utils.BUCKET_POC)
 var update = flag.Bool("update", false, "update the golden files of this test")
 var gotFolder = "testdata/got/"
 
@@ -58,49 +57,49 @@ func TestExportLedger(t *testing.T) {
 	tests := []cliTest{
 		{
 			name:    "end before start",
-			args:    []string{"export_ledgers", "-s", "100", "-e", "50"},
+			args:    []string{"export_ledgers", "--testnet", "-s", "100", "-e", "50"},
 			golden:  "",
 			wantErr: fmt.Errorf("-end-ledger must be >= -start-ledger"),
 		},
 		{
 			name:    "start too large",
-			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295"},
+			args:    []string{"export_ledgers", "--testnet", "-s", "4294967295", "-e", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("latest sequence number is less than start sequence number (%d < 4294967295)", latestLedger),
 		},
 		{
 			name:    "end too large",
-			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295"},
+			args:    []string{"export_ledgers", "--testnet", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("-start-ledger must be >= 2"),
 		},
 		{
 			name:    "start is 0",
-			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
+			args:    []string{"export_ledgers", "--testnet", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("-start-ledger must be >= 2"),
 		},
 		{
 			name:    "end is 0",
-			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295"},
+			args:    []string{"export_ledgers", "--testnet", "-e", "0", "-l", "4294967295"},
 			golden:  "",
 			wantErr: fmt.Errorf("-start-ledger must be >= 2"),
 		},
 		{
 			name:    "single ledger",
-			args:    []string{"export_ledgers", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410100", "-o", gotTestDir(t, "single_ledger.txt")},
+			args:    []string{"export_ledgers", "--testnet", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410100", "-o", gotTestDir(t, "single_ledger.txt")},
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "10 ledgers",
-			args:    []string{"export_ledgers", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410110", "-o", gotTestDir(t, "10_ledgers.txt")},
+			args:    []string{"export_ledgers", "--testnet", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410110", "-o", gotTestDir(t, "10_ledgers.txt")},
 			golden:  "10_ledgers.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range too large",
-			args:    []string{"export_ledgers", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410125", "-l", "5", "-o", gotTestDir(t, "large_range_ledgers.txt")},
+			args:    []string{"export_ledgers", "--testnet", "--gcs-bucket", "not", "-s", "1410100", "-e", "1410125", "-l", "5", "-o", gotTestDir(t, "large_range_ledgers.txt")},
 			golden:  "large_range_ledgers.golden",
 			wantErr: nil,
 		},

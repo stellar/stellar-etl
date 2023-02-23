@@ -12,14 +12,14 @@ import (
 
 // GetLedgers returns a slice of serialized ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetLedgers(start, end uint32, limit int64, isTest bool) ([]xdr.SerializedLedgerCloseMeta, error) {
+	ctx := context.Background()
 	// env := utils.GetEnvironmentDetails(isTest)
 	// backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	// if err != nil {
 	// 	return []xdr.LedgerCloseMeta{}, err
 	// }
 
-	bucket := "gcs://horizon-archive-poc-slcm"
-	backend, err := utils.CreateGCSBackend(bucket)
+	backend, err := utils.CreateGCSBackend(utils.BUCKET_POC)
 	if err != nil {
 		log.Error("Error creating GCS backend:", err)
 		return []xdr.SerializedLedgerCloseMeta{}, err
@@ -42,7 +42,7 @@ func GetLedgers(start, end uint32, limit int64, isTest bool) ([]xdr.SerializedLe
 	}
 
 	log.Infof("preparing to export %s", ledgerRange)
-	latest, _ := backend.GetLatestLedgerSequence(context.Background())
+	latest, _ := backend.GetLatestLedgerSequence(ctx)
 	err = utils.ValidateLedgerRange(start, end, latest)
 	if err != nil {
 		log.Error(err)
@@ -50,7 +50,6 @@ func GetLedgers(start, end uint32, limit int64, isTest bool) ([]xdr.SerializedLe
 	}
 
 	metaSlice := []xdr.SerializedLedgerCloseMeta{}
-	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
 		ledger, err := backend.GetLedger(ctx, seq)
 		if err != nil {
