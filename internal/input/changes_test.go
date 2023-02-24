@@ -3,7 +3,7 @@ package input
 import (
 	"testing"
 
-	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/metaarchive"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -124,8 +124,8 @@ func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) Chang
 
 func mockExtractBatch(
 	batchStart, batchEnd uint32,
-	core *ledgerbackend.CaptiveStellarCore,
-	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
+	backend metaarchive.MetaArchive,
+	isTest bool, logger *utils.EtlLogger) ChangeBatch {
 	log.Errorf("mock called")
 	return ChangeBatch{
 		Changes:    map[xdr.LedgerEntryType][]ingest.Change{},
@@ -203,15 +203,9 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			batchSize := uint32(64)
 			changeChan := make(chan ChangeBatch, 10)
 			closeChan := make(chan int)
-			env := utils.EnvironmentDetails{
-				NetworkPassphrase: "",
-				ArchiveURLs:       nil,
-				BinaryPath:        "",
-				CoreConfig:        "",
-			}
 			logger := utils.NewEtlLogger()
 			ExtractBatch = mockExtractBatch
-			go StreamChanges(nil, tt.args.batchStart, tt.args.batchEnd, batchSize, changeChan, closeChan, env, logger)
+			go StreamChanges(nil, tt.args.batchStart, tt.args.batchEnd, batchSize, changeChan, closeChan, false, logger)
 			var got []batchRange
 			for b := range changeChan {
 				got = append(got, batchRange{

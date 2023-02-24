@@ -17,9 +17,8 @@ var effectsCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest)
 
-		transactions, err := input.GetTransactions(startNum, endNum, limit, env)
+		transactions, err := input.GetTransactions(startNum, endNum, limit, isTest)
 		if err != nil {
 			cmdLogger.Fatalf("could not read transactions in [%d, %d] (limit=%d): %v", startNum, endNum, limit, err)
 		}

@@ -1,0 +1,4 @@
+{"address":"GCCRPBABE7XRQX7STAXA55O5ASFL6TTLNCJDCNETEJQWI7M2A47ZOXEN","address_muxed":null,"details":{"auth_clawback_enabled_flag":true,"auth_required_flag":true,"auth_revocable_flag":true},"operation_id":6056333384097793,"type":6,"type_string":"account_flags_updated"}
+{"address":"GBQJED7K2QTXHC5XD2YEAPDQRVFU3H3SB5NV5GIJVGSJ3GSQFNWLGSST","address_muxed":null,"details":{"starting_balance":"5.0000000"},"operation_id":6056333384105985,"type":0,"type_string":"account_created"}
+{"address":"GA6F6I2R4CQ4MMZMTZDQEJ7OFPEAHZMF4U2XOBWMNYIKDXPRERDISI6R","address_muxed":null,"details":{"amount":"5.0000000","asset_type":"native"},"operation_id":6056333384105985,"type":3,"type_string":"account_debited"}
+{"address":"GBQJED7K2QTXHC5XD2YEAPDQRVFU3H3SB5NV5GIJVGSJ3GSQFNWLGSST","address_muxed":null,"details":{"public_key":"GBQJED7K2QTXHC5XD2YEAPDQRVFU3H3SB5NV5GIJVGSJ3GSQFNWLGSST","weight":1},"operation_id":6056333384105985,"type":10,"type_string":"signer_created"}

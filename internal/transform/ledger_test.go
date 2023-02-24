@@ -13,7 +13,7 @@ import (
 
 func TestTransformLedger(t *testing.T) {
 	type transformTest struct {
-		input      xdr.LedgerCloseMeta
+		input      xdr.SerializedLedgerCloseMeta
 		wantOutput LedgerOutput
 		wantErr    error
 	}
@@ -90,7 +90,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 	return
 }
 
-func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
+func makeLedgerTestInput() (lcm xdr.SerializedLedgerCloseMeta, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
 			utils.CreateSampleTx(0),
@@ -101,7 +101,7 @@ func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 		utils.CreateSampleResultMeta(false, 3),
 		utils.CreateSampleResultMeta(true, 10),
 	}
-	lcm, err = xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
+	lcm, err = xdr.NewSerializedLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
 		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 			Header: xdr.LedgerHeader{
 				LedgerSeq:          30578981,
@@ -121,20 +121,22 @@ func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 	})
 	return
 }
-func wrapLedgerHeaderWithTransactions(header xdr.LedgerHeader, numTransactions int) xdr.LedgerCloseMeta {
+func wrapLedgerHeaderWithTransactions(header xdr.LedgerHeader, numTransactions int) xdr.SerializedLedgerCloseMeta {
 	transactionEnvelopes := []xdr.TransactionEnvelope{}
 	for txNum := 0; txNum < numTransactions; txNum++ {
 		transactionEnvelopes = append(transactionEnvelopes, utils.CreateSampleTx(int64(txNum)))
 	}
-	lcm, _ := xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
-		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-			Header: header,
+	lcm, _ := xdr.NewSerializedLedgerCloseMeta(0,
+		xdr.LedgerCloseMetaV0{
+			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+				Header: header,
+			},
+			TxSet: xdr.TransactionSet{Txs: transactionEnvelopes},
 		},
-		TxSet: xdr.TransactionSet{Txs: transactionEnvelopes},
-	})
+	)
 	return lcm
 }
 
-func wrapLedgerHeader(header xdr.LedgerHeader) xdr.LedgerCloseMeta {
+func wrapLedgerHeader(header xdr.LedgerHeader) xdr.SerializedLedgerCloseMeta {
 	return wrapLedgerHeaderWithTransactions(header, 0)
 }

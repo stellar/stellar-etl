@@ -13,3 +13,4 @@ debug
 *.csr
 *.key
 stellar-etl
+testdata/got/*

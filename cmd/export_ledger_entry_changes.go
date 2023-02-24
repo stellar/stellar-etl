@@ -28,9 +28,8 @@ be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest)
 
-		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		_, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
@@ -52,19 +51,9 @@ be exported.`,
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
-		execPath, err = filepath.Abs(execPath)
+		backend, err := utils.CreateGCSBackend(utils.BUCKET_POC)
 		if err != nil {
-			cmdLogger.Fatal("could not get absolute filepath for stellar-core executable: ", err)
-		}
-
-		configPath, err = filepath.Abs(configPath)
-		if err != nil {
-			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
-		}
-
-		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
-		if err != nil {
-			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
+			cmdLogger.Error("Error creating GCS backend:", err)
 		}
 
 		if endNum == 0 {
@@ -73,7 +62,7 @@ be exported.`,
 
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
-		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+		go input.StreamChanges(backend, startNum, endNum, batchSize, changeChan, closeChan, isTest, cmdLogger)
 
 		for {
 			select {

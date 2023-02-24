@@ -184,8 +184,8 @@ var ledgersCmd = &cobra.Command{
 
 		numFailures := 0
 		totalNumBytes := 0
-		for i, lcm := range ledgers {
-			transformed, err := transform.TransformLedger(lcm)
+		for i, slcm := range ledgers {
+			transformed, err := transform.TransformLedger(slcm)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1
