@@ -102,6 +102,7 @@ func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 		AssetType:          "credit_alphanum12",
 		AssetCode:          "\x01\x02\x03\x04\x05\x06\a\b\t",
 		AssetAmount:        999,
+		AssetID:            -4023078858747574648,
 		Sponsor:            null.StringFrom("GAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABO3W"),
 		Flags:              10,
 		LastModifiedLedger: 30705278,
