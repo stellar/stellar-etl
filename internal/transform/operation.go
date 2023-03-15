@@ -279,6 +279,7 @@ func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.
 
 	result[prefix+"asset_code"] = code
 	result[prefix+"asset_issuer"] = issuer
+	result[prefix+"asset_id"] = FarmHashAsset(code, issuer, assetType)
 
 	return nil
 }

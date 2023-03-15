@@ -46,6 +46,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		if err != nil {
 			return []TradeOutput{}, err
 		}
+		outputSellingAssetID := FarmHashAsset(outputSellingAssetType, outputSellingAssetCode, outputSellingAssetIssuer)
 
 		outputSellingAmount := claimOffer.AmountSold()
 		if outputSellingAmount < 0 {
@@ -57,6 +58,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		if err != nil {
 			return []TradeOutput{}, err
 		}
+		outputBuyingAssetID := FarmHashAsset(outputBuyingAssetType, outputBuyingAssetCode, outputBuyingAssetIssuer)
 
 		outputBuyingAmount := int64(claimOffer.AmountBought())
 		if outputBuyingAmount < 0 {
@@ -127,11 +129,13 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			SellingAssetType:       outputSellingAssetType,
 			SellingAssetCode:       outputSellingAssetCode,
 			SellingAssetIssuer:     outputSellingAssetIssuer,
+			SellingAssetID:         outputSellingAssetID,
 			SellingAmount:          utils.ConvertStroopValueToReal(outputSellingAmount),
 			BuyingAccountAddress:   outputBuyingAccountAddress,
 			BuyingAssetType:        outputBuyingAssetType,
 			BuyingAssetCode:        outputBuyingAssetCode,
 			BuyingAssetIssuer:      outputBuyingAssetIssuer,
+			BuyingAssetID:          outputBuyingAssetID,
 			BuyingAmount:           utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
 			PriceN:                 outputPriceN,
 			PriceD:                 outputPriceD,

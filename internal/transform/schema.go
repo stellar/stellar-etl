@@ -115,6 +115,7 @@ type ClaimableBalanceOutput struct {
 	AssetCode          string      `json:"asset_code"`
 	AssetIssuer        string      `json:"asset_issuer"`
 	AssetType          string      `json:"asset_type"`
+	AssetID            int64       `json:"asset_id"`
 	AssetAmount        float64     `json:"asset_amount"`
 	Sponsor            null.String `json:"sponsor"`
 	Flags              uint32      `json:"flags"`
@@ -165,10 +166,12 @@ type PoolOutput struct {
 	AssetACode         string  `json:"asset_a_code"`
 	AssetAIssuer       string  `json:"asset_a_issuer"`
 	AssetAReserve      float64 `json:"asset_a_amount"`
+	AssetAID           int64   `json:"asset_a_id"`
 	AssetBType         string  `json:"asset_b_type"`
 	AssetBCode         string  `json:"asset_b_code"`
 	AssetBIssuer       string  `json:"asset_b_issuer"`
 	AssetBReserve      float64 `json:"asset_b_amount"`
+	AssetBID           int64   `json:"asset_b_id"`
 	LastModifiedLedger uint32  `json:"last_modified_ledger"`
 	LedgerEntryChange  uint32  `json:"ledger_entry_change"`
 	Deleted            bool    `json:"deleted"`
@@ -180,6 +183,7 @@ type AssetOutput struct {
 	AssetIssuer string `json:"asset_issuer"`
 	AssetType   string `json:"asset_type"`
 	AssetID     uint64 `json:"id"`
+	ID          int64  `json:"asset_id"`
 }
 
 // TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
@@ -189,6 +193,7 @@ type TrustlineOutput struct {
 	AssetCode          string      `json:"asset_code"`
 	AssetIssuer        string      `json:"asset_issuer"`
 	AssetType          int32       `json:"asset_type"`
+	AssetID            int64       `json:"asset_id"`
 	Balance            float64     `json:"balance"`
 	TrustlineLimit     int64       `json:"trust_line_limit"`
 	LiquidityPoolID    string      `json:"liquidity_pool_id"`
@@ -208,9 +213,11 @@ type OfferOutput struct {
 	SellingAssetType   string      `json:"selling_asset_type"`
 	SellingAssetCode   string      `json:"selling_asset_code"`
 	SellingAssetIssuer string      `json:"selling_asset_issuer"`
+	SellingAssetID     int64       `json:"selling_asset_id"`
 	BuyingAssetType    string      `json:"buying_asset_type"`
 	BuyingAssetCode    string      `json:"buying_asset_code"`
 	BuyingAssetIssuer  string      `json:"buying_asset_issuer"`
+	BuyingAssetID      int64       `json:"buying_asset_id"`
 	Amount             float64     `json:"amount"`
 	PriceN             int32       `json:"pricen"`
 	PriceD             int32       `json:"priced"`
@@ -230,11 +237,13 @@ type TradeOutput struct {
 	SellingAssetCode       string      `json:"selling_asset_code"`
 	SellingAssetIssuer     string      `json:"selling_asset_issuer"`
 	SellingAssetType       string      `json:"selling_asset_type"`
+	SellingAssetID         int64       `json:"selling_asset_id"`
 	SellingAmount          float64     `json:"selling_amount"`
 	BuyingAccountAddress   string      `json:"buying_account_address"`
 	BuyingAssetCode        string      `json:"buying_asset_code"`
 	BuyingAssetIssuer      string      `json:"buying_asset_issuer"`
 	BuyingAssetType        string      `json:"buying_asset_type"`
+	BuyingAssetID          int64       `json:"buying_asset_id"`
 	BuyingAmount           float64     `json:"buying_amount"`
 	PriceN                 int64       `json:"price_n"`
 	PriceD                 int64       `json:"price_d"`
