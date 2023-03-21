@@ -597,6 +597,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"to":         hardCodedDestAccountAddress,
 				"amount":     35.0,
 				"asset_type": "native",
+				"asset_id":   int64(-5706705804583548011),
 			},
 		},
 		OperationOutput{
@@ -612,7 +613,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"source_max":        895.14959,
 				"amount":            895.14959,
 				"source_asset_type": "native",
+				"source_asset_id":   int64(-5706705804583548011),
 				"asset_type":        "native",
+				"asset_id":          int64(-5706705804583548011),
 				"path":              []Path{usdtAssetPath},
 			},
 		},
@@ -635,6 +638,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"selling_asset_issuer": hardCodedDestAccountAddress,
 				"selling_asset_id":     int64(-8205667356306085451),
 				"buying_asset_type":    "native",
+				"buying_asset_id":      int64(-5706705804583548011),
 			},
 		},
 		OperationOutput{
@@ -655,6 +659,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"buying_asset_issuer": hardCodedDestAccountAddress,
 				"buying_asset_id":     int64(-8205667356306085451),
 				"selling_asset_type":  "native",
+				"selling_asset_id":    int64(-5706705804583548011),
 			},
 		},
 		OperationOutput{
@@ -781,6 +786,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"selling_asset_issuer": hardCodedDestAccountAddress,
 				"selling_asset_id":     int64(-8205667356306085451),
 				"buying_asset_type":    "native",
+				"buying_asset_id":      int64(-5706705804583548011),
 				"offer_id":             int64(100),
 			},
 		},
@@ -798,7 +804,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"amount":            433.4043858,
 				"path":              []Path{usdtAssetPath},
 				"source_asset_type": "native",
+				"source_asset_id":   int64(-5706705804583548011),
 				"asset_type":        "native",
+				"asset_id":          int64(-5706705804583548011),
 			},
 		},
 		OperationOutput{
@@ -959,6 +967,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"liquidity_pool_id":        "0102030405060708090000000000000000000000000000000000000000000000",
 				"reserve_a_asset_type":     "native",
+				"reserve_a_asset_id":       int64(-5706705804583548011),
 				"reserve_a_max_amount":     0.0001,
 				"reserve_a_deposit_amount": 0.0001,
 				"reserve_b_asset_type":     "credit_alphanum4",
@@ -989,6 +998,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"liquidity_pool_id":         "0102030405060708090000000000000000000000000000000000000000000000",
 				"reserve_a_asset_type":      "native",
+				"reserve_a_asset_id":        int64(-5706705804583548011),
 				"reserve_a_min_amount":      0.0000001,
 				"reserve_a_withdraw_amount": -0.0001,
 				"reserve_b_asset_type":      "credit_alphanum4",
