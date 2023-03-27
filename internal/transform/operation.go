@@ -274,11 +274,13 @@ func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.
 	result[prefix+"asset_type"] = assetType
 
 	if asset.Type == xdr.AssetTypeAssetTypeNative {
+		result[prefix+"asset_id"] = int64(-5706705804583548011)
 		return nil
 	}
 
 	result[prefix+"asset_code"] = code
 	result[prefix+"asset_issuer"] = issuer
+	result[prefix+"asset_id"] = FarmHashAsset(code, issuer, assetType)
 
 	return nil
 }

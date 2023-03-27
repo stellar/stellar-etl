@@ -13,7 +13,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-//TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
+// TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
 func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
@@ -47,6 +47,8 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 		}
 	}
 
+	outputAssetID := FarmHashAsset(outputAssetCode, outputAssetIssuer, asset.Type.String())
+
 	liabilities := trustEntry.Liabilities()
 
 	transformedTrustline := TrustlineOutput{
@@ -55,6 +57,7 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 		AssetType:          int32(asset.Type),
 		AssetCode:          outputAssetCode,
 		AssetIssuer:        outputAssetIssuer,
+		AssetID:            outputAssetID,
 		Balance:            utils.ConvertStroopValueToReal(trustEntry.Balance),
 		TrustlineLimit:     int64(trustEntry.Limit),
 		LiquidityPoolID:    poolID,

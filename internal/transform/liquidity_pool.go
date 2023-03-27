@@ -8,7 +8,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
+// TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
 func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
@@ -40,9 +40,11 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 	if err != nil {
 		return PoolOutput{}, err
 	}
+	assetAID := FarmHashAsset(assetAType, assetACode, assetAIssuer)
 
 	var assetBType, assetBCode, assetBIssuer string
 	err = cp.Params.AssetB.Extract(&assetBType, &assetBCode, &assetBIssuer)
+	assetBID := FarmHashAsset(assetBType, assetBCode, assetBIssuer)
 
 	transformedPool := PoolOutput{
 		PoolID:             PoolIDToString(lp.LiquidityPoolId),
@@ -53,10 +55,12 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 		AssetAType:         assetAType,
 		AssetACode:         assetACode,
 		AssetAIssuer:       assetAIssuer,
+		AssetAID:           assetAID,
 		AssetAReserve:      utils.ConvertStroopValueToReal(cp.ReserveA),
 		AssetBType:         assetBType,
 		AssetBCode:         assetBCode,
 		AssetBIssuer:       assetBIssuer,
+		AssetBID:           assetBID,
 		AssetBReserve:      utils.ConvertStroopValueToReal(cp.ReserveB),
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),

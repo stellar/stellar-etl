@@ -20,7 +20,7 @@ func transformClaimants(claimants []xdr.Claimant) []Claimant {
 	return transformed
 }
 
-//TransformClaimableBalance converts a claimable balance from the history archive ingestion system into a form suitable for BigQuery
+// TransformClaimableBalance converts a claimable balance from the history archive ingestion system into a form suitable for BigQuery
 func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
@@ -50,6 +50,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutp
 		AssetCode:          outputAsset.AssetCode,
 		AssetIssuer:        outputAsset.AssetIssuer,
 		AssetType:          outputAsset.AssetType,
+		AssetID:            outputAsset.ID,
 		Claimants:          outputClaimants,
 		AssetAmount:        float64(outputAmount) / 1.0e7,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
