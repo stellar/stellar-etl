@@ -13,3 +13,6 @@ debug
 *.csr
 *.key
 stellar-etl
+
+### Credentials checks
+credentials.json
