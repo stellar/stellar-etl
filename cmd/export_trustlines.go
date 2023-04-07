@@ -23,9 +23,9 @@ var trustlinesCmd = &cobra.Command{
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest)
+		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 

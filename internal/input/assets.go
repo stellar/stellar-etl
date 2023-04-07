@@ -11,8 +11,8 @@ import (
 )
 
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
-func GetPaymentOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
-	env := utils.GetEnvironmentDetails(isTest)
+func GetPaymentOperations(start, end uint32, limit int64, isTest bool, isFuture bool) ([]OperationTransformInput, error) {
+	env := utils.GetEnvironmentDetails(isTest, isFuture)
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []OperationTransformInput{}, err

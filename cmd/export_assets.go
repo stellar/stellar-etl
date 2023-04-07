@@ -16,14 +16,14 @@ var assetsCmd = &cobra.Command{
 	Long:  `Exports the assets that are created from payment operations over a specified ledger range`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 
-		paymentOps, err := input.GetPaymentOperations(startNum, endNum, limit, isTest)
+		paymentOps, err := input.GetPaymentOperations(startNum, endNum, limit, isTest, isFuture)
 		if err != nil {
 			cmdLogger.Fatal("could not read asset: ", err)
 		}

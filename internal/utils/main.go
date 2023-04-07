@@ -195,6 +195,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
 	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
+	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 }
 
@@ -238,7 +239,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, extra map[string]string) {
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, isFuture bool, extra map[string]string) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
@@ -252,6 +253,11 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, st
 	isTest, err = flags.GetBool("testnet")
 	if err != nil {
 		logger.Fatal("could not get testnet boolean: ", err)
+	}
+
+	isFuture, err = flags.GetBool("futurenet")
+	if err != nil {
+		logger.Fatal("could not get futurenet boolean: ", err)
 	}
 
 	extra, err = flags.GetStringToString("extra-fields")
@@ -470,6 +476,11 @@ var testArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-testnet/core_testnet_003",
 }
 
+// futrenet is used for testing new Protocol features
+var futureArchiveURLs = []string{
+	"https://history-futurenet.stellar.org/",
+}
+
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
 	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{})
 }
@@ -545,7 +556,7 @@ type EnvironmentDetails struct {
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
-func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
+func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetails) {
 	if isTest {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
@@ -553,7 +564,14 @@ func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "docker/stellar-core_testnet.cfg"
 		return details
-	} else {
+	} else if isFuture {
+		// details.NetworkPassphrase = network.FutureNetworkPassphrase
+		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
+		details.ArchiveURLs = futureArchiveURLs
+		details.BinaryPath = "/usr/bin/stellar-core"
+		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
+		return details
+    } else {
 		// default: mainnet
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs

@@ -16,11 +16,11 @@ var operationsCmd = &cobra.Command{
 	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest)
+		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		operations, err := input.GetOperations(startNum, endNum, limit, env)
 		if err != nil {

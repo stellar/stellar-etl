@@ -26,9 +26,9 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest)
+		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)

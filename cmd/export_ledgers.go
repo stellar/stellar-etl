@@ -170,12 +170,12 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest)
+		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest, isFuture)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
