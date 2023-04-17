@@ -22,8 +22,8 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
       - [export_trades](#export_trades)
 	- [Stellar Core Commands](#stellar-core-commands)
 	  - [export_ledger_entry_changes](#export_ledger_entry_changes)
-	  - [export_orderbooks](#export_orderbooks)
-	- [Utility Commands](#utility-commands)
+      - [export_orderbooks (unsupported)](#export_orderbooks-unsupported)
+	  - [Utility Commands](#utility-commands)
 	  - [get_ledger_range_from_times](#get_ledger_range_from_times) 
 - [Schemas](#schemas)
 - [Extensions](#extensions)
@@ -66,7 +66,7 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
    - [export_trades](#export_trades)
  - [Stellar Core Commands](#stellar-core-commands)
    - [export_ledger_entry_changes](#export_ledger_entry_changes)
-   - [export_orderbooks](#export_orderbooks)
+   - [export_orderbooks (unsupported)](#export_orderbooks-unsupported)
  - [Utility Commands](#utility-commands)
    - [get_ledger_range_from_times](#get_ledger_range_from_times)
 
@@ -82,6 +82,8 @@ Commands have the option to read from testnet with the `--testnet` flag. Default
 
 These commands use the bucket list in order to ingest large amounts of data from the history of the stellar ledger. If you are trying to read large amounts of information in order to catch up to the current state of the ledger, these commands provide a good way to catchup quickly. However, they don't allow for custom start-ledger values. For updating within a user-defined range, see the Stellar Core commands.
 
+> *_NOTE:_* In order to get information within a specified ledger range for bucket list commands, see the export_ledger_entry_changes command.
+
 <br>
 
 ### **export_accounts**
@@ -90,7 +92,7 @@ These commands use the bucket list in order to ingest large amounts of data from
 > stellar-etl export_accounts --end-ledger 500000 --output exported_accounts.txt
 ```
 
-This command exports accounts, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point-in-time state of accounts, meaning that the exported data represents the account information as it was at `end-ledger`.
+Exports historical account data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get account information within a specified ledger range, see the export_ledger_entry_changes command.
 
 <br>
 
@@ -100,7 +102,7 @@ This command exports accounts, starting from the genesis ledger and ending at th
 > stellar-etl export_offers --end-ledger 500000 --output exported_offers.txt
 ```
 
-This command exports offers, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point-in-time state of offers on Stellar's decentralized exchange as it was at `end-ledger`.
+Exports historical offer data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get offer information within a specified ledger range, see the export_ledger_entry_changes command.
 
 <br>
 
@@ -120,7 +122,7 @@ This command exports trustlines, starting from the genesis ledger and ending at 
 > stellar-etl export_claimable_balances --end-ledger 500000 --output exported_claimable_balances.txt
 ```
 
-Exports historical offer data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get offer information within a specified ledger range, see the export_ledger_entry_changes command.
+Exports claimable balances data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get claimable balances information within a specified ledger range, see the export_ledger_entry_changes command.
 
 <br>
 
@@ -130,7 +132,7 @@ Exports historical offer data from the genesis ledger to the provided end-ledger
 > stellar-etl export_pools --end-ledger 500000 --output exported_pools.txt
 ```
 
-Exports historical liquidity pools data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get liqudity pools information within a specified ledger range, see the export_ledger_entry_changes command.
+Exports historical liquidity pools data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get liquidity pools information within a specified ledger range, see the export_ledger_entry_changes command.
 
 <br>
 
@@ -149,6 +151,8 @@ Exports historical account signers data from the genesis ledger to the provided 
 ## **History Archive Commands**
 
 These commands export information using the history archives. This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
+
+> *_NOTE:_* Commands except `export_ledgers` and `export_assets` also require Captive Core to export data.
 
 <br>
 
@@ -222,7 +226,7 @@ Exports trade data within the specified range to an output file
 
 ## **Stellar Core Commands**
 
-These commands require a Stellar Core instance that is v15.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, or trustlines.
+These commands require a Stellar Core instance that is v19.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, trustlines, claimable balances, liquidity pools, or account signers.
 
 As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
 
@@ -235,7 +239,7 @@ As the Stellar network grows, the Stellar Core instance has to catch up on an in
 --end-ledger 500000 --output exported_changes_folder/
 ```
 
-This command exports ledger changes within the provided ledger range. There are three data type flags that control which types of changes are exported. If no data type flags are set, then by default all three types are exported. If any are set, it is assumed that the others should not be exported. 
+This command exports ledger changes within the provided ledger range. Flags can filter which ledger entry types are exported. If no data type flags are set, then by default all types are exported. If any are set, it is assumed that the others should not be exported.
 
 Changes are exported in batches of a size defined by the `batch-size` flag. By default, the batch-size parameter is set to 64 ledgers, which corresponds to a five minute period of time. This batch size is convenient because checkpoint ledgers are created every 64 ledgers. Checkpoint ledgers act as anchoring points for the nodes on the network, so it is beneficial to export in multiples of 64.
 
@@ -249,12 +253,14 @@ If only a start ledger is provided, then the command runs in an unbounded fashio
 
 <br>
 
-### **export_orderbooks**
+### **export_orderbooks (unsupported)**
 
 ```bash
 > stellar-etl export_orderbooks --start-ledger 1000 \
 --end-ledger 500000 --output exported_orderbooks_folder/
 ```
+
+> *_NOTE:_* This is an expermental feature and is currently unsupported.
 
 This command exports orderbooks within the provided ledger range. Since exporting complete orderbooks at every single ledger would require an excessive amount of storage space, the output is normalized. Each batch that is exported contains multiple files, namely: `dimAccounts.txt`, `dimOffers.txt`, `dimMarkets.txt`, and `factEvents.txt`. The dim files relate a data structure to an ID. `dimMarkets`, for example, contains the buying and selling assets of a market, as well as the ID for that market. That ID is used in other places as a replacement for the full market information. This normalization process saves  a significant amount of space (roughly 90% in our benchmarks). The `factEvents` file connects ledger numbers to the offer IDs that were present at that ledger.
 
