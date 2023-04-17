@@ -68,4 +68,14 @@ func init() {
 	utils.AddBucketFlags("claimable_balances", claimableBalancesCmd.Flags())
 	utils.AddGcsFlags(claimableBalancesCmd.Flags())
 	claimableBalancesCmd.MarkFlagRequired("end-ledger")
+
+    /*
+		Current flags:
+			end-ledger: the ledger sequence number for the end of the export range (required)
+            output-file: filename of the output file
+
+		TODO: implement extra flags if possible
+			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
+			end time as a replacement for end sequence numbers
+    */
 }
