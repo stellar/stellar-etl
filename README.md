@@ -112,7 +112,7 @@ Exports historical offer data from the genesis ledger to the provided end-ledger
 > stellar-etl export_trustlines --end-ledger 500000 --output exported_trustlines.txt
 ```
 
-This command exports trustlines, starting from the genesis ledger and ending at the ledger determined by `end-ledger`. This command exports the point-in-time state of trustlines, meaning that the exported data represents the trustline information as it was at `end-ledger`.
+Exports historical trustline data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get trustline information within a specified ledger range, see the export_ledger_entry_changes command.
 
 <br>
 
