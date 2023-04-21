@@ -924,10 +924,16 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeInvokeHostFunction:
 		op := operation.Body.MustInvokeHostFunctionOp()
 		details["function"] = op.Function.Type.String()
+
 		switch op.Function.Type {
 		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
 			args := op.Function.MustInvokeArgs()
 			params := make([]map[string]string, 0, len(args))
+
+            for _, iter := range op.Footprint.ReadWrite {
+                contractidraw, _ := iter.MustContractData().ContractId.MarshalBinary()
+                details["contractid"] = base64.StdEncoding.EncodeToString(contractidraw)
+            }
 
 			for _, param := range args {
 				serializedParam := map[string]string{}
@@ -953,6 +959,13 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
 			args := op.Function.MustCreateContractArgs()
 			details["type"] = args.ContractId.Type.String()
+
+            for _, iter := range op.Footprint.ReadWrite {
+                contractidraw, _ := iter.MustContractData().ContractId.MarshalBinary()
+                details["contractid"] = base64.StdEncoding.EncodeToString(contractidraw)
+            }
+
+
 			switch args.ContractId.Type {
 			case xdr.ContractIdTypeContractIdFromSourceAccount:
 				details["salt"] = args.ContractId.MustSalt().String()
@@ -977,6 +990,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		case xdr.HostFunctionTypeHostFunctionTypeInstallContractCode:
 			args := op.Function.MustInstallContractCodeArgs()
 			details["code"] = base64.StdEncoding.EncodeToString(args.Code)
+
+            for _, iter := range op.Footprint.ReadWrite {
+                contractidraw, _ := iter.MustContractCode().Hash.MarshalBinary()
+                details["contractid"] = base64.StdEncoding.EncodeToString(contractidraw)
+            }
 		default:
 			panic(fmt.Errorf("Unknown host function type: %s", op.Function.Type))
 		}
