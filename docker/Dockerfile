@@ -16,7 +16,8 @@ RUN go build -v -o /usr/local/bin ./...
 # stellar/stellar-core 19, pinned by sha digest
 #FROM stellar/stellar-core@sha256:41107f7e3c8f5cbdf385bfda897bb56f862d1a9a757e948ba881ec566eb7dc72 AS run
 #FROM docker-registry.services.stellar-ops.com/dev/stellar-core:19.8.1-1246.064a2787a.focal-soroban AS run
-FROM sreuland/stellar-core:19.8.1-1246.064a2787a.focal-soroban AS run
+#FROM sreuland/stellar-core:19.8.1-1246.064a2787a.focal-soroban AS run
+FROM sreuland/stellar-core:19.10.1-1310.6649f5173.focal-soroban
 
 WORKDIR /etl
 

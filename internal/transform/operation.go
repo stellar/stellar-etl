@@ -922,86 +922,78 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["shares"] = utils.ConvertStroopValueToReal(op.Amount)
 
 	case xdr.OperationTypeInvokeHostFunction:
-		op := operation.Body.MustInvokeHostFunctionOp()
-		details["function"] = op.Function.Type.String()
+        op := operation.Body.MustInvokeHostFunctionOp()
+		hostFunctions := make([]map[string]interface{}, 0, len(op.Functions))
+		if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(operationIndex, transaction); err != nil {
+			return nil, err
+		} else {
+			details["asset_balance_changes"] = balanceChanges
+		}
+		for _, function := range op.Functions {
+			hostFunctionInvocation := make(map[string]interface{}, 2)
+			hostFunctions = append(hostFunctions, hostFunctionInvocation)
+			params := []map[string]string{}
 
-		switch op.Function.Type {
-		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-			args := op.Function.MustInvokeArgs()
-			params := make([]map[string]string, 0, len(args))
+			switch function.Args.Type {
+			case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+				hostFunctionInvocation["type"] = "invoke_contract"
+				args := function.Args.MustInvokeContract()
+				for _, param := range args {
+					serializedParam := map[string]string{}
+					serializedParam["value"] = "n/a"
+					serializedParam["type"] = "n/a"
 
-            for _, iter := range op.Footprint.ReadWrite {
-                contractidraw, _ := iter.MustContractData().ContractId.MarshalBinary()
-                details["contractid"] = base64.StdEncoding.EncodeToString(contractidraw)
-            }
-
-			for _, param := range args {
-				serializedParam := map[string]string{}
-				serializedParam["value"] = "n/a"
-				serializedParam["type"] = "n/a"
-
-				if name, ok := param.ArmForSwitch(int32(param.Type)); ok {
-					serializedParam["type"] = name
-					if raw, err := param.MarshalBinary(); err == nil {
-						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+					if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+						serializedParam["type"] = scValTypeName
+						if raw, err := param.MarshalBinary(); err == nil {
+							serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+						}
 					}
+					params = append(params, serializedParam)
 				}
-				params = append(params, serializedParam)
-			}
-			details["parameters"] = params
 
-			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(operationIndex, transaction); err != nil {
-				return nil, err
-			} else {
-				details["asset_balance_changes"] = balanceChanges
-			}
+			case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
+				hostFunctionInvocation["type"] = "create_contract"
+				args := function.Args.MustCreateContract()
 
-		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
-			args := op.Function.MustCreateContractArgs()
-			details["type"] = args.ContractId.Type.String()
-
-            for _, iter := range op.Footprint.ReadWrite {
-                contractidraw, _ := iter.MustContractData().ContractId.MarshalBinary()
-                details["contractid"] = base64.StdEncoding.EncodeToString(contractidraw)
-            }
-
-
-			switch args.ContractId.Type {
-			case xdr.ContractIdTypeContractIdFromSourceAccount:
-				details["salt"] = args.ContractId.MustSalt().String()
-			case xdr.ContractIdTypeContractIdFromEd25519PublicKey:
-				fromEd25519PublicKey := args.ContractId.MustFromEd25519PublicKey()
-				details["key"] = xdr.AccountId(xdr.PublicKey{
-					Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
-					Ed25519: &fromEd25519PublicKey.Key,
-				}).Address()
-				signature, err := xdr.MarshalBase64(fromEd25519PublicKey.Signature)
-				if err != nil {
-					return nil, err
+				switch args.ContractId.Type {
+				case xdr.ContractIdTypeContractIdFromSourceAccount:
+					params = append(params,
+						map[string]string{"from": "source_account", "type": "string"},
+						map[string]string{"salt": args.ContractId.MustSalt().String(), "type": "string"},
+					)
+				case xdr.ContractIdTypeContractIdFromEd25519PublicKey:
+					fromEd25519PublicKey := args.ContractId.MustFromEd25519PublicKey()
+					fromKeyStr := xdr.AccountId(xdr.PublicKey{
+						Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
+						Ed25519: &fromEd25519PublicKey.Key,
+					}).Address()
+					signature, err := xdr.MarshalBase64(fromEd25519PublicKey.Signature)
+					if err != nil {
+						return nil, err
+					}
+					params = append(params,
+						map[string]string{"from": "public_key", "type": "string"},
+						map[string]string{"key": fromKeyStr, "type": "string"},
+						map[string]string{"sig": signature, "type": "string"},
+						map[string]string{"salt": fromEd25519PublicKey.Salt.String(), "type": "string"},
+					)
+				case xdr.ContractIdTypeContractIdFromAsset:
+					params = append(params,
+						map[string]string{"from": "asset", "type": "string"},
+						map[string]string{"asset": args.ContractId.MustAsset().StringCanonical(), "type": "string"},
+					)
+				default:
+					panic(fmt.Errorf("unknown contract id type: %s", args.ContractId.Type))
 				}
-				details["signature"] = signature
-				details["salt"] = fromEd25519PublicKey.Salt.String()
-			case xdr.ContractIdTypeContractIdFromAsset:
-				details["asset"] = args.ContractId.MustAsset().StringCanonical()
+			case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
+				hostFunctionInvocation["type"] = "upload_wasm"
 			default:
-				panic(fmt.Errorf("Unknown contract id type: %s", args.ContractId.Type))
+				panic(fmt.Errorf("unknown host function type: %s", function.Args.Type))
 			}
-			details["source"] = args.Source
-		case xdr.HostFunctionTypeHostFunctionTypeInstallContractCode:
-			args := op.Function.MustInstallContractCodeArgs()
-			details["code"] = base64.StdEncoding.EncodeToString(args.Code)
-
-            for _, iter := range op.Footprint.ReadWrite {
-                contractidraw, _ := iter.MustContractCode().Hash.MarshalBinary()
-                details["contractid"] = base64.StdEncoding.EncodeToString(contractidraw)
-            }
-		default:
-			panic(fmt.Errorf("Unknown host function type: %s", op.Function.Type))
+			hostFunctionInvocation["parameters"] = params
 		}
-		if raw, err := op.Footprint.MarshalBinary(); err == nil {
-			details["footprint"] = base64.StdEncoding.EncodeToString(raw)
-		}
-
+		details["host_functions"] = hostFunctions
 	default:
 		return details, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
@@ -1508,66 +1500,77 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		}
 	case xdr.OperationTypeInvokeHostFunction:
 		op := operation.operation.Body.MustInvokeHostFunctionOp()
-		details["function"] = op.Function.Type.String()
-		switch op.Function.Type {
-		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-			args := op.Function.MustInvokeArgs()
-			params := make([]map[string]string, 0, len(args))
+		hostFunctions := make([]map[string]interface{}, 0, len(op.Functions))
+		if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
+			return nil, err
+		} else {
+			details["asset_balance_changes"] = balanceChanges
+		}
+		for _, function := range op.Functions {
+			hostFunctionInvocation := make(map[string]interface{}, 2)
+			hostFunctions = append(hostFunctions, hostFunctionInvocation)
+			params := []map[string]string{}
 
-			for _, param := range args {
-				serializedParam := map[string]string{}
-				serializedParam["value"] = "n/a"
-				serializedParam["type"] = "n/a"
+			switch function.Args.Type {
+			case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+				hostFunctionInvocation["type"] = "invoke_contract"
+				args := function.Args.MustInvokeContract()
+				for _, param := range args {
+					serializedParam := map[string]string{}
+					serializedParam["value"] = "n/a"
+					serializedParam["type"] = "n/a"
 
-				if name, ok := param.ArmForSwitch(int32(param.Type)); ok {
-					serializedParam["type"] = name
-					if raw, err := param.MarshalBinary(); err == nil {
-						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+					if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+						serializedParam["type"] = scValTypeName
+						if raw, err := param.MarshalBinary(); err == nil {
+							serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+						}
 					}
+					params = append(params, serializedParam)
 				}
-				params = append(params, serializedParam)
-			}
-			details["parameters"] = params
 
-			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
-				return nil, err
-			} else {
-				details["asset_balance_changes"] = balanceChanges
-			}
+			case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
+				hostFunctionInvocation["type"] = "create_contract"
+				args := function.Args.MustCreateContract()
 
-		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
-			args := op.Function.MustCreateContractArgs()
-			details["type"] = args.ContractId.Type.String()
-			switch args.ContractId.Type {
-			case xdr.ContractIdTypeContractIdFromSourceAccount:
-				details["salt"] = args.ContractId.MustSalt().String()
-			case xdr.ContractIdTypeContractIdFromEd25519PublicKey:
-				fromEd25519PublicKey := args.ContractId.MustFromEd25519PublicKey()
-				details["key"] = xdr.AccountId(xdr.PublicKey{
-					Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
-					Ed25519: &fromEd25519PublicKey.Key,
-				}).Address()
-				signature, err := xdr.MarshalBase64(fromEd25519PublicKey.Signature)
-				if err != nil {
-					return nil, err
+				switch args.ContractId.Type {
+				case xdr.ContractIdTypeContractIdFromSourceAccount:
+					params = append(params,
+						map[string]string{"from": "source_account", "type": "string"},
+						map[string]string{"salt": args.ContractId.MustSalt().String(), "type": "string"},
+					)
+				case xdr.ContractIdTypeContractIdFromEd25519PublicKey:
+					fromEd25519PublicKey := args.ContractId.MustFromEd25519PublicKey()
+					fromKeyStr := xdr.AccountId(xdr.PublicKey{
+						Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
+						Ed25519: &fromEd25519PublicKey.Key,
+					}).Address()
+					signature, err := xdr.MarshalBase64(fromEd25519PublicKey.Signature)
+					if err != nil {
+						return nil, err
+					}
+					params = append(params,
+						map[string]string{"from": "public_key", "type": "string"},
+						map[string]string{"key": fromKeyStr, "type": "string"},
+						map[string]string{"sig": signature, "type": "string"},
+						map[string]string{"salt": fromEd25519PublicKey.Salt.String(), "type": "string"},
+					)
+				case xdr.ContractIdTypeContractIdFromAsset:
+					params = append(params,
+						map[string]string{"from": "asset", "type": "string"},
+						map[string]string{"asset": args.ContractId.MustAsset().StringCanonical(), "type": "string"},
+					)
+				default:
+					panic(fmt.Errorf("unknown contract id type: %s", args.ContractId.Type))
 				}
-				details["signature"] = signature
-				details["salt"] = fromEd25519PublicKey.Salt.String()
-			case xdr.ContractIdTypeContractIdFromAsset:
-				details["asset"] = args.ContractId.MustAsset().StringCanonical()
+			case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
+				hostFunctionInvocation["type"] = "upload_wasm"
 			default:
-				panic(fmt.Errorf("Unknown contract id type: %s", args.ContractId.Type))
+				panic(fmt.Errorf("unknown host function type: %s", function.Args.Type))
 			}
-			details["source"] = args.Source
-		case xdr.HostFunctionTypeHostFunctionTypeInstallContractCode:
-			args := op.Function.MustInstallContractCodeArgs()
-			details["code"] = base64.StdEncoding.EncodeToString(args.Code)
-		default:
-			panic(fmt.Errorf("Unknown host function type: %s", op.Function.Type))
+			hostFunctionInvocation["parameters"] = params
 		}
-		if raw, err := op.Footprint.MarshalBinary(); err == nil {
-			details["footprint"] = base64.StdEncoding.EncodeToString(raw)
-		}
+		details["host_functions"] = hostFunctions
 	default:
 		panic(fmt.Errorf("Unknown operation type: %s", operation.OperationType()))
 	}
