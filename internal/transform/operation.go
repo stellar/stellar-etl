@@ -125,8 +125,12 @@ func mapOperationType(operation xdr.Operation) (string, error) {
 		op_string_type = "liquidity_pool_deposit"
 	case xdr.OperationTypeLiquidityPoolWithdraw:
 		op_string_type = "liquidity_pool_withdraw"
-    case xdr.OperationTypeInvokeHostFunction:
-        op_string_type = "invoke_host_function"
+	case xdr.OperationTypeInvokeHostFunction:
+		op_string_type = "invoke_host_function"
+	case xdr.OperationTypeBumpFootprintExpiration:
+		op_string_type = "bump_footprint_expiration"
+	case xdr.OperationTypeRestoreFootprint:
+		op_string_type = "restore_footprint"
 	default:
 		return op_string_type, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
@@ -922,78 +926,67 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["shares"] = utils.ConvertStroopValueToReal(op.Amount)
 
 	case xdr.OperationTypeInvokeHostFunction:
-        op := operation.Body.MustInvokeHostFunctionOp()
-		hostFunctions := make([]map[string]interface{}, 0, len(op.Functions))
-		if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(operationIndex, transaction); err != nil {
-			return nil, err
-		} else {
-			details["asset_balance_changes"] = balanceChanges
-		}
-		for _, function := range op.Functions {
-			hostFunctionInvocation := make(map[string]interface{}, 2)
-			hostFunctions = append(hostFunctions, hostFunctionInvocation)
-			params := []map[string]string{}
+		op := operation.Body.MustInvokeHostFunctionOp()
+		details["function"] = op.HostFunction.Type.String()
 
-			switch function.Args.Type {
-			case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-				hostFunctionInvocation["type"] = "invoke_contract"
-				args := function.Args.MustInvokeContract()
-				for _, param := range args {
-					serializedParam := map[string]string{}
-					serializedParam["value"] = "n/a"
-					serializedParam["type"] = "n/a"
+		switch op.HostFunction.Type {
+		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+			args := op.HostFunction.MustInvokeContract()
+			details["type"] = "invoke_contract"
+			params := make([]map[string]string, 0, len(args))
 
-					if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-						serializedParam["type"] = scValTypeName
-						if raw, err := param.MarshalBinary(); err == nil {
-							serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-						}
+			for _, param := range args {
+				serializedParam := map[string]string{}
+				serializedParam["value"] = "n/a"
+				serializedParam["type"] = "n/a"
+
+				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+					serializedParam["type"] = scValTypeName
+					if raw, err := param.MarshalBinary(); err == nil {
+						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
 					}
-					params = append(params, serializedParam)
 				}
-
-			case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
-				hostFunctionInvocation["type"] = "create_contract"
-				args := function.Args.MustCreateContract()
-
-				switch args.ContractId.Type {
-				case xdr.ContractIdTypeContractIdFromSourceAccount:
-					params = append(params,
-						map[string]string{"from": "source_account", "type": "string"},
-						map[string]string{"salt": args.ContractId.MustSalt().String(), "type": "string"},
-					)
-				case xdr.ContractIdTypeContractIdFromEd25519PublicKey:
-					fromEd25519PublicKey := args.ContractId.MustFromEd25519PublicKey()
-					fromKeyStr := xdr.AccountId(xdr.PublicKey{
-						Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
-						Ed25519: &fromEd25519PublicKey.Key,
-					}).Address()
-					signature, err := xdr.MarshalBase64(fromEd25519PublicKey.Signature)
-					if err != nil {
-						return nil, err
-					}
-					params = append(params,
-						map[string]string{"from": "public_key", "type": "string"},
-						map[string]string{"key": fromKeyStr, "type": "string"},
-						map[string]string{"sig": signature, "type": "string"},
-						map[string]string{"salt": fromEd25519PublicKey.Salt.String(), "type": "string"},
-					)
-				case xdr.ContractIdTypeContractIdFromAsset:
-					params = append(params,
-						map[string]string{"from": "asset", "type": "string"},
-						map[string]string{"asset": args.ContractId.MustAsset().StringCanonical(), "type": "string"},
-					)
-				default:
-					panic(fmt.Errorf("unknown contract id type: %s", args.ContractId.Type))
-				}
-			case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
-				hostFunctionInvocation["type"] = "upload_wasm"
-			default:
-				panic(fmt.Errorf("unknown host function type: %s", function.Args.Type))
+				params = append(params, serializedParam)
 			}
-			hostFunctionInvocation["parameters"] = params
+			details["parameters"] = params
+
+			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction); err != nil {
+				return nil, err
+			} else {
+				details["asset_balance_changes"] = balanceChanges
+			}
+
+		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
+			args := op.HostFunction.MustCreateContract()
+			details["type"] = "create_contract"
+			switch args.ContractIdPreimage.Type {
+			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
+				fromAddress := args.ContractIdPreimage.MustFromAddress()
+				address, err := fromAddress.Address.String()
+				if err != nil {
+					panic(fmt.Errorf("error obtaining address for: %s", args.ContractIdPreimage.Type))
+				}
+				details["from"] = "address"
+				details["address"] = address
+				details["salt"] = fromAddress.Salt
+			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
+				details["from"] = "asset"
+				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
+			default:
+				panic(fmt.Errorf("unknown contract id type: %s", args.ContractIdPreimage.Type))
+			}
+		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
+			details["type"] = "upload_wasm"
+		default:
+			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
-		details["host_functions"] = hostFunctions
+	case xdr.OperationTypeBumpFootprintExpiration:
+		op := operation.Body.MustBumpFootprintExpirationOp()
+		details["type"] = "bump_footprint_expiration"
+		details["ledgers_to_expire"] = op.LedgersToExpire
+	case xdr.OperationTypeRestoreFootprint:
+		details["type"] = "restore_footprint"
+
 	default:
 		return details, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
@@ -1015,7 +1008,7 @@ type transactionOperationWrapper struct {
 	transaction    ingest.LedgerTransaction
 	operation      xdr.Operation
 	ledgerSequence uint32
-    network        string
+	network        string
 }
 
 // ID returns the ID for the operation.
@@ -1500,77 +1493,66 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		}
 	case xdr.OperationTypeInvokeHostFunction:
 		op := operation.operation.Body.MustInvokeHostFunctionOp()
-		hostFunctions := make([]map[string]interface{}, 0, len(op.Functions))
-		if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
-			return nil, err
-		} else {
-			details["asset_balance_changes"] = balanceChanges
-		}
-		for _, function := range op.Functions {
-			hostFunctionInvocation := make(map[string]interface{}, 2)
-			hostFunctions = append(hostFunctions, hostFunctionInvocation)
-			params := []map[string]string{}
+		details["function"] = op.HostFunction.Type.String()
 
-			switch function.Args.Type {
-			case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-				hostFunctionInvocation["type"] = "invoke_contract"
-				args := function.Args.MustInvokeContract()
-				for _, param := range args {
-					serializedParam := map[string]string{}
-					serializedParam["value"] = "n/a"
-					serializedParam["type"] = "n/a"
+		switch op.HostFunction.Type {
+		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+			args := op.HostFunction.MustInvokeContract()
+			details["type"] = "invoke_contract"
+			params := make([]map[string]string, 0, len(args))
 
-					if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-						serializedParam["type"] = scValTypeName
-						if raw, err := param.MarshalBinary(); err == nil {
-							serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-						}
+			for _, param := range args {
+				serializedParam := map[string]string{}
+				serializedParam["value"] = "n/a"
+				serializedParam["type"] = "n/a"
+
+				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+					serializedParam["type"] = scValTypeName
+					if raw, err := param.MarshalBinary(); err == nil {
+						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
 					}
-					params = append(params, serializedParam)
 				}
-
-			case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
-				hostFunctionInvocation["type"] = "create_contract"
-				args := function.Args.MustCreateContract()
-
-				switch args.ContractId.Type {
-				case xdr.ContractIdTypeContractIdFromSourceAccount:
-					params = append(params,
-						map[string]string{"from": "source_account", "type": "string"},
-						map[string]string{"salt": args.ContractId.MustSalt().String(), "type": "string"},
-					)
-				case xdr.ContractIdTypeContractIdFromEd25519PublicKey:
-					fromEd25519PublicKey := args.ContractId.MustFromEd25519PublicKey()
-					fromKeyStr := xdr.AccountId(xdr.PublicKey{
-						Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
-						Ed25519: &fromEd25519PublicKey.Key,
-					}).Address()
-					signature, err := xdr.MarshalBase64(fromEd25519PublicKey.Signature)
-					if err != nil {
-						return nil, err
-					}
-					params = append(params,
-						map[string]string{"from": "public_key", "type": "string"},
-						map[string]string{"key": fromKeyStr, "type": "string"},
-						map[string]string{"sig": signature, "type": "string"},
-						map[string]string{"salt": fromEd25519PublicKey.Salt.String(), "type": "string"},
-					)
-				case xdr.ContractIdTypeContractIdFromAsset:
-					params = append(params,
-						map[string]string{"from": "asset", "type": "string"},
-						map[string]string{"asset": args.ContractId.MustAsset().StringCanonical(), "type": "string"},
-					)
-				default:
-					panic(fmt.Errorf("unknown contract id type: %s", args.ContractId.Type))
-				}
-			case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
-				hostFunctionInvocation["type"] = "upload_wasm"
-			default:
-				panic(fmt.Errorf("unknown host function type: %s", function.Args.Type))
+				params = append(params, serializedParam)
 			}
-			hostFunctionInvocation["parameters"] = params
+			details["parameters"] = params
+
+			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
+				return nil, err
+			} else {
+				details["asset_balance_changes"] = balanceChanges
+			}
+
+		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
+			args := op.HostFunction.MustCreateContract()
+			details["type"] = "create_contract"
+			switch args.ContractIdPreimage.Type {
+			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
+				fromAddress := args.ContractIdPreimage.MustFromAddress()
+				address, err := fromAddress.Address.String()
+				if err != nil {
+					panic(fmt.Errorf("error obtaining address for: %s", args.ContractIdPreimage.Type))
+				}
+				details["from"] = "address"
+				details["address"] = address
+				details["salt"] = fromAddress.Salt
+			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
+				details["from"] = "asset"
+				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
+			default:
+				panic(fmt.Errorf("unknown contract id type: %s", args.ContractIdPreimage.Type))
+			}
+		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
+			details["type"] = "upload_wasm"
+		default:
+			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
-		details["host_functions"] = hostFunctions
+	case xdr.OperationTypeBumpFootprintExpiration:
+		op := operation.operation.Body.MustBumpFootprintExpirationOp()
+		details["type"] = "bump_footprint_expiration"
+		details["ledgers_to_expire"] = op.LedgersToExpire
+	case xdr.OperationTypeRestoreFootprint:
+		details["type"] = "restore_footprint"
+
 	default:
 		panic(fmt.Errorf("Unknown operation type: %s", operation.OperationType()))
 	}
@@ -1610,7 +1592,7 @@ func filterEvents(diagnosticEvents []xdr.DiagnosticEvent) []xdr.ContractEvent {
 func (operation *transactionOperationWrapper) parseAssetBalanceChangesFromContractEvents() ([]map[string]interface{}, error) {
 	balanceChanges := []map[string]interface{}{}
 
-	diagnosticEvents, err := operation.transaction.GetOperationEvents(operation.index)
+	diagnosticEvents, err := operation.transaction.GetDiagnosticEvents()
 	if err != nil {
 		// this operation in this context must be an InvokeHostFunctionOp, therefore V3Meta should be present
 		// as it's in same soroban model, so if any err, it's real,
@@ -1642,10 +1624,10 @@ func (operation *transactionOperationWrapper) parseAssetBalanceChangesFromContra
 	return balanceChanges, nil
 }
 
-func parseAssetBalanceChangesFromContractEvents(operationIndex int32, transaction ingest.LedgerTransaction) ([]map[string]interface{}, error) {
+func parseAssetBalanceChangesFromContractEvents(transaction ingest.LedgerTransaction) ([]map[string]interface{}, error) {
 	balanceChanges := []map[string]interface{}{}
 
-	diagnosticEvents, err := transaction.GetOperationEvents(uint32(operationIndex))
+	diagnosticEvents, err := transaction.GetDiagnosticEvents()
 	if err != nil {
 		// this operation in this context must be an InvokeHostFunctionOp, therefore V3Meta should be present
 		// as it's in same soroban model, so if any err, it's real,
@@ -1894,6 +1876,12 @@ func (operation *transactionOperationWrapper) Participants() ([]xdr.AccountId, e
 	case xdr.OperationTypeLiquidityPoolDeposit:
 		// the only direct participant is the source_account
 	case xdr.OperationTypeLiquidityPoolWithdraw:
+		// the only direct participant is the source_account
+	case xdr.OperationTypeInvokeHostFunction:
+		// the only direct participant is the source_account
+	case xdr.OperationTypeBumpFootprintExpiration:
+		// the only direct participant is the source_account
+	case xdr.OperationTypeRestoreFootprint:
 		// the only direct participant is the source_account
 	default:
 		return participants, fmt.Errorf("Unknown operation type: %s", op.Body.Type)
