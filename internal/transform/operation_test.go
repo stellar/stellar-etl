@@ -13,9 +13,10 @@ import (
 
 func TestTransformOperation(t *testing.T) {
 	type operationInput struct {
-		operation   xdr.Operation
-		index       int32
-		transaction ingest.LedgerTransaction
+		operation        xdr.Operation
+		index            int32
+		transaction      ingest.LedgerTransaction
+		ledgerClosedMeta xdr.LedgerCloseMeta
 	}
 	type transformTest struct {
 		input      operationInput
@@ -55,19 +56,35 @@ func TestTransformOperation(t *testing.T) {
 	hardCodedInputTransaction, err := makeOperationTestInput()
 	assert.NoError(t, err)
 	hardCodedOutputArray := makeOperationTestOutputs()
+	hardCodedInputLedgerCloseMeta := makeLedgerCloseMeta()
 
 	for i, op := range hardCodedInputTransaction.Envelope.Operations() {
 		tests = append(tests, transformTest{
-			input:      operationInput{op, int32(i), hardCodedInputTransaction},
+			input:      operationInput{op, int32(i), hardCodedInputTransaction, hardCodedInputLedgerCloseMeta},
 			wantOutput: hardCodedOutputArray[i],
 			wantErr:    nil,
 		})
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOperation(test.input.operation, test.input.index, test.input.transaction, 0)
+		actualOutput, actualError := TransformOperation(test.input.operation, test.input.index, test.input.transaction, 0, test.input.ledgerClosedMeta)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
+	}
+}
+
+func makeLedgerCloseMeta() (ledgerCloseMeta xdr.LedgerCloseMeta) {
+	return xdr.LedgerCloseMeta{
+		V: 0,
+		V0: &xdr.LedgerCloseMetaV0{
+			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+				Header: xdr.LedgerHeader{
+					ScpValue: xdr.StellarValue{
+						CloseTime: 0,
+					},
+				},
+			},
+		},
 	}
 }
 

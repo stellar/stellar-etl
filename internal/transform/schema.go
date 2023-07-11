@@ -59,6 +59,7 @@ type TransactionOutput struct {
 	MinAccountSequenceAge       null.Int       `json:"min_account_sequence_age"`
 	MinAccountSequenceLedgerGap null.Int       `json:"min_account_sequence_ledger_gap"`
 	ExtraSigners                pq.StringArray `json:"extra_signers"`
+	LedgerClosedAt              time.Time      `json:"ledger_closed_at"`
 }
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
@@ -106,6 +107,7 @@ type OperationOutput struct {
 	OperationDetails   map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
 	TransactionID      int64                  `json:"transaction_id"`
 	OperationID        int64                  `json:"id"`
+	LedgerClosedAt     time.Time              `json:"ledger_closed_at"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
