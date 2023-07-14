@@ -365,6 +365,10 @@ const (
 	EffectLiquidityPoolCreated               EffectType = 93
 	EffectLiquidityPoolRemoved               EffectType = 94
 	EffectLiquidityPoolRevoked               EffectType = 95
+	EffectContractCredited                   EffectType = 96
+	EffectContractDebited                    EffectType = 97
+	EffectBumpFootprintExpiration            EffectType = 98
+	EffectRestoreFootprint                   EffectType = 99
 )
 
 // EffectTypeNames stores a map of effect type ID and names
@@ -417,6 +421,8 @@ var EffectTypeNames = map[EffectType]string{
 	EffectLiquidityPoolCreated:               "liquidity_pool_created",
 	EffectLiquidityPoolRemoved:               "liquidity_pool_removed",
 	EffectLiquidityPoolRevoked:               "liquidity_pool_revoked",
+	EffectContractCredited:                   "contract_credited",
+	EffectContractDebited:                    "contract_debited",
 }
 
 // TradeEffectDetails is a struct of data from `effects.DetailsString`
@@ -444,4 +450,78 @@ type TestTransaction struct {
 	FeeChangesXDR string
 	MetaXDR       string
 	Hash          string
+}
+
+// ContractDataOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
+type ContractDataOutput struct {
+	ContractId                  string `json:"contract_id"`
+	ContractKey                 string `json:"contract_key"`
+	ContractDurability          string `json:"contract_durability"`
+	ContractDataFlags           uint32 `json:"contract_data_flags"`
+	ContractDataVal             string `json:"contract_data_val"`
+	ContractExpirationLedgerSeq uint32 `json:"contract_expiration_ledger_seq"`
+	LastModifiedLedger          uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange           uint32 `json:"ledger_entry_change"`
+	Deleted                     bool   `json:"deleted"`
+}
+
+// ContractCodeOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
+type ContractCodeOutput struct {
+	ContractCodeHash                string `json:"contract_code_hash"`
+	ContractCodeExtV                int32  `json:"contract_code_ext_v"`
+	ContractCodeCode                string `json:"contract_code"`
+	ContractCodeExpirationLedgerSeq uint32 `json:"contract_code_expiration_ledger_seq"`
+	LastModifiedLedger              uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange               uint32 `json:"ledger_entry_change"`
+	Deleted                         bool   `json:"deleted"`
+}
+
+// ConfigSettingOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
+type ConfigSettingOutput struct {
+	ConfigSettingId                 int32               `json:"config_setting_id"`
+	ContractMaxSizeBytes            uint32              `json:"contract_max_size_bytes"`
+	LedgerMaxInstructions           int64               `json:"ledger_max_instructions"`
+	TxMaxInstructions               int64               `json:"tx_max_instructions"`
+	FeeRatePerInstructionsIncrement int64               `json:"fee_rate_per_instructions_increment"`
+	TxMemoryLimit                   uint32              `json:"tx_memory_limit"`
+	LedgerMaxReadLedgerEntries      uint32              `json:"ledger_max_read_ledger_entries"`
+	LedgerMaxReadBytes              uint32              `json:"ledger_max_read_bytes"`
+	LedgerMaxWriteLedgerEntries     uint32              `json:"ledger_max_write_ledger_entries"`
+	LedgerMaxWriteBytes             uint32              `json:"ledger_max_write_bytes"`
+	TxMaxReadLedgerEntries          uint32              `json:"tx_max_read_ledger_entries"`
+	TxMaxReadBytes                  uint32              `json:"tx_max_read_bytes"`
+	TxMaxWriteLedgerEntries         uint32              `json:"tx_max_write_ledger_entries"`
+	TxMaxWriteBytes                 uint32              `json:"tx_max_write_bytes"`
+	FeeReadLedgerEntry              int64               `json:"fee_read_ledger_entry"`
+	FeeWriteLedgerEntry             int64               `json:"fee_write_ledger_entry"`
+	FeeRead1Kb                      int64               `json:"fee_read_1kb"`
+	FeeWrite1Kb                     int64               `json:"fee_write_1kb"`
+	BucketListSizeBytes             int64               `json:"bucket_list_size_bytes"`
+	BucketListFeeRateLow            int64               `json:"bucket_list_fee_rate_low"`
+	BucketListFeeRateHigh           int64               `json:"bucket_list_fee_rate_high"`
+	BucketListGrowthFactor          uint32              `json:"bucket_list_growth_factor"`
+	FeeHistorical1Kb                int64               `json:"fee_historical_1kb"`
+	TxMaxExtendedMetaDataSizeBytes  uint32              `json:"tx_max_extended_meta_data_size_bytes"`
+	FeeExtendedMetaData1Kb          int64               `json:"fee_extended_meta_data_1kb"`
+	LedgerMaxPropagateSizeBytes     uint32              `json:"ledger_max_propagate_size_bytes"`
+	TxMaxSizeBytes                  uint32              `json:"tx_max_size_bytes"`
+	FeePropagateData1Kb             int64               `json:"fee_propagate_data_1kb"`
+	ContractCostParamsCpuInsns      []map[string]string `json:"contract_cost_params_cpu_insns"`
+	ContractCostParamsMemBytes      []map[string]string `json:"contract_cost_params_mem_bytes"`
+	ContractDataKeySizeBytes        uint32              `json:"contract_data_key_size_bytes"`
+	ContractDataEntrySizeBytes      uint32              `json:"contract_data_entry_size_bytes"`
+	MaxEntryExpiration              uint32              `json:"max_entry_expiration"`
+	MinTempEntryExpiration          uint32              `json:"min_temp_entry_expiration"`
+	MinPersistentEntryExpiration    uint32              `json:"min_persistent_entry_expiration"`
+	AutoBumpLedgers                 uint32              `json:"auto_bump_ledgers"`
+	PersistentRentRateDenominator   int64               `json:"persistent_rent_rate_denominator"`
+	TempRentRateDenominator         int64               `json:"temp_rent_rate_denominator"`
+	MaxEntriesToExpire              uint32              `json:"max_entries_to_expire"`
+	BucketListSizeWindowSampleSize  uint32              `json:"bucket_list_size_window_sample_size"`
+	EvictionScanSize                uint64              `json:"eviction_scan_size"`
+	LedgerMaxTxCount                uint32              `json:"ledger_max_tx_count"`
+	BucketListSizeWindow            []uint64            `json:"bucket_list_size_window"`
+	LastModifiedLedger              uint32              `json:"last_modified_ledger"`
+	LedgerEntryChange               uint32              `json:"ledger_entry_change"`
+	Deleted                         bool                `json:"deleted"`
 }

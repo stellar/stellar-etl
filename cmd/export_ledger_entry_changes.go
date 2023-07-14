@@ -90,6 +90,9 @@ be exported.`,
 					"offers":             {},
 					"trustlines":         {},
 					"liquidity_pools":    {},
+					"contract_data":      {},
+					"contract_code":      {},
+					"config_setting":     {},
 				}
 				for entryType, changes := range batch.Changes {
 					switch entryType {
@@ -152,6 +155,36 @@ be exported.`,
 					case xdr.LedgerEntryTypeLiquidityPool:
 						for _, change := range changes {
 							pool, err := transform.TransformPool(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+						}
+					case xdr.LedgerEntryTypeContractData:
+						for _, change := range changes {
+							pool, err := transform.TransformContractData(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+						}
+					case xdr.LedgerEntryTypeContractCode:
+						for _, change := range changes {
+							pool, err := transform.TransformContractCode(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+						}
+					case xdr.LedgerEntryTypeConfigSetting:
+						for _, change := range changes {
+							pool, err := transform.TransformConfigSetting(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
