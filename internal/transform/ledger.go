@@ -12,12 +12,8 @@ import (
 
 //TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
 func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
-	ledger, ok := inputLedgerMeta.GetV0()
-	if !ok {
-		return LedgerOutput{}, fmt.Errorf("Could not access the v0 information for given ledger")
-	}
 
-	ledgerHeaderHistory := ledger.LedgerHeader
+	ledgerHeaderHistory := inputLedgerMeta.LedgerHeaderHistoryEntry()
 	ledgerHeader := ledgerHeaderHistory.Header
 
 	outputSequence := uint32(ledgerHeader.LedgerSeq)
@@ -32,7 +28,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(ledger)
+	outputTransactionCount, outputOperationCount, outputSuccessfulCount, outputFailedCount, outputTxSetOperationCount, err := extractCounts(inputLedgerMeta)
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
@@ -86,9 +82,8 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 }
 
 func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
-	transactions := lcm.TxSet.Txs
-	results := lcm.TxProcessing
-	txCount := len(transactions)
+	results := getTransactionProcessing(lcm)
+	txCount := lcm.CountTransactions()
 	if txCount != len(results) {
 		err = fmt.Errorf("The number of transactions and results are different (%d != %d)", txCount, len(results))
 		return
@@ -96,7 +91,7 @@ func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operation
 
 	txSetOperationCounter := int32(0)
 	for i := 0; i < txCount; i++ {
-		operations := transactions[i].Operations()
+		operations, _ := results[i].Result.Result.OperationResults()
 		numberOfOps := int32(len(operations))
 		txSetOperationCounter += numberOfOps
 
@@ -119,3 +114,17 @@ func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operation
 	txSetOperationCount = strconv.FormatInt(int64(txSetOperationCounter), 10)
 	return
 }
+
+func getTransactionProcessing(ledgerCloseMeta xdr.LedgerCloseMeta) (transactionProcessing []xdr.TransactionResultMeta) {
+	switch ledgerCloseMeta.V {
+	case 0:
+		return ledgerCloseMeta.V0.TxProcessing
+	case 1:
+		return ledgerCloseMeta.V1.TxProcessing
+	case 2:
+		return ledgerCloseMeta.V2.TxProcessing
+	default:
+		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", ledgerCloseMeta.V))
+	}
+}
+
