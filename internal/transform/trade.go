@@ -291,10 +291,7 @@ func findLatestOperationChange(t ingest.LedgerTransaction, operationIndex int32,
 				return change, nil
 			}
 		}
-		// key, _ := change.Pre.LedgerKey()
-		// if change.Pre != nil && key.Equals(key) {
-		// 	return change, nil
-		// }
+
 	}
 	return ingest.Change{}, errors.Errorf("could not find operation for key %v", key)
 }
