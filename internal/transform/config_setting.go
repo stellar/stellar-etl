@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -69,9 +70,9 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 	params := make([]map[string]string, 0, len(paramsCpuInsns))
 	for _, contractCostParam := range paramsCpuInsns {
 		serializedParam := map[string]string{}
-		serializedParam["ExtV"] = string(contractCostParam.Ext.V)
-		serializedParam["ConstTerm"] = string(contractCostParam.ConstTerm)
-		serializedParam["LinearTerm"] = string(contractCostParam.LinearTerm)
+		serializedParam["ExtV"] = strconv.Itoa(int(contractCostParam.Ext.V))
+		serializedParam["ConstTerm"] = strconv.Itoa(int(contractCostParam.ConstTerm))
+		serializedParam["LinearTerm"] = strconv.Itoa(int(contractCostParam.LinearTerm))
 		params = append(params, serializedParam)
 	}
 	contractCostParamsCpuInsns := params
@@ -80,9 +81,9 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 	paramsMem := make([]map[string]string, 0, len(paramsMemBytes))
 	for _, contractCostParam := range paramsMemBytes {
 		serializedParam := map[string]string{}
-		serializedParam["ExtV"] = string(contractCostParam.Ext.V)
-		serializedParam["ConstTerm"] = string(contractCostParam.ConstTerm)
-		serializedParam["LinearTerm"] = string(contractCostParam.LinearTerm)
+		serializedParam["ExtV"] = strconv.Itoa(int(contractCostParam.Ext.V))
+		serializedParam["ConstTerm"] = strconv.Itoa(int(contractCostParam.ConstTerm))
+		serializedParam["LinearTerm"] = strconv.Itoa(int(contractCostParam.LinearTerm))
 		paramsMem = append(paramsMem, serializedParam)
 	}
 	contractCostParamsMemBytes := paramsMem

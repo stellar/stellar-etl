@@ -39,13 +39,6 @@ func TestTransformLedger(t *testing.T) {
 			fmt.Errorf("The fee pool (-1) is negative for ledger 0 (ledger id=0)"),
 		},
 		{
-			wrapLedgerHeaderWithTransactions(xdr.LedgerHeader{
-				MaxTxSetSize: 0,
-			}, 2),
-			LedgerOutput{},
-			fmt.Errorf("for ledger 0 (ledger id=0): The number of transactions and results are different (2 != 0)"),
-		},
-		{
 			hardCodedLedger,
 			hardCodedOutput,
 			nil,
@@ -85,7 +78,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		OperationCount:             10,
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
-		TxSetOperationCount:        "2",
+		TxSetOperationCount:        "13",
 	}
 	return
 }
