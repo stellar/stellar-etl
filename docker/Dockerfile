@@ -15,7 +15,7 @@ RUN go build -v -o /usr/local/bin ./...
 # stage 2: runtime enviroment
 # stellar/stellar-core 19, pinned by sha digest
 # futurenet preview 10 core image
-FROM sreuland/stellar-core:19.11.1-1373.875f47e24.focal-soroban
+FROM tamirstellar/stellar-core:19.12.1-1390.b8c4fb63c.focal-soroban
 
 WORKDIR /etl
 

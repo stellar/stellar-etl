@@ -23,7 +23,7 @@ func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType, archiveURL
 		return []ingest.Change{}, err
 	}
 
-	if err = utils.ValidateLedgerRange(1, end, latestNum); err != nil {
+	if err = utils.ValidateLedgerRange(2, end, latestNum); err != nil {
 		return []ingest.Change{}, err
 	}
 

@@ -14,8 +14,8 @@ import (
 )
 
 var dataCmd = &cobra.Command{
-	Use:   "export_contract_code",
-	Short: "Exports the contract code information.",
+	Use:   "export_contract_data",
+	Short: "Exports the contract data information.",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
@@ -61,7 +61,7 @@ var dataCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(dataCmd)
 	utils.AddCommonFlags(dataCmd.Flags())
-	utils.AddBucketFlags("contractDatas", dataCmd.Flags())
+	utils.AddBucketFlags("contract_data", dataCmd.Flags())
 	utils.AddGcsFlags(dataCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*

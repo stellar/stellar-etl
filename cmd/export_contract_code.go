@@ -61,7 +61,7 @@ var codeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(codeCmd)
 	utils.AddCommonFlags(codeCmd.Flags())
-	utils.AddBucketFlags("codes", codeCmd.Flags())
+	utils.AddBucketFlags("contract_code", codeCmd.Flags())
 	utils.AddGcsFlags(codeCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*

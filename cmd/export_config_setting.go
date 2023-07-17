@@ -14,8 +14,8 @@ import (
 )
 
 var configSettingCmd = &cobra.Command{
-	Use:   "export_contract_code",
-	Short: "Exports the contract code information.",
+	Use:   "export_config_setting",
+	Short: "Exports the config setting information.",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
@@ -61,7 +61,7 @@ var configSettingCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(configSettingCmd)
 	utils.AddCommonFlags(configSettingCmd.Flags())
-	utils.AddBucketFlags("configSettings", configSettingCmd.Flags())
+	utils.AddBucketFlags("config_settings", configSettingCmd.Flags())
 	utils.AddGcsFlags(configSettingCmd.Flags())
 	accountsCmd.MarkFlagRequired("end-ledger")
 	/*
