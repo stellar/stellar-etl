@@ -81,7 +81,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 	return transformedLedger, nil
 }
 
-func extractCounts(lcm xdr.LedgerCloseMetaV0) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
+func extractCounts(lcm xdr.LedgerCloseMeta) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
 	results := getTransactionProcessing(lcm)
 	txCount := lcm.CountTransactions()
 	if txCount != len(results) {
