@@ -394,8 +394,8 @@ github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An
 github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
 github.com/spf13/viper v1.7.1 h1:pM5oEahlgWv/WnHXpgbKz7iLIxRf65tye2Ci+XFK5sk=
 github.com/spf13/viper v1.7.1/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
-github.com/stellar/go v0.0.0-20230712190330-24d5ff6931f1 h1:aEF4bwECcDcjmsiWKeicM/WHM4gxtQkkfztLtonTm4k=
-github.com/stellar/go v0.0.0-20230712190330-24d5ff6931f1/go.mod h1:j0lhmN0nnrC8bBZliIboeZeisxgUrSNxXGoxwQFyq94=
+github.com/stellar/go v0.0.0-20230717164429-9f44cb5eb82e h1:HPdcAiMyEMqNuGPhUQOgRD2pRQtjQ5dV5WKRUYkSHPs=
+github.com/stellar/go v0.0.0-20230717164429-9f44cb5eb82e/go.mod h1:j0lhmN0nnrC8bBZliIboeZeisxgUrSNxXGoxwQFyq94=
 github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee h1:fbVs0xmXpBvVS4GBeiRmAE3Le70ofAqFMch1GTiq/e8=
 github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

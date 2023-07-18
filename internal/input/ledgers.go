@@ -5,30 +5,30 @@ import (
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go/historyarchive"
 )
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetLedgers(start, end uint32, limit int64, isTest bool, isFuturenet bool) ([]xdr.LedgerCloseMeta, error) {
+func GetLedgers(start, end uint32, limit int64, isTest bool, isFuturenet bool) ([]historyarchive.Ledger, error) {
 	env := utils.GetEnvironmentDetails(isTest, isFuturenet)
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
-		return []xdr.LedgerCloseMeta{}, err
+		return []historyarchive.Ledger{}, err
 	}
 
-	metaSlice := []xdr.LedgerCloseMeta{}
-	ctx := context.Background()
+	ledgerSlice := []historyarchive.Ledger{}
 	for seq := start; seq <= end; seq++ {
-		ledger, err := backend.GetLedger(ctx, seq)
+		ctx := context.Background()
+		ledger, err := backend.GetLedgerArchive(ctx, seq)
 		if err != nil {
-			return []xdr.LedgerCloseMeta{}, err
+			return []historyarchive.Ledger{}, err
 		}
 
-		metaSlice = append(metaSlice, ledger)
-		if int64(len(metaSlice)) >= limit && limit >= 0 {
+		ledgerSlice = append(ledgerSlice, ledger)
+		if int64(len(ledgerSlice)) >= limit && limit >= 0 {
 			break
 		}
 	}
 
-	return metaSlice, nil
+	return ledgerSlice, nil
 }
