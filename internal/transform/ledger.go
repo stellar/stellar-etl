@@ -16,12 +16,12 @@ func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
 
 	ledgerHeader := inputLedger.Header.Header
 
-	outputSequence := uint32(inputLedger.Header.Header.LedgerSeq)
+	outputSequence := uint32(ledgerHeader.LedgerSeq)
 
 	outputLedgerID := toid.New(int32(outputSequence), 0, 0).ToInt64()
 
 	outputLedgerHash := utils.HashToHexString(inputLedger.Header.Hash)
-	outputPreviousHash := utils.HashToHexString(inputLedger.Header.Header.PreviousLedgerHash)
+	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
 	if err != nil {
@@ -33,31 +33,31 @@ func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(inputLedger.Header.Header.ScpValue.CloseTime)
+	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputTotalCoins := int64(inputLedger.Header.Header.TotalCoins)
+	outputTotalCoins := int64(ledgerHeader.TotalCoins)
 	if outputTotalCoins < 0 {
 		return LedgerOutput{}, fmt.Errorf("the total number of coins (%d) is negative for ledger %d (ledger id=%d)", outputTotalCoins, outputSequence, outputLedgerID)
 	}
 
-	outputFeePool := int64(inputLedger.Header.Header.FeePool)
+	outputFeePool := int64(ledgerHeader.FeePool)
 	if outputFeePool < 0 {
 		return LedgerOutput{}, fmt.Errorf("the fee pool (%d) is negative for ledger %d (ledger id=%d)", outputFeePool, outputSequence, outputLedgerID)
 	}
 
-	outputBaseFee := uint32(inputLedger.Header.Header.BaseFee)
+	outputBaseFee := uint32(ledgerHeader.BaseFee)
 
-	outputBaseReserve := uint32(inputLedger.Header.Header.BaseReserve)
+	outputBaseReserve := uint32(ledgerHeader.BaseReserve)
 
-	outputMaxTxSetSize := uint32(inputLedger.Header.Header.MaxTxSetSize)
+	outputMaxTxSetSize := uint32(ledgerHeader.MaxTxSetSize)
 	if int64(outputMaxTxSetSize) < int64(outputTransactionCount) {
 		return LedgerOutput{}, fmt.Errorf("the transaction count is greater than the maximum transaction set size (%d > %d) for ledger %d (ledger id=%d)", outputTransactionCount, outputMaxTxSetSize, outputSequence, outputLedgerID)
 	}
 
-	outputProtocolVersion := uint32(inputLedger.Header.Header.LedgerVersion)
+	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,
@@ -133,7 +133,8 @@ func getTransactionPhase(transactionPhase []xdr.TransactionPhase) (transactionEn
 	for _, phase := range transactionPhase {
 		switch phase.V {
 		case 0:
-			for _, component := range *phase.V0Components {
+			components := phase.MustV0Components()
+			for _, component := range components {
 				switch component.Type {
 				case 0:
 					transactionSlice = append(transactionSlice, component.TxsMaybeDiscountedFee.Txs...)

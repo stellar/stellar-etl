@@ -87,7 +87,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		OperationCount:             10,
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
-		TxSetOperationCount:        "2",
+		TxSetOperationCount:        "13",
 	}
 	return
 }
@@ -95,8 +95,8 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
-			utils.CreateSampleTx(0),
-			utils.CreateSampleTx(1),
+			utils.CreateSampleTx(0, 3),
+			utils.CreateSampleTx(1, 10),
 		},
 	}
 	hardCodedTxProcessing := []xdr.TransactionResultPair{
@@ -123,8 +123,11 @@ func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
 			TxSet:     hardCodedTxSet,
 		},
 		TransactionResult: xdr.TransactionHistoryResultEntry{
-			LedgerSeq:   30578981,
-			TxResultSet: xdr.TransactionResultSet{hardCodedTxProcessing},
+			LedgerSeq: 30578981,
+			TxResultSet: xdr.TransactionResultSet{
+				Results: hardCodedTxProcessing,
+			},
+			Ext: xdr.TransactionHistoryResultEntryExt{},
 		},
 	}
 	return lcm, nil

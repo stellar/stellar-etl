@@ -17,8 +17,9 @@ func GetLedgers(start, end uint32, limit int64, isTest bool, isFuturenet bool) (
 	}
 
 	ledgerSlice := []historyarchive.Ledger{}
+	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		ctx := context.Background()
+
 		ledger, err := backend.GetLedgerArchive(ctx, seq)
 		if err != nil {
 			return []historyarchive.Ledger{}, err
