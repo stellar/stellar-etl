@@ -7,13 +7,14 @@ import (
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
+	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransformLedger(t *testing.T) {
 	type transformTest struct {
-		input      xdr.LedgerCloseMeta
+		input      historyarchive.Ledger
 		wantOutput LedgerOutput
 		wantErr    error
 	}
@@ -25,18 +26,26 @@ func TestTransformLedger(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			wrapLedgerHeader(xdr.LedgerHeader{
-				TotalCoins: -1,
-			}),
+			historyarchive.Ledger{
+				Header: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						TotalCoins: -1,
+					},
+				},
+			},
 			LedgerOutput{},
-			fmt.Errorf("The total number of coins (-1) is negative for ledger 0 (ledger id=0)"),
+			fmt.Errorf("the total number of coins (-1) is negative for ledger 0 (ledger id=0)"),
 		},
 		{
-			wrapLedgerHeader(xdr.LedgerHeader{
-				FeePool: -1,
-			}),
+			historyarchive.Ledger{
+				Header: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						FeePool: -1,
+					},
+				},
+			},
 			LedgerOutput{},
-			fmt.Errorf("The fee pool (-1) is negative for ledger 0 (ledger id=0)"),
+			fmt.Errorf("the fee pool (-1) is negative for ledger 0 (ledger id=0)"),
 		},
 		{
 			hardCodedLedger,
@@ -83,19 +92,19 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 	return
 }
 
-func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
+func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
-			utils.CreateSampleTx(0),
-			utils.CreateSampleTx(1),
+			utils.CreateSampleTx(0, 3),
+			utils.CreateSampleTx(1, 10),
 		},
 	}
-	hardCodedTxProcessing := []xdr.TransactionResultMeta{
-		utils.CreateSampleResultMeta(false, 3),
-		utils.CreateSampleResultMeta(true, 10),
+	hardCodedTxProcessing := []xdr.TransactionResultPair{
+		utils.CreateSampleResultPair(false, 3),
+		utils.CreateSampleResultPair(true, 10),
 	}
-	lcm, err = xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
-		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+	lcm = historyarchive.Ledger{
+		Header: xdr.LedgerHeaderHistoryEntry{
 			Header: xdr.LedgerHeader{
 				LedgerSeq:          30578981,
 				TotalCoins:         1054439020873472865,
@@ -109,25 +118,17 @@ func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 			},
 			Hash: xdr.Hash{0x26, 0x93, 0x2d, 0xc4, 0xd8, 0x4b, 0x5f, 0xab, 0xe9, 0xae, 0x74, 0x4c, 0xb4, 0x3c, 0xe4, 0xc6, 0xda, 0xcc, 0xf9, 0x8c, 0x86, 0xa9, 0x91, 0xb2, 0xa1, 0x49, 0x45, 0xb1, 0xad, 0xac, 0x4d, 0x59},
 		},
-		TxSet:        hardCodedTxSet,
-		TxProcessing: hardCodedTxProcessing,
-	})
-	return
-}
-func wrapLedgerHeaderWithTransactions(header xdr.LedgerHeader, numTransactions int) xdr.LedgerCloseMeta {
-	transactionEnvelopes := []xdr.TransactionEnvelope{}
-	for txNum := 0; txNum < numTransactions; txNum++ {
-		transactionEnvelopes = append(transactionEnvelopes, utils.CreateSampleTx(int64(txNum)))
-	}
-	lcm, _ := xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
-		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-			Header: header,
+		Transaction: xdr.TransactionHistoryEntry{
+			LedgerSeq: 30578981,
+			TxSet:     hardCodedTxSet,
 		},
-		TxSet: xdr.TransactionSet{Txs: transactionEnvelopes},
-	})
-	return lcm
-}
-
-func wrapLedgerHeader(header xdr.LedgerHeader) xdr.LedgerCloseMeta {
-	return wrapLedgerHeaderWithTransactions(header, 0)
+		TransactionResult: xdr.TransactionHistoryResultEntry{
+			LedgerSeq: 30578981,
+			TxResultSet: xdr.TransactionResultSet{
+				Results: hardCodedTxProcessing,
+			},
+			Ext: xdr.TransactionHistoryResultEntryExt{},
+		},
+	}
+	return lcm, nil
 }

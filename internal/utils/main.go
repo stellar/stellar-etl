@@ -37,7 +37,7 @@ func HashToHexString(inputHash xdr.Hash) string {
 func TimePointToUTCTimeStamp(providedTime xdr.TimePoint) (time.Time, error) {
 	intTime := int64(providedTime)
 	if intTime < 0 {
-		return time.Now(), errors.New("The timepoint is negative")
+		return time.Now(), errors.New("the timepoint is negative")
 	}
 	return time.Unix(intTime, 0).UTC(), nil
 }
@@ -50,19 +50,23 @@ func GetAccountAddressFromMuxedAccount(account xdr.MuxedAccount) (string, error)
 }
 
 // CreateSampleTx creates a transaction with a single operation (BumpSequence), the min base fee, and infinite timebounds
-func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
+func CreateSampleTx(sequence int64, operationCount int) xdr.TransactionEnvelope {
 	kp, err := keypair.Random()
 	PanicOnError(err)
+
+	operations := []txnbuild.Operation{}
+	operationType := &txnbuild.BumpSequence{
+		BumpTo: 0,
+	}
+	for i := 0; i < operationCount; i++ {
+		operations = append(operations, operationType)
+	}
 
 	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount: &sourceAccount,
-			Operations: []txnbuild.Operation{
-				&txnbuild.BumpSequence{
-					BumpTo: int64(sequence),
-				},
-			},
+			Operations:    operations,
 			BaseFee:       txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
@@ -107,6 +111,36 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 					Code:    resultCode,
 					Results: &operationResults,
 				},
+			},
+		},
+	}
+}
+
+func CreateSampleResultPair(successful bool, subOperationCount int) xdr.TransactionResultPair {
+	resultCode := xdr.TransactionResultCodeTxFailed
+	if successful {
+		resultCode = xdr.TransactionResultCodeTxSuccess
+	}
+	operationResults := []xdr.OperationResult{}
+	operationResultTr := &xdr.OperationResultTr{
+		Type: xdr.OperationTypeCreateAccount,
+		CreateAccountResult: &xdr.CreateAccountResult{
+			Code: 0,
+		},
+	}
+
+	for i := 0; i < subOperationCount; i++ {
+		operationResults = append(operationResults, xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr:   operationResultTr,
+		})
+	}
+
+	return xdr.TransactionResultPair{
+		Result: xdr.TransactionResult{
+			Result: xdr.TransactionResultResult{
+				Code:    resultCode,
+				Results: &operationResults,
 			},
 		},
 	}
@@ -383,6 +417,26 @@ func (h historyArchiveBackend) GetLatestLedgerSequence(ctx context.Context) (seq
 	return root.CurrentLedger, nil
 }
 
+func (h historyArchiveBackend) GetLedgers(ctx context.Context) (map[uint32]*historyarchive.Ledger, error) {
+
+	return h.ledgers, nil
+}
+
+func (h historyArchiveBackend) GetLedgerArchive(ctx context.Context, sequence uint32) (historyarchive.Ledger, error) {
+	ledger, ok := h.ledgers[sequence]
+	if !ok {
+		return historyarchive.Ledger{}, fmt.Errorf("ledger %d is missing from map", sequence)
+	}
+
+	historyLedger := historyarchive.Ledger{
+		Header:            ledger.Header,
+		Transaction:       ledger.Transaction,
+		TransactionResult: ledger.TransactionResult,
+	}
+
+	return historyLedger, nil
+}
+
 func (h historyArchiveBackend) GetLedger(ctx context.Context, sequence uint32) (xdr.LedgerCloseMeta, error) {
 	ledger, ok := h.ledgers[sequence]
 	if !ok {
@@ -419,45 +473,45 @@ func (h historyArchiveBackend) Close() error {
 // ValidateLedgerRange validates the given ledger range
 func ValidateLedgerRange(start, end, latestNum uint32) error {
 	if start == 0 {
-		return fmt.Errorf("Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+		return fmt.Errorf("start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
 	}
 
 	if end == 0 {
-		return fmt.Errorf("End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+		return fmt.Errorf("end sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
 	}
 
 	if end < start {
-		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
+		return fmt.Errorf("end sequence number is less than start (%d < %d)", end, start)
 	}
 
 	if latestNum < start {
-		return fmt.Errorf("Latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
+		return fmt.Errorf("latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
 	}
 
 	if latestNum < end {
-		return fmt.Errorf("Latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
+		return fmt.Errorf("latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
 	}
 
 	return nil
 }
 
-func CreateBackend(start, end uint32, archiveURLs []string) (ledgerbackend.LedgerBackend, error) {
+func CreateBackend(start, end uint32, archiveURLs []string) (historyArchiveBackend, error) {
 	client, err := CreateHistoryArchiveClient(archiveURLs)
 	if err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 
 	root, err := client.GetRootHAS()
 	if err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 	if err = ValidateLedgerRange(start, end, root.CurrentLedger); err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 
 	ledgers, err := client.GetLedgers(start, end)
 	if err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 	return historyArchiveBackend{client: client, ledgers: ledgers}, nil
 }
@@ -516,7 +570,7 @@ func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
 
 	checkpoint := seq + 64 - remainder
 	if checkpoint > maxSeq {
-		return 0, fmt.Errorf("The checkpoint ledger %d is greater than the max ledger number %d", checkpoint, maxSeq)
+		return 0, fmt.Errorf("the checkpoint ledger %d is greater than the max ledger number %d", checkpoint, maxSeq)
 	}
 
 	return checkpoint, nil
@@ -571,7 +625,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetai
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
 		return details
-    } else {
+	} else {
 		// default: mainnet
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs
