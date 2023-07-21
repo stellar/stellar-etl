@@ -49,6 +49,9 @@ func GetPaymentOperations(start, end uint32, limit int64, isTest bool, isFuture 
 			}
 
 		}
+		if int64(len(assetSlice)) >= limit && limit >= 0 {
+			break
+		}
 	}
 
 	return assetSlice, nil

@@ -33,9 +33,9 @@ var assetsCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, transformInput := range paymentOps {
-			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
+			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.TransactionIndex, transformInput.LedgerSeqNum)
 			if err != nil {
-				txIndex := transformInput.Transaction.Index
+				txIndex := transformInput.TransactionIndex
 				cmdLogger.LogError(fmt.Errorf("could not extract asset from operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum))
 				numFailures += 1
 				continue
@@ -57,7 +57,7 @@ var assetsCmd = &cobra.Command{
 		}
 
 		outFile.Close()
-		cmdLogger.Infof("%d bytes written to %s: %d ", totalNumBytes, outFile.Name())
+		cmdLogger.Infof("%d bytes written to %s", totalNumBytes, outFile.Name())
 
 		printTransformStats(len(paymentOps), numFailures)
 
