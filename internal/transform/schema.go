@@ -460,6 +460,10 @@ type ContractDataOutput struct {
 	ContractDataFlags           uint32 `json:"contract_data_flags"`
 	ContractDataVal             string `json:"contract_data_val"`
 	ContractExpirationLedgerSeq uint32 `json:"contract_expiration_ledger_seq"`
+	ContractDataAssetCode       string `json:"asset_code"`
+	ContractDataAssetIssuer     string `json:"asset_issuer"`
+	ContractDataBalanceHolder   string `json:"balance_holder"`
+	ContractDataBalance         string `json:"balance"`
 	LastModifiedLedger          uint32 `json:"last_modified_ledger"`
 	LedgerEntryChange           uint32 `json:"ledger_entry_change"`
 	Deleted                     bool   `json:"deleted"`

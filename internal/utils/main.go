@@ -235,7 +235,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
-	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 }
@@ -260,7 +260,7 @@ func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
 
-	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 }
 
 // AddExportTypeFlags adds the captive core specifc flags: export-{type} flags

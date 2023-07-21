@@ -164,7 +164,7 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeContractData:
 						for _, change := range changes {
-							pool, err := transform.TransformContractData(change)
+							pool, err := transform.TransformContractData(change, env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))

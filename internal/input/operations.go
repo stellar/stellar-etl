@@ -34,6 +34,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
@@ -46,6 +47,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
@@ -56,7 +58,6 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
 		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []OperationTransformInput{}, err
