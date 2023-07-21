@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stellar/go v0.0.0-20230717164429-9f44cb5eb82e
+	github.com/stellar/go v0.0.0-20230719172935-d805f4702f97
 	github.com/stretchr/testify v1.7.0
 )
 
