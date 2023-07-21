@@ -82,7 +82,7 @@ func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
 }
 
 func extractCounts(ledger historyarchive.Ledger) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
-	transactions := getTransactionSet(ledger)
+	transactions := GetTransactionSet(ledger)
 	results := ledger.TransactionResult.TxResultSet.Results
 	txCount := len(transactions)
 	if txCount != len(results) {
@@ -117,7 +117,7 @@ func extractCounts(ledger historyarchive.Ledger) (transactionCount int32, operat
 
 }
 
-func getTransactionSet(transactionEntry historyarchive.Ledger) (transactionProcessing []xdr.TransactionEnvelope) {
+func GetTransactionSet(transactionEntry historyarchive.Ledger) (transactionProcessing []xdr.TransactionEnvelope) {
 	switch transactionEntry.Transaction.Ext.V {
 	case 0:
 		return transactionEntry.Transaction.TxSet.Txs
