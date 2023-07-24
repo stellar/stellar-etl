@@ -29,7 +29,7 @@ var effectsCmd = &cobra.Command{
 		totalNumBytes := 0
 		for _, transformInput := range transactions {
 			LedgerSeq := uint32(transformInput.LedgerHistory.Header.LedgerSeq)
-			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq)
+			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq, env.NetworkPassphrase)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				cmdLogger.Errorf("could not transform transaction %d in ledger %d: %v", txIndex, LedgerSeq, err)

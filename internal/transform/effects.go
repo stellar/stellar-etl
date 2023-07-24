@@ -19,7 +19,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32) ([]EffectOutput, error) {
+func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, networkPassphrase string) ([]EffectOutput, error) {
 	effects := []EffectOutput{}
 
 	for opi, op := range transaction.Envelope.Operations() {
@@ -28,6 +28,7 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32) ([]
 			transaction:    transaction,
 			operation:      op,
 			ledgerSequence: ledgerSeq,
+			network:        networkPassphrase,
 		}
 
 		p, err := operation.effects()
