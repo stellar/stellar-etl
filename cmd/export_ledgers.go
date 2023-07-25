@@ -38,7 +38,7 @@ func mustOutFile(path string) *os.File {
 
 	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
-		cmdLogger.Fatalf("could not create directory %s: ", path, err)
+		cmdLogger.Fatalf("could not create directory %s: %s", path, err)
 	}
 
 	err = createOutputFile(absolutePath)

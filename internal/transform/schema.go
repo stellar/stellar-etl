@@ -458,12 +458,12 @@ type ContractDataOutput struct {
 	ContractKey                 string `json:"contract_key"`
 	ContractDurability          string `json:"contract_durability"`
 	ContractDataFlags           uint32 `json:"contract_data_flags"`
-	ContractDataVal             string `json:"contract_data_val"`
+	ContractDataVal             string `json:"contract_data_val"` // Useful contract data is flattened into own columns
 	ContractExpirationLedgerSeq uint32 `json:"contract_expiration_ledger_seq"`
 	ContractDataAssetCode       string `json:"asset_code"`
 	ContractDataAssetIssuer     string `json:"asset_issuer"`
 	ContractDataBalanceHolder   string `json:"balance_holder"`
-	ContractDataBalance         string `json:"balance"`
+	ContractDataBalance         string `json:"balance"` // balance is a string because it is go type big.Int
 	LastModifiedLedger          uint32 `json:"last_modified_ledger"`
 	LedgerEntryChange           uint32 `json:"ledger_entry_change"`
 	Deleted                     bool   `json:"deleted"`
@@ -473,11 +473,12 @@ type ContractDataOutput struct {
 type ContractCodeOutput struct {
 	ContractCodeHash                string `json:"contract_code_hash"`
 	ContractCodeExtV                int32  `json:"contract_code_ext_v"`
-	ContractCodeCode                string `json:"contract_code"`
 	ContractCodeExpirationLedgerSeq uint32 `json:"contract_code_expiration_ledger_seq"`
+	ContractCodeEntryBodyType       string `json:"contract_code_entry_body_type"`
 	LastModifiedLedger              uint32 `json:"last_modified_ledger"`
 	LedgerEntryChange               uint32 `json:"ledger_entry_change"`
 	Deleted                         bool   `json:"deleted"`
+	//ContractCodeCode                string `json:"contract_code"`
 }
 
 // ConfigSettingOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data

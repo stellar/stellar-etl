@@ -31,7 +31,7 @@ be exported.`,
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
-		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
+		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
@@ -44,8 +44,8 @@ be exported.`,
 		}
 
 		// If none of the export flags are set, then we assume that everything should be exported
-		if !exportAccounts && !exportOffers && !exportTrustlines && !exportPools && !exportBalances {
-			exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances = true, true, true, true, true
+		if !exportAccounts && !exportOffers && !exportTrustlines && !exportPools && !exportBalances && !exportContractCode && !exportContractData && !exportConfigSettings {
+			exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings = true, true, true, true, true, true, true, true
 		}
 
 		if configPath == "" && endNum == 0 {
@@ -92,7 +92,7 @@ be exported.`,
 					"liquidity_pools":    {},
 					"contract_data":      {},
 					"contract_code":      {},
-					"config_setting":     {},
+					"config_settings":    {},
 				}
 				for entryType, changes := range batch.Changes {
 					switch entryType {
@@ -164,33 +164,33 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeContractData:
 						for _, change := range changes {
-							pool, err := transform.TransformContractData(change, env.NetworkPassphrase)
+							contractData, err := transform.TransformContractData(change, env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
-								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+							transformedOutputs["contract_data"] = append(transformedOutputs["contract_data"], contractData)
 						}
 					case xdr.LedgerEntryTypeContractCode:
 						for _, change := range changes {
-							pool, err := transform.TransformContractCode(change)
+							contractCode, err := transform.TransformContractCode(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
-								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								cmdLogger.LogError(fmt.Errorf("error transforming contract code entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+							transformedOutputs["contract_code"] = append(transformedOutputs["contract_code"], contractCode)
 						}
 					case xdr.LedgerEntryTypeConfigSetting:
 						for _, change := range changes {
-							pool, err := transform.TransformConfigSetting(change)
+							confgiSettings, err := transform.TransformConfigSetting(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
-								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								cmdLogger.LogError(fmt.Errorf("error transforming config settings entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+							transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], confgiSettings)
 						}
 					}
 				}
