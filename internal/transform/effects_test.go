@@ -31,6 +31,7 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 			},
 			operation:      op,
 			ledgerSequence: 1,
+			network:        "testnet",
 		}
 		// calling effects should either panic (because the operation field is set to nil)
 		// or not error

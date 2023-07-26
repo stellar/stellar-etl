@@ -16,14 +16,14 @@ func TransformContractCode(ledgerChange ingest.Change) (ContractCodeOutput, erro
 		return ContractCodeOutput{}, err
 	}
 
-	// LedgerEntryChange must contain a contract code change to be parsed, otherwise skip
-	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeContractCode {
-		return ContractCodeOutput{}, nil
-	}
-
 	contractCode, ok := ledgerEntry.Data.GetContractCode()
 	if !ok {
 		return ContractCodeOutput{}, fmt.Errorf("Could not extract contract code from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+	}
+
+	// LedgerEntryChange must contain a contract code change to be parsed, otherwise skip
+	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeContractCode {
+		return ContractCodeOutput{}, nil
 	}
 
 	contractCodeExtV := contractCode.Ext.V

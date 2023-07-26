@@ -9,16 +9,11 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-// TransformConfigSetting converts an liquidity pool ledger change entry into a form suitable for BigQuery
+// TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
 func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ConfigSettingOutput{}, err
-	}
-
-	// LedgerEntryChange must contain a liquidity pool state change to be parsed, otherwise skip
-	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeConfigSetting {
-		return ConfigSettingOutput{}, nil
 	}
 
 	configSetting, ok := ledgerEntry.Data.GetConfigSetting()
@@ -26,17 +21,22 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		return ConfigSettingOutput{}, fmt.Errorf("Could not extract config setting from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
+	// LedgerEntryChange must contain a config setting state change to be parsed, otherwise skip
+	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeConfigSetting {
+		return ConfigSettingOutput{}, nil
+	}
+
 	configSettingId := configSetting.ConfigSettingId
 
-	contractMaxSizeBytes, ok := configSetting.GetContractMaxSizeBytes()
+	contractMaxSizeBytes, _ := configSetting.GetContractMaxSizeBytes()
 
-	contractCompute, ok := configSetting.GetContractCompute()
+	contractCompute, _ := configSetting.GetContractCompute()
 	ledgerMaxInstructions := contractCompute.LedgerMaxInstructions
 	txMaxInstructions := contractCompute.TxMaxInstructions
 	feeRatePerInstructionsIncrement := contractCompute.FeeRatePerInstructionsIncrement
 	txMemoryLimit := contractCompute.TxMemoryLimit
 
-	contractLedgerCost, ok := configSetting.GetContractLedgerCost()
+	contractLedgerCost, _ := configSetting.GetContractLedgerCost()
 	ledgerMaxReadLedgerEntries := contractLedgerCost.LedgerMaxReadLedgerEntries
 	ledgerMaxReadBytes := contractLedgerCost.LedgerMaxReadBytes
 	ledgerMaxWriteLedgerEntries := contractLedgerCost.LedgerMaxWriteLedgerEntries
@@ -57,42 +57,26 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 	contractHistoricalData, ok := configSetting.GetContractHistoricalData()
 	feeHistorical1Kb := contractHistoricalData.FeeHistorical1Kb
 
-	contractMetaData, ok := configSetting.GetContractMetaData()
+	contractMetaData, _ := configSetting.GetContractMetaData()
 	txMaxExtendedMetaDataSizeBytes := contractMetaData.TxMaxExtendedMetaDataSizeBytes
 	feeExtendedMetaData1Kb := contractMetaData.FeeExtendedMetaData1Kb
 
-	contractBandwidth, ok := configSetting.GetContractBandwidth()
+	contractBandwidth, _ := configSetting.GetContractBandwidth()
 	ledgerMaxPropagateSizeBytes := contractBandwidth.LedgerMaxPropagateSizeBytes
 	txMaxSizeBytes := contractBandwidth.TxMaxSizeBytes
 	feePropagateData1Kb := contractBandwidth.FeePropagateData1Kb
 
-	paramsCpuInsns, ok := configSetting.GetContractCostParamsCpuInsns()
-	params := make([]map[string]string, 0, len(paramsCpuInsns))
-	for _, contractCostParam := range paramsCpuInsns {
-		serializedParam := map[string]string{}
-		serializedParam["ExtV"] = strconv.Itoa(int(contractCostParam.Ext.V))
-		serializedParam["ConstTerm"] = strconv.Itoa(int(contractCostParam.ConstTerm))
-		serializedParam["LinearTerm"] = strconv.Itoa(int(contractCostParam.LinearTerm))
-		params = append(params, serializedParam)
-	}
-	contractCostParamsCpuInsns := params
+	paramsCpuInsns, _ := configSetting.GetContractCostParamsCpuInsns()
+	contractCostParamsCpuInsns := serializeParams(paramsCpuInsns)
 
-	paramsMemBytes, ok := configSetting.GetContractCostParamsMemBytes()
-	paramsMem := make([]map[string]string, 0, len(paramsMemBytes))
-	for _, contractCostParam := range paramsMemBytes {
-		serializedParam := map[string]string{}
-		serializedParam["ExtV"] = strconv.Itoa(int(contractCostParam.Ext.V))
-		serializedParam["ConstTerm"] = strconv.Itoa(int(contractCostParam.ConstTerm))
-		serializedParam["LinearTerm"] = strconv.Itoa(int(contractCostParam.LinearTerm))
-		paramsMem = append(paramsMem, serializedParam)
-	}
-	contractCostParamsMemBytes := paramsMem
+	paramsMemBytes, _ := configSetting.GetContractCostParamsMemBytes()
+	contractCostParamsMemBytes := serializeParams(paramsMemBytes)
 
 	contractDataKeySizeBytes, ok := configSetting.GetContractDataKeySizeBytes()
 
 	contractDataEntrySizeBytes, ok := configSetting.GetContractDataEntrySizeBytes()
 
-	stateExpirationSettings, ok := configSetting.GetStateExpirationSettings()
+	stateExpirationSettings, _ := configSetting.GetStateExpirationSettings()
 	maxEntryExpiration := stateExpirationSettings.MaxEntryExpiration
 	minTempEntryExpiration := stateExpirationSettings.MinTempEntryExpiration
 	minPersistentEntryExpiration := stateExpirationSettings.MinPersistentEntryExpiration
@@ -103,10 +87,10 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 	bucketListSizeWindowSampleSize := stateExpirationSettings.BucketListSizeWindowSampleSize
 	evictionScanSize := stateExpirationSettings.EvictionScanSize
 
-	contractExecutionLanes, ok := configSetting.GetContractExecutionLanes()
+	contractExecutionLanes, _ := configSetting.GetContractExecutionLanes()
 	ledgerMaxTxCount := contractExecutionLanes.LedgerMaxTxCount
 
-	bucketList, ok := configSetting.GetBucketListSizeWindow()
+	bucketList, _ := configSetting.GetBucketListSizeWindow()
 	bucketListSizeWindow := make([]uint64, 0, len(bucketList))
 	for _, sizeWindow := range bucketList {
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))
@@ -161,4 +145,17 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		Deleted:                         outputDeleted,
 	}
 	return transformedPool, nil
+}
+
+func serializeParams(costParams xdr.ContractCostParams) []map[string]string {
+	params := make([]map[string]string, 0, len(costParams))
+	for _, contractCostParam := range costParams {
+		serializedParam := map[string]string{}
+		serializedParam["ExtV"] = strconv.Itoa(int(contractCostParam.Ext.V))
+		serializedParam["ConstTerm"] = strconv.Itoa(int(contractCostParam.ConstTerm))
+		serializedParam["LinearTerm"] = strconv.Itoa(int(contractCostParam.LinearTerm))
+		params = append(params, serializedParam)
+	}
+
+	return params
 }

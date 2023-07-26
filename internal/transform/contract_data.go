@@ -44,16 +44,26 @@ var (
 	}
 )
 
+type AssetFromContractDataFunc func(ledgerEntry xdr.LedgerEntry, passphrase string) (string, string)
+type ContractBalanceFromContractDataFunc func(ledgerEntry xdr.LedgerEntry, passphrase string) ([32]byte, *big.Int, bool)
+
+type TransformContractDataStruct struct {
+	AssetFromContractData           AssetFromContractDataFunc
+	ContractBalanceFromContractData ContractBalanceFromContractDataFunc
+}
+
+func NewTransformContractDataStruct(assetfrom AssetFromContractDataFunc, contractBalance ContractBalanceFromContractDataFunc) *TransformContractDataStruct {
+	return &TransformContractDataStruct{
+		AssetFromContractData:           assetfrom,
+		ContractBalanceFromContractData: contractBalance,
+	}
+}
+
 // TransformContractData converts a contract data ledger change entry into a form suitable for BigQuery
-func TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error) {
+func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractDataOutput{}, err
-	}
-
-	// LedgerEntryChange must contain a contract data change to be parsed, otherwise skip
-	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeContractData {
-		return ContractDataOutput{}, nil
 	}
 
 	contractData, ok := ledgerEntry.Data.GetContractData()
@@ -61,9 +71,14 @@ func TransformContractData(ledgerChange ingest.Change, passphrase string) (Contr
 		return ContractDataOutput{}, fmt.Errorf("Could not extract contract data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
-	contractDataAssetCode, contractDataAssetIssuer := AssetFromContractData(ledgerEntry, passphrase)
+	// LedgerEntryChange must contain a contract data change to be parsed, otherwise skip
+	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeContractData {
+		return ContractDataOutput{}, nil
+	}
 
-	contractDataBalanceHolder, contractDataBalance, _ := ContractBalanceFromContractData(ledgerEntry, passphrase)
+	contractDataAssetCode, contractDataAssetIssuer := t.AssetFromContractData(ledgerEntry, passphrase)
+
+	contractDataBalanceHolder, contractDataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
 
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
@@ -101,7 +116,7 @@ func TransformContractData(ledgerChange ingest.Change, passphrase string) (Contr
 		ContractExpirationLedgerSeq: uint32(contractDataExpirationLedgerSeq),
 		ContractDataAssetCode:       contractDataAssetCode,
 		ContractDataAssetIssuer:     contractDataAssetIssuer,
-		ContractDataBalanceHolder:   string(contractDataBalanceHolder[:]),
+		ContractDataBalanceHolder:   base64.StdEncoding.EncodeToString(contractDataBalanceHolder[:]),
 		ContractDataBalance:         contractDataBalance.String(),
 		LastModifiedLedger:          uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:           uint32(changeType),

@@ -164,7 +164,8 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeContractData:
 						for _, change := range changes {
-							contractData, err := transform.TransformContractData(change, env.NetworkPassphrase)
+							TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
+							contractData, err := TransformContractData.TransformContractData(change, env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
