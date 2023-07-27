@@ -423,6 +423,8 @@ var EffectTypeNames = map[EffectType]string{
 	EffectLiquidityPoolRevoked:               "liquidity_pool_revoked",
 	EffectContractCredited:                   "contract_credited",
 	EffectContractDebited:                    "contract_debited",
+	EffectBumpFootprintExpiration:            "bump_footprint_expiration",
+	EffectRestoreFootprint:                   "restore_footprint",
 }
 
 // TradeEffectDetails is a struct of data from `effects.DetailsString`
