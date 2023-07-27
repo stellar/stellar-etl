@@ -371,7 +371,10 @@ func roundingSlippage(t ingest.LedgerTransaction, operationIndex int32, trade xd
 			true,
 		)
 		if !ok {
-			return null.Int{}, errors.New("Liquidity pool overflows from this exchange")
+			// Temporary workaround for https://github.com/stellar/go/issues/4203
+			// Given strict receives that would overflow here, minimum slippage
+			// so they get excluded.
+			roundingSlippageBips = xdr.Int64(math.MinInt64)
 		}
 		return null.IntFrom(int64(roundingSlippageBips)), nil
 	default:
