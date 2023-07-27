@@ -374,7 +374,7 @@ func roundingSlippage(t ingest.LedgerTransaction, operationIndex int32, trade xd
 			// Temporary workaround for https://github.com/stellar/go/issues/4203
 			// Given strict receives that would overflow here, minimum slippage
 			// so they get excluded.
-			roundingSlippageBips = xdr.Int64(math.MaxInt64)
+			roundingSlippageBips = xdr.Int64(math.MinInt64)
 		}
 		return null.IntFrom(int64(roundingSlippageBips)), nil
 	default:
