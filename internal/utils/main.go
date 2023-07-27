@@ -270,6 +270,9 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
 	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
 	flags.BoolP("export-balances", "l", false, "set in order to export claimable balance changes")
+	flags.BoolP("export-contract-code", "", false, "set in order to export claimable balance changes")
+	flags.BoolP("export-contract-data", "", false, "set in order to export claimable balance changes")
+	flags.BoolP("export-config-settings", "", false, "set in order to export claimable balance changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
