@@ -8,13 +8,15 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 )
 
 // LedgerTransformInput is a representation of the input for the TransformTransaction function
 type LedgerTransformInput struct {
-	Transaction   ingest.LedgerTransaction
-	LedgerHistory xdr.LedgerHeaderHistoryEntry
+	Transaction     ingest.LedgerTransaction
+	LedgerHistory   xdr.LedgerHeaderHistoryEntry
+	LedgerCloseMeta xdr.LedgerCloseMeta
 }
 
 // GetTransactions returns a slice of transactions for the ledgers in the provided range (inclusive on both ends)
@@ -56,6 +58,11 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 		}
 
 		lhe := txReader.GetHeader()
+
+		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
+		if err != nil {
+			return nil, errors.Wrap(err, "error getting ledger from the backend")
+		}
 		// A negative limit value means that all input should be processed
 		for int64(len(txSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
@@ -64,8 +71,9 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 			}
 
 			txSlice = append(txSlice, LedgerTransformInput{
-				Transaction:   tx,
-				LedgerHistory: lhe,
+				Transaction:     tx,
+				LedgerHistory:   lhe,
+				LedgerCloseMeta: ledgerCloseMeta,
 			})
 		}
 

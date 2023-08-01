@@ -33,13 +33,18 @@ the export_ledger_entry_changes command.`,
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
+		LedgerCloseMeta, err := input.GetLedgerCloseMeta(endNum, env)
+		if err != nil {
+			cmdLogger.Fatal("could not read ledger close meta: ", err)
+		}
+
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		numSigners := 0
 		for _, acc := range accounts {
 			if acc.AccountSignersChanged() {
-				transformed, err := transform.TransformSigners(acc)
+				transformed, err := transform.TransformSigners(acc, LedgerCloseMeta)
 				if err != nil {
 					cmdLogger.LogError(fmt.Errorf("could not json transform account signer: %v", err))
 					numFailures += 1

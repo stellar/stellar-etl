@@ -33,11 +33,16 @@ var claimableBalancesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read balances: ", err)
 		}
 
+		LedgerCloseMeta, err := input.GetLedgerCloseMeta(endNum, env)
+		if err != nil {
+			cmdLogger.Fatal("could not read ledger close meta: ", err)
+		}
+
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, balance := range balances {
-			transformed, err := transform.TransformClaimableBalance(balance)
+			transformed, err := transform.TransformClaimableBalance(balance, LedgerCloseMeta)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform balance %+v: %v", balance, err))
 				numFailures += 1
@@ -69,13 +74,13 @@ func init() {
 	utils.AddGcsFlags(claimableBalancesCmd.Flags())
 	claimableBalancesCmd.MarkFlagRequired("end-ledger")
 
-    /*
-		Current flags:
-			end-ledger: the ledger sequence number for the end of the export range (required)
-            output-file: filename of the output file
+	/*
+				Current flags:
+					end-ledger: the ledger sequence number for the end of the export range (required)
+		            output-file: filename of the output file
 
-		TODO: implement extra flags if possible
-			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
-			end time as a replacement for end sequence numbers
-    */
+				TODO: implement extra flags if possible
+					serialize-method: the method for serialization of the output data (JSON, XDR, etc)
+					end time as a replacement for end sequence numbers
+	*/
 }

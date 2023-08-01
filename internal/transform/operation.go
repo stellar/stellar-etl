@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
@@ -944,6 +945,7 @@ type transactionOperationWrapper struct {
 	transaction    ingest.LedgerTransaction
 	operation      xdr.Operation
 	ledgerSequence uint32
+	LedgerClosedAt time.Time
 }
 
 // ID returns the ID for the operation.

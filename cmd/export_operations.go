@@ -31,7 +31,7 @@ var operationsCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, transformInput := range operations {
-			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
+			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum, transformInput.LedgerCloseMeta)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				cmdLogger.LogError(fmt.Errorf("could not transform operation %d in transaction %d in ledger %d: %v", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum, err))

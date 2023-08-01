@@ -12,18 +12,24 @@ import (
 )
 
 func TestTransformAccount(t *testing.T) {
+	type inputStruct struct {
+		ledgerChange    ingest.Change
+		ledgerCloseMeta xdr.LedgerCloseMeta
+	}
+
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput AccountOutput
 		wantErr    error
 	}
 
 	hardCodedInput := makeAccountTestInput()
+	hardCodedLedgerMetaInput := makeLedgerCloseMeta()
 	hardCodedOutput := makeAccountTestOutput()
 
 	tests := []transformTest{
 		{
-			ingest.Change{
+			inputStruct{ingest.Change{
 				Type: xdr.LedgerEntryTypeOffer,
 				Pre:  nil,
 				Post: &xdr.LedgerEntry{
@@ -32,17 +38,19 @@ func TestTransformAccount(t *testing.T) {
 					},
 				},
 			},
+				hardCodedLedgerMetaInput},
 			AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 		{
-			wrapAccountEntry(xdr.AccountEntry{
+			inputStruct{wrapAccountEntry(xdr.AccountEntry{
 				AccountId: genericAccountID,
 				Balance:   -1,
 			}, 0),
+				hardCodedLedgerMetaInput},
 			AccountOutput{}, fmt.Errorf("Balance is negative (-1) for account: %s", genericAccountAddress),
 		},
 		{
-			wrapAccountEntry(xdr.AccountEntry{
+			inputStruct{wrapAccountEntry(xdr.AccountEntry{
 				AccountId: genericAccountID,
 				Ext: xdr.AccountEntryExt{
 					V: 1,
@@ -53,10 +61,11 @@ func TestTransformAccount(t *testing.T) {
 					},
 				},
 			}, 0),
+				hardCodedLedgerMetaInput},
 			AccountOutput{}, fmt.Errorf("The buying liabilities count is negative (-1) for account: %s", genericAccountAddress),
 		},
 		{
-			wrapAccountEntry(xdr.AccountEntry{
+			inputStruct{wrapAccountEntry(xdr.AccountEntry{
 				AccountId: genericAccountID,
 				Ext: xdr.AccountEntryExt{
 					V: 1,
@@ -67,23 +76,28 @@ func TestTransformAccount(t *testing.T) {
 					},
 				},
 			}, 0),
+				hardCodedLedgerMetaInput},
 			AccountOutput{}, fmt.Errorf("The selling liabilities count is negative (-2) for account: %s", genericAccountAddress),
 		},
 		{
-			wrapAccountEntry(xdr.AccountEntry{
+			inputStruct{wrapAccountEntry(xdr.AccountEntry{
 				AccountId: genericAccountID,
 				SeqNum:    -3,
 			}, 0),
+				hardCodedLedgerMetaInput},
 			AccountOutput{}, fmt.Errorf("Account sequence number is negative (-3) for account: %s", genericAccountAddress),
 		},
 		{
-			hardCodedInput,
+			inputStruct{
+				hardCodedInput,
+				hardCodedLedgerMetaInput,
+			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformAccount(test.input)
+		actualOutput, actualError := TransformAccount(test.input.ledgerChange, test.input.ledgerCloseMeta)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -170,5 +184,6 @@ func makeAccountTestOutput() AccountOutput {
 		LastModifiedLedger:   30705278,
 		LedgerEntryChange:    2,
 		Deleted:              true,
+		LedgerClosedAt:       genericCloseTime.UTC(),
 	}
 }

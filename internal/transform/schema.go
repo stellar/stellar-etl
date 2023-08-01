@@ -85,6 +85,7 @@ type AccountOutput struct {
 	LastModifiedLedger   uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
 	Deleted              bool        `json:"deleted"`
+	LedgerClosedAt       time.Time   `json:"ledger_closed_at"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
@@ -96,6 +97,7 @@ type AccountSignerOutput struct {
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
+	LedgerClosedAt     time.Time   `json:"ledger_closed_at"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -124,6 +126,7 @@ type ClaimableBalanceOutput struct {
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
+	LedgerClosedAt     time.Time   `json:"ledger_closed_at"`
 }
 
 // Claimants
@@ -159,33 +162,35 @@ type LiquidityPoolAsset struct {
 
 // PoolOutput is a representation of a liquidity pool that aligns with the Bigquery table liquidity_pools
 type PoolOutput struct {
-	PoolID             string  `json:"liquidity_pool_id"`
-	PoolType           string  `json:"type"`
-	PoolFee            uint32  `json:"fee"`
-	TrustlineCount     uint64  `json:"trustline_count"`
-	PoolShareCount     float64 `json:"pool_share_count"`
-	AssetAType         string  `json:"asset_a_type"`
-	AssetACode         string  `json:"asset_a_code"`
-	AssetAIssuer       string  `json:"asset_a_issuer"`
-	AssetAReserve      float64 `json:"asset_a_amount"`
-	AssetAID           int64   `json:"asset_a_id"`
-	AssetBType         string  `json:"asset_b_type"`
-	AssetBCode         string  `json:"asset_b_code"`
-	AssetBIssuer       string  `json:"asset_b_issuer"`
-	AssetBReserve      float64 `json:"asset_b_amount"`
-	AssetBID           int64   `json:"asset_b_id"`
-	LastModifiedLedger uint32  `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32  `json:"ledger_entry_change"`
-	Deleted            bool    `json:"deleted"`
+	PoolID             string    `json:"liquidity_pool_id"`
+	PoolType           string    `json:"type"`
+	PoolFee            uint32    `json:"fee"`
+	TrustlineCount     uint64    `json:"trustline_count"`
+	PoolShareCount     float64   `json:"pool_share_count"`
+	AssetAType         string    `json:"asset_a_type"`
+	AssetACode         string    `json:"asset_a_code"`
+	AssetAIssuer       string    `json:"asset_a_issuer"`
+	AssetAReserve      float64   `json:"asset_a_amount"`
+	AssetAID           int64     `json:"asset_a_id"`
+	AssetBType         string    `json:"asset_b_type"`
+	AssetBCode         string    `json:"asset_b_code"`
+	AssetBIssuer       string    `json:"asset_b_issuer"`
+	AssetBReserve      float64   `json:"asset_b_amount"`
+	AssetBID           int64     `json:"asset_b_id"`
+	LastModifiedLedger uint32    `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
+	Deleted            bool      `json:"deleted"`
+	LedgerClosedAt     time.Time `json:"ledger_closed_at"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
 type AssetOutput struct {
-	AssetCode   string `json:"asset_code"`
-	AssetIssuer string `json:"asset_issuer"`
-	AssetType   string `json:"asset_type"`
-	AssetID     uint64 `json:"id"`
-	ID          int64  `json:"asset_id"`
+	AssetCode      string    `json:"asset_code"`
+	AssetIssuer    string    `json:"asset_issuer"`
+	AssetType      string    `json:"asset_type"`
+	AssetID        uint64    `json:"id"`
+	ID             int64     `json:"asset_id"`
+	LedgerClosedAt time.Time `json:"ledger_closed_at"`
 }
 
 // TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
@@ -206,6 +211,7 @@ type TrustlineOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Sponsor            null.String `json:"sponsor"`
 	Deleted            bool        `json:"deleted"`
+	LedgerClosedAt     time.Time   `json:"ledger_closed_at"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
@@ -229,6 +235,7 @@ type OfferOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
 	Sponsor            null.String `json:"sponsor"`
+	LedgerClosedAt     time.Time   `json:"ledger_closed_at"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
@@ -307,12 +314,13 @@ type SponsorshipOutput struct {
 
 // EffectOutput is a representation of an operation that aligns with the BigQuery table history_effects
 type EffectOutput struct {
-	Address      string                 `json:"address"`
-	AddressMuxed null.String            `json:"address_muxed,omitempty"`
-	OperationID  int64                  `json:"operation_id"`
-	Details      map[string]interface{} `json:"details"`
-	Type         int32                  `json:"type"`
-	TypeString   string                 `json:"type_string"`
+	Address        string                 `json:"address"`
+	AddressMuxed   null.String            `json:"address_muxed,omitempty"`
+	OperationID    int64                  `json:"operation_id"`
+	Details        map[string]interface{} `json:"details"`
+	Type           int32                  `json:"type"`
+	TypeString     string                 `json:"type_string"`
+	LedgerClosedAt time.Time              `json:"ledger_closed_at"`
 }
 
 // EffectType is the numeric type for an effect

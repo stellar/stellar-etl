@@ -15,10 +15,16 @@ import (
 	"github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
+	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32) ([]EffectOutput, error) {
+func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, ledgerCloseMeta xdr.LedgerCloseMeta) ([]EffectOutput, error) {
 	effects := []EffectOutput{}
+
+	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.MustV0().LedgerHeader.Header.ScpValue.CloseTime)
+	if err != nil {
+		return effects, err
+	}
 
 	for opi, op := range transaction.Envelope.Operations() {
 		operation := transactionOperationWrapper{
@@ -26,13 +32,16 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32) ([]
 			transaction:    transaction,
 			operation:      op,
 			ledgerSequence: ledgerSeq,
+			LedgerClosedAt: outputCloseTime,
 		}
 
 		p, err := operation.effects()
 		if err != nil {
 			return effects, errors.Wrapf(err, "reading operation %v effects", operation.ID())
 		}
+
 		effects = append(effects, p...)
+
 	}
 
 	return effects, nil
@@ -126,6 +135,10 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	for _, change := range changes {
 		// Effects caused by ChangeTrust (creation), AllowTrust and SetTrustlineFlags (removal through revocation)
 		wrapper.addLedgerEntryLiquidityPoolEffects(change)
+	}
+
+	for i := range wrapper.effects {
+		wrapper.effects[i].LedgerClosedAt = operation.LedgerClosedAt
 	}
 
 	return wrapper.effects, nil
