@@ -241,7 +241,7 @@ type OfferOutput struct {
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
 type TradeOutput struct {
 	Order                  int32       `json:"order"`
-	LedgerClosedAt         time.Time   `json:"closed_at"`
+	LedgerClosedAt         time.Time   `json:"ledger_closed_at"`
 	SellingAccountAddress  string      `json:"selling_account_address"`
 	SellingAssetCode       string      `json:"selling_asset_code"`
 	SellingAssetIssuer     string      `json:"selling_asset_issuer"`
