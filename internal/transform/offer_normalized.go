@@ -13,22 +13,9 @@ import (
 )
 
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset
-func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
+func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32, ledgerClose xdr.LedgerCloseMeta) (NormalizedOfferOutput, error) {
 
-	LedgerCloseMeta := xdr.LedgerCloseMeta{
-		V: 0,
-		V0: &xdr.LedgerCloseMetaV0{
-			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-				Header: xdr.LedgerHeader{
-					ScpValue: xdr.StellarValue{
-						CloseTime: 0,
-					},
-				},
-			},
-		},
-	}
-
-	transformed, err := TransformOffer(ledgerChange, LedgerCloseMeta)
+	transformed, err := TransformOffer(ledgerChange, ledgerClose)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}

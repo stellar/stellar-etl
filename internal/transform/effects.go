@@ -21,18 +21,24 @@ import (
 func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, ledgerCloseMeta xdr.LedgerCloseMeta) ([]EffectOutput, error) {
 	effects := []EffectOutput{}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.MustV0().LedgerHeader.Header.ScpValue.CloseTime)
+	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
+	if err != nil {
+		return effects, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
 	if err != nil {
 		return effects, err
 	}
 
 	for opi, op := range transaction.Envelope.Operations() {
 		operation := transactionOperationWrapper{
-			index:          uint32(opi),
-			transaction:    transaction,
-			operation:      op,
-			ledgerSequence: ledgerSeq,
-			LedgerClosedAt: outputCloseTime,
+			index:            uint32(opi),
+			transaction:      transaction,
+			operation:        op,
+			ledgerSequence:   ledgerSeq,
+			LedgerClosedAtV0: outputCloseTimeV0,
+			LedgerClosedAtV1: outputCloseTimeV1,
 		}
 
 		p, err := operation.effects()
@@ -138,7 +144,8 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	}
 
 	for i := range wrapper.effects {
-		wrapper.effects[i].LedgerClosedAt = operation.LedgerClosedAt
+		wrapper.effects[i].LedgerClosedAtV0 = operation.LedgerClosedAtV0
+		wrapper.effects[i].LedgerClosedAtV1 = operation.LedgerClosedAtV1
 	}
 
 	return wrapper.effects, nil

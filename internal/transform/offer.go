@@ -10,7 +10,7 @@ import (
 )
 
 // TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformOffer(ledgerChange ingest.Change, LedgerCloseMeta xdr.LedgerCloseMeta) (OfferOutput, error) {
+func TransformOffer(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMeta) (OfferOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return OfferOutput{}, err
@@ -31,12 +31,22 @@ func TransformOffer(ledgerChange ingest.Change, LedgerCloseMeta xdr.LedgerCloseM
 		return OfferOutput{}, fmt.Errorf("OfferID is negative (%d) for offer from account: %s", outputOfferID, outputSellerID)
 	}
 
-	outputSellingAsset, err := transformSingleAsset(offerEntry.Selling, LedgerCloseMeta)
+	outputSellingAsset, err := transformSingleAsset(offerEntry.Selling)
 	if err != nil {
 		return OfferOutput{}, err
 	}
 
-	outputBuyingAsset, err := transformSingleAsset(offerEntry.Buying, LedgerCloseMeta)
+	outputBuyingAsset, err := transformSingleAsset(offerEntry.Buying)
+	if err != nil {
+		return OfferOutput{}, err
+	}
+
+	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
+	if err != nil {
+		return OfferOutput{}, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
 	if err != nil {
 		return OfferOutput{}, err
 	}
@@ -89,7 +99,8 @@ func TransformOffer(ledgerChange ingest.Change, LedgerCloseMeta xdr.LedgerCloseM
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
-		LedgerClosedAt:     outputBuyingAsset.LedgerClosedAt,
+		ClosedAt:           outputCloseTimeV0,
+		ClosedAtV1:         outputCloseTimeV1,
 	}
 	return transformedOffer, nil
 }

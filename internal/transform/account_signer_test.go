@@ -133,7 +133,8 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
-			LedgerClosedAt:     genericCloseTime.UTC(),
+			LedgerClosedAtV0:   genericCloseTime.UTC(),
+			LedgerClosedAtV1:   genericCloseTime.UTC(),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
@@ -142,7 +143,8 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
-			LedgerClosedAt:     genericCloseTime.UTC(),
+			LedgerClosedAtV0:   genericCloseTime.UTC(),
+			LedgerClosedAtV1:   genericCloseTime.UTC(),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
@@ -151,7 +153,8 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
-			LedgerClosedAt:     genericCloseTime.UTC(),
+			LedgerClosedAtV0:   genericCloseTime.UTC(),
+			LedgerClosedAtV1:   genericCloseTime.UTC(),
 		},
 	}
 }

@@ -23,7 +23,12 @@ func TransformSigners(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 	if !accountFound {
 		return signers, fmt.Errorf("could not extract signer data from ledger entry of type: %+v", ledgerEntry.Data.Type)
 	}
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.MustV0().LedgerHeader.Header.ScpValue.CloseTime)
+	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
+	if err != nil {
+		return signers, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
 	if err != nil {
 		return signers, err
 	}
@@ -42,7 +47,8 @@ func TransformSigners(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 			LastModifiedLedger: outputLastModifiedLedger,
 			LedgerEntryChange:  uint32(changeType),
 			Deleted:            outputDeleted,
-			LedgerClosedAt:     outputCloseTime,
+			LedgerClosedAtV0:   outputCloseTimeV0,
+			LedgerClosedAtV1:   outputCloseTimeV1,
 		})
 	}
 	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })

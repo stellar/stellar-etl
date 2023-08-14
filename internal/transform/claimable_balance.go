@@ -21,7 +21,7 @@ func transformClaimants(claimants []xdr.Claimant) []Claimant {
 }
 
 // TransformClaimableBalance converts a claimable balance from the history archive ingestion system into a form suitable for BigQuery
-func TransformClaimableBalance(ledgerChange ingest.Change, LedgerCloseMeta xdr.LedgerCloseMeta) (ClaimableBalanceOutput, error) {
+func TransformClaimableBalance(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMeta) (ClaimableBalanceOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
@@ -36,7 +36,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, LedgerCloseMeta xdr.L
 		return ClaimableBalanceOutput{}, fmt.Errorf("Invalid balanceId in op: %d", uint32(ledgerEntry.LastModifiedLedgerSeq))
 	}
 	outputFlags := uint32(balanceEntry.Flags())
-	outputAsset, err := transformSingleAsset(balanceEntry.Asset, LedgerCloseMeta)
+	outputAsset, err := transformSingleAsset(balanceEntry.Asset)
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
 	}
@@ -45,13 +45,22 @@ func TransformClaimableBalance(ledgerChange ingest.Change, LedgerCloseMeta xdr.L
 
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
+	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
+	if err != nil {
+		return ClaimableBalanceOutput{}, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	if err != nil {
+		return ClaimableBalanceOutput{}, err
+	}
+
 	transformed := ClaimableBalanceOutput{
 		BalanceID:          balanceID,
 		AssetCode:          outputAsset.AssetCode,
 		AssetIssuer:        outputAsset.AssetIssuer,
 		AssetType:          outputAsset.AssetType,
 		AssetID:            outputAsset.ID,
-		LedgerClosedAt:     outputAsset.LedgerClosedAt,
 		Claimants:          outputClaimants,
 		AssetAmount:        float64(outputAmount) / 1.0e7,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
@@ -59,6 +68,8 @@ func TransformClaimableBalance(ledgerChange ingest.Change, LedgerCloseMeta xdr.L
 		LedgerEntryChange:  uint32(changeType),
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
+		LedgerClosedAtV0:   outputCloseTimeV0,
+		LedgerClosedAtV1:   outputCloseTimeV1,
 	}
 	return transformed, nil
 }

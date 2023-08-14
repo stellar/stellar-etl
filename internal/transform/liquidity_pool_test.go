@@ -120,6 +120,7 @@ func makePoolTestOutput() PoolOutput {
 		LastModifiedLedger: 30705278,
 		LedgerEntryChange:  2,
 		Deleted:            true,
-		LedgerClosedAt:     genericCloseTime.UTC(),
+		ClosedAt:           genericCloseTime.UTC(),
+		ClosedAtV1:         genericCloseTime.UTC(),
 	}
 }

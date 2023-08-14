@@ -10,7 +10,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-//TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
+// TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
 func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) {
 	ledger, ok := inputLedgerMeta.GetV0()
 	if !ok {
@@ -37,9 +37,14 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
+	outputCloseTimeV0, err := utils.GetCloseTimeV(inputLedgerMeta, false)
 	if err != nil {
-		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
+		return LedgerOutput{}, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(inputLedgerMeta, true)
+	if err != nil {
+		return LedgerOutput{}, err
 	}
 
 	outputTotalCoins := int64(ledgerHeader.TotalCoins)
@@ -74,13 +79,14 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 		SuccessfulTransactionCount: outputSuccessfulCount,
 		FailedTransactionCount:     outputFailedCount,
 		TxSetOperationCount:        outputTxSetOperationCount,
-		ClosedAt:                   outputCloseTime,
+		ClosedAt:                   outputCloseTimeV0,
 		TotalCoins:                 outputTotalCoins,
 		FeePool:                    outputFeePool,
 		BaseFee:                    outputBaseFee,
 		BaseReserve:                outputBaseReserve,
 		MaxTxSetSize:               outputMaxTxSetSize,
 		ProtocolVersion:            outputProtocolVersion,
+		LedgerClosedAtV1:           outputCloseTimeV1,
 	}
 	return transformedLedger, nil
 }

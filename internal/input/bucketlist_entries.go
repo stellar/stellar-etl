@@ -6,8 +6,6 @@ import (
 
 	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -61,34 +59,4 @@ func readBucketList(archive historyarchive.ArchiveInterface, checkpointSeq uint3
 	}
 
 	return entrySlice, nil
-}
-
-func GetLedgerCloseMeta(end uint32, env utils.EnvironmentDetails) (xdr.LedgerCloseMeta, error) {
-	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
-	if err != nil {
-		return xdr.LedgerCloseMeta{}, err
-	}
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
-
-	ledgerCloseMeta, err := backend.GetLedger(ctx, end)
-	if err != nil {
-		return xdr.LedgerCloseMeta{}, errors.Wrap(err, "error getting ledger from the backend")
-	}
-
-	return ledgerCloseMeta, nil
 }

@@ -184,6 +184,7 @@ func makeAccountTestOutput() AccountOutput {
 		LastModifiedLedger:   30705278,
 		LedgerEntryChange:    2,
 		Deleted:              true,
-		LedgerClosedAt:       genericCloseTime.UTC(),
+		LedgerClosedAtV0:     genericCloseTime.UTC(),
+		LedgerClosedAtV1:     genericCloseTime.UTC(),
 	}
 }

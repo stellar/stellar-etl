@@ -134,7 +134,8 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 24229503,
 			LedgerEntryChange:  1,
 			Deleted:            false,
-			LedgerClosedAt:     genericCloseTime.UTC(),
+			ClosedAt:           genericCloseTime.UTC(),
+			ClosedAtV1:         genericCloseTime.UTC(),
 		},
 		{
 			LedgerKey:          "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
@@ -150,7 +151,8 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 123456789,
 			LedgerEntryChange:  1,
 			Deleted:            false,
-			LedgerClosedAt:     genericCloseTime.UTC(),
+			ClosedAt:           genericCloseTime.UTC(),
+			ClosedAtV1:         genericCloseTime.UTC(),
 		},
 	}
 }

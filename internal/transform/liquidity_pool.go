@@ -25,9 +25,14 @@ func TransformPool(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMe
 		return PoolOutput{}, fmt.Errorf("Could not extract liquidity pool data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.MustV0().LedgerHeader.Header.ScpValue.CloseTime)
+	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
 	if err != nil {
-		return PoolOutput{}, fmt.Errorf("Error converting close time: %s", err)
+		return PoolOutput{}, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	if err != nil {
+		return PoolOutput{}, err
 	}
 
 	cp, ok := lp.Body.GetConstantProduct()
@@ -70,7 +75,8 @@ func TransformPool(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMe
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
-		LedgerClosedAt:     outputCloseTime,
+		ClosedAt:           outputCloseTimeV0,
+		ClosedAtV1:         outputCloseTimeV1,
 	}
 	return transformedPool, nil
 }

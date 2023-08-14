@@ -34,7 +34,7 @@ var offersCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read offers: ", err)
 		}
 
-		LedgerCloseMeta, err := input.GetLedgerCloseMeta(endNum, env)
+		LedgerCloseMeta, err := env.GetLedgerCloseMeta(endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledger close meta: ", err)
 		}

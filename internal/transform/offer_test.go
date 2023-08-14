@@ -172,6 +172,7 @@ func makeOfferTestOutput() OfferOutput {
 		LedgerEntryChange:  2,
 		Deleted:            true,
 		Sponsor:            null.StringFrom(testAccount3Address),
-		LedgerClosedAt:     genericCloseTime.UTC(),
+		ClosedAt:           genericCloseTime.UTC(),
+		ClosedAtV1:         genericCloseTime.UTC(),
 	}
 }

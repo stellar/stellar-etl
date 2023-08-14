@@ -85,6 +85,15 @@ func makeLedgerCloseMeta() (ledgerCloseMeta xdr.LedgerCloseMeta) {
 				},
 			},
 		},
+		V1: &xdr.LedgerCloseMetaV1{
+			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+				Header: xdr.LedgerHeader{
+					ScpValue: xdr.StellarValue{
+						CloseTime: 0,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -587,7 +596,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"funder":           hardCodedSourceAccountAddress,
 				"starting_balance": 2.5,
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          1,
@@ -604,7 +614,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_issuer": hardCodedDestAccountAddress,
 				"asset_id":     int64(-8205667356306085451),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          1,
@@ -619,7 +630,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type": "native",
 				"asset_id":   int64(-5706705804583548011),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          2,
@@ -639,7 +651,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_id":          int64(-5706705804583548011),
 				"path":              []Path{usdtAssetPath},
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          3,
@@ -662,7 +675,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"buying_asset_type":    "native",
 				"buying_asset_id":      int64(-5706705804583548011),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          4,
@@ -684,7 +698,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"selling_asset_type":  "native",
 				"selling_asset_id":    int64(-5706705804583548011),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          5,
@@ -706,7 +721,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"signer_key":        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 				"signer_weight":     uint32(1),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          6,
@@ -723,7 +739,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_issuer": hardCodedDestAccountAddress,
 				"asset_id":     int64(6690054458235693884),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          6,
@@ -737,7 +754,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type":        "liquidity_pool_shares",
 				"liquidity_pool_id": "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          7,
@@ -754,7 +772,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_issuer": hardCodedSourceAccountAddress,
 				"asset_id":     int64(8485542065083974675),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          8,
@@ -766,7 +785,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"account": hardCodedSourceAccountAddress,
 				"into":    hardCodedDestAccountAddress,
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:             9,
@@ -775,7 +795,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID:    4096,
 			OperationID:      4108,
 			OperationDetails: map[string]interface{}{},
-			LedgerClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAt:         hardCodedLedgerClosedAt,
+			ClosedAtV1:       hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          10,
@@ -787,7 +808,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"name":  "test",
 				"value": base64.StdEncoding.EncodeToString([]byte{0x76, 0x61, 0x6c, 0x75, 0x65}),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          11,
@@ -798,7 +820,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"bump_to": "100",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          12,
@@ -821,7 +844,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"buying_asset_id":      int64(-5706705804583548011),
 				"offer_id":             int64(100),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          13,
@@ -841,7 +865,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type":        "native",
 				"asset_id":          int64(-5706705804583548011),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          14,
@@ -854,7 +879,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"amount":    123456.789,
 				"claimants": []Claimant{testClaimantDetails},
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          15,
@@ -866,7 +892,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"claimant":   hardCodedSourceAccountAddress,
 				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          16,
@@ -877,7 +904,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"sponsored_id": hardCodedDestAccountAddress,
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -889,7 +917,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"signer_account_id": hardCodedDestAccountAddress,
 				"signer_key":        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -900,7 +929,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"account_id": hardCodedDestAccountAddress,
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -911,7 +941,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"claimable_balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -923,7 +954,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"data_account_id": hardCodedDestAccountAddress,
 				"data_name":       "test",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -934,7 +966,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"offer_id": int64(100),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -946,7 +979,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"trustline_account_id": testAccount3Address,
 				"trustline_asset":      "USTT:GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          18,
@@ -957,7 +991,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"liquidity_pool_id": "0102030405060708090000000000000000000000000000000000000000000000",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          19,
@@ -973,7 +1008,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type":   "credit_alphanum4",
 				"asset_id":     int64(-8205667356306085451),
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          20,
@@ -984,7 +1020,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          21,
@@ -1003,7 +1040,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"set_flags":     []int32{4},
 				"set_flags_s":   []string{"clawback_enabled"},
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          22,
@@ -1035,7 +1073,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				},
 				"shares_received": 0.0000002,
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 		OperationOutput{
 			Type:          23,
@@ -1057,7 +1096,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"reserve_b_min_amount":      0.0000001,
 				"shares":                    0.0000004,
 			},
-			LedgerClosedAt: hardCodedLedgerClosedAt,
+			ClosedAt:   hardCodedLedgerClosedAt,
+			ClosedAtV1: hardCodedLedgerClosedAt,
 		},
 	}
 	return

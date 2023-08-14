@@ -73,6 +73,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		PreviousLedgerHash: "f63c15d0eaf48afbd751a4c4dfade54a3448053c47c5a71d622668ae0cc2a208",
 		LedgerHeader:       string(correctBytes),
 		ClosedAt:           correctTime,
+		LedgerClosedAtV1:   correctTime,
 
 		TotalCoins:      1054439020873472865,
 		FeePool:         18153766209161,
@@ -101,7 +102,7 @@ func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 		utils.CreateSampleResultMeta(false, 3),
 		utils.CreateSampleResultMeta(true, 10),
 	}
-	lcm, err = xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
+	v0, err := xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
 		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 			Header: xdr.LedgerHeader{
 				LedgerSeq:          30578981,
@@ -119,6 +120,27 @@ func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 		TxSet:        hardCodedTxSet,
 		TxProcessing: hardCodedTxProcessing,
 	})
+	v1, err := xdr.NewLedgerCloseMeta(1, xdr.LedgerCloseMetaV1{
+		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				LedgerSeq:          30578981,
+				TotalCoins:         1054439020873472865,
+				FeePool:            18153766209161,
+				BaseFee:            100,
+				BaseReserve:        5000000,
+				MaxTxSetSize:       1000,
+				LedgerVersion:      13,
+				PreviousLedgerHash: xdr.Hash{0xf6, 0x3c, 0x15, 0xd0, 0xea, 0xf4, 0x8a, 0xfb, 0xd7, 0x51, 0xa4, 0xc4, 0xdf, 0xad, 0xe5, 0x4a, 0x34, 0x48, 0x5, 0x3c, 0x47, 0xc5, 0xa7, 0x1d, 0x62, 0x26, 0x68, 0xae, 0xc, 0xc2, 0xa2, 0x8},
+				ScpValue:           xdr.StellarValue{CloseTime: 1594584547},
+			},
+			Hash: xdr.Hash{0x26, 0x93, 0x2d, 0xc4, 0xd8, 0x4b, 0x5f, 0xab, 0xe9, 0xae, 0x74, 0x4c, 0xb4, 0x3c, 0xe4, 0xc6, 0xda, 0xcc, 0xf9, 0x8c, 0x86, 0xa9, 0x91, 0xb2, 0xa1, 0x49, 0x45, 0xb1, 0xad, 0xac, 0x4d, 0x59},
+		},
+		TxProcessing: hardCodedTxProcessing,
+	})
+	lcm = xdr.LedgerCloseMeta{
+		V0: v0.V0,
+		V1: v1.V1,
+	}
 	return
 }
 func wrapLedgerHeaderWithTransactions(header xdr.LedgerHeader, numTransactions int) xdr.LedgerCloseMeta {
@@ -126,12 +148,21 @@ func wrapLedgerHeaderWithTransactions(header xdr.LedgerHeader, numTransactions i
 	for txNum := 0; txNum < numTransactions; txNum++ {
 		transactionEnvelopes = append(transactionEnvelopes, utils.CreateSampleTx(int64(txNum)))
 	}
-	lcm, _ := xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
+	v0, _ := xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
 		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 			Header: header,
 		},
 		TxSet: xdr.TransactionSet{Txs: transactionEnvelopes},
 	})
+	v1, _ := xdr.NewLedgerCloseMeta(1, xdr.LedgerCloseMetaV1{
+		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+			Header: header,
+		},
+	})
+	lcm := xdr.LedgerCloseMeta{
+		V0: v0.V0,
+		V1: v1.V1,
+	}
 	return lcm
 }
 

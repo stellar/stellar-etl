@@ -30,9 +30,14 @@ func TransformTrustline(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCl
 		return TrustlineOutput{}, err
 	}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.MustV0().LedgerHeader.Header.ScpValue.CloseTime)
+	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
 	if err != nil {
-		return TrustlineOutput{}, fmt.Errorf("Error converting close time: %s", err)
+		return TrustlineOutput{}, err
+	}
+
+	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	if err != nil {
+		return TrustlineOutput{}, err
 	}
 
 	var assetType, outputAssetCode, outputAssetIssuer, poolID string
@@ -73,7 +78,8 @@ func TransformTrustline(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCl
 		LedgerEntryChange:  uint32(changeType),
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 		Deleted:            outputDeleted,
-		LedgerClosedAt:     outputCloseTime,
+		ClosedAt:           outputCloseTimeV0,
+		ClosedAtV1:         outputCloseTimeV1,
 	}
 
 	return transformedTrustline, nil
