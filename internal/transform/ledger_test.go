@@ -73,7 +73,6 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		PreviousLedgerHash: "f63c15d0eaf48afbd751a4c4dfade54a3448053c47c5a71d622668ae0cc2a208",
 		LedgerHeader:       string(correctBytes),
 		ClosedAt:           correctTime,
-		LedgerClosedAtV1:   correctTime,
 
 		TotalCoins:      1054439020873472865,
 		FeePool:         18153766209161,

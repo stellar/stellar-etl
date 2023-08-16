@@ -28,7 +28,6 @@ type LedgerOutput struct {
 	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
 	ProtocolVersion            uint32    `json:"protocol_version"`
 	LedgerID                   int64     `json:"id"`
-	LedgerClosedAtV1           time.Time `json:"closed_at_v1"` // UTC timestamp
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
@@ -86,8 +85,7 @@ type AccountOutput struct {
 	LastModifiedLedger   uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
 	Deleted              bool        `json:"deleted"`
-	LedgerClosedAtV0     time.Time   `json:"closed_at"`
-	LedgerClosedAtV1     time.Time   `json:"closed_at_v1"`
+	LedgerClosed         time.Time   `json:"closed_at"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
@@ -99,8 +97,7 @@ type AccountSignerOutput struct {
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
-	LedgerClosedAtV0   time.Time   `json:"closed_at"`
-	LedgerClosedAtV1   time.Time   `json:"closed_at_v1"`
+	LedgerClosed       time.Time   `json:"closed_at"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -113,7 +110,6 @@ type OperationOutput struct {
 	TransactionID      int64                  `json:"transaction_id"`
 	OperationID        int64                  `json:"id"`
 	ClosedAt           time.Time              `json:"closed_at"`
-	ClosedAtV1         time.Time              `json:"closed_at_v1"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
@@ -130,8 +126,7 @@ type ClaimableBalanceOutput struct {
 	LastModifiedLedger uint32      `json:"last_modified_ledger"`
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
-	LedgerClosedAtV0   time.Time   `json:"closed_at"`
-	LedgerClosedAtV1   time.Time   `json:"closed_at_v1"`
+	LedgerClosed       time.Time   `json:"closed_at"`
 }
 
 // Claimants
@@ -186,7 +181,6 @@ type PoolOutput struct {
 	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
-	ClosedAtV1         time.Time `json:"closed_at_v1"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
@@ -217,7 +211,6 @@ type TrustlineOutput struct {
 	Sponsor            null.String `json:"sponsor"`
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
-	ClosedAtV1         time.Time   `json:"closed_at_v1"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
@@ -242,7 +235,6 @@ type OfferOutput struct {
 	Deleted            bool        `json:"deleted"`
 	Sponsor            null.String `json:"sponsor"`
 	ClosedAt           time.Time   `json:"closed_at"`
-	ClosedAtV1         time.Time   `json:"closed_at_v1"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
@@ -321,14 +313,13 @@ type SponsorshipOutput struct {
 
 // EffectOutput is a representation of an operation that aligns with the BigQuery table history_effects
 type EffectOutput struct {
-	Address          string                 `json:"address"`
-	AddressMuxed     null.String            `json:"address_muxed,omitempty"`
-	OperationID      int64                  `json:"operation_id"`
-	Details          map[string]interface{} `json:"details"`
-	Type             int32                  `json:"type"`
-	TypeString       string                 `json:"type_string"`
-	LedgerClosedAtV0 time.Time              `json:"closed_at"`
-	LedgerClosedAtV1 time.Time              `json:"closed_at_v1"`
+	Address      string                 `json:"address"`
+	AddressMuxed null.String            `json:"address_muxed,omitempty"`
+	OperationID  int64                  `json:"operation_id"`
+	Details      map[string]interface{} `json:"details"`
+	Type         int32                  `json:"type"`
+	TypeString   string                 `json:"type_string"`
+	LedgerClosed time.Time              `json:"closed_at"`
 }
 
 // EffectType is the numeric type for an effect

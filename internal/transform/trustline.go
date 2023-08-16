@@ -30,12 +30,7 @@ func TransformTrustline(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCl
 		return TrustlineOutput{}, err
 	}
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
-	if err != nil {
-		return TrustlineOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
 		return TrustlineOutput{}, err
 	}
@@ -78,8 +73,7 @@ func TransformTrustline(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCl
 		LedgerEntryChange:  uint32(changeType),
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 		Deleted:            outputDeleted,
-		ClosedAt:           outputCloseTimeV0,
-		ClosedAtV1:         outputCloseTimeV1,
+		ClosedAt:           outputCloseTime,
 	}
 
 	return transformedTrustline, nil

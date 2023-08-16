@@ -25,12 +25,7 @@ func TransformPool(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMe
 		return PoolOutput{}, fmt.Errorf("Could not extract liquidity pool data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
-	if err != nil {
-		return PoolOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
 		return PoolOutput{}, err
 	}
@@ -75,8 +70,7 @@ func TransformPool(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMe
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
-		ClosedAt:           outputCloseTimeV0,
-		ClosedAtV1:         outputCloseTimeV1,
+		ClosedAt:           outputCloseTime,
 	}
 	return transformedPool, nil
 }

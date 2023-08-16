@@ -41,12 +41,7 @@ func TransformOffer(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseM
 		return OfferOutput{}, err
 	}
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
-	if err != nil {
-		return OfferOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
 		return OfferOutput{}, err
 	}
@@ -99,8 +94,7 @@ func TransformOffer(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseM
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
-		ClosedAt:           outputCloseTimeV0,
-		ClosedAtV1:         outputCloseTimeV1,
+		ClosedAt:           outputCloseTime,
 	}
 	return transformedOffer, nil
 }

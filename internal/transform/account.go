@@ -21,12 +21,7 @@ func TransformAccount(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 		return AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
-	if err != nil {
-		return AccountOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
 		return AccountOutput{}, err
 	}
@@ -108,8 +103,7 @@ func TransformAccount(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 		NumSponsoring:        uint32(accountEntry.NumSponsoring()),
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
-		LedgerClosedAtV0:     outputCloseTimeV0,
-		LedgerClosedAtV1:     outputCloseTimeV1,
+		LedgerClosed:         outputCloseTime,
 	}
 	return transformedAccount, nil
 }

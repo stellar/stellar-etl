@@ -37,12 +37,7 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(inputLedgerMeta, false)
-	if err != nil {
-		return LedgerOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(inputLedgerMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(inputLedgerMeta)
 	if err != nil {
 		return LedgerOutput{}, err
 	}
@@ -79,14 +74,13 @@ func TransformLedger(inputLedgerMeta xdr.LedgerCloseMeta) (LedgerOutput, error) 
 		SuccessfulTransactionCount: outputSuccessfulCount,
 		FailedTransactionCount:     outputFailedCount,
 		TxSetOperationCount:        outputTxSetOperationCount,
-		ClosedAt:                   outputCloseTimeV0,
+		ClosedAt:                   outputCloseTime,
 		TotalCoins:                 outputTotalCoins,
 		FeePool:                    outputFeePool,
 		BaseFee:                    outputBaseFee,
 		BaseReserve:                outputBaseReserve,
 		MaxTxSetSize:               outputMaxTxSetSize,
 		ProtocolVersion:            outputProtocolVersion,
-		LedgerClosedAtV1:           outputCloseTimeV1,
 	}
 	return transformedLedger, nil
 }

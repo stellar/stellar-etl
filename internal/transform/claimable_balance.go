@@ -45,12 +45,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, ledgerCloseMeta xdr.L
 
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
-	if err != nil {
-		return ClaimableBalanceOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
 	}
@@ -68,8 +63,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, ledgerCloseMeta xdr.L
 		LedgerEntryChange:  uint32(changeType),
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
-		LedgerClosedAtV0:   outputCloseTimeV0,
-		LedgerClosedAtV1:   outputCloseTimeV1,
+		LedgerClosed:       outputCloseTime,
 	}
 	return transformed, nil
 }

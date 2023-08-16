@@ -173,6 +173,5 @@ func makeOfferTestOutput() OfferOutput {
 		Deleted:            true,
 		Sponsor:            null.StringFrom(testAccount3Address),
 		ClosedAt:           genericCloseTime.UTC(),
-		ClosedAtV1:         genericCloseTime.UTC(),
 	}
 }

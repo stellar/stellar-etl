@@ -281,7 +281,11 @@ func findLatestOperationChange(t ingest.LedgerTransaction, operationIndex int32,
 	// traverse through the slice in reverse order
 	for i := len(changes) - 1; i >= 0; i-- {
 		change = changes[i]
-		if change.Pre != nil && key.Equals(change.Pre.LedgerKey()) {
+		ledgerKey, err := change.Pre.LedgerKey()
+		if err != nil {
+			return ingest.Change{}, errors.Wrap(err, "could not get ledger key")
+		}
+		if change.Pre != nil && key.Equals(ledgerKey) {
 			return change, nil
 		}
 	}

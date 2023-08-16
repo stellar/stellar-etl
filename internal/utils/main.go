@@ -601,9 +601,6 @@ func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta,
 	return ledgerCloseMeta, nil
 }
 
-func GetCloseTimeV(ledger xdr.LedgerCloseMeta, v bool) (time.Time, error) {
-	if v == false {
-		return ExtractLedgerCloseTime(ledger.V0.LedgerHeader)
-	}
-	return ExtractLedgerCloseTime(ledger.V1.LedgerHeader)
+func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
+	return ExtractLedgerCloseTime(lcm.LedgerHeaderHistoryEntry())
 }

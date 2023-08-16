@@ -58,12 +58,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
-	outputCloseTimeV0, err := utils.GetCloseTimeV(ledgerCloseMeta, false)
-	if err != nil {
-		return OperationOutput{}, err
-	}
-
-	outputCloseTimeV1, err := utils.GetCloseTimeV(ledgerCloseMeta, true)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
 		return OperationOutput{}, err
 	}
@@ -76,8 +71,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		TransactionID:      outputTransactionID,
 		OperationID:        outputOperationID,
 		OperationDetails:   outputDetails,
-		ClosedAt:           outputCloseTimeV0,
-		ClosedAtV1:         outputCloseTimeV1,
+		ClosedAt:           outputCloseTime,
 	}
 
 	return transformedOperation, nil
@@ -947,12 +941,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 // transactionOperationWrapper represents the data for a single operation within a transaction
 type transactionOperationWrapper struct {
-	index            uint32
-	transaction      ingest.LedgerTransaction
-	operation        xdr.Operation
-	ledgerSequence   uint32
-	LedgerClosedAtV0 time.Time
-	LedgerClosedAtV1 time.Time
+	index          uint32
+	transaction    ingest.LedgerTransaction
+	operation      xdr.Operation
+	ledgerSequence uint32
+	ledgerClosed   time.Time
 }
 
 // ID returns the ID for the operation.
