@@ -16,6 +16,8 @@ RUN go build -v -o /usr/local/bin ./...
 # stellar/stellar-core 19, pinned by sha digest
 # futurenet preview 10 core image
 FROM tamirstellar/stellar-core:19.12.1-1393.db40326a1.focal-soroban
+# image for testnet release
+#FROM chowbao/stellar-core:19.13.1-1434.35170ec6c.focal-soroban
 
 WORKDIR /etl
 

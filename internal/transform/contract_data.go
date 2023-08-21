@@ -80,9 +80,26 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataBalanceHolder, contractDataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
 
-	contractDataContractId, ok := contractData.Contract.GetContractId()
-	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData")
+	isNonce := false
+	if contractData.Key.Type.String() == "ScValTypeScvLedgerKeyNonce" {
+		isNonce = true
+	}
+
+	var contractDataContractId xdr.Hash
+	var nonceAddressId xdr.AccountId
+	var addressId string
+
+	if isNonce {
+		nonceAddressId, ok = contractData.Contract.GetAccountId()
+		if !ok {
+			return ContractDataOutput{}, fmt.Errorf("Could not extract addressId data information from contractData")
+		}
+		addressId, _ = nonceAddressId.GetAddress()
+	} else {
+		contractDataContractId, ok = contractData.Contract.GetContractId()
+		if !ok {
+			return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData")
+		}
 	}
 
 	keyBinary, err := contractData.Key.MarshalBinary()
@@ -109,6 +126,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	transformedPool := ContractDataOutput{
 		ContractId:                  contractDataContractId.HexString(),
+		AddressId:                   addressId,
 		ContractKey:                 contractDataKey,
 		ContractDurability:          contractDataDurability,
 		ContractDataFlags:           uint32(contractDataDataFlags),

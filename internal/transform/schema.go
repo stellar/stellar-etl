@@ -32,33 +32,38 @@ type LedgerOutput struct {
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
-	TransactionHash             string         `json:"transaction_hash"`
-	LedgerSequence              uint32         `json:"ledger_sequence"`
-	Account                     string         `json:"account"`
-	AccountMuxed                string         `json:"account_muxed,omitempty"`
-	AccountSequence             int64          `json:"account_sequence"`
-	MaxFee                      uint32         `json:"max_fee"`
-	FeeCharged                  int64          `json:"fee_charged"`
-	OperationCount              int32          `json:"operation_count"`
-	TxEnvelope                  string         `json:"tx_envelope"`
-	TxResult                    string         `json:"tx_result"`
-	TxMeta                      string         `json:"tx_meta"`
-	TxFeeMeta                   string         `json:"tx_fee_meta"`
-	CreatedAt                   time.Time      `json:"created_at"`
-	MemoType                    string         `json:"memo_type"`
-	Memo                        string         `json:"memo"`
-	TimeBounds                  string         `json:"time_bounds"`
-	Successful                  bool           `json:"successful"`
-	TransactionID               int64          `json:"id"`
-	FeeAccount                  string         `json:"fee_account,omitempty"`
-	FeeAccountMuxed             string         `json:"fee_account_muxed,omitempty"`
-	InnerTransactionHash        string         `json:"inner_transaction_hash,omitempty"`
-	NewMaxFee                   uint32         `json:"new_max_fee,omitempty"`
-	LedgerBounds                string         `json:"ledger_bounds"`
-	MinAccountSequence          null.Int       `json:"min_account_sequence"`
-	MinAccountSequenceAge       null.Int       `json:"min_account_sequence_age"`
-	MinAccountSequenceLedgerGap null.Int       `json:"min_account_sequence_ledger_gap"`
-	ExtraSigners                pq.StringArray `json:"extra_signers"`
+	TransactionHash                           string         `json:"transaction_hash"`
+	LedgerSequence                            uint32         `json:"ledger_sequence"`
+	Account                                   string         `json:"account"`
+	AccountMuxed                              string         `json:"account_muxed,omitempty"`
+	AccountSequence                           int64          `json:"account_sequence"`
+	MaxFee                                    uint32         `json:"max_fee"`
+	FeeCharged                                int64          `json:"fee_charged"`
+	OperationCount                            int32          `json:"operation_count"`
+	TxEnvelope                                string         `json:"tx_envelope"`
+	TxResult                                  string         `json:"tx_result"`
+	TxMeta                                    string         `json:"tx_meta"`
+	TxFeeMeta                                 string         `json:"tx_fee_meta"`
+	CreatedAt                                 time.Time      `json:"created_at"`
+	MemoType                                  string         `json:"memo_type"`
+	Memo                                      string         `json:"memo"`
+	TimeBounds                                string         `json:"time_bounds"`
+	Successful                                bool           `json:"successful"`
+	TransactionID                             int64          `json:"id"`
+	FeeAccount                                string         `json:"fee_account,omitempty"`
+	FeeAccountMuxed                           string         `json:"fee_account_muxed,omitempty"`
+	InnerTransactionHash                      string         `json:"inner_transaction_hash,omitempty"`
+	NewMaxFee                                 uint32         `json:"new_max_fee,omitempty"`
+	LedgerBounds                              string         `json:"ledger_bounds"`
+	MinAccountSequence                        null.Int       `json:"min_account_sequence"`
+	MinAccountSequenceAge                     null.Int       `json:"min_account_sequence_age"`
+	MinAccountSequenceLedgerGap               null.Int       `json:"min_account_sequence_ledger_gap"`
+	ExtraSigners                              pq.StringArray `json:"extra_signers"`
+	RefundableFee                             int64          `json:"refundable_fee"`
+	SorobanResourcesInstructions              uint32         `json:"soroban_resources_instructions"`
+	SorobanResourcesReadBytes                 uint32         `json:"soroban_resources_read_bytes"`
+	SorobanResourcesWriteBytes                uint32         `json:"soroban_resources_write_bytes"`
+	SorobanResourcesExtendedMetaDataSizeBytes uint32         `json:"soroban_resource_extended_meta_data_size_bytes"`
 }
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
@@ -457,6 +462,7 @@ type TestTransaction struct {
 // ContractDataOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
 type ContractDataOutput struct {
 	ContractId                  string `json:"contract_id"`
+	AddressId                   string `json:"address_id"`
 	ContractKey                 string `json:"contract_key"`
 	ContractDurability          string `json:"contract_durability"`
 	ContractDataFlags           uint32 `json:"contract_data_flags"`

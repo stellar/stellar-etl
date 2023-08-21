@@ -935,6 +935,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["type"] = "invoke_contract"
 			params := make([]map[string]string, 0, len(args))
 
+			transactionEnvelope := transaction.Envelope.MustV1()
+			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
 			for _, param := range args {
 				serializedParam := map[string]string{}
 				serializedParam["value"] = "n/a"
@@ -959,6 +963,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
 			args := op.HostFunction.MustCreateContract()
 			details["type"] = "create_contract"
+
+			transactionEnvelope := transaction.Envelope.MustV1()
+			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
 			switch args.ContractIdPreimage.Type {
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
 				fromAddress := args.ContractIdPreimage.MustFromAddress()
@@ -977,6 +986,9 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
+			transactionEnvelope := transaction.Envelope.MustV1()
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
@@ -984,9 +996,16 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		op := operation.Body.MustBumpFootprintExpirationOp()
 		details["type"] = "bump_footprint_expiration"
 		details["ledgers_to_expire"] = op.LedgersToExpire
+
+		transactionEnvelope := transaction.Envelope.MustV1()
+		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	case xdr.OperationTypeRestoreFootprint:
 		details["type"] = "restore_footprint"
 
+		transactionEnvelope := transaction.Envelope.MustV1()
+		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
 		return details, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
@@ -1501,6 +1520,10 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["type"] = "invoke_contract"
 			params := make([]map[string]string, 0, len(args))
 
+			transactionEnvelope := operation.transaction.Envelope.MustV1()
+			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
 			for _, param := range args {
 				serializedParam := map[string]string{}
 				serializedParam["value"] = "n/a"
@@ -1525,6 +1548,11 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContract:
 			args := op.HostFunction.MustCreateContract()
 			details["type"] = "create_contract"
+
+			transactionEnvelope := operation.transaction.Envelope.MustV1()
+			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
 			switch args.ContractIdPreimage.Type {
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
 				fromAddress := args.ContractIdPreimage.MustFromAddress()
@@ -1543,6 +1571,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
+			transactionEnvelope := operation.transaction.Envelope.MustV1()
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
@@ -1550,9 +1580,16 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		op := operation.operation.Body.MustBumpFootprintExpirationOp()
 		details["type"] = "bump_footprint_expiration"
 		details["ledgers_to_expire"] = op.LedgersToExpire
+
+		transactionEnvelope := operation.transaction.Envelope.MustV1()
+		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	case xdr.OperationTypeRestoreFootprint:
 		details["type"] = "restore_footprint"
 
+		transactionEnvelope := operation.transaction.Envelope.MustV1()
+		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
 		panic(fmt.Errorf("Unknown operation type: %s", operation.OperationType()))
 	}
@@ -1566,6 +1603,64 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 	}
 
 	return details, nil
+}
+
+func contractIdFromTxEnvelope(transactionEnvelope xdr.TransactionV1Envelope) string {
+	for _, ledgerKey := range transactionEnvelope.Tx.Ext.SorobanData.Resources.Footprint.ReadWrite {
+		contractId := contractIdFromContractData(ledgerKey)
+		if contractId != "" {
+			return contractId
+		}
+	}
+
+	for _, ledgerKey := range transactionEnvelope.Tx.Ext.SorobanData.Resources.Footprint.ReadOnly {
+		contractId := contractIdFromContractData(ledgerKey)
+		if contractId != "" {
+			return contractId
+		}
+	}
+
+	return ""
+}
+
+func contractIdFromContractData(ledgerKey xdr.LedgerKey) string {
+	contractData, ok := ledgerKey.GetContractData()
+	if !ok {
+		return ""
+	}
+	contractIdHash, ok := contractData.Contract.GetContractId()
+	if ok {
+		return contractIdHash.HexString()
+	}
+
+	return ""
+}
+
+func contractCodeHashFromTxEnvelope(transactionEnvelope xdr.TransactionV1Envelope) string {
+	for _, ledgerKey := range transactionEnvelope.Tx.Ext.SorobanData.Resources.Footprint.ReadOnly {
+		contractCode := contractCodeFromContractData(ledgerKey)
+		if contractCode != "" {
+			return contractCode
+		}
+	}
+
+	for _, ledgerKey := range transactionEnvelope.Tx.Ext.SorobanData.Resources.Footprint.ReadWrite {
+		contractCode := contractCodeFromContractData(ledgerKey)
+		if contractCode != "" {
+			return contractCode
+		}
+	}
+
+	return ""
+}
+
+func contractCodeFromContractData(ledgerKey xdr.LedgerKey) string {
+	contractCode, ok := ledgerKey.GetContractCode()
+	if !ok {
+		return ""
+	}
+	contractCodeHash := contractCode.Hash
+	return contractCodeHash.HexString()
 }
 
 func filterEvents(diagnosticEvents []xdr.DiagnosticEvent) []xdr.ContractEvent {
