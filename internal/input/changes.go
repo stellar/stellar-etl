@@ -101,14 +101,7 @@ func extractBatch(
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
-			// TODO: Add in ledger_closed_at; Update changeCompactors to also save ledger close time.
-			//   AddChange is from the go monorepo so it might be easier to just add a addledgerclose func after it
-			//txReader := changeReader.LedgerTransactionReader
 
-			//closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
-			//if err != nil {
-			//	logger.Fatal(fmt.Sprintf("unable to read close time for ledger %d: ", seq), err)
-			//}
 			ledgerHeader := changeReader.LedgerTransactionReader.GetHeader()
 
 			for {
