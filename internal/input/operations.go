@@ -7,16 +7,18 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // OperationTransformInput is a representation of the input for the TransformOperation function
 type OperationTransformInput struct {
-	Operation      xdr.Operation
-	OperationIndex int32
-	Transaction    ingest.LedgerTransaction
-	LedgerSeqNum   int32
+	Operation       xdr.Operation
+	OperationIndex  int32
+	Transaction     ingest.LedgerTransaction
+	LedgerSeqNum    int32
+	LedgerCloseMeta xdr.LedgerCloseMeta
 }
 
 func panicIf(err error) {
@@ -64,6 +66,11 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 		}
 		txReader := changeReader.LedgerTransactionReader
 
+		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
+		if err != nil {
+			return nil, errors.Wrap(err, "error getting ledger from the backend")
+		}
+
 		for int64(len(opSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
 			if err == io.EOF {
@@ -72,10 +79,11 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 
 			for index, op := range tx.Envelope.Operations() {
 				opSlice = append(opSlice, OperationTransformInput{
-					Operation:      op,
-					OperationIndex: int32(index),
-					Transaction:    tx,
-					LedgerSeqNum:   int32(seq),
+					Operation:       op,
+					OperationIndex:  int32(index),
+					Transaction:     tx,
+					LedgerSeqNum:    int32(seq),
+					LedgerCloseMeta: ledgerCloseMeta,
 				})
 
 				if int64(len(opSlice)) >= limit && limit >= 0 {

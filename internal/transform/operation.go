@@ -25,7 +25,7 @@ type liquidityPoolDelta struct {
 }
 
 // TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32) (OperationOutput, error) {
+func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32, ledgerCloseMeta xdr.LedgerCloseMeta) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
 	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex+1).ToInt64() //operationIndex needs +1 increment to stay in sync with ingest package
 
@@ -59,6 +59,11 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
+	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.LedgerHeaderHistoryEntry().Header.ScpValue.CloseTime)
+	if err != nil {
+		return OperationOutput{}, fmt.Errorf("for ledger %d: %v", ledgerCloseMeta.LedgerHeaderHistoryEntry().Header.LedgerSeq, err)
+	}
+
 	transformedOperation := OperationOutput{
 		SourceAccount:      outputSourceAccount,
 		SourceAccountMuxed: outputSourceAccountMuxed.String,
@@ -67,6 +72,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		TransactionID:      outputTransactionID,
 		OperationID:        outputOperationID,
 		OperationDetails:   outputDetails,
+		LedgerClosedAt:     outputCloseTime,
 	}
 
 	return transformedOperation, nil

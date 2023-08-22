@@ -152,6 +152,11 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		}
 	}
 
+	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
+	if err != nil {
+		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
+	}
+
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
 		TransactionHash:              outputTransactionHash,
@@ -176,6 +181,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		MinAccountSequenceAge:        outputMinSequenceAge,
 		MinAccountSequenceLedgerGap:  outputMinSequenceLedgerGap,
 		ExtraSigners:                 formatSigners(transaction.Envelope.ExtraSigners()),
+		LedgerClosedAt:               outputCloseTime,
 		RefundableFee:                outputRefundableFee,
 		SorobanResourcesInstructions: outputSorobanResourcesInstructions,
 		SorobanResourcesReadBytes:    outputSorobanResourcesReadBytes,

@@ -13,6 +13,7 @@ import (
 func TestTransformContractCode(t *testing.T) {
 	type transformTest struct {
 		input      ingest.Change
+		header     xdr.LedgerHeaderHistoryEntry
 		wantOutput ContractCodeOutput
 		wantErr    error
 	}
@@ -30,6 +31,13 @@ func TestTransformContractCode(t *testing.T) {
 					},
 				},
 			},
+			xdr.LedgerHeaderHistoryEntry{
+				Header: xdr.LedgerHeader{
+					ScpValue: xdr.StellarValue{
+						CloseTime: 0,
+					},
+				},
+			},
 			ContractCodeOutput{}, fmt.Errorf("Could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
@@ -43,7 +51,7 @@ func TestTransformContractCode(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformContractCode(test.input)
+		actualOutput, actualError := TransformContractCode(test.input, test.header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

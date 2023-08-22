@@ -13,6 +13,7 @@ import (
 func TestTransformConfigSetting(t *testing.T) {
 	type transformTest struct {
 		input      ingest.Change
+		header     xdr.LedgerHeaderHistoryEntry
 		wantOutput ConfigSettingOutput
 		wantErr    error
 	}
@@ -30,6 +31,13 @@ func TestTransformConfigSetting(t *testing.T) {
 					},
 				},
 			},
+			xdr.LedgerHeaderHistoryEntry{
+				Header: xdr.LedgerHeader{
+					ScpValue: xdr.StellarValue{
+						CloseTime: 0,
+					},
+				},
+			},
 			ConfigSettingOutput{}, fmt.Errorf("Could not extract config setting from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
@@ -43,7 +51,7 @@ func TestTransformConfigSetting(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformConfigSetting(test.input)
+		actualOutput, actualError := TransformConfigSetting(test.input, test.header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

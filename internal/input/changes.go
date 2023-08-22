@@ -19,9 +19,14 @@ var (
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    map[xdr.LedgerEntryType][]ingest.Change
+	Changes    map[xdr.LedgerEntryType][]ChangeWithLedgerHeader
 	BatchStart uint32
 	BatchEnd   uint32
+}
+
+type ChangeWithLedgerHeader struct {
+	Change ingest.Change
+	Header xdr.LedgerHeaderHistoryEntry
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
@@ -81,24 +86,9 @@ func extractBatch(
 	core *ledgerbackend.CaptiveStellarCore,
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 
-	dataTypes := []xdr.LedgerEntryType{
-		xdr.LedgerEntryTypeAccount,
-		xdr.LedgerEntryTypeOffer,
-		xdr.LedgerEntryTypeTrustline,
-		xdr.LedgerEntryTypeLiquidityPool,
-		xdr.LedgerEntryTypeClaimableBalance,
-		xdr.LedgerEntryTypeContractData,
-		xdr.LedgerEntryTypeContractCode,
-		xdr.LedgerEntryTypeConfigSetting}
-
-	changes := map[xdr.LedgerEntryType][]ingest.Change{}
+	changes := map[xdr.LedgerEntryType][]ChangeWithLedgerHeader{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
-		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
-		for _, dt := range dataTypes {
-			changeCompactors[dt] = ingest.NewChangeCompactor()
-		}
-
 		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			logger.Fatal("unable to get the latest ledger sequence: ", err)
@@ -119,6 +109,7 @@ func extractBatch(
 			//if err != nil {
 			//	logger.Fatal(fmt.Sprintf("unable to read close time for ledger %d: ", seq), err)
 			//}
+			ledgerHeader := changeReader.LedgerTransactionReader.GetHeader()
 
 			for {
 				change, err := changeReader.Read()
@@ -128,26 +119,13 @@ func extractBatch(
 				if err != nil {
 					logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
 				}
-				cache, ok := changeCompactors[change.Type]
-				if !ok {
-					// TODO: once LedgerEntryTypeData is tracked as well, all types should be addressed,
-					// so this info log should be a warning.
-					logger.Infof("change type: %v not tracked", change.Type)
-				} else {
-					cache.AddChange(change)
-				}
+
+				changes[change.Type] = append(changes[change.Type], ChangeWithLedgerHeader{change, ledgerHeader})
 			}
 
 			changeReader.Close()
 			seq++
 		}
-
-		for dataType, compactor := range changeCompactors {
-			for _, change := range compactor.GetChanges() {
-				changes[dataType] = append(changes[dataType], change)
-			}
-		}
-
 	}
 
 	return ChangeBatch{

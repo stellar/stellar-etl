@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -15,6 +16,7 @@ func TestTransformContractData(t *testing.T) {
 	type transformTest struct {
 		input      ingest.Change
 		passphrase string
+		header     xdr.LedgerHeaderHistoryEntry
 		wantOutput ContractDataOutput
 		wantErr    error
 	}
@@ -33,6 +35,13 @@ func TestTransformContractData(t *testing.T) {
 				},
 			},
 			"unit test",
+			xdr.LedgerHeaderHistoryEntry{
+				Header: xdr.LedgerHeader{
+					ScpValue: xdr.StellarValue{
+						CloseTime: 0,
+					},
+				},
+			},
 			ContractDataOutput{}, fmt.Errorf("Could not extract contract data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
@@ -48,7 +57,7 @@ func TestTransformContractData(t *testing.T) {
 
 	for _, test := range tests {
 		TransformContractData := NewTransformContractDataStruct(MockAssetFromContractData, MockContractBalanceFromContractData)
-		actualOutput, actualError := TransformContractData.TransformContractData(test.input, test.passphrase)
+		actualOutput, actualError := TransformContractData.TransformContractData(test.input, test.passphrase, test.header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -138,6 +147,9 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			LastModifiedLedger:          24229503,
 			LedgerEntryChange:           1,
 			Deleted:                     false,
+			DeletedAtLedger:             0,
+			LedgerClosedAt:              time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC),
+			IsNonce:                     false,
 		},
 	}
 }
