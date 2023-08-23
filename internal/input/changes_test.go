@@ -3,12 +3,12 @@ package input
 import (
 	"testing"
 
-	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 )
 
@@ -114,13 +114,8 @@ func TestSendBatchToChannel(t *testing.T) {
 }
 
 func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) ChangeBatch {
-	changes := map[xdr.LedgerEntryType][]ChangeWithLedgerHeader{
-		entryType: {
-			ChangeWithLedgerHeader{
-				Change: ingest.Change{Type: entry.Data.Type, Post: &entry},
-				Header: xdr.LedgerHeaderHistoryEntry{},
-			},
-		},
+	changes := map[xdr.LedgerEntryType][]ingest.Change{
+		entryType: {{Type: entry.Data.Type, Post: &entry}},
 	}
 	return ChangeBatch{
 		Changes: changes,
@@ -133,7 +128,7 @@ func mockExtractBatch(
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 	log.Errorf("mock called")
 	return ChangeBatch{
-		Changes:    map[xdr.LedgerEntryType][]ChangeWithLedgerHeader{},
+		Changes:    map[xdr.LedgerEntryType][]ingest.Change{},
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,
 	}

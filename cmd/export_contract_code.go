@@ -34,7 +34,7 @@ var codeCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, code := range codes {
-			transformed, err := transform.TransformContractCode(code, xdr.LedgerHeaderHistoryEntry{})
+			transformed, err := transform.TransformContractCode(code)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform contract code %+v: %v", code, err))
 				numFailures += 1

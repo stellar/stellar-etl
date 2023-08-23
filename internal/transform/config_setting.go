@@ -10,7 +10,7 @@ import (
 )
 
 // TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
-func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (ConfigSettingOutput, error) {
+func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ConfigSettingOutput{}, err
@@ -96,17 +96,6 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))
 	}
 
-	var outputDeletedAtLedger uint32
-
-	if outputDeleted {
-		outputDeletedAtLedger = uint32(header.Header.LedgerSeq)
-	}
-
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return ConfigSettingOutput{}, fmt.Errorf("for ledger %d: %v", header.Header.LedgerSeq, err)
-	}
-
 	transformedPool := ConfigSettingOutput{
 		ConfigSettingId:                 int32(configSettingId),
 		ContractMaxSizeBytes:            uint32(contractMaxSizeBytes),
@@ -154,8 +143,6 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:               uint32(changeType),
 		Deleted:                         outputDeleted,
-		DeletedAtLedger:                 outputDeletedAtLedger,
-		LedgerClosedAt:                  outputCloseTime,
 	}
 	return transformedPool, nil
 }

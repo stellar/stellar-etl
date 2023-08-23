@@ -60,7 +60,7 @@ func NewTransformContractDataStruct(assetfrom AssetFromContractDataFunc, contrac
 }
 
 // TransformContractData converts a contract data ledger change entry into a form suitable for BigQuery
-func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string, header xdr.LedgerHeaderHistoryEntry) (ContractDataOutput, error) {
+func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractDataOutput{}, err
@@ -85,13 +85,21 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		isNonce = true
 	}
 
-	if isNonce {
-		return ContractDataOutput{IsNonce: isNonce}, nil
-	}
+	var contractDataContractId xdr.Hash
+	var nonceAddressId xdr.AccountId
+	var addressId string
 
-	contractDataContractId, ok := contractData.Contract.GetContractId()
-	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData")
+	if isNonce {
+		nonceAddressId, ok = contractData.Contract.GetAccountId()
+		if !ok {
+			return ContractDataOutput{}, fmt.Errorf("Could not extract addressId data information from contractData")
+		}
+		addressId, _ = nonceAddressId.GetAddress()
+	} else {
+		contractDataContractId, ok = contractData.Contract.GetContractId()
+		if !ok {
+			return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData")
+		}
 	}
 
 	keyBinary, err := contractData.Key.MarshalBinary()
@@ -116,18 +124,9 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataExpirationLedgerSeq := contractData.ExpirationLedgerSeq
 
-	var outputDeletedAtLedger uint32
-	if outputDeleted {
-		outputDeletedAtLedger = uint32(header.Header.LedgerSeq)
-	}
-
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return ContractDataOutput{}, fmt.Errorf("for ledger %d: %v", header.Header.LedgerSeq, err)
-	}
-
 	transformedPool := ContractDataOutput{
 		ContractId:                  contractDataContractId.HexString(),
+		AddressId:                   addressId,
 		ContractKey:                 contractDataKey,
 		ContractDurability:          contractDataDurability,
 		ContractDataFlags:           uint32(contractDataDataFlags),
@@ -140,9 +139,6 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LastModifiedLedger:          uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:           uint32(changeType),
 		Deleted:                     outputDeleted,
-		DeletedAtLedger:             outputDeletedAtLedger,
-		LedgerClosedAt:              outputCloseTime,
-		IsNonce:                     isNonce,
 	}
 	return transformedPool, nil
 }

@@ -19,14 +19,9 @@ var (
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    map[xdr.LedgerEntryType][]ChangeWithLedgerHeader
+	Changes    map[xdr.LedgerEntryType][]ingest.Change
 	BatchStart uint32
 	BatchEnd   uint32
-}
-
-type ChangeWithLedgerHeader struct {
-	Change ingest.Change
-	Header xdr.LedgerHeaderHistoryEntry
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
@@ -86,9 +81,24 @@ func extractBatch(
 	core *ledgerbackend.CaptiveStellarCore,
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 
-	changes := map[xdr.LedgerEntryType][]ChangeWithLedgerHeader{}
+	dataTypes := []xdr.LedgerEntryType{
+		xdr.LedgerEntryTypeAccount,
+		xdr.LedgerEntryTypeOffer,
+		xdr.LedgerEntryTypeTrustline,
+		xdr.LedgerEntryTypeLiquidityPool,
+		xdr.LedgerEntryTypeClaimableBalance,
+		xdr.LedgerEntryTypeContractData,
+		xdr.LedgerEntryTypeContractCode,
+		xdr.LedgerEntryTypeConfigSetting}
+
+	changes := map[xdr.LedgerEntryType][]ingest.Change{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
+		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
+		for _, dt := range dataTypes {
+			changeCompactors[dt] = ingest.NewChangeCompactor()
+		}
+
 		latestLedger, err := core.GetLatestLedgerSequence(ctx)
 		if err != nil {
 			logger.Fatal("unable to get the latest ledger sequence: ", err)
@@ -101,8 +111,14 @@ func extractBatch(
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
+			// TODO: Add in ledger_closed_at; Update changeCompactors to also save ledger close time.
+			//   AddChange is from the go monorepo so it might be easier to just add a addledgerclose func after it
+			//txReader := changeReader.LedgerTransactionReader
 
-			ledgerHeader := changeReader.LedgerTransactionReader.GetHeader()
+			//closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
+			//if err != nil {
+			//	logger.Fatal(fmt.Sprintf("unable to read close time for ledger %d: ", seq), err)
+			//}
 
 			for {
 				change, err := changeReader.Read()
@@ -112,13 +128,26 @@ func extractBatch(
 				if err != nil {
 					logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
 				}
-
-				changes[change.Type] = append(changes[change.Type], ChangeWithLedgerHeader{change, ledgerHeader})
+				cache, ok := changeCompactors[change.Type]
+				if !ok {
+					// TODO: once LedgerEntryTypeData is tracked as well, all types should be addressed,
+					// so this info log should be a warning.
+					logger.Infof("change type: %v not tracked", change.Type)
+				} else {
+					cache.AddChange(change)
+				}
 			}
 
 			changeReader.Close()
 			seq++
 		}
+
+		for dataType, compactor := range changeCompactors {
+			for _, change := range compactor.GetChanges() {
+				changes[dataType] = append(changes[dataType], change)
+			}
+		}
+
 	}
 
 	return ChangeBatch{

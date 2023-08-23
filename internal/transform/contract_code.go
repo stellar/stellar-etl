@@ -10,7 +10,7 @@ import (
 )
 
 // TransformContractCode converts a contract code ledger change entry into a form suitable for BigQuery
-func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (ContractCodeOutput, error) {
+func TransformContractCode(ledgerChange ingest.Change) (ContractCodeOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractCodeOutput{}, err
@@ -44,16 +44,6 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 
 	contractCodeExpirationLedgerSeq := contractCode.ExpirationLedgerSeq
 
-	var outputDeletedAtLedger uint32
-	if outputDeleted {
-		outputDeletedAtLedger = uint32(header.Header.LedgerSeq)
-	}
-
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return ContractCodeOutput{}, fmt.Errorf("for ledger %d: %v", header.Header.LedgerSeq, err)
-	}
-
 	transformedPool := ContractCodeOutput{
 		ContractCodeHash:                contractCodeHash,
 		ContractCodeExtV:                int32(contractCodeExtV),
@@ -62,8 +52,6 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:               uint32(changeType),
 		Deleted:                         outputDeleted,
-		DeletedAtLedger:                 outputDeletedAtLedger,
-		LedgerClosedAt:                  outputCloseTime,
 		//ContractCodeCode:                contractCodeCode,
 	}
 	return transformedPool, nil

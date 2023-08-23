@@ -35,7 +35,7 @@ var dataCmd = &cobra.Command{
 		totalNumBytes := 0
 		for _, data := range datas {
 			TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
-			transformed, err := TransformContractData.TransformContractData(data, env.NetworkPassphrase, xdr.LedgerHeaderHistoryEntry{})
+			transformed, err := TransformContractData.TransformContractData(data, env.NetworkPassphrase)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform contract data %+v: %v", data, err))
 				numFailures += 1
