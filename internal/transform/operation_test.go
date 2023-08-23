@@ -75,7 +75,7 @@ func TestTransformOperation(t *testing.T) {
 
 func makeLedgerCloseMeta() (ledgerCloseMeta xdr.LedgerCloseMeta) {
 	return xdr.LedgerCloseMeta{
-		V: 1,
+		V: 0,
 		V0: &xdr.LedgerCloseMetaV0{
 			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 				Header: xdr.LedgerHeader{
