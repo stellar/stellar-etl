@@ -85,24 +85,6 @@ func makeLedgerCloseMeta() (ledgerCloseMeta xdr.LedgerCloseMeta) {
 				},
 			},
 		},
-		V1: &xdr.LedgerCloseMetaV1{
-			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-				Header: xdr.LedgerHeader{
-					ScpValue: xdr.StellarValue{
-						CloseTime: 0,
-					},
-				},
-			},
-		},
-		V2: &xdr.LedgerCloseMetaV2{
-			LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-				Header: xdr.LedgerHeader{
-					ScpValue: xdr.StellarValue{
-						CloseTime: 0,
-					},
-				},
-			},
-		},
 	}
 }
 

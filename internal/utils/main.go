@@ -602,5 +602,10 @@ func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta,
 }
 
 func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
-	return ExtractLedgerCloseTime(lcm.LedgerHeaderHistoryEntry())
+	switch lcm.V {
+	case 0:
+		return ExtractLedgerCloseTime(lcm.MustV0().LedgerHeader)
+	default:
+		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", lcm.V))
+	}
 }
