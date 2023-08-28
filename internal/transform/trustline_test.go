@@ -11,24 +11,33 @@ import (
 )
 
 func TestTransformTrustline(t *testing.T) {
+	type inputStruct struct {
+		ingest           ingest.Change
+		ledgerClosedMeta xdr.LedgerCloseMeta
+	}
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput TrustlineOutput
 		wantErr    error
 	}
 
 	hardCodedInput := makeTrustlineTestInput()
+	hardCodedCloseMetaInput := makeLedgerCloseMeta()
 	hardCodedOutput := makeTrustlineTestOutput()
+
 	tests := []transformTest{
 		{
-			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
-				Post: &xdr.LedgerEntry{
-					Data: xdr.LedgerEntryData{
-						Type: xdr.LedgerEntryTypeOffer,
+			inputStruct{
+				ingest.Change{
+					Type: xdr.LedgerEntryTypeOffer,
+					Pre:  nil,
+					Post: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeOffer,
+						},
 					},
 				},
+				hardCodedCloseMetaInput,
 			},
 			TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
@@ -36,14 +45,14 @@ func TestTransformTrustline(t *testing.T) {
 
 	for i := range hardCodedInput {
 		tests = append(tests, transformTest{
-			input:      hardCodedInput[i],
+			input:      inputStruct{hardCodedInput[i], hardCodedCloseMetaInput},
 			wantOutput: hardCodedOutput[i],
 			wantErr:    nil,
 		})
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrustline(test.input)
+		actualOutput, actualError := TransformTrustline(test.input.ingest, test.input.ledgerClosedMeta)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -125,6 +134,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 24229503,
 			LedgerEntryChange:  1,
 			Deleted:            false,
+			ClosedAt:           genericCloseTime.UTC(),
 		},
 		{
 			LedgerKey:          "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
@@ -140,6 +150,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 123456789,
 			LedgerEntryChange:  1,
 			Deleted:            false,
+			ClosedAt:           genericCloseTime.UTC(),
 		},
 	}
 }

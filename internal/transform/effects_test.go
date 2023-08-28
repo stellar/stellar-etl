@@ -6,6 +6,7 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/protocols/horizon/base"
+	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/suite"
@@ -31,6 +32,7 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 			},
 			operation:      op,
 			ledgerSequence: 1,
+			ledgerClosed:   genericCloseTime.UTC(),
 		}
 		// calling effects should either panic (because the operation field is set to nil)
 		// or not error
@@ -63,6 +65,7 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 		},
 		operation:      op,
 		ledgerSequence: 1,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 	// calling effects should error due to the unknown operation
 	_, err := operation.effects()
@@ -335,6 +338,9 @@ func TestOperationEffects(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, err)
 
+	harCodedCloseMetaInput := makeLedgerCloseMeta()
+	LedgerClosed, err := utils.GetCloseTime(harCodedCloseMetaInput)
+
 	revokeSponsorshipMeta, revokeSponsorshipEffects := getRevokeSponsorshipMeta(t)
 
 	testCases := []struct {
@@ -364,8 +370,9 @@ func TestOperationEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"starting_balance": "1000.0000000",
 					},
-					Type:       int32(EffectAccountCreated),
-					TypeString: EffectTypeNames[EffectAccountCreated],
+					Type:         int32(EffectAccountCreated),
+					TypeString:   EffectTypeNames[EffectAccountCreated],
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
@@ -374,8 +381,9 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "1000.0000000",
 						"asset_type": "native",
 					},
-					Type:       int32(EffectAccountDebited),
-					TypeString: EffectTypeNames[EffectAccountDebited],
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GCQZP3IU7XU6EJ63JZXKCQOYT2RNXN3HB5CNHENNUEUHSMA4VUJJJSEN",
@@ -384,8 +392,9 @@ func TestOperationEffects(t *testing.T) {
 						"public_key": "GCQZP3IU7XU6EJ63JZXKCQOYT2RNXN3HB5CNHENNUEUHSMA4VUJJJSEN",
 						"weight":     1,
 					},
-					Type:       int32(EffectSignerCreated),
-					TypeString: EffectTypeNames[EffectSignerCreated],
+					Type:         int32(EffectSignerCreated),
+					TypeString:   EffectTypeNames[EffectSignerCreated],
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
@@ -393,8 +402,9 @@ func TestOperationEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"former_sponsor": "GACMZD5VJXTRLKVET72CETCYKELPNCOTTBDC6DHFEUPLG5DHEK534JQX",
 					},
-					Type:       int32(EffectAccountSponsorshipRemoved),
-					TypeString: EffectTypeNames[EffectAccountSponsorshipRemoved],
+					Type:         int32(EffectAccountSponsorshipRemoved),
+					TypeString:   EffectTypeNames[EffectAccountSponsorshipRemoved],
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
@@ -403,8 +413,9 @@ func TestOperationEffects(t *testing.T) {
 						"former_sponsor": "GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A",
 						"new_sponsor":    "GACMZD5VJXTRLKVET72CETCYKELPNCOTTBDC6DHFEUPLG5DHEK534JQX",
 					},
-					Type:       int32(EffectAccountSponsorshipUpdated),
-					TypeString: EffectTypeNames[EffectAccountSponsorshipUpdated],
+					Type:         int32(EffectAccountSponsorshipUpdated),
+					TypeString:   EffectTypeNames[EffectAccountSponsorshipUpdated],
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GCQZP3IU7XU6EJ63JZXKCQOYT2RNXN3HB5CNHENNUEUHSMA4VUJJJSEN",
@@ -412,8 +423,9 @@ func TestOperationEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"sponsor": "GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A",
 					},
-					Type:       int32(EffectAccountSponsorshipCreated),
-					TypeString: EffectTypeNames[EffectAccountSponsorshipCreated],
+					Type:         int32(EffectAccountSponsorshipCreated),
+					TypeString:   EffectTypeNames[EffectAccountSponsorshipCreated],
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -433,9 +445,10 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "10.0000000",
 						"asset_type": "native",
 					},
-					Type:        int32(EffectAccountCredited),
-					TypeString:  EffectTypeNames[EffectAccountCredited],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GANFZDRBCNTUXIODCJEYMACPMCSZEVE4WZGZ3CZDZ3P2SXK4KH75IK6Y",
@@ -443,9 +456,10 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "10.0000000",
 						"asset_type": "native",
 					},
-					Type:        int32(EffectAccountDebited),
-					TypeString:  EffectTypeNames[EffectAccountDebited],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -468,9 +482,10 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectAccountCredited),
-					TypeString:  EffectTypeNames[EffectAccountCredited],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -480,9 +495,10 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectAccountDebited),
-					TypeString:  EffectTypeNames[EffectAccountDebited],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -498,9 +514,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GDEOVUDLCYTO46D6GD6WH7BFESPBV5RACC6F6NUFCIRU7PL2XONQHVGJ",
@@ -516,9 +533,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -534,9 +552,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GDEOVUDLCYTO46D6GD6WH7BFESPBV5RACC6F6NUFCIRU7PL2XONQHVGJ",
@@ -552,9 +571,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -570,9 +590,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GDEOVUDLCYTO46D6GD6WH7BFESPBV5RACC6F6NUFCIRU7PL2XONQHVGJ",
@@ -588,9 +609,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -613,9 +635,10 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectAccountCredited),
-					TypeString:  EffectTypeNames[EffectAccountCredited],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:      "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -626,9 +649,10 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectAccountDebited),
-					TypeString:  EffectTypeNames[EffectAccountDebited],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:      "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -645,9 +669,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GDEOVUDLCYTO46D6GD6WH7BFESPBV5RACC6F6NUFCIRU7PL2XONQHVGJ",
@@ -665,9 +690,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:      "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -684,9 +710,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GDEOVUDLCYTO46D6GD6WH7BFESPBV5RACC6F6NUFCIRU7PL2XONQHVGJ",
@@ -704,9 +731,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:      "GD3MMHD2YZWL5RAUWG6O3RMA5HTZYM7S3JLSZ2Z35JNJAWTDIKXY737V",
@@ -723,9 +751,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GDEOVUDLCYTO46D6GD6WH7BFESPBV5RACC6F6NUFCIRU7PL2XONQHVGJ",
@@ -743,9 +772,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer":   "GCXI6Q73J7F6EUSBZTPW4G4OUGVDHABPYF2U4KO7MVEX52OH5VMVUCRF",
 						"sold_asset_type":     "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(85899350017),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(85899350017),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -782,9 +812,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "999.9999999",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAHEPWQ2B5ZOPI2NB647QCIXFPQR4H56FPYADQY54GNMFG4IYB5ZAJ5H",
@@ -798,9 +829,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBEYFNS6KJRFEI22X5OBUFKQ5LK7Z2FZVFMAXBINC2SOCKA25AS62PUN",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD5OGQTZZ2PYI2RSMOJA6BQ7CDCW2JXAXBKR6XZK6PPRFUZ3BUXNLFKP",
@@ -814,9 +846,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "999.9999999",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAHEPWQ2B5ZOPI2NB647QCIXFPQR4H56FPYADQY54GNMFG4IYB5ZAJ5H",
@@ -830,9 +863,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBEYFNS6KJRFEI22X5OBUFKQ5LK7Z2FZVFMAXBINC2SOCKA25AS62PUN",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD5OGQTZZ2PYI2RSMOJA6BQ7CDCW2JXAXBKR6XZK6PPRFUZ3BUXNLFKP",
@@ -846,9 +880,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "999.9999999",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAHEPWQ2B5ZOPI2NB647QCIXFPQR4H56FPYADQY54GNMFG4IYB5ZAJ5H",
@@ -862,9 +897,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBEYFNS6KJRFEI22X5OBUFKQ5LK7Z2FZVFMAXBINC2SOCKA25AS62PUN",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GD5OGQTZZ2PYI2RSMOJA6BQ7CDCW2JXAXBKR6XZK6PPRFUZ3BUXNLFKP",
@@ -878,9 +914,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "999.9999999",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferCreated),
-					TypeString:  EffectTypeNames[EffectOfferCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferCreated),
+					TypeString:   EffectTypeNames[EffectOfferCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAHEPWQ2B5ZOPI2NB647QCIXFPQR4H56FPYADQY54GNMFG4IYB5ZAJ5H",
@@ -894,9 +931,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBEYFNS6KJRFEI22X5OBUFKQ5LK7Z2FZVFMAXBINC2SOCKA25AS62PUN",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferCreated),
-					TypeString:  EffectTypeNames[EffectOfferCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferCreated),
+					TypeString:   EffectTypeNames[EffectOfferCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -922,9 +960,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "200.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GCA3EPMNR26H3BO55PQPAMOGKBAIMARLQHWCRK7KTUPGR62SDVLIL7D6",
@@ -938,9 +977,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
 						"sold_asset_type":   "credit_alphanum12",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
@@ -954,9 +994,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "200.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GCA3EPMNR26H3BO55PQPAMOGKBAIMARLQHWCRK7KTUPGR62SDVLIL7D6",
@@ -970,9 +1011,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
 						"sold_asset_type":   "credit_alphanum12",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
@@ -986,9 +1028,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "200.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GCA3EPMNR26H3BO55PQPAMOGKBAIMARLQHWCRK7KTUPGR62SDVLIL7D6",
@@ -1002,9 +1045,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
 						"sold_asset_type":   "credit_alphanum12",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
@@ -1018,9 +1062,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "200.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferCreated),
-					TypeString:  EffectTypeNames[EffectOfferCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferCreated),
+					TypeString:   EffectTypeNames[EffectOfferCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GCA3EPMNR26H3BO55PQPAMOGKBAIMARLQHWCRK7KTUPGR62SDVLIL7D6",
@@ -1034,9 +1079,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GBFC3KATHWQOZ3TWJEOLMBBFMPZ4OS2KYVZRKWVRMQKZ2LFNRLQEIRCV",
 						"sold_asset_type":   "credit_alphanum12",
 					},
-					Type:        int32(EffectOfferCreated),
-					TypeString:  EffectTypeNames[EffectOfferCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferCreated),
+					TypeString:   EffectTypeNames[EffectOfferCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1062,9 +1108,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "100.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAZAIOXF7GBHGPHOYJSTPIIC4K6AJM55S5Q44OCJHEHIF6YU2IHO6VHU",
@@ -1078,9 +1125,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectTrade),
-					TypeString:  EffectTypeNames[EffectTrade],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectTrade),
+					TypeString:   EffectTypeNames[EffectTrade],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAA7AZYCJ65VJSMFAGQLBNCXA43QQ6ZEUR4GL4YSVB2FXUAHLLYUHIO5",
@@ -1094,9 +1142,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "100.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAZAIOXF7GBHGPHOYJSTPIIC4K6AJM55S5Q44OCJHEHIF6YU2IHO6VHU",
@@ -1110,9 +1159,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferUpdated),
-					TypeString:  EffectTypeNames[EffectOfferUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferUpdated),
+					TypeString:   EffectTypeNames[EffectOfferUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAA7AZYCJ65VJSMFAGQLBNCXA43QQ6ZEUR4GL4YSVB2FXUAHLLYUHIO5",
@@ -1126,9 +1176,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "100.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAZAIOXF7GBHGPHOYJSTPIIC4K6AJM55S5Q44OCJHEHIF6YU2IHO6VHU",
@@ -1142,9 +1193,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferRemoved),
-					TypeString:  EffectTypeNames[EffectOfferRemoved],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferRemoved),
+					TypeString:   EffectTypeNames[EffectOfferRemoved],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAA7AZYCJ65VJSMFAGQLBNCXA43QQ6ZEUR4GL4YSVB2FXUAHLLYUHIO5",
@@ -1158,9 +1210,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_amount":         "100.0000000",
 						"sold_asset_type":     "native",
 					},
-					Type:        int32(EffectOfferCreated),
-					TypeString:  EffectTypeNames[EffectOfferCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferCreated),
+					TypeString:   EffectTypeNames[EffectOfferCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GAZAIOXF7GBHGPHOYJSTPIIC4K6AJM55S5Q44OCJHEHIF6YU2IHO6VHU",
@@ -1174,9 +1227,10 @@ func TestOperationEffects(t *testing.T) {
 						"sold_asset_issuer": "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
 						"sold_asset_type":   "credit_alphanum4",
 					},
-					Type:        int32(EffectOfferCreated),
-					TypeString:  EffectTypeNames[EffectOfferCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectOfferCreated),
+					TypeString:   EffectTypeNames[EffectOfferCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1195,9 +1249,10 @@ func TestOperationEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"home_domain": "https://www.home.org/",
 					},
-					Type:        int32(EffectAccountHomeDomainUpdated),
-					TypeString:  EffectTypeNames[EffectAccountHomeDomainUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectAccountHomeDomainUpdated),
+					TypeString:   EffectTypeNames[EffectAccountHomeDomainUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
@@ -1206,9 +1261,10 @@ func TestOperationEffects(t *testing.T) {
 						"low_threshold":  xdr.Uint32(1),
 						"med_threshold":  xdr.Uint32(2),
 					},
-					Type:        int32(EffectAccountThresholdsUpdated),
-					TypeString:  EffectTypeNames[EffectAccountThresholdsUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectAccountThresholdsUpdated),
+					TypeString:   EffectTypeNames[EffectAccountThresholdsUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
@@ -1216,18 +1272,20 @@ func TestOperationEffects(t *testing.T) {
 						"auth_required_flag":  true,
 						"auth_revocable_flag": false,
 					},
-					Type:        int32(EffectAccountFlagsUpdated),
-					TypeString:  EffectTypeNames[EffectAccountFlagsUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectAccountFlagsUpdated),
+					TypeString:   EffectTypeNames[EffectAccountFlagsUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
 					Details: map[string]interface{}{
 						"inflation_destination": "GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C",
 					},
-					Type:        int32(EffectAccountInflationDestinationUpdated),
-					TypeString:  EffectTypeNames[EffectAccountInflationDestinationUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectAccountInflationDestinationUpdated),
+					TypeString:   EffectTypeNames[EffectAccountInflationDestinationUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
@@ -1235,9 +1293,10 @@ func TestOperationEffects(t *testing.T) {
 						"public_key": "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
 						"weight":     int32(3),
 					},
-					Type:        int32(EffectSignerUpdated),
-					TypeString:  EffectTypeNames[EffectSignerUpdated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectSignerUpdated),
+					TypeString:   EffectTypeNames[EffectSignerUpdated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address: "GC4XF7RE3R4P77GY5XNGICM56IOKUURWAAANPXHFC7G5H6FCNQVVH3OH",
@@ -1245,9 +1304,10 @@ func TestOperationEffects(t *testing.T) {
 						"public_key": "GAQHWQYBBW272OOXNQMMLCA5WY2XAZPODGB7Q3S5OKKIXVESKO55ZQ7C",
 						"weight":     int32(2),
 					},
-					Type:        int32(EffectSignerCreated),
-					TypeString:  EffectTypeNames[EffectSignerCreated],
-					OperationID: int64(240518172673),
+					Type:         int32(EffectSignerCreated),
+					TypeString:   EffectTypeNames[EffectSignerCreated],
+					OperationID:  int64(240518172673),
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1272,6 +1332,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type":   "credit_alphanum4",
 						"asset_issuer": "GD4SMOE3VPSF7ZR3CTEQ3P5UNTBMEJDA2GLXTHR7MMARANKKJDZ7RPGF",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1296,6 +1357,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type":   "credit_alphanum12",
 						"asset_issuer": "GBE4L76HUCHCQ2B7IIWBXRAJDBDPIY6MGWX7VZHUZD2N5RO7XI4J6GTJ",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1320,6 +1382,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type":   "credit_alphanum12",
 						"asset_issuer": "GA5SKSJEB7VWACRNWFGVZBDSZYLGK44A2JPPBWUK3GB7NYEFOOQJAC2B",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1344,6 +1407,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type":   "credit_alphanum4",
 						"asset_issuer": "GD4SMOE3VPSF7ZR3CTEQ3P5UNTBMEJDA2GLXTHR7MMARANKKJDZ7RPGF",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GD4SMOE3VPSF7ZR3CTEQ3P5UNTBMEJDA2GLXTHR7MMARANKKJDZ7RPGF",
@@ -1357,6 +1421,7 @@ func TestOperationEffects(t *testing.T) {
 						"authorized_flag": true,
 						"trustor":         "GCVW5LCRZFP7PENXTAGOVIQXADDNUXXZJCNKF4VQB2IK7W2LPJWF73UG",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1379,6 +1444,7 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "999.9999900",
 						"asset_type": "native",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
@@ -1389,13 +1455,15 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "999.9999900",
 						"asset_type": "native",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
-					Address:     "GCHPXGVDKPF5KT4CNAT7X77OXYZ7YVE4JHKFDUHCGCVWCL4K4PQ67KKZ",
-					Type:        int32(EffectAccountRemoved),
-					TypeString:  EffectTypeNames[EffectAccountRemoved],
-					OperationID: int64(188978565121),
-					Details:     map[string]interface{}{},
+					Address:      "GCHPXGVDKPF5KT4CNAT7X77OXYZ7YVE4JHKFDUHCGCVWCL4K4PQ67KKZ",
+					Type:         int32(EffectAccountRemoved),
+					TypeString:   EffectTypeNames[EffectAccountRemoved],
+					OperationID:  int64(188978565121),
+					Details:      map[string]interface{}{},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1418,6 +1486,7 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "15257676.9536092",
 						"asset_type": "native",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Address:     "GDR53WAEIKOU3ZKN34CSHAWH7HV6K63CBJRUTWUDBFSMY7RRQK3SPKOS",
@@ -1428,6 +1497,7 @@ func TestOperationEffects(t *testing.T) {
 						"amount":     "3814420.0001419",
 						"asset_type": "native",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1450,6 +1520,7 @@ func TestOperationEffects(t *testing.T) {
 						"name":  xdr.String64("name2"),
 						"value": "NTY3OA==",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1471,6 +1542,7 @@ func TestOperationEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"name": xdr.String64("hello"),
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1493,6 +1565,7 @@ func TestOperationEffects(t *testing.T) {
 						"name":  xdr.String64("GCR3TQ2TVH3QRI7GQMC3IJGUUBR32YQHWBIKIMTYRQ2YH4XUTDB75UKE"),
 						"value": "MTU3ODUyMTIwNF8yOTMyOTAyNzg=",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1538,6 +1611,7 @@ func TestOperationEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"new_seq": xdr.SequenceNumber(300000000000),
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -1584,6 +1658,7 @@ func TestOperationEffects(t *testing.T) {
 				transaction:    transaction,
 				operation:      transaction.Envelope.Operations()[tc.index],
 				ledgerSequence: tc.sequence,
+				ledgerClosed:   LedgerClosed,
 			}
 
 			effects, err := operation.effects()
@@ -1674,6 +1749,7 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 			},
 		},
 		ledgerSequence: 46,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -1686,8 +1762,9 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 				"public_key": "GCAHY6JSXQFKWKP6R7U5JPXDVNV4DJWOWRFLY3Y6YPBF64QRL4BPFDNS",
 				"weight":     int32(15),
 			},
-			Type:       int32(EffectSignerUpdated),
-			TypeString: EffectTypeNames[EffectSignerUpdated],
+			Type:         int32(EffectSignerUpdated),
+			TypeString:   EffectTypeNames[EffectSignerUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
@@ -1696,8 +1773,9 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 				"public_key": "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
 				"weight":     int32(16),
 			},
-			Type:       int32(EffectSignerUpdated),
-			TypeString: EffectTypeNames[EffectSignerUpdated],
+			Type:         int32(EffectSignerUpdated),
+			TypeString:   EffectTypeNames[EffectSignerUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
@@ -1706,8 +1784,9 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 				"public_key": "GA4O5DLUUTLCTMM2UOWOYPNIH2FTD4NLO6KDZOFQRUISQ3FYKABGJLPC",
 				"weight":     int32(17),
 			},
-			Type:       int32(EffectSignerCreated),
-			TypeString: EffectTypeNames[EffectSignerCreated],
+			Type:         int32(EffectSignerCreated),
+			TypeString:   EffectTypeNames[EffectSignerCreated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
@@ -1716,8 +1795,9 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 				"public_key": "GCR3TQ2TVH3QRI7GQMC3IJGUUBR32YQHWBIKIMTYRQ2YH4XUTDB75UKE",
 				"weight":     int32(14),
 			},
-			Type:       int32(EffectSignerCreated),
-			TypeString: EffectTypeNames[EffectSignerCreated],
+			Type:         int32(EffectSignerCreated),
+			TypeString:   EffectTypeNames[EffectSignerCreated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 	tt.Equal(expected, effects)
@@ -1804,6 +1884,7 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 			},
 		},
 		ledgerSequence: 46,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -1815,8 +1896,9 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 			Details: map[string]interface{}{
 				"public_key": "GA4O5DLUUTLCTMM2UOWOYPNIH2FTD4NLO6KDZOFQRUISQ3FYKABGJLPC",
 			},
-			Type:       int32(EffectSignerRemoved),
-			TypeString: EffectTypeNames[EffectSignerRemoved],
+			Type:         int32(EffectSignerRemoved),
+			TypeString:   EffectTypeNames[EffectSignerRemoved],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
@@ -1825,8 +1907,9 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 				"public_key": "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
 				"weight":     int32(16),
 			},
-			Type:       int32(EffectSignerUpdated),
-			TypeString: EffectTypeNames[EffectSignerUpdated],
+			Type:         int32(EffectSignerUpdated),
+			TypeString:   EffectTypeNames[EffectSignerUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GCBBDQLCTNASZJ3MTKAOYEOWRGSHDFAJVI7VPZUOP7KXNHYR3HP2BUKV",
@@ -1835,8 +1918,9 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 				"public_key": "GCR3TQ2TVH3QRI7GQMC3IJGUUBR32YQHWBIKIMTYRQ2YH4XUTDB75UKE",
 				"weight":     int32(14),
 			},
-			Type:       int32(EffectSignerCreated),
-			TypeString: EffectTypeNames[EffectSignerCreated],
+			Type:         int32(EffectSignerCreated),
+			TypeString:   EffectTypeNames[EffectSignerCreated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 	tt.Equal(expected, effects)
@@ -1906,6 +1990,7 @@ func TestOperationEffectsAllowTrustAuthorizedToMaintainLiabilities(t *testing.T)
 		},
 		operation:      op,
 		ledgerSequence: 1,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -1921,8 +2006,9 @@ func TestOperationEffectsAllowTrustAuthorizedToMaintainLiabilities(t *testing.T)
 				"asset_type":   "credit_alphanum4",
 				"trustor":      "GDQNY3PBOJOKYZSRMK2S7LHHGWZIUISD4QORETLMXEWXBI7KFZZMKTL3",
 			},
-			Type:       int32(EffectTrustlineFlagsUpdated),
-			TypeString: EffectTypeNames[EffectTrustlineFlagsUpdated],
+			Type:         int32(EffectTrustlineFlagsUpdated),
+			TypeString:   EffectTypeNames[EffectTrustlineFlagsUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
@@ -1934,8 +2020,9 @@ func TestOperationEffectsAllowTrustAuthorizedToMaintainLiabilities(t *testing.T)
 				"authorized_to_maintain_liabilites": true,
 				"trustor":                           "GDQNY3PBOJOKYZSRMK2S7LHHGWZIUISD4QORETLMXEWXBI7KFZZMKTL3",
 			},
-			Type:       int32(EffectTrustlineFlagsUpdated),
-			TypeString: EffectTypeNames[EffectTrustlineFlagsUpdated],
+			Type:         int32(EffectTrustlineFlagsUpdated),
+			TypeString:   EffectTypeNames[EffectTrustlineFlagsUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 	tt.Equal(expected, effects)
@@ -1967,6 +2054,7 @@ func TestOperationEffectsClawback(t *testing.T) {
 		},
 		operation:      op,
 		ledgerSequence: 1,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -1982,8 +2070,9 @@ func TestOperationEffectsClawback(t *testing.T) {
 				"asset_type":   "credit_alphanum4",
 				"amount":       "0.0000034",
 			},
-			Type:       int32(EffectAccountCredited),
-			TypeString: EffectTypeNames[EffectAccountCredited],
+			Type:         int32(EffectAccountCredited),
+			TypeString:   EffectTypeNames[EffectAccountCredited],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     "GDQNY3PBOJOKYZSRMK2S7LHHGWZIUISD4QORETLMXEWXBI7KFZZMKTL3",
@@ -1994,8 +2083,9 @@ func TestOperationEffectsClawback(t *testing.T) {
 				"asset_type":   "credit_alphanum4",
 				"amount":       "0.0000034",
 			},
-			Type:       int32(EffectAccountDebited),
-			TypeString: EffectTypeNames[EffectAccountDebited],
+			Type:         int32(EffectAccountDebited),
+			TypeString:   EffectTypeNames[EffectAccountDebited],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 	tt.Equal(expected, effects)
@@ -2027,6 +2117,7 @@ func TestOperationEffectsClawbackClaimableBalance(t *testing.T) {
 		},
 		operation:      op,
 		ledgerSequence: 1,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -2039,8 +2130,9 @@ func TestOperationEffectsClawbackClaimableBalance(t *testing.T) {
 			Details: map[string]interface{}{
 				"balance_id": "00000000da0d57da7d4850e7fc10d2a9d0ebc731f7afb40574c03395b17d49149b91f5be",
 			},
-			Type:       int32(EffectClaimableBalanceClawedBack),
-			TypeString: EffectTypeNames[EffectClaimableBalanceClawedBack],
+			Type:         int32(EffectClaimableBalanceClawedBack),
+			TypeString:   EffectTypeNames[EffectClaimableBalanceClawedBack],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 	tt.Equal(expected, effects)
@@ -2076,6 +2168,7 @@ func TestOperationEffectsSetTrustLineFlags(t *testing.T) {
 		},
 		operation:      op,
 		ledgerSequence: 1,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -2094,8 +2187,9 @@ func TestOperationEffectsSetTrustLineFlags(t *testing.T) {
 				"clawback_enabled_flag":             false,
 				"trustor":                           "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 			},
-			Type:       int32(EffectTrustlineFlagsUpdated),
-			TypeString: EffectTypeNames[EffectTrustlineFlagsUpdated],
+			Type:         int32(EffectTrustlineFlagsUpdated),
+			TypeString:   EffectTypeNames[EffectTrustlineFlagsUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 	tt.Equal(expected, effects)
@@ -2228,6 +2322,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				// `asset_type` set in `Effect.UnmarshalDetails` to prevent reingestion
 				"sponsor": "GDMQUXK7ZUCWM5472ZU3YLDP4BMJLQQ76DEMNYDEY2ODEEGGRKLEWGW2",
 			},
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Type:        int32(EffectTrustlineSponsorshipUpdated),
@@ -2240,6 +2335,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"former_sponsor": "GDMQUXK7ZUCWM5472ZU3YLDP4BMJLQQ76DEMNYDEY2ODEEGGRKLEWGW2",
 				"new_sponsor":    "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Type:        int32(EffectTrustlineSponsorshipRemoved),
@@ -2251,6 +2347,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				// `asset_type` set in `Effect.UnmarshalDetails` to prevent reingestion
 				"former_sponsor": "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Type:        int32(EffectTrustlineSponsorshipCreated),
@@ -2262,6 +2359,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"asset_type":        "liquidity_pool",
 				"sponsor":           "GDMQUXK7ZUCWM5472ZU3YLDP4BMJLQQ76DEMNYDEY2ODEEGGRKLEWGW2",
 			},
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Type:        int32(EffectTrustlineSponsorshipUpdated),
@@ -2274,6 +2372,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"former_sponsor":    "GDMQUXK7ZUCWM5472ZU3YLDP4BMJLQQ76DEMNYDEY2ODEEGGRKLEWGW2",
 				"new_sponsor":       "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Type:        int32(EffectTrustlineSponsorshipRemoved),
@@ -2285,6 +2384,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"asset_type":        "liquidity_pool",
 				"former_sponsor":    "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 
@@ -2319,6 +2419,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 		transaction:    tx,
 		operation:      phonyOp,
 		ledgerSequence: 1,
+		ledgerClosed:   genericCloseTime.UTC(),
 	}
 
 	effects, err := operation.effects()
@@ -2442,6 +2543,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"limit":             "0.0001000",
 						"liquidity_pool_id": poolIDStr,
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectLiquidityPoolCreated),
@@ -2467,6 +2569,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"type":             "constant_product",
 						},
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -2535,6 +2638,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 						"shares_received": "0.0000010",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -2596,6 +2700,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 						"shares_redeemed": "0.0000010",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -2663,6 +2768,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"asset_issuer": "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 						"asset_type":   "credit_alphanum4",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectAccountDebited),
@@ -2673,6 +2779,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"amount":     "0.0000010",
 						"asset_type": "native",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectLiquidityPoolTrade),
@@ -2706,6 +2813,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"asset":  "native",
 						},
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -2847,6 +2955,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"authorized_flag": false,
 						"trustor":         "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectClaimableBalanceCreated),
@@ -2858,6 +2967,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"asset":      "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 						"balance_id": "000000000a0b000000000000000000000000000000000000000000000000000000000000",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectClaimableBalanceClaimantCreated),
@@ -2870,6 +2980,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"balance_id": "000000000a0b000000000000000000000000000000000000000000000000000000000000",
 						"predicate":  xdr.ClaimPredicate{},
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectLiquidityPoolRevoked),
@@ -2903,6 +3014,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 						"shares_revoked": "0.0001000",
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 				{
 					Type:        int32(EffectLiquidityPoolRemoved),
@@ -2912,6 +3024,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 					Details: map[string]interface{}{
 						"liquidity_pool_id": poolIDStr,
 					},
+					LedgerClosed: genericCloseTime.UTC(),
 				},
 			},
 		},
@@ -2953,6 +3066,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 				transaction:    tx,
 				operation:      op,
 				ledgerSequence: 1,
+				ledgerClosed:   genericCloseTime.UTC(),
 			}
 
 			effects, err := operation.effects()
@@ -3047,8 +3161,9 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 				"sponsor": newSponsor.Address(),
 				"signer":  thirdSigner.Address(),
 			},
-			Type:       int32(EffectSignerSponsorshipCreated),
-			TypeString: EffectTypeNames[EffectSignerSponsorshipCreated],
+			Type:         int32(EffectSignerSponsorshipCreated),
+			TypeString:   EffectTypeNames[EffectSignerSponsorshipCreated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     source.Address(),
@@ -3058,8 +3173,9 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 				"new_sponsor":    updatedSponsor.Address(),
 				"signer":         secondSigner.Address(),
 			},
-			Type:       int32(EffectSignerSponsorshipUpdated),
-			TypeString: EffectTypeNames[EffectSignerSponsorshipUpdated],
+			Type:         int32(EffectSignerSponsorshipUpdated),
+			TypeString:   EffectTypeNames[EffectSignerSponsorshipUpdated],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 		{
 			Address:     source.Address(),
@@ -3068,8 +3184,9 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 				"former_sponsor": formerSponsor.Address(),
 				"signer":         firstSigner.Address(),
 			},
-			Type:       int32(EffectSignerSponsorshipRemoved),
-			TypeString: EffectTypeNames[EffectSignerSponsorshipRemoved],
+			Type:         int32(EffectSignerSponsorshipRemoved),
+			TypeString:   EffectTypeNames[EffectSignerSponsorshipRemoved],
+			LedgerClosed: genericCloseTime.UTC(),
 		},
 	}
 

@@ -13,36 +13,48 @@ import (
 )
 
 func TestTransformAccountSigner(t *testing.T) {
+	type inputStruct struct {
+		injest          ingest.Change
+		ledgerCloseMeta xdr.LedgerCloseMeta
+	}
+
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput []AccountSignerOutput
 		wantErr    error
 	}
 
 	hardCodedInput := makeSignersTestInput()
+	hardCodedMetaInput := makeLedgerCloseMeta()
 	hardCodedOutput := makeSignersTestOutput()
 
 	tests := []transformTest{
 		{
-			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
-				Post: &xdr.LedgerEntry{
-					Data: xdr.LedgerEntryData{
-						Type: xdr.LedgerEntryTypeOffer,
+			inputStruct{
+				ingest.Change{
+					Type: xdr.LedgerEntryTypeOffer,
+					Pre:  nil,
+					Post: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeOffer,
+						},
 					},
 				},
+				hardCodedMetaInput,
 			},
 			nil, fmt.Errorf("could not extract signer data from ledger entry of type: LedgerEntryTypeOffer"),
 		},
 		{
-			hardCodedInput,
+			inputStruct{
+				hardCodedInput,
+				hardCodedMetaInput,
+			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformSigners(test.input)
+		actualOutput, actualError := TransformSigners(test.input.injest, test.input.ledgerCloseMeta)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -121,6 +133,7 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
+			LedgerClosed:       genericCloseTime.UTC(),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
@@ -129,6 +142,7 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
+			LedgerClosed:       genericCloseTime.UTC(),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
@@ -137,6 +151,7 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
+			LedgerClosed:       genericCloseTime.UTC(),
 		},
 	}
 }

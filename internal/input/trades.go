@@ -24,29 +24,7 @@ type TradeTransformInput struct {
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
 func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]TradeTransformInput, error) {
 	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
-	if err != nil {
-		return []TradeTransformInput{}, err
-	}
-
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
-	if err != nil {
-		return []TradeTransformInput{}, err
-	}
+	backend, err := env.CreateCaptiveCoreBackend()
 
 	tradeSlice := []TradeTransformInput{}
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))

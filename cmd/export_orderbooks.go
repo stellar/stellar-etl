@@ -64,6 +64,11 @@ var exportOrderbooksCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read initial orderbook: ", err)
 		}
 
+		ledgerClose, err := env.GetLedgerCloseMeta(endNum)
+		if err != nil {
+			cmdLogger.Fatal("could not get ledger close meta: ", err)
+		}
+
 		orderbookChannel := make(chan input.OrderbookBatch)
 
 		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, env, cmdLogger)
@@ -79,7 +84,7 @@ var exportOrderbooksCmd = &cobra.Command{
 					batchEnd = endNum
 				}
 
-				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
+				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger, ledgerClose)
 				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
 			}
 		} else {
@@ -88,7 +93,7 @@ var exportOrderbooksCmd = &cobra.Command{
 			for {
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
-				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
+				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger, ledgerClose)
 				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
 				batchNum++
 			}

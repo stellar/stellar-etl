@@ -562,3 +562,50 @@ func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 		return details
 	}
 }
+
+type CaptiveCore interface {
+	CreateCaptiveCoreBackend() (ledgerbackend.CaptiveStellarCore, error)
+	GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error)
+}
+
+func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveStellarCore, error) {
+	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
+		e.CoreConfig,
+		ledgerbackend.CaptiveCoreTomlParams{
+			NetworkPassphrase:  e.NetworkPassphrase,
+			HistoryArchiveURLs: e.ArchiveURLs,
+			Strict:             true,
+		},
+	)
+	backend, err := ledgerbackend.NewCaptive(
+		ledgerbackend.CaptiveCoreConfig{
+			BinaryPath:         e.BinaryPath,
+			Toml:               captiveCoreToml,
+			NetworkPassphrase:  e.NetworkPassphrase,
+			HistoryArchiveURLs: e.ArchiveURLs,
+		},
+	)
+	return backend, err
+}
+
+func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error) {
+	ctx := context.Background()
+
+	backend, err := e.CreateCaptiveCoreBackend()
+
+	ledgerCloseMeta, err := backend.GetLedger(ctx, end)
+	if err != nil {
+		return xdr.LedgerCloseMeta{}, err
+	}
+
+	return ledgerCloseMeta, nil
+}
+
+func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
+	switch lcm.V {
+	case 0:
+		return ExtractLedgerCloseTime(lcm.MustV0().LedgerHeader)
+	default:
+		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", lcm.V))
+	}
+}

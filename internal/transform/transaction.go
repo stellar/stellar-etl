@@ -130,6 +130,11 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputMinSequenceLedgerGap = null.IntFrom(int64(*minSequenceLedgerGap))
 	}
 
+	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
+	if err != nil {
+		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
+	}
+
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
 		TransactionHash:             outputTransactionHash,
@@ -154,6 +159,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		MinAccountSequenceAge:       outputMinSequenceAge,
 		MinAccountSequenceLedgerGap: outputMinSequenceLedgerGap,
 		ExtraSigners:                formatSigners(transaction.Envelope.ExtraSigners()),
+		LedgerClosedAt:              outputCloseTime,
 	}
 
 	// Add Muxed Account Details, if exists
