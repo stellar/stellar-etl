@@ -593,6 +593,13 @@ func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta,
 
 	backend, err := e.CreateCaptiveCoreBackend()
 
+	ledgerRange := ledgerbackend.UnboundedRange(end)
+
+	err = backend.PrepareRange(ctx, ledgerRange)
+	if err != nil {
+		return xdr.LedgerCloseMeta{}, err
+	}
+
 	ledgerCloseMeta, err := backend.GetLedger(ctx, end)
 	if err != nil {
 		return xdr.LedgerCloseMeta{}, err
