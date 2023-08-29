@@ -565,7 +565,6 @@ func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 
 type CaptiveCore interface {
 	CreateCaptiveCoreBackend() (ledgerbackend.CaptiveStellarCore, error)
-	GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error)
 }
 
 func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveStellarCore, error) {
