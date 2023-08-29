@@ -6,12 +6,11 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformSigners converts account signers from the history archive ingestion system into a form suitable for BigQuery
-func TransformSigners(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMeta) ([]AccountSignerOutput, error) {
+func TransformSigners(ledgerChange ingest.Change) ([]AccountSignerOutput, error) {
 	var signers []AccountSignerOutput
 
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
@@ -22,10 +21,6 @@ func TransformSigners(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 	accountEntry, accountFound := ledgerEntry.Data.GetAccount()
 	if !accountFound {
 		return signers, fmt.Errorf("could not extract signer data from ledger entry of type: %+v", ledgerEntry.Data.Type)
-	}
-	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
-	if err != nil {
-		return signers, err
 	}
 
 	sponsors := accountEntry.SponsorPerSigner()
@@ -43,7 +38,6 @@ func TransformSigners(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 			LastModifiedLedger: outputLastModifiedLedger,
 			LedgerEntryChange:  uint32(changeType),
 			Deleted:            outputDeleted,
-			LedgerClosed:       outputCloseTime,
 		})
 	}
 	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })

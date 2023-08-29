@@ -608,17 +608,6 @@ func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerC
 	return ledgerCloseMeta, nil
 }
 
-func (e EnvironmentDetails) GetBoundedLedgerCloseMeta(backend *ledgerbackend.CaptiveStellarCore, seq uint32) (xdr.LedgerCloseMeta, error) {
-	ctx := context.Background()
-
-	ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
-	if err != nil {
-		return xdr.LedgerCloseMeta{}, err
-	}
-
-	return ledgerCloseMeta, nil
-}
-
 func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
 	switch lcm.V {
 	case 0:

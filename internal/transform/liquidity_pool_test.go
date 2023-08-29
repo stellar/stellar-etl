@@ -11,8 +11,7 @@ import (
 
 func TestTransformPool(t *testing.T) {
 	type inputStruct struct {
-		ingest           ingest.Change
-		ledgerClosedMeta xdr.LedgerCloseMeta
+		ingest ingest.Change
 	}
 	type transformTest struct {
 		input      inputStruct
@@ -21,7 +20,6 @@ func TestTransformPool(t *testing.T) {
 	}
 
 	hardCodedInput := makePoolTestInput()
-	hardCodedLedgerCloseInput := makeLedgerCloseMeta()
 	hardCodedOutput := makePoolTestOutput()
 
 	tests := []transformTest{
@@ -36,21 +34,19 @@ func TestTransformPool(t *testing.T) {
 						},
 					},
 				},
-				hardCodedLedgerCloseInput,
 			},
 			PoolOutput{}, nil,
 		},
 		{
 			inputStruct{
 				hardCodedInput,
-				hardCodedLedgerCloseInput,
 			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformPool(test.input.ingest, test.input.ledgerClosedMeta)
+		actualOutput, actualError := TransformPool(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -120,6 +116,5 @@ func makePoolTestOutput() PoolOutput {
 		LastModifiedLedger: 30705278,
 		LedgerEntryChange:  2,
 		Deleted:            true,
-		ClosedAt:           genericCloseTime.UTC(),
 	}
 }

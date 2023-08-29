@@ -10,7 +10,7 @@ import (
 )
 
 // TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformAccount(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMeta) (AccountOutput, error) {
+func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return AccountOutput{}, err
@@ -19,11 +19,6 @@ func TransformAccount(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 	accountEntry, accountFound := ledgerEntry.Data.GetAccount()
 	if !accountFound {
 		return AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
-	}
-
-	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
-	if err != nil {
-		return AccountOutput{}, err
 	}
 
 	outputID, err := accountEntry.AccountId.GetAddress()
@@ -103,7 +98,6 @@ func TransformAccount(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerClos
 		NumSponsoring:        uint32(accountEntry.NumSponsoring()),
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
-		LedgerClosed:         outputCloseTime,
 	}
 	return transformedAccount, nil
 }

@@ -11,8 +11,7 @@ import (
 
 func TestTransformClaimableBalance(t *testing.T) {
 	type inputStruct struct {
-		ingest           ingest.Change
-		ledgerClosedMeta xdr.LedgerCloseMeta
+		ingest ingest.Change
 	}
 	type transformTest struct {
 		input      inputStruct
@@ -20,12 +19,10 @@ func TestTransformClaimableBalance(t *testing.T) {
 		wantErr    error
 	}
 	inputChange := makeClaimableBalanceTestInput()
-	inputMeta := makeLedgerCloseMeta()
 	output := makeClaimableBalanceTestOutput()
 
 	input := inputStruct{
 		inputChange,
-		inputMeta,
 	}
 
 	tests := []transformTest{
@@ -37,7 +34,7 @@ func TestTransformClaimableBalance(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformClaimableBalance(test.input.ingest, test.input.ledgerClosedMeta)
+		actualOutput, actualError := TransformClaimableBalance(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -118,6 +115,5 @@ func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 		LastModifiedLedger: 30705278,
 		LedgerEntryChange:  2,
 		Deleted:            true,
-		LedgerClosed:       genericCloseTime.UTC(),
 	}
 }

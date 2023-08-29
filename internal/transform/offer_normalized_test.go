@@ -24,7 +24,6 @@ func TestTransformOfferNormalized(t *testing.T) {
 	hardCodedInput, err := makeOfferNormalizedTestInput()
 	assert.NoError(t, err)
 	hardCodedOutput := makeOfferNormalizedTestOutput()
-	hardCodedLedgerCloseInput := makeLedgerCloseMeta()
 
 	tests := []transformTest{
 		{
@@ -56,7 +55,7 @@ func TestTransformOfferNormalized(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOfferNormalized(test.input.change, test.input.ledger, hardCodedLedgerCloseInput)
+		actualOutput, actualError := TransformOfferNormalized(test.input.change, test.input.ledger)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
