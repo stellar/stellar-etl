@@ -19,10 +19,9 @@ var (
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes         map[xdr.LedgerEntryType][]ingest.Change
-	BatchStart      uint32
-	BatchEnd        uint32
-	ledgerCloseMeta xdr.LedgerCloseMeta
+	Changes    map[xdr.LedgerEntryType][]ingest.Change
+	BatchStart uint32
+	BatchEnd   uint32
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
