@@ -93,9 +93,6 @@ be exported.`,
 				}
 
 				for entryType, changes := range batch.Changes {
-					if err != nil {
-						cmdLogger.Fatal("could not read ledger close meta: ", err)
-					}
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
 						for _, change := range changes {
