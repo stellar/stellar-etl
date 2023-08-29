@@ -19,9 +19,10 @@ var (
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    map[xdr.LedgerEntryType][]ingest.Change
-	BatchStart uint32
-	BatchEnd   uint32
+	Changes         map[xdr.LedgerEntryType][]ingest.Change
+	BatchStart      uint32
+	BatchEnd        uint32
+	ledgerCloseMeta xdr.LedgerCloseMeta
 }
 
 // PrepareCaptiveCore creates a new captive core instance and prepares it with the given range. The range is unbounded when end = 0, and is bounded and validated otherwise
@@ -146,16 +147,13 @@ func extractBatch(
 
 // StreamChanges reads in ledgers, processes the changes, and send the changes to the channel matching their type
 // Ledgers are processed in batches of size <batchSize>.
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, seqChan chan uint32, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
+func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	batchStart := start
-	seq := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
 		if batchEnd < end {
 			batchEnd = uint32(batchEnd - 1)
 		}
-		seqChan <- seq
-		seq = uint32(start + 1)
 		batch := ExtractBatch(batchStart, batchEnd, core, env, logger)
 		changeChannel <- batch
 		// batchStart and batchEnd should not overlap

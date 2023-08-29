@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -73,29 +71,9 @@ be exported.`,
 			endNum = math.MaxInt32
 		}
 
-		ledgerRange := ledgerbackend.BoundedRange(startNum, endNum)
-		ctx := context.Background()
-		err = core.PrepareRange(ctx, ledgerRange)
-		if err != nil {
-			cmdLogger.Fatal("error preparing range: ", err)
-		}
-
-		ledgerCloseMeta, err := env.GetBoundedLedgerCloseMeta(core, endNum)
-		if err != nil {
-			cmdLogger.Fatal("could not read ledger close meta: ", err)
-		}
-
-		for seq := startNum; seq <= endNum; seq++ {
-			ledgerCloseMeta, err = env.GetBoundedLedgerCloseMeta(core, seq)
-			if err != nil {
-				cmdLogger.Fatal("could not read ledger close meta: ", err)
-			}
-		}
-
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
-		seqChan := make(chan uint32)
-		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, seqChan, env, cmdLogger)
+		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
 
 		for {
 			select {
@@ -115,8 +93,6 @@ be exported.`,
 				}
 
 				for entryType, changes := range batch.Changes {
-					seq := <-seqChan
-					ledgerCloseMeta, err = env.GetBoundedLedgerCloseMeta(core, seq)
 					if err != nil {
 						cmdLogger.Fatal("could not read ledger close meta: ", err)
 					}
@@ -128,7 +104,7 @@ be exported.`,
 								continue
 							} else if changed {
 
-								acc, err := transform.TransformAccount(change, ledgerCloseMeta)
+								acc, err := transform.TransformAccount(change, xdr.LedgerCloseMeta{})
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -137,7 +113,7 @@ be exported.`,
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
 							if change.AccountSignersChanged() {
-								signers, err := transform.TransformSigners(change, ledgerCloseMeta)
+								signers, err := transform.TransformSigners(change, xdr.LedgerCloseMeta{})
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
@@ -150,7 +126,7 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeClaimableBalance:
 						for _, change := range changes {
-							balance, err := transform.TransformClaimableBalance(change, ledgerCloseMeta)
+							balance, err := transform.TransformClaimableBalance(change, xdr.LedgerCloseMeta{})
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -160,7 +136,7 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeOffer:
 						for _, change := range changes {
-							offer, err := transform.TransformOffer(change, ledgerCloseMeta)
+							offer, err := transform.TransformOffer(change, xdr.LedgerCloseMeta{})
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -170,7 +146,7 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeTrustline:
 						for _, change := range changes {
-							trust, err := transform.TransformTrustline(change, ledgerCloseMeta)
+							trust, err := transform.TransformTrustline(change, xdr.LedgerCloseMeta{})
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -180,7 +156,7 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeLiquidityPool:
 						for _, change := range changes {
-							pool, err := transform.TransformPool(change, ledgerCloseMeta)
+							pool, err := transform.TransformPool(change, xdr.LedgerCloseMeta{})
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))

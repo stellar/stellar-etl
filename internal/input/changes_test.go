@@ -201,7 +201,6 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			batchSize := uint32(64)
-			seqchan := make(chan uint32)
 			changeChan := make(chan ChangeBatch, 10)
 			closeChan := make(chan int)
 			env := utils.EnvironmentDetails{
@@ -212,7 +211,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			}
 			logger := utils.NewEtlLogger()
 			ExtractBatch = mockExtractBatch
-			go StreamChanges(nil, tt.args.batchStart, tt.args.batchEnd, batchSize, changeChan, closeChan, seqchan, env, logger)
+			go StreamChanges(nil, tt.args.batchStart, tt.args.batchEnd, batchSize, changeChan, closeChan, env, logger)
 			var got []batchRange
 			for b := range changeChan {
 				got = append(got, batchRange{
