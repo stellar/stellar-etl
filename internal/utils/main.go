@@ -576,6 +576,9 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Strict:             true,
 		},
 	)
+	if err != nil {
+		return &ledgerbackend.CaptiveStellarCore{}, err
+	}
 	backend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
 			BinaryPath:         e.BinaryPath,
