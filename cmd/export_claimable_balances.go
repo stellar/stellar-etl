@@ -33,7 +33,7 @@ var claimableBalancesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read balances: ", err)
 		}
 
-		LedgerCloseMeta, err := env.GetLedgerCloseMeta(endNum)
+		LedgerCloseMeta, err := env.GetUnboundedLedgerCloseMeta(endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledger close meta: ", err)
 		}

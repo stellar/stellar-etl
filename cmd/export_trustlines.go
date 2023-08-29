@@ -34,7 +34,7 @@ var trustlinesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read trustlines: ", err)
 		}
 
-		LedgerCloseMeta, err := env.GetLedgerCloseMeta(endNum)
+		LedgerCloseMeta, err := env.GetUnboundedLedgerCloseMeta(endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledger close meta: ", err)
 		}

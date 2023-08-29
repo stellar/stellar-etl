@@ -33,7 +33,7 @@ the export_ledger_entry_changes command.`,
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
-		LedgerCloseMeta, err := env.GetLedgerCloseMeta(endNum)
+		LedgerCloseMeta, err := env.GetUnboundedLedgerCloseMeta(endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledger close meta: ", err)
 		}

@@ -588,7 +588,7 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 	return backend, err
 }
 
-func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error) {
+func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error) {
 	ctx := context.Background()
 
 	backend, err := e.CreateCaptiveCoreBackend()
@@ -601,6 +601,17 @@ func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta,
 	}
 
 	ledgerCloseMeta, err := backend.GetLedger(ctx, end)
+	if err != nil {
+		return xdr.LedgerCloseMeta{}, err
+	}
+
+	return ledgerCloseMeta, nil
+}
+
+func (e EnvironmentDetails) GetBoundedLedgerCloseMeta(backend *ledgerbackend.CaptiveStellarCore, seq uint32) (xdr.LedgerCloseMeta, error) {
+	ctx := context.Background()
+
+	ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
 	if err != nil {
 		return xdr.LedgerCloseMeta{}, err
 	}

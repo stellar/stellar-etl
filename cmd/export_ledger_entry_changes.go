@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -71,14 +73,29 @@ be exported.`,
 			endNum = math.MaxInt32
 		}
 
-		ledgerCloseMeta, err := env.GetLedgerCloseMeta(endNum)
+		ledgerRange := ledgerbackend.BoundedRange(startNum, endNum)
+		ctx := context.Background()
+		err = core.PrepareRange(ctx, ledgerRange)
+		if err != nil {
+			cmdLogger.Fatal("error preparing range: ", err)
+		}
+
+		ledgerCloseMeta, err := env.GetBoundedLedgerCloseMeta(core, endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledger close meta: ", err)
 		}
 
+		for seq := startNum; seq <= endNum; seq++ {
+			ledgerCloseMeta, err = env.GetBoundedLedgerCloseMeta(core, seq)
+			if err != nil {
+				cmdLogger.Fatal("could not read ledger close meta: ", err)
+			}
+		}
+
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
-		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+		seqChan := make(chan uint32)
+		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, seqChan, env, cmdLogger)
 
 		for {
 			select {
@@ -96,7 +113,13 @@ be exported.`,
 					"trustlines":         {},
 					"liquidity_pools":    {},
 				}
+
 				for entryType, changes := range batch.Changes {
+					seq := <-seqChan
+					ledgerCloseMeta, err = env.GetBoundedLedgerCloseMeta(core, seq)
+					if err != nil {
+						cmdLogger.Fatal("could not read ledger close meta: ", err)
+					}
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
 						for _, change := range changes {
@@ -104,6 +127,7 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
 								continue
 							} else if changed {
+
 								acc, err := transform.TransformAccount(change, ledgerCloseMeta)
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)

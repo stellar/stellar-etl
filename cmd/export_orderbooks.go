@@ -64,7 +64,7 @@ var exportOrderbooksCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read initial orderbook: ", err)
 		}
 
-		ledgerClose, err := env.GetLedgerCloseMeta(endNum)
+		ledgerClose, err := env.GetUnboundedLedgerCloseMeta(endNum)
 		if err != nil {
 			cmdLogger.Fatal("could not get ledger close meta: ", err)
 		}

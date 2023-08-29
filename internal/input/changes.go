@@ -146,13 +146,15 @@ func extractBatch(
 
 // StreamChanges reads in ledgers, processes the changes, and send the changes to the channel matching their type
 // Ledgers are processed in batches of size <batchSize>.
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
+func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, seqChan chan uint32, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	batchStart := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
 		if batchEnd < end {
 			batchEnd = uint32(batchEnd - 1)
 		}
+		seq := uint32(start + 1)
+		seqChan <- seq
 		batch := ExtractBatch(batchStart, batchEnd, core, env, logger)
 		changeChannel <- batch
 		// batchStart and batchEnd should not overlap
