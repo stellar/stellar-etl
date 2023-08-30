@@ -565,7 +565,6 @@ func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
 
 type CaptiveCore interface {
 	CreateCaptiveCoreBackend() (ledgerbackend.CaptiveStellarCore, error)
-	GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error)
 }
 
 func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveStellarCore, error) {
@@ -577,6 +576,9 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Strict:             true,
 		},
 	)
+	if err != nil {
+		return &ledgerbackend.CaptiveStellarCore{}, err
+	}
 	backend, err := ledgerbackend.NewCaptive(
 		ledgerbackend.CaptiveCoreConfig{
 			BinaryPath:         e.BinaryPath,
@@ -588,10 +590,17 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 	return backend, err
 }
 
-func (e EnvironmentDetails) GetLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error) {
+func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerCloseMeta, error) {
 	ctx := context.Background()
 
 	backend, err := e.CreateCaptiveCoreBackend()
+
+	ledgerRange := ledgerbackend.UnboundedRange(end)
+
+	err = backend.PrepareRange(ctx, ledgerRange)
+	if err != nil {
+		return xdr.LedgerCloseMeta{}, err
+	}
 
 	ledgerCloseMeta, err := backend.GetLedger(ctx, end)
 	if err != nil {

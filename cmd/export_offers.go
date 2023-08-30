@@ -34,16 +34,11 @@ var offersCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read offers: ", err)
 		}
 
-		LedgerCloseMeta, err := env.GetLedgerCloseMeta(endNum)
-		if err != nil {
-			cmdLogger.Fatal("could not read ledger close meta: ", err)
-		}
-
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, offer := range offers {
-			transformed, err := transform.TransformOffer(offer, LedgerCloseMeta)
+			transformed, err := transform.TransformOffer(offer)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform offer %+v: %v", offer, err))
 				numFailures += 1

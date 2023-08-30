@@ -30,26 +30,8 @@ func panicIf(err error) {
 // GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
 func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]OperationTransformInput, error) {
 	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
-	if err != nil {
-		return []OperationTransformInput{}, err
-	}
 
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
+	backend, err := env.CreateCaptiveCoreBackend()
 	if err != nil {
 		return []OperationTransformInput{}, err
 	}

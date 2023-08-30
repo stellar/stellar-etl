@@ -21,7 +21,7 @@ func transformClaimants(claimants []xdr.Claimant) []Claimant {
 }
 
 // TransformClaimableBalance converts a claimable balance from the history archive ingestion system into a form suitable for BigQuery
-func TransformClaimableBalance(ledgerChange ingest.Change, ledgerCloseMeta xdr.LedgerCloseMeta) (ClaimableBalanceOutput, error) {
+func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
@@ -45,11 +45,6 @@ func TransformClaimableBalance(ledgerChange ingest.Change, ledgerCloseMeta xdr.L
 
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
-	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
-	if err != nil {
-		return ClaimableBalanceOutput{}, err
-	}
-
 	transformed := ClaimableBalanceOutput{
 		BalanceID:          balanceID,
 		AssetCode:          outputAsset.AssetCode,
@@ -63,7 +58,6 @@ func TransformClaimableBalance(ledgerChange ingest.Change, ledgerCloseMeta xdr.L
 		LedgerEntryChange:  uint32(changeType),
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
-		LedgerClosed:       outputCloseTime,
 	}
 	return transformed, nil
 }
