@@ -22,28 +22,8 @@ type LedgerTransformInput struct {
 // GetTransactions returns a slice of transactions for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]LedgerTransformInput, error) {
 	ctx := context.Background()
-	captiveCoreToml, err := ledgerbackend.NewCaptiveCoreTomlFromFile(
-		env.CoreConfig,
-		ledgerbackend.CaptiveCoreTomlParams{
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-			Strict:             true,
-		},
-	)
 
-	if err != nil {
-		return []LedgerTransformInput{}, err
-	}
-
-	backend, err := ledgerbackend.NewCaptive(
-		ledgerbackend.CaptiveCoreConfig{
-			BinaryPath:         env.BinaryPath,
-			Toml:               captiveCoreToml,
-			NetworkPassphrase:  env.NetworkPassphrase,
-			HistoryArchiveURLs: env.ArchiveURLs,
-		},
-	)
-
+	backend, err := env.CreateCaptiveCoreBackend()
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
