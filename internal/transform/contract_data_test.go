@@ -126,10 +126,9 @@ func makeContractDataTestOutput() []ContractDataOutput {
 	return []ContractDataOutput{
 		{
 			ContractId:                  "0000000000000000000000000000000000000000000000000000000000000000",
-			ContractKey:                 "AAAAEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAADgAAAAFhAAAAAAAADgAAAAFhAAAA",
+			ContractKeyType:             "ScValTypeScvContractInstance",
 			ContractDurability:          "ContractDataDurabilityPersistent",
 			ContractDataFlags:           0,
-			ContractDataVal:             "AAAADgAAAAFhAAAA",
 			ContractExpirationLedgerSeq: 30000000,
 			ContractDataAssetCode:       "code",
 			ContractDataAssetIssuer:     "issuer",

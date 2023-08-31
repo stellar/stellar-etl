@@ -465,10 +465,9 @@ type TestTransaction struct {
 type ContractDataOutput struct {
 	ContractId                  string `json:"contract_id"`
 	AddressId                   string `json:"address_id"`
-	ContractKey                 string `json:"contract_key"`
+	ContractKeyType             string `json:"contract_key_type"`
 	ContractDurability          string `json:"contract_durability"`
 	ContractDataFlags           uint32 `json:"contract_data_flags"`
-	ContractDataVal             string `json:"contract_data_val"` // Useful contract data is flattened into own columns
 	ContractExpirationLedgerSeq uint32 `json:"contract_expiration_ledger_seq"`
 	ContractDataAssetCode       string `json:"asset_code"`
 	ContractDataAssetIssuer     string `json:"asset_issuer"`
@@ -477,6 +476,8 @@ type ContractDataOutput struct {
 	LastModifiedLedger          uint32 `json:"last_modified_ledger"`
 	LedgerEntryChange           uint32 `json:"ledger_entry_change"`
 	Deleted                     bool   `json:"deleted"`
+	//ContractKey                 string `json:"contract_key"`
+	//ContractDataVal             string `json:"contract_data_val"` // Useful contract data is flattened into own columns
 }
 
 // ContractCodeOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data

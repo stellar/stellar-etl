@@ -102,11 +102,13 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		}
 	}
 
-	keyBinary, err := contractData.Key.MarshalBinary()
-	if err != nil {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract Key from contractData")
-	}
-	contractDataKey := base64.StdEncoding.EncodeToString(keyBinary)
+	contractDataKeyType := contractData.Key.Type.String()
+
+	//keyBinary, err := contractData.Key.MarshalBinary()
+	//if err != nil {
+	//	return ContractDataOutput{}, fmt.Errorf("Could not extract Key from contractData")
+	//}
+	//contractDataKey := base64.StdEncoding.EncodeToString(keyBinary)
 
 	contractDataDurability := contractData.Durability.String()
 
@@ -116,21 +118,21 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 	}
 	contractDataDataFlags := contractDataData.Flags
 
-	valBinary, err := contractDataData.Val.MarshalBinary()
-	if err != nil {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract Val from contractData")
-	}
-	contractDataDataVal := base64.StdEncoding.EncodeToString(valBinary)
+	// Useful contract data values are flattened into their own columns
+	//valBinary, err := contractDataData.Val.MarshalBinary()
+	//if err != nil {
+	//	return ContractDataOutput{}, fmt.Errorf("Could not extract Val from contractData")
+	//}
+	//contractDataDataVal := base64.StdEncoding.EncodeToString(valBinary)
 
 	contractDataExpirationLedgerSeq := contractData.ExpirationLedgerSeq
 
 	transformedPool := ContractDataOutput{
 		ContractId:                  contractDataContractId.HexString(),
 		AddressId:                   addressId,
-		ContractKey:                 contractDataKey,
+		ContractKeyType:             contractDataKeyType,
 		ContractDurability:          contractDataDurability,
 		ContractDataFlags:           uint32(contractDataDataFlags),
-		ContractDataVal:             contractDataDataVal,
 		ContractExpirationLedgerSeq: uint32(contractDataExpirationLedgerSeq),
 		ContractDataAssetCode:       contractDataAssetCode,
 		ContractDataAssetIssuer:     contractDataAssetIssuer,
