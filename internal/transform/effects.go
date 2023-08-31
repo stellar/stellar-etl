@@ -1323,6 +1323,7 @@ func (e *effectsWrapper) addInvokeHostFunctionEffects(events []contractevents.Ev
 		// Transfer events generate an `account_debited` effect for the `from`
 		// (sender) and an `account_credited` effect for the `to` (recipient).
 		case contractevents.EventTypeTransfer:
+			details["contract_event_type"] = "transfer"
 			transferEvent := evt.(*contractevents.TransferEvent)
 			details["amount"] = amount.String128(transferEvent.Amount)
 			toDetails := map[string]interface{}{}
@@ -1357,6 +1358,7 @@ func (e *effectsWrapper) addInvokeHostFunctionEffects(events []contractevents.Ev
 		// Mint events imply a non-native asset, and it results in a credit to
 		// the `to` recipient.
 		case contractevents.EventTypeMint:
+			details["contract_event_type"] = "mint"
 			mintEvent := evt.(*contractevents.MintEvent)
 			details["amount"] = amount.String128(mintEvent.Amount)
 			if strkey.IsValidEd25519PublicKey(mintEvent.To) {
@@ -1374,6 +1376,7 @@ func (e *effectsWrapper) addInvokeHostFunctionEffects(events []contractevents.Ev
 		// Clawback events result in a debit to the `from` address, but acts
 		// like a burn to the recipient, so these are functionally equivalent
 		case contractevents.EventTypeClawback:
+			details["contract_event_type"] = "clawback"
 			cbEvent := evt.(*contractevents.ClawbackEvent)
 			details["amount"] = amount.String128(cbEvent.Amount)
 			if strkey.IsValidEd25519PublicKey(cbEvent.From) {
@@ -1389,6 +1392,7 @@ func (e *effectsWrapper) addInvokeHostFunctionEffects(events []contractevents.Ev
 			}
 
 		case contractevents.EventTypeBurn:
+			details["contract_event_type"] = "burn"
 			burnEvent := evt.(*contractevents.BurnEvent)
 			details["amount"] = amount.String128(burnEvent.Amount)
 			if strkey.IsValidEd25519PublicKey(burnEvent.From) {

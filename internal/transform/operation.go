@@ -937,28 +937,30 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 		switch op.HostFunction.Type {
 		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-			args := op.HostFunction.MustInvokeContract()
 			details["type"] = "invoke_contract"
-			params := make([]map[string]string, 0, len(args))
 
 			transactionEnvelope := transaction.Envelope.MustV1()
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			for _, param := range args {
-				serializedParam := map[string]string{}
-				serializedParam["value"] = "n/a"
-				serializedParam["type"] = "n/a"
+			// Host function parameters -- not useful for data analysis
+			//args := op.HostFunction.MustInvokeContract()
+			//params := make([]map[string]string, 0, len(args))
+			//
+			//for _, param := range args {
+			//	serializedParam := map[string]string{}
+			//	serializedParam["value"] = "n/a"
+			//	serializedParam["type"] = "n/a"
 
-				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-					serializedParam["type"] = scValTypeName
-					if raw, err := param.MarshalBinary(); err == nil {
-						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-					}
-				}
-				params = append(params, serializedParam)
-			}
-			details["parameters"] = params
+			//	if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+			//		serializedParam["type"] = scValTypeName
+			//		if raw, err := param.MarshalBinary(); err == nil {
+			//			serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+			//		}
+			//	}
+			//	params = append(params, serializedParam)
+			//}
+			//details["parameters"] = params
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction); err != nil {
 				return nil, err
@@ -983,7 +985,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 				}
 				details["from"] = "address"
 				details["address"] = address
-				details["salt"] = fromAddress.Salt
+				//details["salt"] = fromAddress.Salt
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
 				details["from"] = "asset"
 				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
@@ -993,7 +995,6 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
 			transactionEnvelope := transaction.Envelope.MustV1()
-			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
