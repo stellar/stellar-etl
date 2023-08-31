@@ -171,6 +171,12 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
+
+							// Empty contract data that has no error is a nonce. Does not need to be recorded
+							if contractData == (transform.ContractDataOutput{}) {
+								continue
+							}
+
 							transformedOutputs["contract_data"] = append(transformedOutputs["contract_data"], contractData)
 						}
 					case xdr.LedgerEntryTypeContractCode:

@@ -464,7 +464,6 @@ type TestTransaction struct {
 // ContractDataOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
 type ContractDataOutput struct {
 	ContractId                  string `json:"contract_id"`
-	AddressId                   string `json:"address_id"`
 	ContractKeyType             string `json:"contract_key_type"`
 	ContractDurability          string `json:"contract_durability"`
 	ContractDataFlags           uint32 `json:"contract_data_flags"`
