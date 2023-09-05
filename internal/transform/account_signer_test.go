@@ -13,8 +13,12 @@ import (
 )
 
 func TestTransformAccountSigner(t *testing.T) {
+	type inputStruct struct {
+		injest ingest.Change
+	}
+
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput []AccountSignerOutput
 		wantErr    error
 	}
@@ -24,25 +28,29 @@ func TestTransformAccountSigner(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
-				Post: &xdr.LedgerEntry{
-					Data: xdr.LedgerEntryData{
-						Type: xdr.LedgerEntryTypeOffer,
+			inputStruct{
+				ingest.Change{
+					Type: xdr.LedgerEntryTypeOffer,
+					Pre:  nil,
+					Post: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeOffer,
+						},
 					},
 				},
 			},
 			nil, fmt.Errorf("could not extract signer data from ledger entry of type: LedgerEntryTypeOffer"),
 		},
 		{
-			hardCodedInput,
+			inputStruct{
+				hardCodedInput,
+			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformSigners(test.input)
+		actualOutput, actualError := TransformSigners(test.input.injest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

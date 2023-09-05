@@ -11,22 +11,28 @@ import (
 )
 
 func TestTransformTrustline(t *testing.T) {
+	type inputStruct struct {
+		ingest ingest.Change
+	}
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput TrustlineOutput
 		wantErr    error
 	}
 
 	hardCodedInput := makeTrustlineTestInput()
 	hardCodedOutput := makeTrustlineTestOutput()
+
 	tests := []transformTest{
 		{
-			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
-				Post: &xdr.LedgerEntry{
-					Data: xdr.LedgerEntryData{
-						Type: xdr.LedgerEntryTypeOffer,
+			inputStruct{
+				ingest.Change{
+					Type: xdr.LedgerEntryTypeOffer,
+					Pre:  nil,
+					Post: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeOffer,
+						},
 					},
 				},
 			},
@@ -36,14 +42,14 @@ func TestTransformTrustline(t *testing.T) {
 
 	for i := range hardCodedInput {
 		tests = append(tests, transformTest{
-			input:      hardCodedInput[i],
+			input:      inputStruct{hardCodedInput[i]},
 			wantOutput: hardCodedOutput[i],
 			wantErr:    nil,
 		})
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrustline(test.input)
+		actualOutput, actualError := TransformTrustline(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

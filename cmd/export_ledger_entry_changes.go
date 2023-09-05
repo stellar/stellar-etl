@@ -94,6 +94,7 @@ be exported.`,
 					"contract_code":      {},
 					"config_settings":    {},
 				}
+
 				for entryType, changes := range batch.Changes {
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
@@ -102,6 +103,7 @@ be exported.`,
 								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
 								continue
 							} else if changed {
+
 								acc, err := transform.TransformAccount(change)
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)

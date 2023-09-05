@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
@@ -59,9 +60,9 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
-	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerCloseMeta.LedgerHeaderHistoryEntry().Header.ScpValue.CloseTime)
+	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
 	if err != nil {
-		return OperationOutput{}, fmt.Errorf("for ledger %d: %v", ledgerCloseMeta.LedgerHeaderHistoryEntry().Header.LedgerSeq, err)
+		return OperationOutput{}, err
 	}
 
 	transformedOperation := OperationOutput{
@@ -72,7 +73,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		TransactionID:      outputTransactionID,
 		OperationID:        outputOperationID,
 		OperationDetails:   outputDetails,
-		LedgerClosedAt:     outputCloseTime,
+		ClosedAt:           outputCloseTime,
 	}
 
 	return transformedOperation, nil
@@ -1035,6 +1036,7 @@ type transactionOperationWrapper struct {
 	operation      xdr.Operation
 	ledgerSequence uint32
 	network        string
+	ledgerClosed   time.Time
 }
 
 // ID returns the ID for the operation.

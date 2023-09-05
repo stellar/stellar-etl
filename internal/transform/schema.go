@@ -112,7 +112,7 @@ type OperationOutput struct {
 	OperationDetails   map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
 	TransactionID      int64                  `json:"transaction_id"`
 	OperationID        int64                  `json:"id"`
-	LedgerClosedAt     time.Time              `json:"ledger_closed_at"`
+	ClosedAt           time.Time              `json:"closed_at"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
@@ -318,6 +318,7 @@ type EffectOutput struct {
 	Details      map[string]interface{} `json:"details"`
 	Type         int32                  `json:"type"`
 	TypeString   string                 `json:"type_string"`
+	LedgerClosed time.Time              `json:"closed_at"`
 }
 
 // EffectType is the numeric type for an effect

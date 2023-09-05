@@ -10,24 +10,31 @@ import (
 )
 
 func TestTransformClaimableBalance(t *testing.T) {
+	type inputStruct struct {
+		ingest ingest.Change
+	}
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput ClaimableBalanceOutput
 		wantErr    error
 	}
-
-	input := makeClaimableBalanceTestInput()
+	inputChange := makeClaimableBalanceTestInput()
 	output := makeClaimableBalanceTestOutput()
+
+	input := inputStruct{
+		inputChange,
+	}
 
 	tests := []transformTest{
 		{
-			input,
-			output, nil,
+			input:      input,
+			wantOutput: output,
+			wantErr:    nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformClaimableBalance(test.input)
+		actualOutput, actualError := TransformClaimableBalance(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

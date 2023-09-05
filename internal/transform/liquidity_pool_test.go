@@ -10,8 +10,11 @@ import (
 )
 
 func TestTransformPool(t *testing.T) {
+	type inputStruct struct {
+		ingest ingest.Change
+	}
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput PoolOutput
 		wantErr    error
 	}
@@ -21,25 +24,29 @@ func TestTransformPool(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
-				Post: &xdr.LedgerEntry{
-					Data: xdr.LedgerEntryData{
-						Type: xdr.LedgerEntryTypeOffer,
+			inputStruct{
+				ingest.Change{
+					Type: xdr.LedgerEntryTypeOffer,
+					Pre:  nil,
+					Post: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeOffer,
+						},
 					},
 				},
 			},
 			PoolOutput{}, nil,
 		},
 		{
-			hardCodedInput,
+			inputStruct{
+				hardCodedInput,
+			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformPool(test.input)
+		actualOutput, actualError := TransformPool(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

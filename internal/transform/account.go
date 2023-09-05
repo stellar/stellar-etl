@@ -9,7 +9,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
+// TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
 func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {

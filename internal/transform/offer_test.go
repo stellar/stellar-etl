@@ -12,8 +12,11 @@ import (
 )
 
 func TestTransformOffer(t *testing.T) {
+	type inputStruct struct {
+		ingest ingest.Change
+	}
 	type transformTest struct {
-		input      ingest.Change
+		input      inputStruct
 		wantOutput OfferOutput
 		wantErr    error
 	}
@@ -24,7 +27,7 @@ func TestTransformOffer(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			ingest.Change{
+			inputStruct{ingest.Change{
 				Type: xdr.LedgerEntryTypeAccount,
 				Post: &xdr.LedgerEntry{
 					Data: xdr.LedgerEntryData{
@@ -32,60 +35,68 @@ func TestTransformOffer(t *testing.T) {
 					},
 				},
 			},
+			},
 			OfferOutput{}, fmt.Errorf("Could not extract offer data from ledger entry; actual type is LedgerEntryTypeAccount"),
 		},
 		{
-			wrapOfferEntry(xdr.OfferEntry{
+			inputStruct{wrapOfferEntry(xdr.OfferEntry{
 				SellerId: genericAccountID,
 				OfferId:  -1,
 			}, 0),
+			},
 			OfferOutput{}, fmt.Errorf("OfferID is negative (-1) for offer from account: %s", genericAccountAddress),
 		},
 		{
-			wrapOfferEntry(xdr.OfferEntry{
+			inputStruct{wrapOfferEntry(xdr.OfferEntry{
 				SellerId: genericAccountID,
 				Amount:   -2,
 			}, 0),
+			},
 			OfferOutput{}, fmt.Errorf("Amount is negative (-2) for offer 0"),
 		},
 		{
-			wrapOfferEntry(xdr.OfferEntry{
+			inputStruct{wrapOfferEntry(xdr.OfferEntry{
 				SellerId: genericAccountID,
 				Price: xdr.Price{
 					N: -3,
 					D: 10,
 				},
 			}, 0),
+			},
 			OfferOutput{}, fmt.Errorf("Price numerator is negative (-3) for offer 0"),
 		},
 		{
-			wrapOfferEntry(xdr.OfferEntry{
+			inputStruct{wrapOfferEntry(xdr.OfferEntry{
 				SellerId: genericAccountID,
 				Price: xdr.Price{
 					N: 5,
 					D: -4,
 				},
 			}, 0),
+			},
 			OfferOutput{}, fmt.Errorf("Price denominator is negative (-4) for offer 0"),
 		},
 		{
-			wrapOfferEntry(xdr.OfferEntry{
+			inputStruct{wrapOfferEntry(xdr.OfferEntry{
 				SellerId: genericAccountID,
 				Price: xdr.Price{
 					N: 5,
 					D: 0,
 				},
 			}, 0),
+			},
 			OfferOutput{}, fmt.Errorf("Price denominator is 0 for offer 0"),
 		},
 		{
-			hardCodedInput,
+			inputStruct{
+				hardCodedInput,
+			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOffer(test.input)
+		actualOutput, actualError := TransformOffer(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
