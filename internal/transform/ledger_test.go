@@ -7,14 +7,13 @@ import (
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
-	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/xdr"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTransformLedger(t *testing.T) {
 	type transformTest struct {
-		input      historyarchive.Ledger
+		input      xdr.LedgerCloseMeta
 		wantOutput LedgerOutput
 		wantErr    error
 	}
@@ -26,26 +25,25 @@ func TestTransformLedger(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			historyarchive.Ledger{
-				Header: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						TotalCoins: -1,
-					},
-				},
-			},
+			wrapLedgerHeader(xdr.LedgerHeader{
+				TotalCoins: -1,
+			}),
 			LedgerOutput{},
-			fmt.Errorf("the total number of coins (-1) is negative for ledger 0 (ledger id=0)"),
+			fmt.Errorf("The total number of coins (-1) is negative for ledger 0 (ledger id=0)"),
 		},
 		{
-			historyarchive.Ledger{
-				Header: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						FeePool: -1,
-					},
-				},
-			},
+			wrapLedgerHeader(xdr.LedgerHeader{
+				FeePool: -1,
+			}),
 			LedgerOutput{},
-			fmt.Errorf("the fee pool (-1) is negative for ledger 0 (ledger id=0)"),
+			fmt.Errorf("The fee pool (-1) is negative for ledger 0 (ledger id=0)"),
+		},
+		{
+			wrapLedgerHeaderWithTransactions(xdr.LedgerHeader{
+				MaxTxSetSize: 0,
+			}, 2),
+			LedgerOutput{},
+			fmt.Errorf("for ledger 0 (ledger id=0): The number of transactions and results are different (2 != 0)"),
 		},
 		{
 			hardCodedLedger,
@@ -87,21 +85,21 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		OperationCount:             10,
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
-		TxSetOperationCount:        "13",
+		TxSetOperationCount:        "2",
 	}
 	return
 }
 
-func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
+func makeLedgerTestInput() (lcm xdr.LedgerCloseMeta, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
-			utils.CreateSampleTx(0, 3),
-			utils.CreateSampleTx(1, 10),
+			utils.CreateSampleTx(0),
+			utils.CreateSampleTx(1),
 		},
 	}
-	hardCodedTxProcessing := []xdr.TransactionResultPair{
-		utils.CreateSampleResultPair(false, 3),
-		utils.CreateSampleResultPair(true, 10),
+	hardCodedTxProcessing := []xdr.TransactionResultMeta{
+		utils.CreateSampleResultMeta(false, 3),
+		utils.CreateSampleResultMeta(true, 10),
 	}
 	v0, err := xdr.NewLedgerCloseMeta(0, xdr.LedgerCloseMetaV0{
 		LedgerHeader: xdr.LedgerHeaderHistoryEntry{

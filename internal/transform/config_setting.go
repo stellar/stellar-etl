@@ -48,23 +48,22 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 	feeReadLedgerEntry := contractLedgerCost.FeeReadLedgerEntry
 	feeWriteLedgerEntry := contractLedgerCost.FeeWriteLedgerEntry
 	feeRead1Kb := contractLedgerCost.FeeRead1Kb
-	feeWrite1Kb := contractLedgerCost.FeeWrite1Kb
-	bucketListSizeBytes := contractLedgerCost.BucketListSizeBytes
-	bucketListFeeRateLow := contractLedgerCost.BucketListFeeRateLow
-	bucketListFeeRateHigh := contractLedgerCost.BucketListFeeRateHigh
-	bucketListGrowthFactor := contractLedgerCost.BucketListGrowthFactor
+	bucketListTargetSizeBytes := contractLedgerCost.BucketListTargetSizeBytes
+	writeFee1KbBucketListLow := contractLedgerCost.WriteFee1KbBucketListLow
+	writeFee1KbBucketListHigh := contractLedgerCost.WriteFee1KbBucketListHigh
+	bucketListWriteFeeGrowthFactor := contractLedgerCost.BucketListWriteFeeGrowthFactor
 
 	contractHistoricalData, ok := configSetting.GetContractHistoricalData()
 	feeHistorical1Kb := contractHistoricalData.FeeHistorical1Kb
 
-	contractMetaData, _ := configSetting.GetContractMetaData()
-	txMaxExtendedMetaDataSizeBytes := contractMetaData.TxMaxExtendedMetaDataSizeBytes
-	feeExtendedMetaData1Kb := contractMetaData.FeeExtendedMetaData1Kb
+	contractMetaData, _ := configSetting.GetContractEvents()
+	txMaxContractEventsSizeBytes := contractMetaData.TxMaxContractEventsSizeBytes
+	feeContractEvents1Kb := contractMetaData.FeeContractEvents1Kb
 
 	contractBandwidth, _ := configSetting.GetContractBandwidth()
-	ledgerMaxPropagateSizeBytes := contractBandwidth.LedgerMaxPropagateSizeBytes
+	ledgerMaxTxsSizeBytes := contractBandwidth.LedgerMaxTxsSizeBytes
 	txMaxSizeBytes := contractBandwidth.TxMaxSizeBytes
-	feePropagateData1Kb := contractBandwidth.FeePropagateData1Kb
+	feeTxSize1Kb := contractBandwidth.FeeTxSize1Kb
 
 	paramsCpuInsns, _ := configSetting.GetContractCostParamsCpuInsns()
 	contractCostParamsCpuInsns := serializeParams(paramsCpuInsns)
@@ -80,12 +79,12 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 	maxEntryExpiration := stateExpirationSettings.MaxEntryExpiration
 	minTempEntryExpiration := stateExpirationSettings.MinTempEntryExpiration
 	minPersistentEntryExpiration := stateExpirationSettings.MinPersistentEntryExpiration
-	autoBumpLedgers := stateExpirationSettings.AutoBumpLedgers
 	persistentRentRateDenominator := stateExpirationSettings.PersistentRentRateDenominator
 	tempRentRateDenominator := stateExpirationSettings.TempRentRateDenominator
 	maxEntriesToExpire := stateExpirationSettings.MaxEntriesToExpire
 	bucketListSizeWindowSampleSize := stateExpirationSettings.BucketListSizeWindowSampleSize
 	evictionScanSize := stateExpirationSettings.EvictionScanSize
+	startingEvictionScanLevel := stateExpirationSettings.StartingEvictionScanLevel
 
 	contractExecutionLanes, _ := configSetting.GetContractExecutionLanes()
 	ledgerMaxTxCount := contractExecutionLanes.LedgerMaxTxCount
@@ -114,17 +113,16 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		FeeReadLedgerEntry:              int64(feeReadLedgerEntry),
 		FeeWriteLedgerEntry:             int64(feeWriteLedgerEntry),
 		FeeRead1Kb:                      int64(feeRead1Kb),
-		FeeWrite1Kb:                     int64(feeWrite1Kb),
-		BucketListSizeBytes:             int64(bucketListSizeBytes),
-		BucketListFeeRateLow:            int64(bucketListFeeRateLow),
-		BucketListFeeRateHigh:           int64(bucketListFeeRateHigh),
-		BucketListGrowthFactor:          uint32(bucketListGrowthFactor),
+		BucketListTargetSizeBytes:       int64(bucketListTargetSizeBytes),
+		WriteFee1KbBucketListLow:        int64(writeFee1KbBucketListLow),
+		WriteFee1KbBucketListHigh:       int64(writeFee1KbBucketListHigh),
+		BucketListWriteFeeGrowthFactor:  uint32(bucketListWriteFeeGrowthFactor),
 		FeeHistorical1Kb:                int64(feeHistorical1Kb),
-		TxMaxExtendedMetaDataSizeBytes:  uint32(txMaxExtendedMetaDataSizeBytes),
-		FeeExtendedMetaData1Kb:          int64(feeExtendedMetaData1Kb),
-		LedgerMaxPropagateSizeBytes:     uint32(ledgerMaxPropagateSizeBytes),
+		TxMaxContractEventsSizeBytes:    uint32(txMaxContractEventsSizeBytes),
+		FeeContractEvents1Kb:            int64(feeContractEvents1Kb),
+		LedgerMaxTxsSizeBytes:           uint32(ledgerMaxTxsSizeBytes),
 		TxMaxSizeBytes:                  uint32(txMaxSizeBytes),
-		FeePropagateData1Kb:             int64(feePropagateData1Kb),
+		FeeTxSize1Kb:                    int64(feeTxSize1Kb),
 		ContractCostParamsCpuInsns:      contractCostParamsCpuInsns,
 		ContractCostParamsMemBytes:      contractCostParamsMemBytes,
 		ContractDataKeySizeBytes:        uint32(contractDataKeySizeBytes),
@@ -132,12 +130,12 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		MaxEntryExpiration:              uint32(maxEntryExpiration),
 		MinTempEntryExpiration:          uint32(minTempEntryExpiration),
 		MinPersistentEntryExpiration:    uint32(minPersistentEntryExpiration),
-		AutoBumpLedgers:                 uint32(autoBumpLedgers),
 		PersistentRentRateDenominator:   int64(persistentRentRateDenominator),
 		TempRentRateDenominator:         int64(tempRentRateDenominator),
 		MaxEntriesToExpire:              uint32(maxEntriesToExpire),
 		BucketListSizeWindowSampleSize:  uint32(bucketListSizeWindowSampleSize),
 		EvictionScanSize:                uint64(evictionScanSize),
+		StartingEvictionScanLevel:       uint32(startingEvictionScanLevel),
 		LedgerMaxTxCount:                uint32(ledgerMaxTxCount),
 		BucketListSizeWindow:            bucketListSizeWindow,
 		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),

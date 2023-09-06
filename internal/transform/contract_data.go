@@ -44,7 +44,7 @@ var (
 	}
 )
 
-type AssetFromContractDataFunc func(ledgerEntry xdr.LedgerEntry, passphrase string) (string, string)
+type AssetFromContractDataFunc func(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.Asset
 type ContractBalanceFromContractDataFunc func(ledgerEntry xdr.LedgerEntry, passphrase string) ([32]byte, *big.Int, bool)
 
 type TransformContractDataStruct struct {
@@ -52,9 +52,9 @@ type TransformContractDataStruct struct {
 	ContractBalanceFromContractData ContractBalanceFromContractDataFunc
 }
 
-func NewTransformContractDataStruct(assetfrom AssetFromContractDataFunc, contractBalance ContractBalanceFromContractDataFunc) *TransformContractDataStruct {
+func NewTransformContractDataStruct(assetFrom AssetFromContractDataFunc, contractBalance ContractBalanceFromContractDataFunc) *TransformContractDataStruct {
 	return &TransformContractDataStruct{
-		AssetFromContractData:           assetfrom,
+		AssetFromContractData:           assetFrom,
 		ContractBalanceFromContractData: contractBalance,
 	}
 }
@@ -76,7 +76,9 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, nil
 	}
 
-	contractDataAssetCode, contractDataAssetIssuer := t.AssetFromContractData(ledgerEntry, passphrase)
+	contractDataAsset := t.AssetFromContractData(ledgerEntry, passphrase)
+	contractDataAssetCode := contractDataAsset.GetCode()
+	contractDataAssetIssuer := contractDataAsset.GetIssuer()
 
 	contractDataBalanceHolder, contractDataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
 
@@ -92,42 +94,19 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataKeyType := contractData.Key.Type.String()
 
-	//keyBinary, err := contractData.Key.MarshalBinary()
-	//if err != nil {
-	//	return ContractDataOutput{}, fmt.Errorf("Could not extract Key from contractData")
-	//}
-	//contractDataKey := base64.StdEncoding.EncodeToString(keyBinary)
-
 	contractDataDurability := contractData.Durability.String()
 
-	contractDataData, ok := contractData.Body.GetData()
-	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contract data information from contractId %s", xdr.Hash(*contractData.Contract.ContractId).HexString())
-	}
-	contractDataDataFlags := contractDataData.Flags
-
-	// Useful contract data values are flattened into their own columns
-	//valBinary, err := contractDataData.Val.MarshalBinary()
-	//if err != nil {
-	//	return ContractDataOutput{}, fmt.Errorf("Could not extract Val from contractData")
-	//}
-	//contractDataDataVal := base64.StdEncoding.EncodeToString(valBinary)
-
-	contractDataExpirationLedgerSeq := contractData.ExpirationLedgerSeq
-
 	transformedPool := ContractDataOutput{
-		ContractId:                  contractDataContractId.HexString(),
-		ContractKeyType:             contractDataKeyType,
-		ContractDurability:          contractDataDurability,
-		ContractDataFlags:           uint32(contractDataDataFlags),
-		ContractExpirationLedgerSeq: uint32(contractDataExpirationLedgerSeq),
-		ContractDataAssetCode:       contractDataAssetCode,
-		ContractDataAssetIssuer:     contractDataAssetIssuer,
-		ContractDataBalanceHolder:   base64.StdEncoding.EncodeToString(contractDataBalanceHolder[:]),
-		ContractDataBalance:         contractDataBalance.String(),
-		LastModifiedLedger:          uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:           uint32(changeType),
-		Deleted:                     outputDeleted,
+		ContractId:                contractDataContractId.HexString(),
+		ContractKeyType:           contractDataKeyType,
+		ContractDurability:        contractDataDurability,
+		ContractDataAssetCode:     contractDataAssetCode,
+		ContractDataAssetIssuer:   contractDataAssetIssuer,
+		ContractDataBalanceHolder: base64.StdEncoding.EncodeToString(contractDataBalanceHolder[:]),
+		ContractDataBalance:       contractDataBalance.String(),
+		LastModifiedLedger:        uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:         uint32(changeType),
+		Deleted:                   outputDeleted,
 	}
 	return transformedPool, nil
 }
@@ -142,7 +121,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 //
 // If the given ledger entry is a verified asset info entry,
 // AssetFromContractData will return the corresponding Stellar asset. Otherwise,
-// it returns empty strings.
+// it returns nil.
 //
 // References:
 // https://github.com/stellar/rs-soroban-env/blob/v0.0.16/soroban-env-host/src/native_contract/token/public_types.rs#L21
@@ -163,24 +142,23 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 //     { ScVal{ Sym: ScSymbol("asset_code") } -> ScVal{ Str: ScString(...) } },
 //     { ScVal{ Sym: ScSymbol("issuer") } -> ScVal{ Bytes: ScBytes(...) } }
 //     )}
-func AssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) (string, string) {
+func AssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.Asset {
 	contractData, ok := ledgerEntry.Data.GetContractData()
 	if !ok {
-		return "", ""
+		return nil
 	}
-	if contractData.Key.Type != xdr.ScValTypeScvLedgerKeyContractInstance ||
-		contractData.Body.BodyType != xdr.ContractEntryBodyTypeDataEntry {
-		return "", ""
+	if contractData.Key.Type != xdr.ScValTypeScvLedgerKeyContractInstance {
+		return nil
 	}
-	contractInstanceData, ok := contractData.Body.Data.Val.GetInstance()
+	contractInstanceData, ok := contractData.Val.GetInstance()
 	if !ok || contractInstanceData.Storage == nil {
-		return "", ""
+		return nil
 	}
 
 	// we don't support asset stats for lumens
 	nativeAssetContractID, err := xdr.MustNewNativeAsset().ContractID(passphrase)
 	if err != nil || (contractData.Contract.ContractId != nil && (*contractData.Contract.ContractId) == nativeAssetContractID) {
-		return "", ""
+		return nil
 	}
 
 	var assetInfo *xdr.ScVal
@@ -189,83 +167,83 @@ func AssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) (stri
 			// clone the map entry to avoid reference to loop iterator
 			mapValXdr, cloneErr := mapEntry.Val.MarshalBinary()
 			if cloneErr != nil {
-				return "", ""
+				return nil
 			}
 			assetInfo = &xdr.ScVal{}
 			cloneErr = assetInfo.UnmarshalBinary(mapValXdr)
 			if cloneErr != nil {
-				return "", ""
+				return nil
 			}
 			break
 		}
 	}
 
 	if assetInfo == nil {
-		return "", ""
+		return nil
 	}
 
 	vecPtr, ok := assetInfo.GetVec()
 	if !ok || vecPtr == nil || len(*vecPtr) != 2 {
-		return "", ""
+		return nil
 	}
 	vec := *vecPtr
 
 	sym, ok := vec[0].GetSym()
 	if !ok {
-		return "", ""
+		return nil
 	}
 	switch sym {
 	case "AlphaNum4":
 	case "AlphaNum12":
 	default:
-		return "", ""
+		return nil
 	}
 
 	var assetCode, assetIssuer string
 	assetMapPtr, ok := vec[1].GetMap()
 	if !ok || assetMapPtr == nil || len(*assetMapPtr) != 2 {
-		return "", ""
+		return nil
 	}
 	assetMap := *assetMapPtr
 
 	assetCodeEntry, assetIssuerEntry := assetMap[0], assetMap[1]
 	if sym, ok = assetCodeEntry.Key.GetSym(); !ok || sym != assetCodeSym {
-		return "", ""
+		return nil
 	}
 	assetCodeSc, ok := assetCodeEntry.Val.GetStr()
 	if !ok {
-		return "", ""
+		return nil
 	}
 	if assetCode = string(assetCodeSc); assetCode == "" {
-		return "", ""
+		return nil
 	}
 
 	if sym, ok = assetIssuerEntry.Key.GetSym(); !ok || sym != issuerSym {
-		return "", ""
+		return nil
 	}
 	assetIssuerSc, ok := assetIssuerEntry.Val.GetBytes()
 	if !ok {
-		return "", ""
+		return nil
 	}
 	assetIssuer, err = strkey.Encode(strkey.VersionByteAccountID, assetIssuerSc)
 	if err != nil {
-		return "", ""
+		return nil
 	}
 
 	asset, err := xdr.NewCreditAsset(assetCode, assetIssuer)
 	if err != nil {
-		return "", ""
+		return nil
 	}
 
 	expectedID, err := asset.ContractID(passphrase)
 	if err != nil {
-		return "", ""
+		return nil
 	}
 	if contractData.Contract.ContractId == nil || expectedID != *(contractData.Contract.ContractId) {
-		return "", ""
+		return nil
 	}
 
-	return assetCode, assetIssuer
+	return &asset
 }
 
 // ContractBalanceFromContractData takes a ledger entry and verifies that the
@@ -311,7 +289,7 @@ func ContractBalanceFromContractData(ledgerEntry xdr.LedgerEntry, passphrase str
 		return [32]byte{}, nil, false
 	}
 
-	balanceMapPtr, ok := contractData.Body.Data.Val.GetMap()
+	balanceMapPtr, ok := contractData.Val.GetMap()
 	if !ok || balanceMapPtr == nil {
 		return [32]byte{}, nil, false
 	}

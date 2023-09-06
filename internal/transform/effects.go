@@ -1443,7 +1443,7 @@ func (e *effectsWrapper) addBumpFootprintExpirationEffect() error {
 		switch change.Post.Data.Type {
 		case xdr.LedgerEntryTypeContractData:
 			v := change.Post.Data.MustContractData()
-			if err := key.SetContractData(v.Contract, v.Key, v.Durability, v.Body.BodyType); err != nil {
+			if err := key.SetContractData(v.Contract, v.Key, v.Durability); err != nil {
 				return err
 			}
 		case xdr.LedgerEntryTypeContractCode:
@@ -1490,7 +1490,7 @@ func (e *effectsWrapper) addRestoreFootprintExpirationEffect() error {
 		switch change.Post.Data.Type {
 		case xdr.LedgerEntryTypeContractData:
 			v := change.Post.Data.MustContractData()
-			if err := key.SetContractData(v.Contract, v.Key, v.Durability, v.Body.BodyType); err != nil {
+			if err := key.SetContractData(v.Contract, v.Key, v.Durability); err != nil {
 				return err
 			}
 		case xdr.LedgerEntryTypeContractCode:

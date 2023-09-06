@@ -58,10 +58,6 @@ func makeContractCodeTestInput() []ingest.Change {
 			Type: xdr.LedgerEntryTypeContractCode,
 			ContractCode: &xdr.ContractCodeEntry{
 				Hash: hash,
-				Body: xdr.ContractCodeEntryBody{
-					BodyType: xdr.ContractEntryBodyTypeDataEntry,
-				},
-				ExpirationLedgerSeq: 30000000,
 				Ext: xdr.ExtensionPoint{
 					V: 1,
 				},
@@ -81,13 +77,11 @@ func makeContractCodeTestInput() []ingest.Change {
 func makeContractCodeTestOutput() []ContractCodeOutput {
 	return []ContractCodeOutput{
 		{
-			ContractCodeHash:                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-			ContractCodeExtV:                1,
-			ContractCodeExpirationLedgerSeq: 30000000,
-			ContractCodeEntryBodyType:       "ContractEntryBodyTypeDataEntry",
-			LastModifiedLedger:              24229503,
-			LedgerEntryChange:               1,
-			Deleted:                         false,
+			ContractCodeHash:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+			ContractCodeExtV:   1,
+			LastModifiedLedger: 24229503,
+			LedgerEntryChange:  1,
+			Deleted:            false,
 		},
 	}
 }

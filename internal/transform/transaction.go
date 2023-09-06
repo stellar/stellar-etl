@@ -138,7 +138,6 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var outputSorobanResourcesInstructions uint32
 	var outputSorobanResourcesReadBytes uint32
 	var outputSorobanResourcesWriteBytes uint32
-	var outputSorobanResourcesExtendedMetaDataSizeBytes uint32
 
 	transactionEnvelopeV1, ok := transaction.Envelope.GetV1()
 	if ok {
@@ -148,7 +147,6 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
 			outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
 			outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
-			outputSorobanResourcesExtendedMetaDataSizeBytes = uint32(sorobanData.Resources.ExtendedMetaDataSizeBytes)
 		}
 	}
 
@@ -181,12 +179,11 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		MinAccountSequenceAge:        outputMinSequenceAge,
 		MinAccountSequenceLedgerGap:  outputMinSequenceLedgerGap,
 		ExtraSigners:                 formatSigners(transaction.Envelope.ExtraSigners()),
-		LedgerClosedAt:               outputCloseTime,
+		ClosedAt:                     outputCloseTime,
 		RefundableFee:                outputRefundableFee,
 		SorobanResourcesInstructions: outputSorobanResourcesInstructions,
 		SorobanResourcesReadBytes:    outputSorobanResourcesReadBytes,
 		SorobanResourcesWriteBytes:   outputSorobanResourcesWriteBytes,
-		SorobanResourcesExtendedMetaDataSizeBytes: outputSorobanResourcesExtendedMetaDataSizeBytes,
 	}
 
 	// Add Muxed Account Details, if exists

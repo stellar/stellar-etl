@@ -30,29 +30,16 @@ func TransformContractCode(ledgerChange ingest.Change) (ContractCodeOutput, erro
 
 	hashBinary, err := contractCode.Hash.MarshalBinary()
 	if err != nil {
-		return ContractCodeOutput{}, fmt.Errorf("Could not extract Val from contractData")
+		return ContractCodeOutput{}, fmt.Errorf("Could not extract contract code hash")
 	}
 	contractCodeHash := base64.StdEncoding.EncodeToString(hashBinary)
 
-	contractCodeEntryBodyType := contractCode.Body.BodyType.String()
-	// NOTE: Most likely don't need the binary code to be saved in BQ
-	//binaryCode, err := contractCode.Body.MarshalBinary()
-	//if err != nil {
-	//	return ContractCodeOutput{}, fmt.Errorf("Could not extract Val from contractData")
-	//}
-	//contractCodeCode := base64.StdEncoding.EncodeToString(binaryCode)
-
-	contractCodeExpirationLedgerSeq := contractCode.ExpirationLedgerSeq
-
 	transformedPool := ContractCodeOutput{
-		ContractCodeHash:                contractCodeHash,
-		ContractCodeExtV:                int32(contractCodeExtV),
-		ContractCodeExpirationLedgerSeq: uint32(contractCodeExpirationLedgerSeq),
-		ContractCodeEntryBodyType:       contractCodeEntryBodyType,
-		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:               uint32(changeType),
-		Deleted:                         outputDeleted,
-		//ContractCodeCode:                contractCodeCode,
+		ContractCodeHash:   contractCodeHash,
+		ContractCodeExtV:   int32(contractCodeExtV),
+		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:  uint32(changeType),
+		Deleted:            outputDeleted,
 	}
 	return transformedPool, nil
 }

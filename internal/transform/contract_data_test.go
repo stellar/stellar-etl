@@ -54,8 +54,8 @@ func TestTransformContractData(t *testing.T) {
 	}
 }
 
-func MockAssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) (string, string) {
-	return "code", "issuer"
+func MockAssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.Asset {
+	return &xdr.Asset{}
 }
 
 func MockContractBalanceFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) ([32]byte, *big.Int, bool) {
@@ -98,17 +98,6 @@ func makeContractDataTestInput() []ingest.Change {
 					},
 				},
 				Durability: xdr.ContractDataDurabilityPersistent,
-				Body: xdr.ContractDataEntryBody{
-					BodyType: xdr.ContractEntryBodyTypeDataEntry,
-					Data: &xdr.ContractDataEntryData{
-						Flags: 0,
-						Val: xdr.ScVal{
-							Type: xdr.ScValTypeScvString,
-							Str:  &scStr,
-						},
-					},
-				},
-				ExpirationLedgerSeq: 30000000,
 			},
 		},
 	}
@@ -125,18 +114,16 @@ func makeContractDataTestInput() []ingest.Change {
 func makeContractDataTestOutput() []ContractDataOutput {
 	return []ContractDataOutput{
 		{
-			ContractId:                  "0000000000000000000000000000000000000000000000000000000000000000",
-			ContractKeyType:             "ScValTypeScvContractInstance",
-			ContractDurability:          "ContractDataDurabilityPersistent",
-			ContractDataFlags:           0,
-			ContractExpirationLedgerSeq: 30000000,
-			ContractDataAssetCode:       "code",
-			ContractDataAssetIssuer:     "issuer",
-			ContractDataBalanceHolder:   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-			ContractDataBalance:         "0",
-			LastModifiedLedger:          24229503,
-			LedgerEntryChange:           1,
-			Deleted:                     false,
+			ContractId:                "0000000000000000000000000000000000000000000000000000000000000000",
+			ContractKeyType:           "ScValTypeScvContractInstance",
+			ContractDurability:        "ContractDataDurabilityPersistent",
+			ContractDataAssetCode:     "",
+			ContractDataAssetIssuer:   "",
+			ContractDataBalanceHolder: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+			ContractDataBalance:       "0",
+			LastModifiedLedger:        24229503,
+			LedgerEntryChange:         1,
+			Deleted:                   false,
 		},
 	}
 }

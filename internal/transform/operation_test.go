@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
