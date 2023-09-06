@@ -64,7 +64,7 @@ func init() {
 	utils.AddCommonFlags(dataCmd.Flags())
 	utils.AddBucketFlags("contract_data", dataCmd.Flags())
 	utils.AddGcsFlags(dataCmd.Flags())
-	accountsCmd.MarkFlagRequired("end-ledger")
+	dataCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)

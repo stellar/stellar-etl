@@ -13,13 +13,10 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var poolsCmd = &cobra.Command{
-	Use:   "export_pools",
-	Short: "Exports the liquidity pools data.",
-	Long: `Exports historical liquidity pools data from the genesis ledger to the provided end-ledger to an output file. 
-The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
-should be used in an initial data dump. In order to get liqudity pools information within a specified ledger range, see 
-the export_ledger_entry_changes command.`,
+var expirationCmd = &cobra.Command{
+	Use:   "export_expiration",
+	Short: "Exports the expiration information.",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
@@ -28,25 +25,25 @@ the export_ledger_entry_changes command.`,
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
+		expirations, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeExpiration, env.ArchiveURLs)
 		if err != nil {
-			cmdLogger.Fatal("could not read accounts: ", err)
+			cmdLogger.Fatal("Error getting ledger entries: ", err)
 		}
 
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
-		for _, pool := range pools {
-			transformed, err := transform.TransformPool(pool)
+		for _, expiration := range expirations {
+			transformed, err := transform.TransformExpiration(expiration)
 			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))
+				cmdLogger.LogError(fmt.Errorf("could not transform expiration %+v: %v", expiration, err))
 				numFailures += 1
 				continue
 			}
 
 			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not export pool %+v: %v", pool, err))
+				cmdLogger.LogError(fmt.Errorf("could not export expiration %+v: %v", expiration, err))
 				numFailures += 1
 				continue
 			}
@@ -55,18 +52,18 @@ the export_ledger_entry_changes command.`,
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(pools), numFailures)
+		printTransformStats(len(expirations), numFailures)
 		maybeUpload(gcpCredentials, gcsBucket, path)
 
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(poolsCmd)
-	utils.AddCommonFlags(poolsCmd.Flags())
-	utils.AddBucketFlags("pools", poolsCmd.Flags())
-	utils.AddGcsFlags(poolsCmd.Flags())
-	poolsCmd.MarkFlagRequired("end-ledger")
+	rootCmd.AddCommand(expirationCmd)
+	utils.AddCommonFlags(expirationCmd.Flags())
+	utils.AddBucketFlags("expiration", expirationCmd.Flags())
+	utils.AddGcsFlags(expirationCmd.Flags())
+	expirationCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)

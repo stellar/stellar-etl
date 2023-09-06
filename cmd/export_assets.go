@@ -70,7 +70,7 @@ func init() {
 	utils.AddCommonFlags(assetsCmd.Flags())
 	utils.AddArchiveFlags("assets", assetsCmd.Flags())
 	utils.AddGcsFlags(assetsCmd.Flags())
-	operationsCmd.MarkFlagRequired("end-ledger")
+	assetsCmd.MarkFlagRequired("end-ledger")
 
 	/*
 		Current flags:

@@ -475,7 +475,7 @@ type ContractDataOutput struct {
 	Deleted                   bool   `json:"deleted"`
 }
 
-// ContractCodeOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
+// ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
 type ContractCodeOutput struct {
 	ContractCodeHash   string `json:"contract_code_hash"`
 	ContractCodeExtV   int32  `json:"contract_code_ext_v"`
@@ -485,7 +485,7 @@ type ContractCodeOutput struct {
 	//ContractCodeCode                string `json:"contract_code"`
 }
 
-// ConfigSettingOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
+// ConfigSettingOutput is a representation of soroban confic settings that aligns with the Bigquery table config_settings
 type ConfigSettingOutput struct {
 	ConfigSettingId                 int32               `json:"config_setting_id"`
 	ContractKeyType                 string              `json:"contract_key_type"`
@@ -534,4 +534,13 @@ type ConfigSettingOutput struct {
 	LastModifiedLedger              uint32              `json:"last_modified_ledger"`
 	LedgerEntryChange               uint32              `json:"ledger_entry_change"`
 	Deleted                         bool                `json:"deleted"`
+}
+
+// ExpirationOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
+type ExpirationOutput struct {
+	KeyHash             string `json:"key_hash"` // key_hash is contract_code_hash or contract_id
+	ExpirationLedgerSeq uint32 `json:"expiration_ledger_seq"`
+	LastModifiedLedger  uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange   uint32 `json:"ledger_entry_change"`
+	Deleted             bool   `json:"deleted"`
 }

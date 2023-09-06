@@ -93,6 +93,7 @@ be exported.`,
 					"contract_data":      {},
 					"contract_code":      {},
 					"config_settings":    {},
+					"expiration":         {},
 				}
 
 				for entryType, changes := range batch.Changes {
@@ -193,13 +194,23 @@ be exported.`,
 						}
 					case xdr.LedgerEntryTypeConfigSetting:
 						for _, change := range changes {
-							confgiSettings, err := transform.TransformConfigSetting(change)
+							configSettings, err := transform.TransformConfigSetting(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming config settings entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], confgiSettings)
+							transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], configSettings)
+						}
+					case xdr.LedgerEntryTypeExpiration:
+						for _, change := range changes {
+							expiration, err := transform.TransformExpiration(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming expiration entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["expiration"] = append(transformedOutputs["expiration"], expiration)
 						}
 					}
 				}
