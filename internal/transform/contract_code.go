@@ -34,12 +34,12 @@ func TransformContractCode(ledgerChange ingest.Change) (ContractCodeOutput, erro
 	}
 	contractCodeHash := base64.StdEncoding.EncodeToString(hashBinary)
 
-	transformedPool := ContractCodeOutput{
+	transformedCode := ContractCodeOutput{
 		ContractCodeHash:   contractCodeHash,
 		ContractCodeExtV:   int32(contractCodeExtV),
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 	}
-	return transformedPool, nil
+	return transformedCode, nil
 }

@@ -20,7 +20,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, ledgerCloseMeta xdr.LedgerCloseMeta) ([]EffectOutput, error) {
+func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphrase string) ([]EffectOutput, error) {
 	effects := []EffectOutput{}
 
 	outputCloseTime, err := utils.GetCloseTime(ledgerCloseMeta)
@@ -34,6 +34,7 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, led
 			transaction:    transaction,
 			operation:      op,
 			ledgerSequence: ledgerSeq,
+			network:        networkPassphrase,
 			ledgerClosed:   outputCloseTime,
 		}
 

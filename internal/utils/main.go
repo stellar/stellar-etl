@@ -266,9 +266,10 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
 	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
 	flags.BoolP("export-balances", "l", false, "set in order to export claimable balance changes")
-	flags.BoolP("export-contract-code", "", false, "set in order to export claimable balance changes")
-	flags.BoolP("export-contract-data", "", false, "set in order to export claimable balance changes")
-	flags.BoolP("export-config-settings", "", false, "set in order to export claimable balance changes")
+	flags.BoolP("export-contract-code", "", false, "set in order to export contract code changes")
+	flags.BoolP("export-contract-data", "", false, "set in order to export contract data changes")
+	flags.BoolP("export-config-settings", "", false, "set in order to export config settings changes")
+	flags.BoolP("export-expiration", "", false, "set in order to export expiration changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
@@ -374,48 +375,29 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings bool) {
-	exportAccounts, err := flags.GetBool("export-accounts")
-	if err != nil {
-		logger.Fatal("could not get export accounts flag: ", err)
+// func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings, exportExpiration bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]bool {
+	var err error
+	exports := map[string]bool{
+		"export-accounts":        false,
+		"export-trustlines":      false,
+		"export-offers":          false,
+		"export-pools":           false,
+		"export-balances":        false,
+		"export-contract-code":   false,
+		"export-contract-data":   false,
+		"export-config-settings": false,
+		"export-expiration":      false,
 	}
 
-	exportOffers, err = flags.GetBool("export-offers")
-	if err != nil {
-		logger.Fatal("could not get export offers flag: ", err)
+	for export_name, _ := range exports {
+		exports[export_name], err = flags.GetBool(export_name)
+		if err != nil {
+			logger.Fatalf("could not get %s flag: %v", export_name, err)
+		}
 	}
 
-	exportTrustlines, err = flags.GetBool("export-trustlines")
-	if err != nil {
-		logger.Fatal("could not get export trustlines flag: ", err)
-	}
-
-	exportPools, err = flags.GetBool("export-pools")
-	if err != nil {
-		logger.Fatal("could not export liquidity pools flag: ", err)
-	}
-
-	exportBalances, err = flags.GetBool("export-balances")
-	if err != nil {
-		logger.Fatal("could not export claimable balances flag: ", err)
-	}
-
-	exportContractCode, err = flags.GetBool("export-contract-code")
-	if err != nil {
-		logger.Fatal("could not export contract code flag: ", err)
-	}
-
-	exportContractData, err = flags.GetBool("export-contract-data")
-	if err != nil {
-		logger.Fatal("could not export contract data flag: ", err)
-	}
-
-	exportConfigSettings, err = flags.GetBool("export-config-settings")
-	if err != nil {
-		logger.Fatal("could not export config settings flag: ", err)
-	}
-
-	return
+	return exports
 }
 
 type historyArchiveBackend struct {

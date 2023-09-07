@@ -71,8 +71,8 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, fmt.Errorf("Could not extract contract data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
-	// LedgerEntryChange must contain a contract data change to be parsed, otherwise skip
-	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeContractData {
+	if contractData.Key.Type.String() == "ScValTypeScvLedgerKeyNonce" {
+		// Is a nonce and should be discarded
 		return ContractDataOutput{}, nil
 	}
 
@@ -81,11 +81,6 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 	contractDataAssetIssuer := contractDataAsset.GetIssuer()
 
 	contractDataBalanceHolder, contractDataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
-
-	if contractData.Key.Type.String() == "ScValTypeScvLedgerKeyNonce" {
-		// Is a nonce and should be discarded
-		return ContractDataOutput{}, nil
-	}
 
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
@@ -96,7 +91,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataDurability := contractData.Durability.String()
 
-	transformedPool := ContractDataOutput{
+	transformedData := ContractDataOutput{
 		ContractId:                contractDataContractId.HexString(),
 		ContractKeyType:           contractDataKeyType,
 		ContractDurability:        contractDataDurability,
@@ -108,7 +103,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
 	}
-	return transformedPool, nil
+	return transformedData, nil
 }
 
 // AssetFromContractData takes a ledger entry and verifies if the ledger entry

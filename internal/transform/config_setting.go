@@ -21,11 +21,6 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		return ConfigSettingOutput{}, fmt.Errorf("Could not extract config setting from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
-	// LedgerEntryChange must contain a config setting state change to be parsed, otherwise skip
-	if ledgerEntry.Data.Type != xdr.LedgerEntryTypeConfigSetting {
-		return ConfigSettingOutput{}, nil
-	}
-
 	configSettingId := configSetting.ConfigSettingId
 
 	contractMaxSizeBytes, _ := configSetting.GetContractMaxSizeBytes()
@@ -95,7 +90,7 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))
 	}
 
-	transformedPool := ConfigSettingOutput{
+	transformedConfigSetting := ConfigSettingOutput{
 		ConfigSettingId:                 int32(configSettingId),
 		ContractMaxSizeBytes:            uint32(contractMaxSizeBytes),
 		LedgerMaxInstructions:           int64(ledgerMaxInstructions),
@@ -142,7 +137,7 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		LedgerEntryChange:               uint32(changeType),
 		Deleted:                         outputDeleted,
 	}
-	return transformedPool, nil
+	return transformedConfigSetting, nil
 }
 
 func serializeParams(costParams xdr.ContractCostParams) []map[string]string {

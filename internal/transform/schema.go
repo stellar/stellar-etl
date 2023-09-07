@@ -485,10 +485,9 @@ type ContractCodeOutput struct {
 	//ContractCodeCode                string `json:"contract_code"`
 }
 
-// ConfigSettingOutput is a representation of soroban confic settings that aligns with the Bigquery table config_settings
+// ConfigSettingOutput is a representation of soroban config settings that aligns with the Bigquery table config_settings
 type ConfigSettingOutput struct {
 	ConfigSettingId                 int32               `json:"config_setting_id"`
-	ContractKeyType                 string              `json:"contract_key_type"`
 	ContractMaxSizeBytes            uint32              `json:"contract_max_size_bytes"`
 	LedgerMaxInstructions           int64               `json:"ledger_max_instructions"`
 	TxMaxInstructions               int64               `json:"tx_max_instructions"`
