@@ -150,10 +150,13 @@ func AssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.
 		return nil
 	}
 
-	// we don't support asset stats for lumens
 	nativeAssetContractID, err := xdr.MustNewNativeAsset().ContractID(passphrase)
-	if err != nil || (contractData.Contract.ContractId != nil && (*contractData.Contract.ContractId) == nativeAssetContractID) {
+	if err != nil {
 		return nil
+	}
+	if contractData.Contract.ContractId != nil && (*contractData.Contract.ContractId) == nativeAssetContractID {
+		asset := xdr.MustNewNativeAsset()
+		return &asset
 	}
 
 	var assetInfo *xdr.ScVal
@@ -254,9 +257,12 @@ func ContractBalanceFromContractData(ledgerEntry xdr.LedgerEntry, passphrase str
 		return [32]byte{}, nil, false
 	}
 
-	// we don't support asset stats for lumens
-	nativeAssetContractID, err := xdr.MustNewNativeAsset().ContractID(passphrase)
-	if err != nil || (contractData.Contract.ContractId != nil && *contractData.Contract.ContractId == nativeAssetContractID) {
+	_, err := xdr.MustNewNativeAsset().ContractID(passphrase)
+	if err != nil {
+		return [32]byte{}, nil, false
+	}
+
+	if contractData.Contract.ContractId == nil {
 		return [32]byte{}, nil, false
 	}
 
