@@ -50,19 +50,23 @@ func GetAccountAddressFromMuxedAccount(account xdr.MuxedAccount) (string, error)
 }
 
 // CreateSampleTx creates a transaction with a single operation (BumpSequence), the min base fee, and infinite timebounds
-func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
+func CreateSampleTx(sequence int64, operationCount int) xdr.TransactionEnvelope {
 	kp, err := keypair.Random()
 	PanicOnError(err)
+
+	operations := []txnbuild.Operation{}
+	operationType := &txnbuild.BumpSequence{
+		BumpTo: 0,
+	}
+	for i := 0; i < operationCount; i++ {
+		operations = append(operations, operationType)
+	}
 
 	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount: &sourceAccount,
-			Operations: []txnbuild.Operation{
-				&txnbuild.BumpSequence{
-					BumpTo: int64(sequence),
-				},
-			},
+			Operations:    operations,
 			BaseFee:       txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
