@@ -30,7 +30,7 @@ func TestTransformExpiration(t *testing.T) {
 					},
 				},
 			},
-			ExpirationOutput{}, fmt.Errorf("Could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
+			ExpirationOutput{}, fmt.Errorf("Could not extract expiration from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
 
@@ -43,31 +43,42 @@ func TestTransformExpiration(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformContractCode(test.input)
+		actualOutput, actualError := TransformExpiration(test.input)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
 }
 
 func makeExpirationTestInput() []ingest.Change {
-	var hash [32]byte
+	var hash xdr.Hash
 
-	contractCodeLedgerEntry := xdr.LedgerEntry{
-		LastModifiedLedgerSeq: 24229503,
+	preExpirationLedgerEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 0,
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeExpiration,
 			Expiration: &xdr.ExpirationEntry{
 				KeyHash:             hash,
-				ExpirationLedgerSeq: 1,
+				ExpirationLedgerSeq: 0,
+			},
+		},
+	}
+
+	expirationLedgerEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 1,
+		Data: xdr.LedgerEntryData{
+			Type: xdr.LedgerEntryTypeExpiration,
+			Expiration: &xdr.ExpirationEntry{
+				KeyHash:             hash,
+				ExpirationLedgerSeq: 123,
 			},
 		},
 	}
 
 	return []ingest.Change{
 		{
-			Type: xdr.LedgerEntryTypeContractCode,
-			Pre:  &xdr.LedgerEntry{},
-			Post: &contractCodeLedgerEntry,
+			Type: xdr.LedgerEntryTypeExpiration,
+			Pre:  &preExpirationLedgerEntry,
+			Post: &expirationLedgerEntry,
 		},
 	}
 }
@@ -75,9 +86,9 @@ func makeExpirationTestInput() []ingest.Change {
 func makeExpirationTestOutput() []ExpirationOutput {
 	return []ExpirationOutput{
 		{
-			KeyHash:             "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-			ExpirationLedgerSeq: 1,
-			LastModifiedLedger:  24229503,
+			KeyHash:             "0000000000000000000000000000000000000000000000000000000000000000",
+			ExpirationLedgerSeq: 123,
+			LastModifiedLedger:  1,
 			LedgerEntryChange:   1,
 			Deleted:             false,
 		},
