@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	"github.com/stellar/go/ingest"
@@ -28,11 +27,7 @@ func TransformContractCode(ledgerChange ingest.Change) (ContractCodeOutput, erro
 
 	contractCodeExtV := contractCode.Ext.V
 
-	hashBinary, err := contractCode.Hash.MarshalBinary()
-	if err != nil {
-		return ContractCodeOutput{}, fmt.Errorf("Could not extract contract code hash")
-	}
-	contractCodeHash := base64.StdEncoding.EncodeToString(hashBinary)
+	contractCodeHash := contractCode.Hash.HexString()
 
 	transformedCode := ContractCodeOutput{
 		ContractCodeHash:   contractCodeHash,
