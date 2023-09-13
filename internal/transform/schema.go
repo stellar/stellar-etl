@@ -543,3 +543,17 @@ type ExpirationOutput struct {
 	LedgerEntryChange   uint32 `json:"ledger_entry_change"`
 	Deleted             bool   `json:"deleted"`
 }
+
+// DiagnosticEventOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
+type DiagnosticEventOutput struct {
+	TransactionHash          string    `json:"transaction_hash"`
+	LedgerSequence           uint32    `json:"ledger_sequence"`
+	TransactionID            int64     `json:"transaction_id"`
+	ClosedAt                 time.Time `json:"closed_at"`
+	InSuccessfulContractCall bool      `json:"in_successful_contract_call"`
+	ExtV                     int32     `json:"ext_v"`
+	ContractId               string    `json:"contract_id"`
+	Type                     string    `json:"type"`
+	BodyV                    int32     `json:"body_v"`
+	Body                     string    `json:"body"`
+}
