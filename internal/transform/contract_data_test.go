@@ -48,7 +48,7 @@ func TestTransformContractData(t *testing.T) {
 
 	for _, test := range tests {
 		TransformContractData := NewTransformContractDataStruct(MockAssetFromContractData, MockContractBalanceFromContractData)
-		actualOutput, actualError := TransformContractData.TransformContractData(test.input, test.passphrase)
+		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

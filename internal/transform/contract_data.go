@@ -60,20 +60,20 @@ func NewTransformContractDataStruct(assetFrom AssetFromContractDataFunc, contrac
 }
 
 // TransformContractData converts a contract data ledger change entry into a form suitable for BigQuery
-func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error) {
+func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error, bool) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
-		return ContractDataOutput{}, err
+		return ContractDataOutput{}, err, false
 	}
 
 	contractData, ok := ledgerEntry.Data.GetContractData()
 	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contract data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return ContractDataOutput{}, fmt.Errorf("Could not extract contract data from ledger entry; actual type is %s", ledgerEntry.Data.Type), false
 	}
 
 	if contractData.Key.Type.String() == "ScValTypeScvLedgerKeyNonce" {
 		// Is a nonce and should be discarded
-		return ContractDataOutput{}, nil
+		return ContractDataOutput{}, nil, false
 	}
 
 	contractDataAsset := t.AssetFromContractData(ledgerEntry, passphrase)
@@ -84,7 +84,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData")
+		return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData"), false
 	}
 
 	contractDataKeyType := contractData.Key.Type.String()
@@ -103,7 +103,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
 	}
-	return transformedData, nil
+	return transformedData, nil, true
 }
 
 // AssetFromContractData takes a ledger entry and verifies if the ledger entry
