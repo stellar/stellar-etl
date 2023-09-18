@@ -76,11 +76,25 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, nil, false
 	}
 
-	contractDataAsset := t.AssetFromContractData(ledgerEntry, passphrase)
-	contractDataAssetCode := contractDataAsset.GetCode()
-	contractDataAssetIssuer := contractDataAsset.GetIssuer()
+	var contractDataAssetType string
+	var contractDataAssetCode string
+	var contractDataAssetIssuer string
 
-	contractDataBalanceHolder, contractDataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
+	contractDataAsset := t.AssetFromContractData(ledgerEntry, passphrase)
+	if contractDataAsset != nil {
+		contractDataAssetType = contractDataAsset.Type.String()
+		contractDataAssetCode = contractDataAsset.GetCode()
+		contractDataAssetIssuer = contractDataAsset.GetIssuer()
+	}
+
+	var contractDataBalanceHolder string
+	var contractDataBalance string
+
+	dataBalanceHolder, dataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
+	if dataBalance != nil {
+		contractDataBalanceHolder = base64.StdEncoding.EncodeToString(dataBalanceHolder[:])
+		contractDataBalance = dataBalance.String()
+	}
 
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
@@ -97,8 +111,9 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		ContractDurability:        contractDataDurability,
 		ContractDataAssetCode:     contractDataAssetCode,
 		ContractDataAssetIssuer:   contractDataAssetIssuer,
-		ContractDataBalanceHolder: base64.StdEncoding.EncodeToString(contractDataBalanceHolder[:]),
-		ContractDataBalance:       contractDataBalance.String(),
+		ContractDataAssetType:     contractDataAssetType,
+		ContractDataBalanceHolder: contractDataBalanceHolder,
+		ContractDataBalance:       contractDataBalance,
 		LastModifiedLedger:        uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,

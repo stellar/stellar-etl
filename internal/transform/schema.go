@@ -468,6 +468,7 @@ type ContractDataOutput struct {
 	ContractDurability        string `json:"contract_durability"`
 	ContractDataAssetCode     string `json:"asset_code"`
 	ContractDataAssetIssuer   string `json:"asset_issuer"`
+	ContractDataAssetType     string `json:"asset_type"`
 	ContractDataBalanceHolder string `json:"balance_holder"`
 	ContractDataBalance       string `json:"balance"` // balance is a string because it is go type big.Int
 	LastModifiedLedger        uint32 `json:"last_modified_ledger"`
