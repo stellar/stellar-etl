@@ -7,6 +7,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
@@ -36,7 +37,8 @@ func TransformDiagnosticEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledg
 		outputInSuccessfulContractCall := diagnoticEvent.InSuccessfulContractCall
 		event := diagnoticEvent.Event
 		outputExtV := event.Ext.V
-		outputContractId := event.ContractId.HexString()
+		contractIdByte, _ := event.ContractId.MarshalBinary()
+		outputContractId, _ := strkey.Encode(strkey.VersionByteContract, contractIdByte)
 		outputType := event.Type.String()
 		outputBodyV := event.Body.V
 		body, ok := event.Body.GetV0()

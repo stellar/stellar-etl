@@ -52,7 +52,7 @@ func makeDiagnosticEventTestOutput() (output [][]DiagnosticEventOutput, err erro
 			ClosedAt:                 time.Date(2020, time.July, 9, 5, 28, 42, 0, time.UTC),
 			InSuccessfulContractCall: true,
 			ExtV:                     0,
-			ContractId:               "0000000000000000000000000000000000000000000000000000000000000000",
+			ContractId:               "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
 			Type:                     "ContractEventTypeDiagnostic",
 			BodyV:                    0,
 			Body:                     "AAAAAQAAAAAAAAABAAAAAAAAAAE=",

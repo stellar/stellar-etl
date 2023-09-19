@@ -14,6 +14,7 @@ import (
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/protocols/horizon/base"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 
 	"github.com/stellar/go/support/contractevents"
@@ -1600,11 +1601,13 @@ func contractIdFromContractData(ledgerKey xdr.LedgerKey) string {
 		return ""
 	}
 	contractIdHash, ok := contractData.Contract.GetContractId()
-	if ok {
-		return contractIdHash.HexString()
+	if !ok {
+		return ""
 	}
 
-	return ""
+	contractIdByte, _ := contractIdHash.MarshalBinary()
+	contractId, _ := strkey.Encode(strkey.VersionByteContract, contractIdByte)
+	return contractId
 }
 
 func contractCodeHashFromTxEnvelope(transactionEnvelope xdr.TransactionV1Envelope) string {
@@ -1630,8 +1633,10 @@ func contractCodeFromContractData(ledgerKey xdr.LedgerKey) string {
 	if !ok {
 		return ""
 	}
-	contractCodeHash := contractCode.Hash
-	return contractCodeHash.HexString()
+
+	contractCodeHashByte, _ := contractCode.Hash.MarshalBinary()
+	contractCodeHash, _ := strkey.Encode(strkey.VersionByteContract, contractCodeHashByte)
+	return contractCodeHash
 }
 
 func filterEvents(diagnosticEvents []xdr.DiagnosticEvent) []xdr.ContractEvent {

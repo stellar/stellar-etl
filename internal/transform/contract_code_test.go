@@ -77,7 +77,7 @@ func makeContractCodeTestInput() []ingest.Change {
 func makeContractCodeTestOutput() []ContractCodeOutput {
 	return []ContractCodeOutput{
 		{
-			ContractCodeHash:   "0000000000000000000000000000000000000000000000000000000000000000",
+			ContractCodeHash:   "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
 			ContractCodeExtV:   1,
 			LastModifiedLedger: 24229503,
 			LedgerEntryChange:  1,

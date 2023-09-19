@@ -102,11 +102,13 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 	}
 
 	contractDataKeyType := contractData.Key.Type.String()
+	contractDataContractIdByte, _ := contractDataContractId.MarshalBinary()
+	outputContractDataContractId, _ := strkey.Encode(strkey.VersionByteContract, contractDataContractIdByte)
 
 	contractDataDurability := contractData.Durability.String()
 
 	transformedData := ContractDataOutput{
-		ContractId:                contractDataContractId.HexString(),
+		ContractId:                outputContractDataContractId,
 		ContractKeyType:           contractDataKeyType,
 		ContractDurability:        contractDataDurability,
 		ContractDataAssetCode:     contractDataAssetCode,

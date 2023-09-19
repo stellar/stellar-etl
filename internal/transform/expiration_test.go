@@ -86,7 +86,7 @@ func makeExpirationTestInput() []ingest.Change {
 func makeExpirationTestOutput() []ExpirationOutput {
 	return []ExpirationOutput{
 		{
-			KeyHash:             "0000000000000000000000000000000000000000000000000000000000000000",
+			KeyHash:             "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
 			ExpirationLedgerSeq: 123,
 			LastModifiedLedger:  1,
 			LedgerEntryChange:   1,

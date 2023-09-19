@@ -55,7 +55,9 @@ func TestTransformContractData(t *testing.T) {
 }
 
 func MockAssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.Asset {
-	return &xdr.Asset{}
+	return &xdr.Asset{
+		Type: xdr.AssetTypeAssetTypeNative,
+	}
 }
 
 func MockContractBalanceFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) ([32]byte, *big.Int, bool) {
@@ -114,11 +116,12 @@ func makeContractDataTestInput() []ingest.Change {
 func makeContractDataTestOutput() []ContractDataOutput {
 	return []ContractDataOutput{
 		{
-			ContractId:                "0000000000000000000000000000000000000000000000000000000000000000",
+			ContractId:                "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
 			ContractKeyType:           "ScValTypeScvContractInstance",
 			ContractDurability:        "ContractDataDurabilityPersistent",
 			ContractDataAssetCode:     "",
 			ContractDataAssetIssuer:   "",
+			ContractDataAssetType:     "AssetTypeAssetTypeNative",
 			ContractDataBalanceHolder: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 			ContractDataBalance:       "0",
 			LastModifiedLedger:        24229503,

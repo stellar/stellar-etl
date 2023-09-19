@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -25,11 +26,12 @@ func TransformExpiration(ledgerChange ingest.Change) (ExpirationOutput, error) {
 		return ExpirationOutput{}, nil
 	}
 
-	keyHash := expiration.KeyHash
+	keyHashByte, _ := expiration.KeyHash.MarshalBinary()
+	keyHash, _ := strkey.Encode(strkey.VersionByteContract, keyHashByte)
 	expirationLedgerSeq := expiration.ExpirationLedgerSeq
 
 	transformedPool := ExpirationOutput{
-		KeyHash:             keyHash.HexString(),
+		KeyHash:             keyHash,
 		ExpirationLedgerSeq: uint32(expirationLedgerSeq),
 		LastModifiedLedger:  uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:   uint32(changeType),
