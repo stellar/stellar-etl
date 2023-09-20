@@ -939,11 +939,33 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 		switch op.HostFunction.Type {
 		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+			invokeArgs := op.HostFunction.MustInvokeContract()
+			args := make([]xdr.ScVal, 0, len(invokeArgs.Args)+2)
+			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvAddress, Address: &invokeArgs.ContractAddress})
+			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
+			args = append(args, invokeArgs.Args...)
+			params := make([]map[string]string, 0, len(args))
+
 			details["type"] = "invoke_contract"
 
 			transactionEnvelope := transaction.Envelope.MustV1()
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
+			for _, param := range args {
+				serializedParam := map[string]string{}
+				serializedParam["value"] = "n/a"
+				serializedParam["type"] = "n/a"
+
+				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+					serializedParam["type"] = scValTypeName
+					if raw, err := param.MarshalBinary(); err == nil {
+						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+					}
+				}
+				params = append(params, serializedParam)
+			}
+			details["parameters"] = params
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction); err != nil {
 				return nil, err
@@ -1506,11 +1528,33 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 
 		switch op.HostFunction.Type {
 		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+			invokeArgs := op.HostFunction.MustInvokeContract()
+			args := make([]xdr.ScVal, 0, len(invokeArgs.Args)+2)
+			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvAddress, Address: &invokeArgs.ContractAddress})
+			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
+			args = append(args, invokeArgs.Args...)
+			params := make([]map[string]string, 0, len(args))
+
 			details["type"] = "invoke_contract"
 
 			transactionEnvelope := operation.transaction.Envelope.MustV1()
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
+			for _, param := range args {
+				serializedParam := map[string]string{}
+				serializedParam["value"] = "n/a"
+				serializedParam["type"] = "n/a"
+
+				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+					serializedParam["type"] = scValTypeName
+					if raw, err := param.MarshalBinary(); err == nil {
+						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+					}
+				}
+				params = append(params, serializedParam)
+			}
+			details["parameters"] = params
 
 			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
 				return nil, err

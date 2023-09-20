@@ -13,8 +13,7 @@ COPY . .
 RUN go build -v -o /usr/local/bin ./...
 
 # stage 2: runtime enviroment
-# stellar/stellar-core 19, pinned by sha digest
-FROM stellar/stellar-core:19.13.1-1481.3acf6dd26.focal
+FROM chowbao/stellar-core:20.0.0-1504.rc2.22088c1f2.focal
 
 WORKDIR /etl
 
