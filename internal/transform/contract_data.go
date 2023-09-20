@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"encoding/base64"
 	"fmt"
 	"math/big"
 
@@ -92,7 +91,8 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	dataBalanceHolder, dataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
 	if dataBalance != nil {
-		contractDataBalanceHolder = base64.StdEncoding.EncodeToString(dataBalanceHolder[:])
+		holderHashByte, _ := xdr.Hash(dataBalanceHolder).MarshalBinary()
+		contractDataBalanceHolder, _ = strkey.Encode(strkey.VersionByteContract, holderHashByte)
 		contractDataBalance = dataBalance.String()
 	}
 
@@ -171,10 +171,6 @@ func AssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.
 	if err != nil {
 		return nil
 	}
-	if contractData.Contract.ContractId != nil && (*contractData.Contract.ContractId) == nativeAssetContractID {
-		asset := xdr.MustNewNativeAsset()
-		return &asset
-	}
 
 	var assetInfo *xdr.ScVal
 	for _, mapEntry := range *contractInstanceData.Storage {
@@ -210,6 +206,11 @@ func AssetFromContractData(ledgerEntry xdr.LedgerEntry, passphrase string) *xdr.
 	switch sym {
 	case "AlphaNum4":
 	case "AlphaNum12":
+	case "Native":
+		if contractData.Contract.ContractId != nil && (*contractData.Contract.ContractId) == nativeAssetContractID {
+			asset := xdr.MustNewNativeAsset()
+			return &asset
+		}
 	default:
 		return nil
 	}
