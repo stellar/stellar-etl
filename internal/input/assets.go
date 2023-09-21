@@ -2,57 +2,57 @@ package input
 
 import (
 	"context"
-	"io"
 
+	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
 
-	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 )
 
+type AssetTransformInput struct {
+	Operation        xdr.Operation
+	OperationIndex   int32
+	TransactionIndex int32
+	LedgerSeqNum     int32
+}
+
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
-func GetPaymentOperations(start, end uint32, limit int64, isTest bool) ([]OperationTransformInput, error) {
-	env := utils.GetEnvironmentDetails(isTest)
+func GetPaymentOperations(start, end uint32, limit int64, isTest bool, isFuture bool) ([]AssetTransformInput, error) {
+	env := utils.GetEnvironmentDetails(isTest, isFuture)
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
-		return []OperationTransformInput{}, err
+		return []AssetTransformInput{}, err
 	}
 
-	opSlice := []OperationTransformInput{}
+	assetSlice := []AssetTransformInput{}
 	ctx := context.Background()
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+		// Get ledger from sequence number
+		ledger, err := backend.GetLedgerArchive(ctx, seq)
 		if err != nil {
-			return []OperationTransformInput{}, err
+			return []AssetTransformInput{}, err
 		}
 
-		for int64(len(opSlice)) < limit || limit < 0 {
-			tx, err := txReader.Read()
-			if err == io.EOF {
-				break
-			}
+		transactionSet := transform.GetTransactionSet(ledger)
 
-			for index, op := range tx.Envelope.Operations() {
+		for txIndex, transaction := range transactionSet {
+			for opIndex, op := range transaction.Operations() {
 				if op.Body.Type == xdr.OperationTypePayment {
-					opSlice = append(opSlice, OperationTransformInput{
-						Operation:      op,
-						OperationIndex: int32(index),
-						Transaction:    tx,
-						LedgerSeqNum:   int32(seq),
+					assetSlice = append(assetSlice, AssetTransformInput{
+						Operation:        op,
+						OperationIndex:   int32(opIndex),
+						TransactionIndex: int32(txIndex),
+						LedgerSeqNum:     int32(seq),
 					})
 				}
 
-				if int64(len(opSlice)) >= limit && limit >= 0 {
-					break
-				}
 			}
-		}
 
-		txReader.Close()
-		if int64(len(opSlice)) >= limit && limit >= 0 {
+		}
+		if int64(len(assetSlice)) >= limit && limit >= 0 {
 			break
 		}
 	}
 
-	return opSlice, nil
+	return assetSlice, nil
 }

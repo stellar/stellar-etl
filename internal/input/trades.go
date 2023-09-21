@@ -24,6 +24,7 @@ type TradeTransformInput struct {
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
 func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]TradeTransformInput, error) {
 	ctx := context.Background()
+
 	backend, err := env.CreateCaptiveCoreBackend()
 
 	tradeSlice := []TradeTransformInput{}

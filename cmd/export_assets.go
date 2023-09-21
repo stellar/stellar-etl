@@ -16,14 +16,14 @@ var assetsCmd = &cobra.Command{
 	Long:  `Exports the assets that are created from payment operations over a specified ledger range`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 
-		paymentOps, err := input.GetPaymentOperations(startNum, endNum, limit, isTest)
+		paymentOps, err := input.GetPaymentOperations(startNum, endNum, limit, isTest, isFuture)
 		if err != nil {
 			cmdLogger.Fatal("could not read asset: ", err)
 		}
@@ -33,9 +33,9 @@ var assetsCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, transformInput := range paymentOps {
-			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum)
+			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.TransactionIndex, transformInput.LedgerSeqNum)
 			if err != nil {
-				txIndex := transformInput.Transaction.Index
+				txIndex := transformInput.TransactionIndex
 				cmdLogger.LogError(fmt.Errorf("could not extract asset from operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum))
 				numFailures += 1
 				continue
@@ -57,7 +57,7 @@ var assetsCmd = &cobra.Command{
 		}
 
 		outFile.Close()
-		cmdLogger.Infof("%d bytes written to %s: %d ", totalNumBytes, outFile.Name())
+		cmdLogger.Infof("%d bytes written to %s", totalNumBytes, outFile.Name())
 
 		printTransformStats(len(paymentOps), numFailures)
 
@@ -70,7 +70,7 @@ func init() {
 	utils.AddCommonFlags(assetsCmd.Flags())
 	utils.AddArchiveFlags("assets", assetsCmd.Flags())
 	utils.AddGcsFlags(assetsCmd.Flags())
-	operationsCmd.MarkFlagRequired("end-ledger")
+	assetsCmd.MarkFlagRequired("end-ledger")
 
 	/*
 		Current flags:

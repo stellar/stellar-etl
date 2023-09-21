@@ -9,6 +9,7 @@
 debug
 .bundle
 *.swp
+*.swo
 *.crt
 *.csr
 *.key

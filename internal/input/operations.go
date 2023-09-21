@@ -7,7 +7,6 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -32,6 +31,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 	ctx := context.Background()
 
 	backend, err := env.CreateCaptiveCoreBackend()
+
 	if err != nil {
 		return []OperationTransformInput{}, err
 	}
@@ -40,7 +40,6 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		// txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, publicPassword, seq)
 		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
 		if err != nil {
 			return []OperationTransformInput{}, err
@@ -49,7 +48,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails)
 
 		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
 		if err != nil {
-			return nil, errors.Wrap(err, "error getting ledger from the backend")
+			return nil, fmt.Errorf("error getting ledger seq %d from the backend: %v", seq, err)
 		}
 
 		for int64(len(opSlice)) < limit || limit < 0 {

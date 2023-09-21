@@ -13,11 +13,11 @@ var effectsCmd = &cobra.Command{
 	Short: "Exports the effects data over a specified range",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest)
+		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		transactions, err := input.GetTransactions(startNum, endNum, limit, env)
 		if err != nil {
@@ -29,7 +29,7 @@ var effectsCmd = &cobra.Command{
 		totalNumBytes := 0
 		for _, transformInput := range transactions {
 			LedgerSeq := uint32(transformInput.LedgerHistory.Header.LedgerSeq)
-			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq, transformInput.LedgerCloseMeta)
+			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
 				cmdLogger.Errorf("could not transform transaction %d in ledger %d: %v", txIndex, LedgerSeq, err)

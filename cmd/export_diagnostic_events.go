@@ -10,10 +10,10 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-var transactionsCmd = &cobra.Command{
-	Use:   "export_transactions",
-	Short: "Exports the transaction data over a specified range.",
-	Long:  `Exports the transaction data over a specified range to an output file.`,
+var diagnosticEventsCmd = &cobra.Command{
+	Use:   "export_diagnostic_events",
+	Short: "Exports the diagnostic events over a specified range.",
+	Long:  `Exports the diagnostic events over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
@@ -29,27 +29,29 @@ var transactionsCmd = &cobra.Command{
 
 		outFile := mustOutFile(path)
 		numFailures := 0
-		totalNumBytes := 0
 		for _, transformInput := range transactions {
-			transformed, err := transform.TransformTransaction(transformInput.Transaction, transformInput.LedgerHistory)
+			transformed, err, ok := transform.TransformDiagnosticEvent(transformInput.Transaction, transformInput.LedgerHistory)
 			if err != nil {
 				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
-				cmdLogger.LogError(fmt.Errorf("could not transform transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq))
+				cmdLogger.LogError(fmt.Errorf("could not transform diagnostic events in transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq))
 				numFailures += 1
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, extra)
-			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not export transaction: %v", err))
-				numFailures += 1
+			if !ok {
 				continue
 			}
-			totalNumBytes += numBytes
+			for _, diagnosticEvent := range transformed {
+				_, err := exportEntry(diagnosticEvent, outFile, extra)
+				if err != nil {
+					cmdLogger.LogError(fmt.Errorf("could not export diagnostic event: %v", err))
+					numFailures += 1
+					continue
+				}
+			}
 		}
 
 		outFile.Close()
-		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(transactions), numFailures)
 
@@ -58,19 +60,19 @@ var transactionsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(transactionsCmd)
-	utils.AddCommonFlags(transactionsCmd.Flags())
-	utils.AddArchiveFlags("transactions", transactionsCmd.Flags())
-	utils.AddGcsFlags(transactionsCmd.Flags())
-	transactionsCmd.MarkFlagRequired("end-ledger")
+	rootCmd.AddCommand(diagnosticEventsCmd)
+	utils.AddCommonFlags(diagnosticEventsCmd.Flags())
+	utils.AddArchiveFlags("diagnostic_events", diagnosticEventsCmd.Flags())
+	utils.AddGcsFlags(diagnosticEventsCmd.Flags())
+	diagnosticEventsCmd.MarkFlagRequired("end-ledger")
 
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
 			end-ledger: the ledger sequence number for the end of the export range (*required)
 
-			limit: maximum number of transactions to export
-				TODO: measure a good default value that ensures all transactions within a 5 minute period will be exported with a single call
+			limit: maximum number of diagnostic events to export
+				TODO: measure a good default value that ensures all diagnostic events within a 5 minute period will be exported with a single call
 				The current max_tx_set_size is 1000 and there are 60 new ledgers in a 5 minute period:
 					1000*60 = 60000
 

@@ -13,6 +13,10 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 	  - [export_claimable_balances](#export_claimable_balances)
   	  - [export_pools](#export_pools)
   	  - [export_signers](#export_signers)
+	  - [export_contract_data (futurenet, testnet)](#export_contract_data)
+	  - [export_contract_code (futurenet, testnet)](#export_contract_code)
+	  - [export_config_settings (futurenet, testnet)](#export_config_settings)
+	  - [export_expiration (futurenet, testnet)](#export_expiration)
 	- [History Archive Commands](#history-archive-commands)
 	  - [export_ledgers](#export_ledgers)
 	  - [export_transactions](#export_transactions)
@@ -20,6 +24,7 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 	  - [export_effects](#export_effects)
       - [export_assets](#export_assets)
       - [export_trades](#export_trades)
+	  - [export_diagnostic_events (futurenet, testnet)](#export_diagnostic_events)
 	- [Stellar Core Commands](#stellar-core-commands)
 	  - [export_ledger_entry_changes](#export_ledger_entry_changes)
       - [export_orderbooks (unsupported)](#export_orderbooks-unsupported)
@@ -57,6 +62,10 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
    - [export_claimable_balances](#export_claimable_balances)
    - [export_pools](#export_pools)
    - [export_signers](#export_signers)
+   - [export_contract_data](#export_contract_data)
+   - [export_contract_code](#export_contract_code)
+   - [export_config_settings](#export_config_settings)
+   - [export_expiration](#export_expiration)
 - [History Archive Commands](#history-archive-commands)
    - [export_ledgers](#export_ledgers)
    - [export_transactions](#export_transactions)
@@ -64,15 +73,16 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
    - [export_effects](#export_effects)
    - [export_assets](#export_assets)
    - [export_trades](#export_trades)
+   - [export_diagnostic_events](#export_diagnostic_events)
  - [Stellar Core Commands](#stellar-core-commands)
-   - [export_ledger_entry_changes](#export_ledger_entry_changes)
    - [export_orderbooks (unsupported)](#export_orderbooks-unsupported)
  - [Utility Commands](#utility-commands)
    - [get_ledger_range_from_times](#get_ledger_range_from_times)
 
 Every command accepts a `-h` parameter, which provides a help screen containing information about the command, its usage, and its flags.
 
-Commands have the option to read from testnet with the `--testnet` flag. Default will read from mainnet.
+Commands have the option to read from testnet with the `--testnet` flag, from futurenet with the `--futurenet` flag, and defaults to reading from mainnet without any flags.
+> *_NOTE:_* Adding both flags will default to testnet. Each stellar-etl command can only run from one network at a time.
 
 <br>
 
@@ -142,7 +152,47 @@ Exports historical liquidity pools data from the genesis ledger to the provided 
 > stellar-etl export_signers --end-ledger 500000 --output exported_signers.txt
 ```
 
-Exports historical account signers data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get account information within a specified ledger range, see the export_ledger_entry_changes command.
+Exports historical account signers data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get account signers information within a specified ledger range, see the export_ledger_entry_changes command.
+
+<br>
+
+### **export_contract_data**
+
+```bash
+> stellar-etl export_contract_data --end-ledger 500000 --output export_contract_data.txt
+```
+
+Exports historical contract data data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get contract data information within a specified ledger range, see the export_ledger_entry_changes command.
+
+<br>
+
+### **export_contract_code**
+
+```bash
+> stellar-etl export_contract_code --end-ledger 500000 --output export_contract_code.txt
+```
+
+Exports historical contract code data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get contract code information within a specified ledger range, see the export_ledger_entry_changes command.
+
+<br>
+
+### **export_config_settings**
+
+```bash
+> stellar-etl export_config_settings --end-ledger 500000 --output export_config_settings.txt
+```
+
+Exports historical config settings data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get config settings data information within a specified ledger range, see the export_ledger_entry_changes command.
+
+<br>
+
+### **export_expiration**
+
+```bash
+> stellar-etl export_expiration --end-ledger 500000 --output export_expiration.txt
+```
+
+Exports historical expiration data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get expiration information within a specified ledger range, see the export_ledger_entry_changes command.
 
 <br>
 
@@ -219,6 +269,17 @@ Exports the assets that are created from payment operations over a specified led
 ```
 
 Exports trade data within the specified range to an output file
+
+<br>
+
+### **export_diagnostic_events**
+```bash
+> stellar-etl export_diagnostic_events \
+--start-ledger 1000 \
+--end-ledger 500000 --output export_diagnostic_events.txt
+```
+
+Exports diagnostic events data within the specified range to an output file
 
 <br>
 

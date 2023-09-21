@@ -32,34 +32,38 @@ type LedgerOutput struct {
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
-	TransactionHash             string         `json:"transaction_hash"`
-	LedgerSequence              uint32         `json:"ledger_sequence"`
-	Account                     string         `json:"account"`
-	AccountMuxed                string         `json:"account_muxed,omitempty"`
-	AccountSequence             int64          `json:"account_sequence"`
-	MaxFee                      uint32         `json:"max_fee"`
-	FeeCharged                  int64          `json:"fee_charged"`
-	OperationCount              int32          `json:"operation_count"`
-	TxEnvelope                  string         `json:"tx_envelope"`
-	TxResult                    string         `json:"tx_result"`
-	TxMeta                      string         `json:"tx_meta"`
-	TxFeeMeta                   string         `json:"tx_fee_meta"`
-	CreatedAt                   time.Time      `json:"created_at"`
-	MemoType                    string         `json:"memo_type"`
-	Memo                        string         `json:"memo"`
-	TimeBounds                  string         `json:"time_bounds"`
-	Successful                  bool           `json:"successful"`
-	TransactionID               int64          `json:"id"`
-	FeeAccount                  string         `json:"fee_account,omitempty"`
-	FeeAccountMuxed             string         `json:"fee_account_muxed,omitempty"`
-	InnerTransactionHash        string         `json:"inner_transaction_hash,omitempty"`
-	NewMaxFee                   uint32         `json:"new_max_fee,omitempty"`
-	LedgerBounds                string         `json:"ledger_bounds"`
-	MinAccountSequence          null.Int       `json:"min_account_sequence"`
-	MinAccountSequenceAge       null.Int       `json:"min_account_sequence_age"`
-	MinAccountSequenceLedgerGap null.Int       `json:"min_account_sequence_ledger_gap"`
-	ExtraSigners                pq.StringArray `json:"extra_signers"`
-	LedgerClosedAt              time.Time      `json:"closed_at"`
+	TransactionHash              string         `json:"transaction_hash"`
+	LedgerSequence               uint32         `json:"ledger_sequence"`
+	Account                      string         `json:"account"`
+	AccountMuxed                 string         `json:"account_muxed,omitempty"`
+	AccountSequence              int64          `json:"account_sequence"`
+	MaxFee                       uint32         `json:"max_fee"`
+	FeeCharged                   int64          `json:"fee_charged"`
+	OperationCount               int32          `json:"operation_count"`
+	TxEnvelope                   string         `json:"tx_envelope"`
+	TxResult                     string         `json:"tx_result"`
+	TxMeta                       string         `json:"tx_meta"`
+	TxFeeMeta                    string         `json:"tx_fee_meta"`
+	CreatedAt                    time.Time      `json:"created_at"`
+	MemoType                     string         `json:"memo_type"`
+	Memo                         string         `json:"memo"`
+	TimeBounds                   string         `json:"time_bounds"`
+	Successful                   bool           `json:"successful"`
+	TransactionID                int64          `json:"id"`
+	FeeAccount                   string         `json:"fee_account,omitempty"`
+	FeeAccountMuxed              string         `json:"fee_account_muxed,omitempty"`
+	InnerTransactionHash         string         `json:"inner_transaction_hash,omitempty"`
+	NewMaxFee                    uint32         `json:"new_max_fee,omitempty"`
+	LedgerBounds                 string         `json:"ledger_bounds"`
+	MinAccountSequence           null.Int       `json:"min_account_sequence"`
+	MinAccountSequenceAge        null.Int       `json:"min_account_sequence_age"`
+	MinAccountSequenceLedgerGap  null.Int       `json:"min_account_sequence_ledger_gap"`
+	ExtraSigners                 pq.StringArray `json:"extra_signers"`
+	ClosedAt                     time.Time      `json:"closed_at"`
+	RefundableFee                int64          `json:"refundable_fee"`
+	SorobanResourcesInstructions uint32         `json:"soroban_resources_instructions"`
+	SorobanResourcesReadBytes    uint32         `json:"soroban_resources_read_bytes"`
+	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
 }
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
@@ -368,6 +372,10 @@ const (
 	EffectLiquidityPoolCreated               EffectType = 93
 	EffectLiquidityPoolRemoved               EffectType = 94
 	EffectLiquidityPoolRevoked               EffectType = 95
+	EffectContractCredited                   EffectType = 96
+	EffectContractDebited                    EffectType = 97
+	EffectBumpFootprintExpiration            EffectType = 98
+	EffectRestoreFootprint                   EffectType = 99
 )
 
 // EffectTypeNames stores a map of effect type ID and names
@@ -420,6 +428,10 @@ var EffectTypeNames = map[EffectType]string{
 	EffectLiquidityPoolCreated:               "liquidity_pool_created",
 	EffectLiquidityPoolRemoved:               "liquidity_pool_removed",
 	EffectLiquidityPoolRevoked:               "liquidity_pool_revoked",
+	EffectContractCredited:                   "contract_credited",
+	EffectContractDebited:                    "contract_debited",
+	EffectBumpFootprintExpiration:            "bump_footprint_expiration",
+	EffectRestoreFootprint:                   "restore_footprint",
 }
 
 // TradeEffectDetails is a struct of data from `effects.DetailsString`
@@ -447,4 +459,102 @@ type TestTransaction struct {
 	FeeChangesXDR string
 	MetaXDR       string
 	Hash          string
+}
+
+// ContractDataOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
+type ContractDataOutput struct {
+	ContractId                string `json:"contract_id"`
+	ContractKeyType           string `json:"contract_key_type"`
+	ContractDurability        string `json:"contract_durability"`
+	ContractDataAssetCode     string `json:"asset_code"`
+	ContractDataAssetIssuer   string `json:"asset_issuer"`
+	ContractDataAssetType     string `json:"asset_type"`
+	ContractDataBalanceHolder string `json:"balance_holder"`
+	ContractDataBalance       string `json:"balance"` // balance is a string because it is go type big.Int
+	LastModifiedLedger        uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange         uint32 `json:"ledger_entry_change"`
+	Deleted                   bool   `json:"deleted"`
+}
+
+// ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
+type ContractCodeOutput struct {
+	ContractCodeHash   string `json:"contract_code_hash"`
+	ContractCodeExtV   int32  `json:"contract_code_ext_v"`
+	LastModifiedLedger uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32 `json:"ledger_entry_change"`
+	Deleted            bool   `json:"deleted"`
+	//ContractCodeCode                string `json:"contract_code"`
+}
+
+// ConfigSettingOutput is a representation of soroban config settings that aligns with the Bigquery table config_settings
+type ConfigSettingOutput struct {
+	ConfigSettingId                 int32               `json:"config_setting_id"`
+	ContractMaxSizeBytes            uint32              `json:"contract_max_size_bytes"`
+	LedgerMaxInstructions           int64               `json:"ledger_max_instructions"`
+	TxMaxInstructions               int64               `json:"tx_max_instructions"`
+	FeeRatePerInstructionsIncrement int64               `json:"fee_rate_per_instructions_increment"`
+	TxMemoryLimit                   uint32              `json:"tx_memory_limit"`
+	LedgerMaxReadLedgerEntries      uint32              `json:"ledger_max_read_ledger_entries"`
+	LedgerMaxReadBytes              uint32              `json:"ledger_max_read_bytes"`
+	LedgerMaxWriteLedgerEntries     uint32              `json:"ledger_max_write_ledger_entries"`
+	LedgerMaxWriteBytes             uint32              `json:"ledger_max_write_bytes"`
+	TxMaxReadLedgerEntries          uint32              `json:"tx_max_read_ledger_entries"`
+	TxMaxReadBytes                  uint32              `json:"tx_max_read_bytes"`
+	TxMaxWriteLedgerEntries         uint32              `json:"tx_max_write_ledger_entries"`
+	TxMaxWriteBytes                 uint32              `json:"tx_max_write_bytes"`
+	FeeReadLedgerEntry              int64               `json:"fee_read_ledger_entry"`
+	FeeWriteLedgerEntry             int64               `json:"fee_write_ledger_entry"`
+	FeeRead1Kb                      int64               `json:"fee_read_1kb"`
+	BucketListTargetSizeBytes       int64               `json:"bucket_list_target_size_bytes"`
+	WriteFee1KbBucketListLow        int64               `json:"write_fee_1kb_bucket_list_low"`
+	WriteFee1KbBucketListHigh       int64               `json:"write_fee_1kb_bucket_list_high"`
+	BucketListWriteFeeGrowthFactor  uint32              `json:"bucket_list_write_fee_growth_factor"`
+	FeeHistorical1Kb                int64               `json:"fee_historical_1kb"`
+	TxMaxContractEventsSizeBytes    uint32              `json:"tx_max_contract_events_size_bytes"`
+	FeeContractEvents1Kb            int64               `json:"fee_contract_events_1kb"`
+	LedgerMaxTxsSizeBytes           uint32              `json:"ledger_max_txs_size_bytes"`
+	TxMaxSizeBytes                  uint32              `json:"tx_max_size_bytes"`
+	FeeTxSize1Kb                    int64               `json:"fee_tx_size_1kb"`
+	ContractCostParamsCpuInsns      []map[string]string `json:"contract_cost_params_cpu_insns"`
+	ContractCostParamsMemBytes      []map[string]string `json:"contract_cost_params_mem_bytes"`
+	ContractDataKeySizeBytes        uint32              `json:"contract_data_key_size_bytes"`
+	ContractDataEntrySizeBytes      uint32              `json:"contract_data_entry_size_bytes"`
+	MaxEntryExpiration              uint32              `json:"max_entry_expiration"`
+	MinTempEntryExpiration          uint32              `json:"min_temp_entry_expiration"`
+	MinPersistentEntryExpiration    uint32              `json:"min_persistent_entry_expiration"`
+	AutoBumpLedgers                 uint32              `json:"auto_bump_ledgers"`
+	PersistentRentRateDenominator   int64               `json:"persistent_rent_rate_denominator"`
+	TempRentRateDenominator         int64               `json:"temp_rent_rate_denominator"`
+	MaxEntriesToExpire              uint32              `json:"max_entries_to_expire"`
+	BucketListSizeWindowSampleSize  uint32              `json:"bucket_list_size_window_sample_size"`
+	EvictionScanSize                uint64              `json:"eviction_scan_size"`
+	StartingEvictionScanLevel       uint32              `json:"starting_eviction_scan_level"`
+	LedgerMaxTxCount                uint32              `json:"ledger_max_tx_count"`
+	BucketListSizeWindow            []uint64            `json:"bucket_list_size_window"`
+	LastModifiedLedger              uint32              `json:"last_modified_ledger"`
+	LedgerEntryChange               uint32              `json:"ledger_entry_change"`
+	Deleted                         bool                `json:"deleted"`
+}
+
+// ExpirationOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
+type ExpirationOutput struct {
+	KeyHash             string `json:"key_hash"` // key_hash is contract_code_hash or contract_id
+	ExpirationLedgerSeq uint32 `json:"expiration_ledger_seq"`
+	LastModifiedLedger  uint32 `json:"last_modified_ledger"`
+	LedgerEntryChange   uint32 `json:"ledger_entry_change"`
+	Deleted             bool   `json:"deleted"`
+}
+
+// DiagnosticEventOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
+type DiagnosticEventOutput struct {
+	TransactionHash          string    `json:"transaction_hash"`
+	LedgerSequence           uint32    `json:"ledger_sequence"`
+	TransactionID            int64     `json:"transaction_id"`
+	ClosedAt                 time.Time `json:"closed_at"`
+	InSuccessfulContractCall bool      `json:"in_successful_contract_call"`
+	ExtV                     int32     `json:"ext_v"`
+	ContractId               string    `json:"contract_id"`
+	Type                     string    `json:"type"`
+	BodyV                    int32     `json:"body_v"`
+	Body                     string    `json:"body"`
 }

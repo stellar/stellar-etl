@@ -1,11 +1,19 @@
 package transform
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"math/big"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/guregu/null"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon/base"
+	"github.com/stellar/go/strkey"
+	"github.com/stellar/go/support/contractevents"
+	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 
@@ -32,6 +40,7 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 			},
 			operation:      op,
 			ledgerSequence: 1,
+			network:        "testnet",
 			ledgerClosed:   genericCloseTime.UTC(),
 		}
 		// calling effects should either panic (because the operation field is set to nil)
@@ -3325,4 +3334,652 @@ type CreateClaimableBalanceEffectsTestSuite struct {
 	suite.Suite
 	ops []xdr.Operation
 	tx  ingest.LedgerTransaction
+}
+
+const (
+	networkPassphrase = "Arbitrary Testing Passphrase"
+)
+
+type effect struct {
+	address      string
+	addressMuxed null.String
+	operationID  int64
+	details      map[string]interface{}
+	effectType   EffectType
+	order        uint32
+}
+
+func TestInvokeHostFunctionEffects(t *testing.T) {
+	randAddr := func() string {
+		return keypair.MustRandom().Address()
+	}
+
+	admin := randAddr()
+	asset := xdr.MustNewCreditAsset("TESTER", admin)
+	nativeAsset := xdr.MustNewNativeAsset()
+	from, to := randAddr(), randAddr()
+	fromContractBytes, toContractBytes := xdr.Hash{}, xdr.Hash{1}
+	fromContract := strkey.MustEncode(strkey.VersionByteContract, fromContractBytes[:])
+	toContract := strkey.MustEncode(strkey.VersionByteContract, toContractBytes[:])
+	amount := big.NewInt(12345)
+
+	rawContractId := [64]byte{}
+	rand.Read(rawContractId[:])
+
+	testCases := []struct {
+		desc      string
+		asset     xdr.Asset
+		from, to  string
+		eventType contractevents.EventType
+		expected  []EffectOutput
+	}{
+		{
+			desc:      "transfer",
+			asset:     asset,
+			eventType: contractevents.EventTypeTransfer,
+			expected: []EffectOutput{
+				{
+					Address:     from,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				}, {
+					Address:     to,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "transfer between contracts",
+			asset:     asset,
+			eventType: contractevents.EventTypeTransfer,
+			from:      fromContract,
+			to:        toContract,
+			expected: []EffectOutput{
+				{
+					Address:     admin,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract":            fromContract,
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectContractDebited),
+					TypeString:   EffectTypeNames[EffectContractDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				}, {
+					Address:     admin,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract":            toContract,
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectContractCredited),
+					TypeString:   EffectTypeNames[EffectContractCredited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "mint",
+			asset:     asset,
+			eventType: contractevents.EventTypeMint,
+			expected: []EffectOutput{
+				{
+					Address:     to,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "mint",
+					},
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "burn",
+			asset:     asset,
+			eventType: contractevents.EventTypeBurn,
+			expected: []EffectOutput{
+				{
+					Address:     from,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "burn",
+					},
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "burn from contract",
+			asset:     asset,
+			eventType: contractevents.EventTypeBurn,
+			from:      fromContract,
+			expected: []EffectOutput{
+				{
+					Address:     admin,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract":            fromContract,
+						"contract_event_type": "burn",
+					},
+					Type:         int32(EffectContractDebited),
+					TypeString:   EffectTypeNames[EffectContractDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "clawback",
+			asset:     asset,
+			eventType: contractevents.EventTypeClawback,
+			expected: []EffectOutput{
+				{
+					Address:     from,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "clawback",
+					},
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "clawback from contract",
+			asset:     asset,
+			eventType: contractevents.EventTypeClawback,
+			from:      fromContract,
+			expected: []EffectOutput{
+				{
+					Address:     admin,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract":            fromContract,
+						"contract_event_type": "clawback",
+					},
+					Type:         int32(EffectContractDebited),
+					TypeString:   EffectTypeNames[EffectContractDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "transfer native",
+			asset:     nativeAsset,
+			eventType: contractevents.EventTypeTransfer,
+			expected: []EffectOutput{
+				{
+					Address:     from,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_type":          "native",
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				}, {
+					Address:     to,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_type":          "native",
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "transfer into contract",
+			asset:     asset,
+			to:        toContract,
+			eventType: contractevents.EventTypeTransfer,
+			expected: []EffectOutput{
+				{
+					Address:     from,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectAccountDebited),
+					TypeString:   EffectTypeNames[EffectAccountDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				}, {
+					Address:     admin,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract":            toContract,
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectContractCredited),
+					TypeString:   EffectTypeNames[EffectContractCredited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		}, {
+			desc:      "transfer out of contract",
+			asset:     asset,
+			from:      fromContract,
+			eventType: contractevents.EventTypeTransfer,
+			expected: []EffectOutput{
+				{
+					Address:     admin,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract":            fromContract,
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectContractDebited),
+					TypeString:   EffectTypeNames[EffectContractDebited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				}, {
+					Address:     to,
+					OperationID: toid.New(1, 0, 1).ToInt64(),
+					Details: map[string]interface{}{
+						"amount":              "0.0012345",
+						"asset_code":          strings.Trim(asset.GetCode(), "\x00"),
+						"asset_issuer":        asset.GetIssuer(),
+						"asset_type":          "credit_alphanum12",
+						"contract_event_type": "transfer",
+					},
+					Type:         int32(EffectAccountCredited),
+					TypeString:   EffectTypeNames[EffectAccountCredited],
+					LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.desc, func(t *testing.T) {
+			var tx ingest.LedgerTransaction
+
+			fromAddr := from
+			if testCase.from != "" {
+				fromAddr = testCase.from
+			}
+
+			toAddr := to
+			if testCase.to != "" {
+				toAddr = testCase.to
+			}
+
+			tx = makeInvocationTransaction(
+				fromAddr, toAddr,
+				admin,
+				testCase.asset,
+				amount,
+				testCase.eventType,
+			)
+			assert.True(t, tx.Result.Successful()) // sanity check
+
+			operation := transactionOperationWrapper{
+				index:          0,
+				transaction:    tx,
+				operation:      tx.Envelope.Operations()[0],
+				ledgerSequence: 1,
+				network:        networkPassphrase,
+			}
+
+			effects, err := operation.effects()
+			assert.NoErrorf(t, err, "event type %v", testCase.eventType)
+			assert.Lenf(t, effects, len(testCase.expected), "event type %v", testCase.eventType)
+			assert.Equalf(t, testCase.expected, effects, "event type %v", testCase.eventType)
+		})
+	}
+}
+
+// makeInvocationTransaction returns a single transaction containing a single
+// invokeHostFunction operation that generates the specified Stellar Asset
+// Contract events in its txmeta.
+func makeInvocationTransaction(
+	from, to, admin string,
+	asset xdr.Asset,
+	amount *big.Int,
+	types ...contractevents.EventType,
+) ingest.LedgerTransaction {
+	meta := xdr.TransactionMetaV3{
+		// irrelevant for contract invocations: only events are inspected
+		Operations: []xdr.OperationMeta{},
+		SorobanMeta: &xdr.SorobanTransactionMeta{
+			Events: make([]xdr.ContractEvent, len(types)),
+		},
+	}
+
+	for idx, type_ := range types {
+		event := contractevents.GenerateEvent(
+			type_,
+			from, to, admin,
+			asset,
+			amount,
+			networkPassphrase,
+		)
+		meta.SorobanMeta.Events[idx] = event
+	}
+
+	envelope := xdr.TransactionV1Envelope{
+		Tx: xdr.Transaction{
+			// the rest doesn't matter for effect ingestion
+			Operations: []xdr.Operation{
+				{
+					SourceAccount: xdr.MustMuxedAddressPtr(admin),
+					Body: xdr.OperationBody{
+						Type: xdr.OperationTypeInvokeHostFunction,
+						// contents of the op are irrelevant as they aren't
+						// parsed by anyone yet, e.g. effects are generated
+						// purely from events
+						InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{},
+					},
+				},
+			},
+		},
+	}
+
+	return ingest.LedgerTransaction{
+		Index: 0,
+		Envelope: xdr.TransactionEnvelope{
+			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+			V1:   &envelope,
+		},
+		// the result just needs enough to look successful
+		Result: xdr.TransactionResultPair{
+			TransactionHash: xdr.Hash([32]byte{}),
+			Result: xdr.TransactionResult{
+				FeeCharged: 1234,
+				Result: xdr.TransactionResultResult{
+					Code: xdr.TransactionResultCodeTxSuccess,
+				},
+			},
+		},
+		UnsafeMeta: xdr.TransactionMeta{V: 3, V3: &meta},
+	}
+}
+
+func TestBumpFootprintExpirationEffects(t *testing.T) {
+	randAddr := func() string {
+		return keypair.MustRandom().Address()
+	}
+
+	admin := randAddr()
+	keyHash := xdr.Hash{}
+
+	ledgerEntryKey := xdr.LedgerKey{
+		Type: xdr.LedgerEntryTypeExpiration,
+		Expiration: &xdr.LedgerKeyExpiration{
+			KeyHash: keyHash,
+		},
+	}
+	ledgerEntryKeyStr, err := xdr.MarshalBase64(ledgerEntryKey)
+	assert.NoError(t, err)
+
+	meta := xdr.TransactionMetaV3{
+		Operations: []xdr.OperationMeta{
+			{
+				Changes: xdr.LedgerEntryChanges{
+					// TODO: Confirm this STATE entry is emitted from core as part of the
+					// ledger close meta we get.
+					{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							LastModifiedLedgerSeq: 1,
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeExpiration,
+								Expiration: &xdr.ExpirationEntry{
+									KeyHash:             keyHash,
+									ExpirationLedgerSeq: 1,
+								},
+							},
+						},
+					},
+					{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeExpiration,
+								Expiration: &xdr.ExpirationEntry{
+									KeyHash:             keyHash,
+									ExpirationLedgerSeq: 1234,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	envelope := xdr.TransactionV1Envelope{
+		Tx: xdr.Transaction{
+			// the rest doesn't matter for effect ingestion
+			Operations: []xdr.Operation{
+				{
+					SourceAccount: xdr.MustMuxedAddressPtr(admin),
+					Body: xdr.OperationBody{
+						Type: xdr.OperationTypeBumpFootprintExpiration,
+						BumpFootprintExpirationOp: &xdr.BumpFootprintExpirationOp{
+							Ext: xdr.ExtensionPoint{
+								V: 0,
+							},
+							LedgersToExpire: xdr.Uint32(1234),
+						},
+					},
+				},
+			},
+		},
+	}
+	tx := ingest.LedgerTransaction{
+		Index: 0,
+		Envelope: xdr.TransactionEnvelope{
+			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+			V1:   &envelope,
+		},
+		UnsafeMeta: xdr.TransactionMeta{
+			V:          3,
+			Operations: &meta.Operations,
+			V3:         &meta,
+		},
+	}
+
+	operation := transactionOperationWrapper{
+		index:          0,
+		transaction:    tx,
+		operation:      tx.Envelope.Operations()[0],
+		ledgerSequence: 1,
+		network:        networkPassphrase,
+	}
+
+	effects, err := operation.effects()
+	assert.NoError(t, err)
+	assert.Len(t, effects, 1)
+	assert.Equal(t,
+		[]EffectOutput{
+			{
+				Address:     admin,
+				OperationID: toid.New(1, 0, 1).ToInt64(),
+				Details: map[string]interface{}{
+					"entries": []string{
+						ledgerEntryKeyStr,
+					},
+					"ledgers_to_expire": xdr.Uint32(1234),
+				},
+				Type:         int32(EffectBumpFootprintExpiration),
+				TypeString:   EffectTypeNames[EffectBumpFootprintExpiration],
+				LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+			},
+		},
+		effects,
+	)
+}
+
+func TestAddRestoreFootprintExpirationEffect(t *testing.T) {
+	randAddr := func() string {
+		return keypair.MustRandom().Address()
+	}
+
+	admin := randAddr()
+	keyHash := xdr.Hash{}
+
+	ledgerEntryKey := xdr.LedgerKey{
+		Type: xdr.LedgerEntryTypeExpiration,
+		Expiration: &xdr.LedgerKeyExpiration{
+			KeyHash: keyHash,
+		},
+	}
+	ledgerEntryKeyStr, err := xdr.MarshalBase64(ledgerEntryKey)
+	assert.NoError(t, err)
+
+	meta := xdr.TransactionMetaV3{
+		Operations: []xdr.OperationMeta{
+			{
+				Changes: xdr.LedgerEntryChanges{
+					// TODO: Confirm this STATE entry is emitted from core as part of the
+					// ledger close meta we get.
+					{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+						State: &xdr.LedgerEntry{
+							LastModifiedLedgerSeq: 1,
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeExpiration,
+								Expiration: &xdr.ExpirationEntry{
+									KeyHash:             keyHash,
+									ExpirationLedgerSeq: 1,
+								},
+							},
+						},
+					},
+					{
+						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+						Updated: &xdr.LedgerEntry{
+							Data: xdr.LedgerEntryData{
+								Type: xdr.LedgerEntryTypeExpiration,
+								Expiration: &xdr.ExpirationEntry{
+									KeyHash:             keyHash,
+									ExpirationLedgerSeq: 1234,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	envelope := xdr.TransactionV1Envelope{
+		Tx: xdr.Transaction{
+			// the rest doesn't matter for effect ingestion
+			Operations: []xdr.Operation{
+				{
+					SourceAccount: xdr.MustMuxedAddressPtr(admin),
+					Body: xdr.OperationBody{
+						Type: xdr.OperationTypeRestoreFootprint,
+						RestoreFootprintOp: &xdr.RestoreFootprintOp{
+							Ext: xdr.ExtensionPoint{
+								V: 0,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	tx := ingest.LedgerTransaction{
+		Index: 0,
+		Envelope: xdr.TransactionEnvelope{
+			Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+			V1:   &envelope,
+		},
+		UnsafeMeta: xdr.TransactionMeta{
+			V:          3,
+			Operations: &meta.Operations,
+			V3:         &meta,
+		},
+	}
+
+	operation := transactionOperationWrapper{
+		index:          0,
+		transaction:    tx,
+		operation:      tx.Envelope.Operations()[0],
+		ledgerSequence: 1,
+		network:        networkPassphrase,
+	}
+
+	effects, err := operation.effects()
+	assert.NoError(t, err)
+	assert.Len(t, effects, 1)
+	assert.Equal(t,
+		[]EffectOutput{
+			{
+				Address:     admin,
+				OperationID: toid.New(1, 0, 1).ToInt64(),
+				Details: map[string]interface{}{
+					"entries": []string{
+						ledgerEntryKeyStr,
+					},
+				},
+				Type:         int32(EffectRestoreFootprint),
+				TypeString:   EffectTypeNames[EffectRestoreFootprint],
+				LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+			},
+		},
+		effects,
+	)
 }

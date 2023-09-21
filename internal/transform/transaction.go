@@ -130,6 +130,26 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputMinSequenceLedgerGap = null.IntFrom(int64(*minSequenceLedgerGap))
 	}
 
+	// Soroban fees and resources
+	// Note: MaxFee and FeeCharged is the sum of base transaction fees + Soroban fees
+	// Breakdown of Soroban fees can be calculated by the config_setting resource pricing * the resources used
+
+	var outputRefundableFee int64
+	var outputSorobanResourcesInstructions uint32
+	var outputSorobanResourcesReadBytes uint32
+	var outputSorobanResourcesWriteBytes uint32
+
+	transactionEnvelopeV1, ok := transaction.Envelope.GetV1()
+	if ok {
+		sorobanData, ok := transactionEnvelopeV1.Tx.Ext.GetSorobanData()
+		if ok {
+			outputRefundableFee = int64(sorobanData.RefundableFee)
+			outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
+			outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
+			outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
+		}
+	}
+
 	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
 	if err != nil {
 		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
@@ -137,29 +157,33 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
-		TransactionHash:             outputTransactionHash,
-		LedgerSequence:              outputLedgerSequence,
-		TransactionID:               outputTransactionID,
-		Account:                     outputAccount,
-		AccountSequence:             outputAccountSequence,
-		MaxFee:                      outputMaxFee,
-		FeeCharged:                  outputFeeCharged,
-		OperationCount:              outputOperationCount,
-		TxEnvelope:                  outputTxEnvelope,
-		TxResult:                    outputTxResult,
-		TxMeta:                      outputTxMeta,
-		TxFeeMeta:                   outputTxFeeMeta,
-		CreatedAt:                   outputCreatedAt,
-		MemoType:                    outputMemoType,
-		Memo:                        outputMemoContents,
-		TimeBounds:                  outputTimeBounds,
-		Successful:                  outputSuccessful,
-		LedgerBounds:                outputLedgerBound,
-		MinAccountSequence:          outputMinSequence,
-		MinAccountSequenceAge:       outputMinSequenceAge,
-		MinAccountSequenceLedgerGap: outputMinSequenceLedgerGap,
-		ExtraSigners:                formatSigners(transaction.Envelope.ExtraSigners()),
-		LedgerClosedAt:              outputCloseTime,
+		TransactionHash:              outputTransactionHash,
+		LedgerSequence:               outputLedgerSequence,
+		TransactionID:                outputTransactionID,
+		Account:                      outputAccount,
+		AccountSequence:              outputAccountSequence,
+		MaxFee:                       outputMaxFee,
+		FeeCharged:                   outputFeeCharged,
+		OperationCount:               outputOperationCount,
+		TxEnvelope:                   outputTxEnvelope,
+		TxResult:                     outputTxResult,
+		TxMeta:                       outputTxMeta,
+		TxFeeMeta:                    outputTxFeeMeta,
+		CreatedAt:                    outputCreatedAt,
+		MemoType:                     outputMemoType,
+		Memo:                         outputMemoContents,
+		TimeBounds:                   outputTimeBounds,
+		Successful:                   outputSuccessful,
+		LedgerBounds:                 outputLedgerBound,
+		MinAccountSequence:           outputMinSequence,
+		MinAccountSequenceAge:        outputMinSequenceAge,
+		MinAccountSequenceLedgerGap:  outputMinSequenceLedgerGap,
+		ExtraSigners:                 formatSigners(transaction.Envelope.ExtraSigners()),
+		ClosedAt:                     outputCloseTime,
+		RefundableFee:                outputRefundableFee,
+		SorobanResourcesInstructions: outputSorobanResourcesInstructions,
+		SorobanResourcesReadBytes:    outputSorobanResourcesReadBytes,
+		SorobanResourcesWriteBytes:   outputSorobanResourcesWriteBytes,
 	}
 
 	// Add Muxed Account Details, if exists

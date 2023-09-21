@@ -13,13 +13,10 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var poolsCmd = &cobra.Command{
-	Use:   "export_pools",
-	Short: "Exports the liquidity pools data.",
-	Long: `Exports historical liquidity pools data from the genesis ledger to the provided end-ledger to an output file. 
-The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
-should be used in an initial data dump. In order to get liqudity pools information within a specified ledger range, see 
-the export_ledger_entry_changes command.`,
+var dataCmd = &cobra.Command{
+	Use:   "export_contract_data",
+	Short: "Exports the contract data information.",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
@@ -28,25 +25,30 @@ the export_ledger_entry_changes command.`,
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
+		datas, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeContractData, env.ArchiveURLs)
 		if err != nil {
-			cmdLogger.Fatal("could not read accounts: ", err)
+			cmdLogger.Fatal("Error getting ledger entries: ", err)
 		}
 
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
-		for _, pool := range pools {
-			transformed, err := transform.TransformPool(pool)
+		for _, data := range datas {
+			TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
+			transformed, err, ok := TransformContractData.TransformContractData(data, env.NetworkPassphrase)
 			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))
+				cmdLogger.LogError(fmt.Errorf("could not transform contract data %+v: %v", data, err))
 				numFailures += 1
+				continue
+			}
+
+			if !ok {
 				continue
 			}
 
 			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not export pool %+v: %v", pool, err))
+				cmdLogger.LogError(fmt.Errorf("could not export contract data %+v: %v", data, err))
 				numFailures += 1
 				continue
 			}
@@ -55,18 +57,18 @@ the export_ledger_entry_changes command.`,
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(pools), numFailures)
+		printTransformStats(len(datas), numFailures)
 		maybeUpload(gcpCredentials, gcsBucket, path)
 
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(poolsCmd)
-	utils.AddCommonFlags(poolsCmd.Flags())
-	utils.AddBucketFlags("pools", poolsCmd.Flags())
-	utils.AddGcsFlags(poolsCmd.Flags())
-	poolsCmd.MarkFlagRequired("end-ledger")
+	rootCmd.AddCommand(dataCmd)
+	utils.AddCommonFlags(dataCmd.Flags())
+	utils.AddBucketFlags("contract_data", dataCmd.Flags())
+	utils.AddGcsFlags(dataCmd.Flags())
+	dataCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)

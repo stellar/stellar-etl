@@ -26,12 +26,12 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest)
+		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
-		exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
+		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
@@ -44,8 +44,18 @@ be exported.`,
 		}
 
 		// If none of the export flags are set, then we assume that everything should be exported
-		if !exportAccounts && !exportOffers && !exportTrustlines && !exportPools && !exportBalances {
-			exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances = true, true, true, true, true
+		allFalse := true
+		for _, value := range exports {
+			if true == value {
+				allFalse = false
+				break
+			}
+		}
+
+		if allFalse {
+			for export_name, _ := range exports {
+				exports[export_name] = true
+			}
 		}
 
 		if configPath == "" && endNum == 0 {
@@ -90,11 +100,18 @@ be exported.`,
 					"offers":             {},
 					"trustlines":         {},
 					"liquidity_pools":    {},
+					"contract_data":      {},
+					"contract_code":      {},
+					"config_settings":    {},
+					"expiration":         {},
 				}
 
 				for entryType, changes := range batch.Changes {
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
+						if !exports["export-accounts"] {
+							continue
+						}
 						for _, change := range changes {
 							if changed, err := change.AccountChangedExceptSigners(); err != nil {
 								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
@@ -122,6 +139,9 @@ be exported.`,
 							}
 						}
 					case xdr.LedgerEntryTypeClaimableBalance:
+						if !exports["export-balances"] {
+							continue
+						}
 						for _, change := range changes {
 							balance, err := transform.TransformClaimableBalance(change)
 							if err != nil {
@@ -132,6 +152,9 @@ be exported.`,
 							transformedOutputs["claimable_balances"] = append(transformedOutputs["claimable_balances"], balance)
 						}
 					case xdr.LedgerEntryTypeOffer:
+						if !exports["export-offers"] {
+							continue
+						}
 						for _, change := range changes {
 							offer, err := transform.TransformOffer(change)
 							if err != nil {
@@ -142,6 +165,9 @@ be exported.`,
 							transformedOutputs["offers"] = append(transformedOutputs["offers"], offer)
 						}
 					case xdr.LedgerEntryTypeTrustline:
+						if !exports["export-trustlines"] {
+							continue
+						}
 						for _, change := range changes {
 							trust, err := transform.TransformTrustline(change)
 							if err != nil {
@@ -152,6 +178,9 @@ be exported.`,
 							transformedOutputs["trustlines"] = append(transformedOutputs["trustlines"], trust)
 						}
 					case xdr.LedgerEntryTypeLiquidityPool:
+						if !exports["export-pools"] {
+							continue
+						}
 						for _, change := range changes {
 							pool, err := transform.TransformPool(change)
 							if err != nil {
@@ -160,6 +189,65 @@ be exported.`,
 								continue
 							}
 							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+						}
+					case xdr.LedgerEntryTypeContractData:
+						if !exports["export-contract-data"] {
+							continue
+						}
+						for _, change := range changes {
+							TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
+							contractData, err, _ := TransformContractData.TransformContractData(change, env.NetworkPassphrase)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+
+							// Empty contract data that has no error is a nonce. Does not need to be recorded
+							if contractData == (transform.ContractDataOutput{}) {
+								continue
+							}
+
+							transformedOutputs["contract_data"] = append(transformedOutputs["contract_data"], contractData)
+						}
+					case xdr.LedgerEntryTypeContractCode:
+						if !exports["export-contract-code"] {
+							continue
+						}
+						for _, change := range changes {
+							contractCode, err := transform.TransformContractCode(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming contract code entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["contract_code"] = append(transformedOutputs["contract_code"], contractCode)
+						}
+					case xdr.LedgerEntryTypeConfigSetting:
+						if !exports["export-config-settings"] {
+							continue
+						}
+						for _, change := range changes {
+							configSettings, err := transform.TransformConfigSetting(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming config settings entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], configSettings)
+						}
+					case xdr.LedgerEntryTypeExpiration:
+						if !exports["export-expiration"] {
+							continue
+						}
+						for _, change := range changes {
+							expiration, err := transform.TransformExpiration(change)
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming expiration entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["expiration"] = append(transformedOutputs["expiration"], expiration)
 						}
 					}
 				}

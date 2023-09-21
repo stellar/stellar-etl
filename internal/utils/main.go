@@ -37,7 +37,7 @@ func HashToHexString(inputHash xdr.Hash) string {
 func TimePointToUTCTimeStamp(providedTime xdr.TimePoint) (time.Time, error) {
 	intTime := int64(providedTime)
 	if intTime < 0 {
-		return time.Now(), errors.New("The timepoint is negative")
+		return time.Now(), errors.New("the timepoint is negative")
 	}
 	return time.Unix(intTime, 0).UTC(), nil
 }
@@ -50,19 +50,23 @@ func GetAccountAddressFromMuxedAccount(account xdr.MuxedAccount) (string, error)
 }
 
 // CreateSampleTx creates a transaction with a single operation (BumpSequence), the min base fee, and infinite timebounds
-func CreateSampleTx(sequence int64) xdr.TransactionEnvelope {
+func CreateSampleTx(sequence int64, operationCount int) xdr.TransactionEnvelope {
 	kp, err := keypair.Random()
 	PanicOnError(err)
+
+	operations := []txnbuild.Operation{}
+	operationType := &txnbuild.BumpSequence{
+		BumpTo: 0,
+	}
+	for i := 0; i < operationCount; i++ {
+		operations = append(operations, operationType)
+	}
 
 	sourceAccount := txnbuild.NewSimpleAccount(kp.Address(), int64(0))
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount: &sourceAccount,
-			Operations: []txnbuild.Operation{
-				&txnbuild.BumpSequence{
-					BumpTo: int64(sequence),
-				},
-			},
+			Operations:    operations,
 			BaseFee:       txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
@@ -107,6 +111,36 @@ func CreateSampleResultMeta(successful bool, subOperationCount int) xdr.Transact
 					Code:    resultCode,
 					Results: &operationResults,
 				},
+			},
+		},
+	}
+}
+
+func CreateSampleResultPair(successful bool, subOperationCount int) xdr.TransactionResultPair {
+	resultCode := xdr.TransactionResultCodeTxFailed
+	if successful {
+		resultCode = xdr.TransactionResultCodeTxSuccess
+	}
+	operationResults := []xdr.OperationResult{}
+	operationResultTr := &xdr.OperationResultTr{
+		Type: xdr.OperationTypeCreateAccount,
+		CreateAccountResult: &xdr.CreateAccountResult{
+			Code: 0,
+		},
+	}
+
+	for i := 0; i < subOperationCount; i++ {
+		operationResults = append(operationResults, xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr:   operationResultTr,
+		})
+	}
+
+	return xdr.TransactionResultPair{
+		Result: xdr.TransactionResult{
+			Result: xdr.TransactionResultResult{
+				Code:    resultCode,
+				Results: &operationResults,
 			},
 		},
 	}
@@ -195,12 +229,13 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
 	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
+	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 }
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
-	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 }
@@ -225,7 +260,7 @@ func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
 
-	flags.Uint32P("start-ledger", "s", 1, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 }
 
 // AddExportTypeFlags adds the captive core specifc flags: export-{type} flags
@@ -235,10 +270,14 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-offers", "f", false, "set in order to export offer changes")
 	flags.BoolP("export-pools", "p", false, "set in order to export liquidity pool changes")
 	flags.BoolP("export-balances", "l", false, "set in order to export claimable balance changes")
+	flags.BoolP("export-contract-code", "", false, "set in order to export contract code changes")
+	flags.BoolP("export-contract-data", "", false, "set in order to export contract data changes")
+	flags.BoolP("export-config-settings", "", false, "set in order to export config settings changes")
+	flags.BoolP("export-expiration", "", false, "set in order to export expiration changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, extra map[string]string) {
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, isFuture bool, extra map[string]string) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
@@ -252,6 +291,11 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, st
 	isTest, err = flags.GetBool("testnet")
 	if err != nil {
 		logger.Fatal("could not get testnet boolean: ", err)
+	}
+
+	isFuture, err = flags.GetBool("futurenet")
+	if err != nil {
+		logger.Fatal("could not get futurenet boolean: ", err)
 	}
 
 	extra, err = flags.GetStringToString("extra-fields")
@@ -335,33 +379,29 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances bool) {
-	exportAccounts, err := flags.GetBool("export-accounts")
-	if err != nil {
-		logger.Fatal("could not get export accounts flag: ", err)
+// func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings, exportExpiration bool) {
+func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]bool {
+	var err error
+	exports := map[string]bool{
+		"export-accounts":        false,
+		"export-trustlines":      false,
+		"export-offers":          false,
+		"export-pools":           false,
+		"export-balances":        false,
+		"export-contract-code":   false,
+		"export-contract-data":   false,
+		"export-config-settings": false,
+		"export-expiration":      false,
 	}
 
-	exportOffers, err = flags.GetBool("export-offers")
-	if err != nil {
-		logger.Fatal("could not get export offers flag: ", err)
+	for export_name, _ := range exports {
+		exports[export_name], err = flags.GetBool(export_name)
+		if err != nil {
+			logger.Fatalf("could not get %s flag: %v", export_name, err)
+		}
 	}
 
-	exportTrustlines, err = flags.GetBool("export-trustlines")
-	if err != nil {
-		logger.Fatal("could not get export trustlines flag: ", err)
-	}
-
-	exportPools, err = flags.GetBool("export-pools")
-	if err != nil {
-		logger.Fatal("could not export liquidity pools flag: ", err)
-	}
-
-	exportBalances, err = flags.GetBool("export-balances")
-	if err != nil {
-		logger.Fatal("could not export claimable balances flag: ", err)
-	}
-
-	return
+	return exports
 }
 
 type historyArchiveBackend struct {
@@ -375,6 +415,26 @@ func (h historyArchiveBackend) GetLatestLedgerSequence(ctx context.Context) (seq
 		return 0, err
 	}
 	return root.CurrentLedger, nil
+}
+
+func (h historyArchiveBackend) GetLedgers(ctx context.Context) (map[uint32]*historyarchive.Ledger, error) {
+
+	return h.ledgers, nil
+}
+
+func (h historyArchiveBackend) GetLedgerArchive(ctx context.Context, sequence uint32) (historyarchive.Ledger, error) {
+	ledger, ok := h.ledgers[sequence]
+	if !ok {
+		return historyarchive.Ledger{}, fmt.Errorf("ledger %d is missing from map", sequence)
+	}
+
+	historyLedger := historyarchive.Ledger{
+		Header:            ledger.Header,
+		Transaction:       ledger.Transaction,
+		TransactionResult: ledger.TransactionResult,
+	}
+
+	return historyLedger, nil
 }
 
 func (h historyArchiveBackend) GetLedger(ctx context.Context, sequence uint32) (xdr.LedgerCloseMeta, error) {
@@ -413,45 +473,45 @@ func (h historyArchiveBackend) Close() error {
 // ValidateLedgerRange validates the given ledger range
 func ValidateLedgerRange(start, end, latestNum uint32) error {
 	if start == 0 {
-		return fmt.Errorf("Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+		return fmt.Errorf("start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
 	}
 
 	if end == 0 {
-		return fmt.Errorf("End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
+		return fmt.Errorf("end sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)")
 	}
 
 	if end < start {
-		return fmt.Errorf("End sequence number is less than start (%d < %d)", end, start)
+		return fmt.Errorf("end sequence number is less than start (%d < %d)", end, start)
 	}
 
 	if latestNum < start {
-		return fmt.Errorf("Latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
+		return fmt.Errorf("latest sequence number is less than start sequence number (%d < %d)", latestNum, start)
 	}
 
 	if latestNum < end {
-		return fmt.Errorf("Latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
+		return fmt.Errorf("latest sequence number is less than end sequence number (%d < %d)", latestNum, end)
 	}
 
 	return nil
 }
 
-func CreateBackend(start, end uint32, archiveURLs []string) (ledgerbackend.LedgerBackend, error) {
+func CreateBackend(start, end uint32, archiveURLs []string) (historyArchiveBackend, error) {
 	client, err := CreateHistoryArchiveClient(archiveURLs)
 	if err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 
 	root, err := client.GetRootHAS()
 	if err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 	if err = ValidateLedgerRange(start, end, root.CurrentLedger); err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 
 	ledgers, err := client.GetLedgers(start, end)
 	if err != nil {
-		return nil, err
+		return historyArchiveBackend{}, err
 	}
 	return historyArchiveBackend{client: client, ledgers: ledgers}, nil
 }
@@ -468,6 +528,11 @@ var testArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-testnet/core_testnet_001",
 	"https://history.stellar.org/prd/core-testnet/core_testnet_002",
 	"https://history.stellar.org/prd/core-testnet/core_testnet_003",
+}
+
+// futrenet is used for testing new Protocol features
+var futureArchiveURLs = []string{
+	"https://history-futurenet.stellar.org/",
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
@@ -505,7 +570,7 @@ func GetCheckpointNum(seq, maxSeq uint32) (uint32, error) {
 
 	checkpoint := seq + 64 - remainder
 	if checkpoint > maxSeq {
-		return 0, fmt.Errorf("The checkpoint ledger %d is greater than the max ledger number %d", checkpoint, maxSeq)
+		return 0, fmt.Errorf("the checkpoint ledger %d is greater than the max ledger number %d", checkpoint, maxSeq)
 	}
 
 	return checkpoint, nil
@@ -545,13 +610,20 @@ type EnvironmentDetails struct {
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
-func GetEnvironmentDetails(isTest bool) (details EnvironmentDetails) {
+func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetails) {
 	if isTest {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "docker/stellar-core_testnet.cfg"
+		return details
+	} else if isFuture {
+		// details.NetworkPassphrase = network.FutureNetworkPassphrase
+		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
+		details.ArchiveURLs = futureArchiveURLs
+		details.BinaryPath = "/usr/bin/stellar-core"
+		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
 		return details
 	} else {
 		// default: mainnet
@@ -574,6 +646,7 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			Strict:             true,
+			UseDB:              true,
 		},
 	)
 	if err != nil {
@@ -585,6 +658,7 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
+			UseDB:              true,
 		},
 	)
 	return backend, err
@@ -611,10 +685,6 @@ func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerC
 }
 
 func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
-	switch lcm.V {
-	case 0:
-		return ExtractLedgerCloseTime(lcm.MustV0().LedgerHeader)
-	default:
-		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", lcm.V))
-	}
+	headerHistoryEntry := lcm.LedgerHeaderHistoryEntry()
+	return ExtractLedgerCloseTime(headerHistoryEntry)
 }

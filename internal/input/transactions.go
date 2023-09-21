@@ -24,6 +24,7 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 	ctx := context.Background()
 
 	backend, err := env.CreateCaptiveCoreBackend()
+
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
