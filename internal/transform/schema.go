@@ -66,6 +66,16 @@ type TransactionOutput struct {
 	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
 }
 
+type TxOutput struct {
+	LedgerSequence  uint32    `json:"ledger_sequence"`
+	TxEnvelope      string    `json:"tx_envelope"`
+	TxResult        string    `json:"tx_result"`
+	TxMeta          string    `json:"tx_meta"`
+	TxFeeMeta       string    `json:"tx_fee_meta"`
+	TxLedgerHistory string    `json:"tx_ledger_history"`
+	ClosedAt        time.Time `json:"closed_at"`
+}
+
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
 type AccountOutput struct {
 	AccountID            string      `json:"account_id"` // account address
