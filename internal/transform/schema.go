@@ -66,7 +66,7 @@ type TransactionOutput struct {
 	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
 }
 
-type TxOutput struct {
+type LedgerTransactionOutput struct {
 	LedgerSequence  uint32    `json:"ledger_sequence"`
 	TxEnvelope      string    `json:"tx_envelope"`
 	TxResult        string    `json:"tx_result"`
