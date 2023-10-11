@@ -34,11 +34,11 @@ func TransformDiagnosticEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledg
 	var transformedDiagnosticEvents []DiagnosticEventOutput
 
 	for _, diagnoticEvent := range transactionMeta.SorobanMeta.DiagnosticEvents {
+		var outputContractId string
+
 		outputInSuccessfulContractCall := diagnoticEvent.InSuccessfulContractCall
 		event := diagnoticEvent.Event
 		outputExtV := event.Ext.V
-		contractIdByte, _ := event.ContractId.MarshalBinary()
-		outputContractId, _ := strkey.Encode(strkey.VersionByteContract, contractIdByte)
 		outputType := event.Type.String()
 		outputBodyV := event.Body.V
 		body, ok := event.Body.GetV0()
@@ -49,6 +49,12 @@ func TransformDiagnosticEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledg
 		outputBody, err := xdr.MarshalBase64(body)
 		if err != nil {
 			continue
+		}
+
+		if event.ContractId != nil {
+			contractId := *event.ContractId
+			contractIdByte, _ := contractId.MarshalBinary()
+			outputContractId, _ = strkey.Encode(strkey.VersionByteContract, contractIdByte)
 		}
 
 		transformedDiagnosticEvent := DiagnosticEventOutput{
