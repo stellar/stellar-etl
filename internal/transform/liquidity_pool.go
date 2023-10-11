@@ -36,14 +36,14 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 	}
 
 	var assetAType, assetACode, assetAIssuer string
-	err = cp.Params.AssetA.Extract(&assetACode, &assetAIssuer, &assetAType)
+	err = cp.Params.AssetA.Extract(&assetAType, &assetACode, &assetAIssuer)
 	if err != nil {
 		return PoolOutput{}, err
 	}
 	assetAID := FarmHashAsset(assetACode, assetAIssuer, assetAType)
 
 	var assetBType, assetBCode, assetBIssuer string
-	err = cp.Params.AssetB.Extract(&assetBCode, &assetBIssuer, &assetBType)
+	err = cp.Params.AssetB.Extract(&assetBType, &assetBCode, &assetBIssuer)
 	assetBID := FarmHashAsset(assetBCode, assetBIssuer, assetBType)
 
 	transformedPool := PoolOutput{
