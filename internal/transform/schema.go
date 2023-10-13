@@ -188,8 +188,8 @@ type AssetOutput struct {
 	AssetCode   string `json:"asset_code"`
 	AssetIssuer string `json:"asset_issuer"`
 	AssetType   string `json:"asset_type"`
-	AssetID     int64  `json:"asset_id"`
-	ID          uint64 `json:"id"`
+	AssetID     uint64 `json:"id"`
+	ID          int64  `json:"asset_id"`
 }
 
 // TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
