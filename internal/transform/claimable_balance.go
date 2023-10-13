@@ -50,7 +50,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutp
 		AssetCode:          outputAsset.AssetCode,
 		AssetIssuer:        outputAsset.AssetIssuer,
 		AssetType:          outputAsset.AssetType,
-		AssetID:            outputAsset.AssetID,
+		AssetID:            outputAsset.ID,
 		Claimants:          outputClaimants,
 		AssetAmount:        float64(outputAmount) / 1.0e7,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),

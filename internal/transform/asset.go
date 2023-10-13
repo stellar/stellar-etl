@@ -50,8 +50,8 @@ func transformSingleAsset(asset xdr.Asset) (AssetOutput, error) {
 		AssetCode:   outputAssetCode,
 		AssetIssuer: outputAssetIssuer,
 		AssetType:   outputAssetType,
-		AssetID:     farmAssetID,
-		ID:          outputAssetID,
+		AssetID:     outputAssetID,
+		ID:          farmAssetID,
 	}, nil
 }
 
