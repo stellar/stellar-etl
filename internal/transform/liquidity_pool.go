@@ -40,11 +40,11 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 	if err != nil {
 		return PoolOutput{}, err
 	}
-	assetAID := FarmHashAsset(assetAType, assetACode, assetAIssuer)
+	assetAID := FarmHashAsset(assetACode, assetAIssuer, assetAType)
 
 	var assetBType, assetBCode, assetBIssuer string
 	err = cp.Params.AssetB.Extract(&assetBType, &assetBCode, &assetBIssuer)
-	assetBID := FarmHashAsset(assetBType, assetBCode, assetBIssuer)
+	assetBID := FarmHashAsset(assetBCode, assetBIssuer, assetBType)
 
 	transformedPool := PoolOutput{
 		PoolID:             PoolIDToString(lp.LiquidityPoolId),

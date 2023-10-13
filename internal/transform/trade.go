@@ -46,7 +46,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		if err != nil {
 			return []TradeOutput{}, err
 		}
-		outputSellingAssetID := FarmHashAsset(outputSellingAssetType, outputSellingAssetCode, outputSellingAssetIssuer)
+		outputSellingAssetID := FarmHashAsset(outputSellingAssetCode, outputSellingAssetIssuer, outputSellingAssetType)
 
 		outputSellingAmount := claimOffer.AmountSold()
 		if outputSellingAmount < 0 {
@@ -58,7 +58,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		if err != nil {
 			return []TradeOutput{}, err
 		}
-		outputBuyingAssetID := FarmHashAsset(outputBuyingAssetType, outputBuyingAssetCode, outputBuyingAssetIssuer)
+		outputBuyingAssetID := FarmHashAsset(outputBuyingAssetCode, outputBuyingAssetIssuer, outputBuyingAssetType)
 
 		outputBuyingAmount := int64(claimOffer.AmountBought())
 		if outputBuyingAmount < 0 {

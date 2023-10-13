@@ -110,7 +110,7 @@ func makePoolTestOutput() PoolOutput {
 		AssetAReserve:      0.0000105,
 		AssetBType:         "credit_alphanum4",
 		AssetBCode:         lpAssetB.GetCode(),
-		AssetBID:           -9138108998176092786,
+		AssetBID:           6690054458235693884,
 		AssetBIssuer:       lpAssetB.GetIssuer(),
 		AssetBReserve:      0.0000010,
 		LastModifiedLedger: 30705278,
