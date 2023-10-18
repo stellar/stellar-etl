@@ -52,9 +52,6 @@ func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
 	outputBaseReserve := uint32(ledgerHeader.BaseReserve)
 
 	outputMaxTxSetSize := uint32(ledgerHeader.MaxTxSetSize)
-	if int64(outputMaxTxSetSize) < int64(outputTransactionCount) {
-		return LedgerOutput{}, fmt.Errorf("the transaction count is greater than the maximum transaction set size (%d > %d) for ledger %d (ledger id=%d)", outputTransactionCount, outputMaxTxSetSize, outputSequence, outputLedgerID)
-	}
 
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
