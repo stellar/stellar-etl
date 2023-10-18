@@ -81,6 +81,12 @@ be exported.`,
 			endNum = math.MaxInt32
 		}
 
+		closeMeta, err := env.GetBoundedLedgerCloseMeta(core, startNum, endNum)
+		if err != nil {
+			cmdLogger.Fatal("could not get ledger close meta: ", err)
+		}
+		var seq uint32 = 0
+
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
 		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
@@ -118,7 +124,7 @@ be exported.`,
 								continue
 							} else if changed {
 
-								acc, err := transform.TransformAccount(change)
+								acc, err := transform.TransformAccount(change, closeMeta[seq])
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -127,7 +133,7 @@ be exported.`,
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
 							if change.AccountSignersChanged() {
-								signers, err := transform.TransformSigners(change)
+								signers, err := transform.TransformSigners(change, closeMeta[seq])
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
@@ -143,7 +149,7 @@ be exported.`,
 							continue
 						}
 						for _, change := range changes {
-							balance, err := transform.TransformClaimableBalance(change)
+							balance, err := transform.TransformClaimableBalance(change, closeMeta[seq])
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -156,7 +162,7 @@ be exported.`,
 							continue
 						}
 						for _, change := range changes {
-							offer, err := transform.TransformOffer(change)
+							offer, err := transform.TransformOffer(change, closeMeta[seq])
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -169,7 +175,7 @@ be exported.`,
 							continue
 						}
 						for _, change := range changes {
-							trust, err := transform.TransformTrustline(change)
+							trust, err := transform.TransformTrustline(change, closeMeta[seq])
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -182,7 +188,7 @@ be exported.`,
 							continue
 						}
 						for _, change := range changes {
-							pool, err := transform.TransformPool(change)
+							pool, err := transform.TransformPool(change, closeMeta[seq])
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -251,6 +257,8 @@ be exported.`,
 						}
 					}
 				}
+
+				seq = seq + 1
 
 				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
 				if err != nil {

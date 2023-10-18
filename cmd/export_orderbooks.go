@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"math"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/utils"
 
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 )
 
@@ -68,6 +70,9 @@ var exportOrderbooksCmd = &cobra.Command{
 
 		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, env, cmdLogger)
 
+		ctx := context.Background()
+		err = core.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, endNum))
+		var seq uint32
 		// If the end sequence number is defined, we work in a closed range and export a finite number of batches
 		if endNum != 0 {
 			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
@@ -78,17 +83,28 @@ var exportOrderbooksCmd = &cobra.Command{
 				if batchEnd > endNum {
 					batchEnd = endNum
 				}
-
-				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
+				if seq == 0 {
+					seq = startNum
+				}
+				ledgerCloseMeta, err := core.GetLedger(ctx, seq)
+				if err != nil {
+					cmdLogger.Fatal("could not get ledger close meta: ", err)
+				}
+				seq = seq + 1
+				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger, ledgerCloseMeta)
 				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
 			}
 		} else {
 			// otherwise, we export in an unbounded manner where batches are constantly exported
 			var batchNum uint32 = 0
 			for {
+				ledgerCloseMeta, err := core.GetLedger(ctx, startNum)
+				if err != nil {
+					cmdLogger.Fatal("could not get ledger close meta: ", err)
+				}
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
-				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
+				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger, ledgerCloseMeta)
 				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
 				batchNum++
 			}

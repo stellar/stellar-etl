@@ -33,11 +33,16 @@ var claimableBalancesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read balances: ", err)
 		}
 
+		ledgerCloseMeta, err := env.GetUnboundedLedgerCloseMeta(endNum)
+		if err != nil {
+			cmdLogger.Fatal("could not read close meta: ", err)
+		}
+
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, balance := range balances {
-			transformed, err := transform.TransformClaimableBalance(balance)
+			transformed, err := transform.TransformClaimableBalance(balance, ledgerCloseMeta)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform balance %+v: %v", balance, err))
 				numFailures += 1

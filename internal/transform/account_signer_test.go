@@ -15,6 +15,7 @@ import (
 func TestTransformAccountSigner(t *testing.T) {
 	type inputStruct struct {
 		injest ingest.Change
+		lcm    xdr.LedgerCloseMeta
 	}
 
 	type transformTest struct {
@@ -25,6 +26,7 @@ func TestTransformAccountSigner(t *testing.T) {
 
 	hardCodedInput := makeSignersTestInput()
 	hardCodedOutput := makeSignersTestOutput()
+	hardCodedLedgerCloseMeta := makeLedgerCloseMeta()
 
 	tests := []transformTest{
 		{
@@ -38,19 +40,21 @@ func TestTransformAccountSigner(t *testing.T) {
 						},
 					},
 				},
+				hardCodedLedgerCloseMeta,
 			},
 			nil, fmt.Errorf("could not extract signer data from ledger entry of type: LedgerEntryTypeOffer"),
 		},
 		{
 			inputStruct{
 				hardCodedInput,
+				hardCodedLedgerCloseMeta,
 			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformSigners(test.input.injest)
+		actualOutput, actualError := TransformSigners(test.input.injest, test.input.lcm)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -129,6 +133,7 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
+			ClosedAt:           genericCloseTime.UTC(),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
@@ -137,6 +142,7 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
+			ClosedAt:           genericCloseTime.UTC(),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
@@ -145,6 +151,7 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			LastModifiedLedger: 30705278,
 			LedgerEntryChange:  2,
 			Deleted:            true,
+			ClosedAt:           genericCloseTime.UTC(),
 		},
 	}
 }

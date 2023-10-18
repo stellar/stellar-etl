@@ -684,6 +684,21 @@ func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerC
 	return ledgerCloseMeta, nil
 }
 
+func (e EnvironmentDetails) GetBoundedLedgerCloseMeta(backend *ledgerbackend.CaptiveStellarCore, start, end uint32) ([]xdr.LedgerCloseMeta, error) {
+	ctx := context.Background()
+
+	closeMeta := []xdr.LedgerCloseMeta{}
+	for seq := start; seq <= end; seq++ {
+		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
+		if err != nil {
+			return nil, err
+		}
+		closeMeta = append(closeMeta, ledgerCloseMeta)
+	}
+
+	return closeMeta, nil
+}
+
 func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
 	headerHistoryEntry := lcm.LedgerHeaderHistoryEntry()
 	return ExtractLedgerCloseTime(headerHistoryEntry)

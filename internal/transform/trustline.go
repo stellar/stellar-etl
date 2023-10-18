@@ -14,7 +14,7 @@ import (
 )
 
 // TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
+func TransformTrustline(ledgerChange ingest.Change, lcm xdr.LedgerCloseMeta) (TrustlineOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return TrustlineOutput{}, err
@@ -51,6 +51,11 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 
 	liabilities := trustEntry.Liabilities()
 
+	closeTime, err := utils.GetCloseTime(lcm)
+	if err != nil {
+		return TrustlineOutput{}, err
+	}
+
 	transformedTrustline := TrustlineOutput{
 		LedgerKey:          outputLedgerKey,
 		AccountID:          outputAccountID,
@@ -68,6 +73,7 @@ func TransformTrustline(ledgerChange ingest.Change) (TrustlineOutput, error) {
 		LedgerEntryChange:  uint32(changeType),
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 		Deleted:            outputDeleted,
+		ClosedAt:           closeTime,
 	}
 
 	return transformedTrustline, nil

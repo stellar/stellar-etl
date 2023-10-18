@@ -14,6 +14,7 @@ import (
 func TestTransformOffer(t *testing.T) {
 	type inputStruct struct {
 		ingest ingest.Change
+		lcm    xdr.LedgerCloseMeta
 	}
 	type transformTest struct {
 		input      inputStruct
@@ -24,6 +25,7 @@ func TestTransformOffer(t *testing.T) {
 	hardCodedInput, err := makeOfferTestInput()
 	assert.NoError(t, err)
 	hardCodedOutput := makeOfferTestOutput()
+	hardCodedLedgerCloseMeta := makeLedgerCloseMeta()
 
 	tests := []transformTest{
 		{
@@ -35,6 +37,7 @@ func TestTransformOffer(t *testing.T) {
 					},
 				},
 			},
+				hardCodedLedgerCloseMeta,
 			},
 			OfferOutput{}, fmt.Errorf("Could not extract offer data from ledger entry; actual type is LedgerEntryTypeAccount"),
 		},
@@ -43,6 +46,7 @@ func TestTransformOffer(t *testing.T) {
 				SellerId: genericAccountID,
 				OfferId:  -1,
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			OfferOutput{}, fmt.Errorf("OfferID is negative (-1) for offer from account: %s", genericAccountAddress),
 		},
@@ -51,6 +55,7 @@ func TestTransformOffer(t *testing.T) {
 				SellerId: genericAccountID,
 				Amount:   -2,
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			OfferOutput{}, fmt.Errorf("Amount is negative (-2) for offer 0"),
 		},
@@ -62,6 +67,7 @@ func TestTransformOffer(t *testing.T) {
 					D: 10,
 				},
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			OfferOutput{}, fmt.Errorf("Price numerator is negative (-3) for offer 0"),
 		},
@@ -73,6 +79,7 @@ func TestTransformOffer(t *testing.T) {
 					D: -4,
 				},
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			OfferOutput{}, fmt.Errorf("Price denominator is negative (-4) for offer 0"),
 		},
@@ -84,19 +91,21 @@ func TestTransformOffer(t *testing.T) {
 					D: 0,
 				},
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			OfferOutput{}, fmt.Errorf("Price denominator is 0 for offer 0"),
 		},
 		{
 			inputStruct{
 				hardCodedInput,
+				hardCodedLedgerCloseMeta,
 			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOffer(test.input.ingest)
+		actualOutput, actualError := TransformOffer(test.input.ingest, test.input.lcm)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -169,5 +178,6 @@ func makeOfferTestOutput() OfferOutput {
 		LedgerEntryChange:  2,
 		Deleted:            true,
 		Sponsor:            null.StringFrom(testAccount3Address),
+		ClosedAt:           genericCloseTime.UTC(),
 	}
 }

@@ -14,6 +14,7 @@ import (
 func TestTransformAccount(t *testing.T) {
 	type inputStruct struct {
 		ledgerChange ingest.Change
+		lcm          xdr.LedgerCloseMeta
 	}
 
 	type transformTest struct {
@@ -24,6 +25,7 @@ func TestTransformAccount(t *testing.T) {
 
 	hardCodedInput := makeAccountTestInput()
 	hardCodedOutput := makeAccountTestOutput()
+	hardCodedLedgerCloseMeta := makeLedgerCloseMeta()
 
 	tests := []transformTest{
 		{
@@ -36,6 +38,7 @@ func TestTransformAccount(t *testing.T) {
 					},
 				},
 			},
+				hardCodedLedgerCloseMeta,
 			},
 			AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
@@ -44,6 +47,7 @@ func TestTransformAccount(t *testing.T) {
 				AccountId: genericAccountID,
 				Balance:   -1,
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			AccountOutput{}, fmt.Errorf("Balance is negative (-1) for account: %s", genericAccountAddress),
 		},
@@ -59,6 +63,7 @@ func TestTransformAccount(t *testing.T) {
 					},
 				},
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			AccountOutput{}, fmt.Errorf("The buying liabilities count is negative (-1) for account: %s", genericAccountAddress),
 		},
@@ -74,6 +79,7 @@ func TestTransformAccount(t *testing.T) {
 					},
 				},
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			AccountOutput{}, fmt.Errorf("The selling liabilities count is negative (-2) for account: %s", genericAccountAddress),
 		},
@@ -82,19 +88,21 @@ func TestTransformAccount(t *testing.T) {
 				AccountId: genericAccountID,
 				SeqNum:    -3,
 			}, 0),
+				hardCodedLedgerCloseMeta,
 			},
 			AccountOutput{}, fmt.Errorf("Account sequence number is negative (-3) for account: %s", genericAccountAddress),
 		},
 		{
 			inputStruct{
 				hardCodedInput,
+				hardCodedLedgerCloseMeta,
 			},
 			hardCodedOutput, nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformAccount(test.input.ledgerChange)
+		actualOutput, actualError := TransformAccount(test.input.ledgerChange, test.input.lcm)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -181,5 +189,6 @@ func makeAccountTestOutput() AccountOutput {
 		LastModifiedLedger:   30705278,
 		LedgerEntryChange:    2,
 		Deleted:              true,
+		ClosedAt:             genericCloseTime.UTC(),
 	}
 }

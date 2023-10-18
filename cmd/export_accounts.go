@@ -33,11 +33,16 @@ the export_ledger_entry_changes command.`,
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
 
+		ledgerCloseMeta, err := env.GetUnboundedLedgerCloseMeta(endNum)
+		if err != nil {
+			cmdLogger.Fatal("could not read close meta: ", err)
+		}
+
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		for _, acc := range accounts {
-			transformed, err := transform.TransformAccount(acc)
+			transformed, err := transform.TransformAccount(acc, ledgerCloseMeta)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform account: %v", err))
 				numFailures += 1

@@ -9,12 +9,13 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/xdr"
 )
 
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset
-func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
+func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32, lcm xdr.LedgerCloseMeta) (NormalizedOfferOutput, error) {
 
-	transformed, err := TransformOffer(ledgerChange)
+	transformed, err := TransformOffer(ledgerChange, lcm)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}

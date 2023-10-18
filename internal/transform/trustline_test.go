@@ -13,6 +13,7 @@ import (
 func TestTransformTrustline(t *testing.T) {
 	type inputStruct struct {
 		ingest ingest.Change
+		lcm    xdr.LedgerCloseMeta
 	}
 	type transformTest struct {
 		input      inputStruct
@@ -22,6 +23,7 @@ func TestTransformTrustline(t *testing.T) {
 
 	hardCodedInput := makeTrustlineTestInput()
 	hardCodedOutput := makeTrustlineTestOutput()
+	hardCodedLedgerCloseMeta := makeLedgerCloseMeta()
 
 	tests := []transformTest{
 		{
@@ -35,6 +37,7 @@ func TestTransformTrustline(t *testing.T) {
 						},
 					},
 				},
+				hardCodedLedgerCloseMeta,
 			},
 			TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
@@ -42,14 +45,14 @@ func TestTransformTrustline(t *testing.T) {
 
 	for i := range hardCodedInput {
 		tests = append(tests, transformTest{
-			input:      inputStruct{hardCodedInput[i]},
+			input:      inputStruct{hardCodedInput[i], hardCodedLedgerCloseMeta},
 			wantOutput: hardCodedOutput[i],
 			wantErr:    nil,
 		})
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrustline(test.input.ingest)
+		actualOutput, actualError := TransformTrustline(test.input.ingest, test.input.lcm)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -131,6 +134,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 24229503,
 			LedgerEntryChange:  1,
 			Deleted:            false,
+			ClosedAt:           genericCloseTime.UTC(),
 		},
 		{
 			LedgerKey:          "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
@@ -146,6 +150,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 123456789,
 			LedgerEntryChange:  1,
 			Deleted:            false,
+			ClosedAt:           genericCloseTime.UTC(),
 		},
 	}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
-func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
+func TransformPool(ledgerChange ingest.Change, lcm xdr.LedgerCloseMeta) (PoolOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return PoolOutput{}, err
@@ -46,6 +46,11 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 	err = cp.Params.AssetB.Extract(&assetBType, &assetBCode, &assetBIssuer)
 	assetBID := FarmHashAsset(assetBCode, assetBIssuer, assetBType)
 
+	closeTime, err := utils.GetCloseTime(lcm)
+	if err != nil {
+		return PoolOutput{}, err
+	}
+
 	transformedPool := PoolOutput{
 		PoolID:             PoolIDToString(lp.LiquidityPoolId),
 		PoolType:           poolType,
@@ -65,6 +70,7 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
+		ClosedAt:           closeTime,
 	}
 	return transformedPool, nil
 }
