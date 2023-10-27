@@ -67,7 +67,7 @@ func TestTransformOperation(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOperation(test.input.operation, test.input.index, test.input.transaction, 0, test.input.ledgerClosedMeta)
+		actualOutput, actualError := TransformOperation(test.input.operation, test.input.index, test.input.transaction, 0, test.input.ledgerClosedMeta, "")
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
