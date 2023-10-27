@@ -31,6 +31,10 @@ func TransformDiagnosticEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledg
 		return []DiagnosticEventOutput{}, nil, false
 	}
 
+	if transactionMeta.SorobanMeta == nil {
+		return []DiagnosticEventOutput{}, nil, false
+	}
+
 	var transformedDiagnosticEvents []DiagnosticEventOutput
 
 	for _, diagnoticEvent := range transactionMeta.SorobanMeta.DiagnosticEvents {

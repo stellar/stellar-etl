@@ -27,7 +27,7 @@ type liquidityPoolDelta struct {
 }
 
 // TransformOperation converts an operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32, ledgerCloseMeta xdr.LedgerCloseMeta) (OperationOutput, error) {
+func TransformOperation(operation xdr.Operation, operationIndex int32, transaction ingest.LedgerTransaction, ledgerSeq int32, ledgerCloseMeta xdr.LedgerCloseMeta, network string) (OperationOutput, error) {
 	outputTransactionID := toid.New(ledgerSeq, int32(transaction.Index), 0).ToInt64()
 	outputOperationID := toid.New(ledgerSeq, int32(transaction.Index), operationIndex+1).ToInt64() //operationIndex needs +1 increment to stay in sync with ingest package
 
@@ -51,7 +51,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, fmt.Errorf("The operation type (%d) is negative for  operation %d (operation id=%d)", outputOperationType, operationIndex, outputOperationID)
 	}
 
-	outputDetails, err := extractOperationDetails(operation, transaction, operationIndex)
+	outputDetails, err := extractOperationDetails(operation, transaction, operationIndex, network)
 	if err != nil {
 		return OperationOutput{}, err
 	}
@@ -474,7 +474,7 @@ func addOperationFlagToOperationDetails(result map[string]interface{}, flag uint
 	result[prefix+"flags_s"] = stringFlags
 }
 
-func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerTransaction, operationIndex int32) (map[string]interface{}, error) {
+func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerTransaction, operationIndex int32, network string) (map[string]interface{}, error) {
 	details := map[string]interface{}{}
 	sourceAccount := getOperationSourceAccount(operation, transaction)
 	operationType := operation.Body.Type
@@ -967,7 +967,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			}
 			details["parameters"] = params
 
-			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction); err != nil {
+			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction, network); err != nil {
 				return nil, err
 			} else {
 				details["asset_balance_changes"] = balanceChanges
@@ -1739,7 +1739,7 @@ func (operation *transactionOperationWrapper) parseAssetBalanceChangesFromContra
 	return balanceChanges, nil
 }
 
-func parseAssetBalanceChangesFromContractEvents(transaction ingest.LedgerTransaction) ([]map[string]interface{}, error) {
+func parseAssetBalanceChangesFromContractEvents(transaction ingest.LedgerTransaction, network string) ([]map[string]interface{}, error) {
 	balanceChanges := []map[string]interface{}{}
 
 	diagnosticEvents, err := transaction.GetDiagnosticEvents()
@@ -1753,7 +1753,7 @@ func parseAssetBalanceChangesFromContractEvents(transaction ingest.LedgerTransac
 		// Parse the xdr contract event to contractevents.StellarAssetContractEvent model
 
 		// has some convenience like to/from attributes are expressed in strkey format for accounts(G...) and contracts(C...)
-		if sacEvent, err := contractevents.NewStellarAssetContractEvent(&contractEvent, "Test SDF Future Network ; October 2022"); err == nil {
+		if sacEvent, err := contractevents.NewStellarAssetContractEvent(&contractEvent, network); err == nil {
 			switch sacEvent.GetType() {
 			case contractevents.EventTypeTransfer:
 				transferEvt := sacEvent.(*contractevents.TransferEvent)
