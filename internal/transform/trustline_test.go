@@ -50,8 +50,15 @@ func TestTransformTrustline(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var closedAt time.Time
-		actualOutput, actualError := TransformTrustline(test.input.ingest, closedAt)
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
+		actualOutput, actualError := TransformTrustline(test.input.ingest, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -133,6 +140,8 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 24229503,
 			LedgerEntryChange:  1,
 			Deleted:            false,
+			LedgerSequence:     10,
+			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		},
 		{
 			LedgerKey:          "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
@@ -148,6 +157,8 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			LastModifiedLedger: 123456789,
 			LedgerEntryChange:  1,
 			Deleted:            false,
+			LedgerSequence:     10,
+			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		},
 	}
 }

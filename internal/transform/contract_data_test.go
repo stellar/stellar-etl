@@ -48,9 +48,16 @@ func TestTransformContractData(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		var closedAt time.Time
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
 		TransformContractData := NewTransformContractDataStruct(MockAssetFromContractData, MockContractBalanceFromContractData)
-		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase, closedAt)
+		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -129,6 +136,8 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			LastModifiedLedger:        24229503,
 			LedgerEntryChange:         1,
 			Deleted:                   false,
+			LedgerSequence:            10,
+			ClosedAt:                  time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		},
 	}
 }
