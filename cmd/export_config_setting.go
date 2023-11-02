@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,8 +34,8 @@ var configSettingCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, setting := range settings {
-			var closedAt time.Time
-			transformed, err := transform.TransformConfigSetting(setting, closedAt)
+			var header xdr.LedgerHeaderHistoryEntry
+			transformed, err := transform.TransformConfigSetting(setting, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform config setting %+v: %v", setting, err))
 				numFailures += 1

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,8 +37,8 @@ the export_ledger_entry_changes command.`,
 		numFailures := 0
 		totalNumBytes := 0
 		for _, pool := range pools {
-			var closedAt time.Time
-			transformed, err := transform.TransformPool(pool, closedAt)
+			var header xdr.LedgerHeaderHistoryEntry
+			transformed, err := transform.TransformPool(pool, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))
 				numFailures += 1

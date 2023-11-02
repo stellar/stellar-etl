@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"time"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -18,14 +17,14 @@ var (
 	ExtractBatch = extractBatch
 )
 
-type ChangesClosedAt struct {
-	Changes   []ingest.Change
-	ClosedAts []time.Time
+type LedgerChanges struct {
+	Changes       []ingest.Change
+	LedgerHeaders []xdr.LedgerHeaderHistoryEntry
 }
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    map[xdr.LedgerEntryType]ChangesClosedAt
+	Changes    map[xdr.LedgerEntryType]LedgerChanges
 	BatchStart uint32
 	BatchEnd   uint32
 }
@@ -98,7 +97,7 @@ func extractBatch(
 		xdr.LedgerEntryTypeConfigSetting,
 		xdr.LedgerEntryTypeExpiration}
 
-	changesClosedAt := map[xdr.LedgerEntryType]ChangesClosedAt{}
+	changesClosedAt := map[xdr.LedgerEntryType]LedgerChanges{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
@@ -113,16 +112,13 @@ func extractBatch(
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
-		var closedAt time.Time
+		var header xdr.LedgerHeaderHistoryEntry
 		if seq <= latestLedger {
 			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
-			closedAt, err = utils.TimePointToUTCTimeStamp(changeReader.LedgerTransactionReader.GetHeader().Header.ScpValue.CloseTime)
-			if err != nil {
-				logger.Fatal(fmt.Sprintf("unable to read CloseTime for ledger %d: ", seq), err)
-			}
+			header = changeReader.LedgerTransactionReader.GetHeader()
 
 			for {
 				change, err := changeReader.Read()
@@ -150,7 +146,7 @@ func extractBatch(
 			for _, change := range compactor.GetChanges() {
 				dataTypeChanges := changesClosedAt[dataType]
 				dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
-				dataTypeChanges.ClosedAts = append(dataTypeChanges.ClosedAts, closedAt)
+				dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
 				changesClosedAt[dataType] = dataTypeChanges
 			}
 		}

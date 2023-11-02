@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,8 +34,8 @@ var codeCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, code := range codes {
-			var closedAt time.Time
-			transformed, err := transform.TransformContractCode(code, closedAt)
+			var header xdr.LedgerHeaderHistoryEntry
+			transformed, err := transform.TransformContractCode(code, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform contract code %+v: %v", code, err))
 				numFailures += 1

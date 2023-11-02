@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -39,8 +38,8 @@ var trustlinesCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, trust := range trustlines {
-			var closedAt time.Time
-			transformed, err := transform.TransformTrustline(trust, closedAt)
+			var header xdr.LedgerHeaderHistoryEntry
+			transformed, err := transform.TransformTrustline(trust, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform trustline %+v: %v", trust, err))
 				numFailures += 1

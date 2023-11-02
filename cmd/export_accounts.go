@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -37,9 +36,9 @@ the export_ledger_entry_changes command.`,
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
-		var closedAt time.Time
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, acc := range accounts {
-			transformed, err := transform.TransformAccount(acc, closedAt)
+			transformed, err := transform.TransformAccount(acc, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform account: %v", err))
 				numFailures += 1

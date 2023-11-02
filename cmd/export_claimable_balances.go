@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,8 +37,8 @@ var claimableBalancesCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, balance := range balances {
-			var closedAt time.Time
-			transformed, err := transform.TransformClaimableBalance(balance, closedAt)
+			var header xdr.LedgerHeaderHistoryEntry
+			transformed, err := transform.TransformClaimableBalance(balance, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform balance %+v: %v", balance, err))
 				numFailures += 1

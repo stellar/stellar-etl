@@ -3,7 +3,6 @@ package transform
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -11,7 +10,7 @@ import (
 )
 
 // TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
-func TransformConfigSetting(ledgerChange ingest.Change, closedAt time.Time) (ConfigSettingOutput, error) {
+func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (ConfigSettingOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ConfigSettingOutput{}, err
@@ -91,6 +90,13 @@ func TransformConfigSetting(ledgerChange ingest.Change, closedAt time.Time) (Con
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))
 	}
 
+	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return ConfigSettingOutput{}, err
+	}
+
+	ledgerSequence := header.Header.LedgerSeq
+
 	transformedConfigSetting := ConfigSettingOutput{
 		ConfigSettingId:                 int32(configSettingId),
 		ContractMaxSizeBytes:            uint32(contractMaxSizeBytes),
@@ -138,6 +144,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, closedAt time.Time) (Con
 		LedgerEntryChange:               uint32(changeType),
 		Deleted:                         outputDeleted,
 		ClosedAt:                        closedAt,
+		LedgerSequence:                  uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil
 }

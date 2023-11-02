@@ -2,7 +2,6 @@ package transform
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -22,7 +21,7 @@ func transformClaimants(claimants []xdr.Claimant) []Claimant {
 }
 
 // TransformClaimableBalance converts a claimable balance from the history archive ingestion system into a form suitable for BigQuery
-func TransformClaimableBalance(ledgerChange ingest.Change, closedAt time.Time) (ClaimableBalanceOutput, error) {
+func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (ClaimableBalanceOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
@@ -46,6 +45,13 @@ func TransformClaimableBalance(ledgerChange ingest.Change, closedAt time.Time) (
 
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
+	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return ClaimableBalanceOutput{}, err
+	}
+
+	ledgerSequence := header.Header.LedgerSeq
+
 	transformed := ClaimableBalanceOutput{
 		BalanceID:          balanceID,
 		AssetCode:          outputAsset.AssetCode,
@@ -60,6 +66,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, closedAt time.Time) (
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
+		LedgerSequence:     uint32(ledgerSequence),
 	}
 	return transformed, nil
 }

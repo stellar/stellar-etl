@@ -100,6 +100,7 @@ type AccountOutput struct {
 	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
 	Deleted              bool        `json:"deleted"`
 	ClosedAt             time.Time   `json:"closed_at"`
+	LedgerSequence       uint32      `json:"ledger_sequence"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
@@ -112,6 +113,7 @@ type AccountSignerOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	LedgerSequence     uint32      `json:"ledger_sequence"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -141,6 +143,7 @@ type ClaimableBalanceOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	LedgerSequence     uint32      `json:"ledger_sequence"`
 }
 
 // Claimants
@@ -195,6 +198,7 @@ type PoolOutput struct {
 	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
+	LedgerSequence     uint32    `json:"ledger_sequence"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
@@ -225,6 +229,7 @@ type TrustlineOutput struct {
 	Sponsor            null.String `json:"sponsor"`
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	LedgerSequence     uint32      `json:"ledger_sequence"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
@@ -249,6 +254,7 @@ type OfferOutput struct {
 	Deleted            bool        `json:"deleted"`
 	Sponsor            null.String `json:"sponsor"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	LedgerSequence     uint32      `json:"ledger_sequence"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
@@ -491,6 +497,7 @@ type ContractDataOutput struct {
 	LedgerEntryChange         uint32    `json:"ledger_entry_change"`
 	Deleted                   bool      `json:"deleted"`
 	ClosedAt                  time.Time `json:"closed_at"`
+	LedgerSequence            uint32    `json:"ledger_sequence"`
 }
 
 // ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
@@ -501,6 +508,7 @@ type ContractCodeOutput struct {
 	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
+	LedgerSequence     uint32    `json:"ledger_sequence"`
 	//ContractCodeCode                string `json:"contract_code"`
 }
 
@@ -553,6 +561,7 @@ type ConfigSettingOutput struct {
 	LedgerEntryChange               uint32              `json:"ledger_entry_change"`
 	Deleted                         bool                `json:"deleted"`
 	ClosedAt                        time.Time           `json:"closed_at"`
+	LedgerSequence                  uint32              `json:"ledger_sequence"`
 }
 
 // ExpirationOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
@@ -563,6 +572,7 @@ type ExpirationOutput struct {
 	LedgerEntryChange   uint32    `json:"ledger_entry_change"`
 	Deleted             bool      `json:"deleted"`
 	ClosedAt            time.Time `json:"closed_at"`
+	LedgerSequence      uint32    `json:"ledger_sequence"`
 }
 
 // DiagnosticEventOutput is a representation of soroban expiration that aligns with the Bigquery table expirations

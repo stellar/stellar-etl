@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,9 +34,9 @@ var dataCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, data := range datas {
-			var closedAt time.Time
+			var header xdr.LedgerHeaderHistoryEntry
 			TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
-			transformed, err, ok := TransformContractData.TransformContractData(data, env.NetworkPassphrase, closedAt)
+			transformed, err, ok := TransformContractData.TransformContractData(data, env.NetworkPassphrase, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform contract data %+v: %v", data, err))
 				numFailures += 1
