@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -37,7 +38,8 @@ the export_ledger_entry_changes command.`,
 		numFailures := 0
 		totalNumBytes := 0
 		for _, pool := range pools {
-			transformed, err := transform.TransformPool(pool)
+			var closedAt time.Time
+			transformed, err := transform.TransformPool(pool, closedAt)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))
 				numFailures += 1

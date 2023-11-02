@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
@@ -94,7 +95,8 @@ func TestTransformAccount(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformAccount(test.input.ledgerChange)
+		var closedAt time.Time
+		actualOutput, actualError := TransformAccount(test.input.ledgerChange, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

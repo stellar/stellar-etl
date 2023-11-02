@@ -5,6 +5,7 @@ import (
 	"hash/fnv"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -14,7 +15,8 @@ import (
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset
 func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
 
-	transformed, err := TransformOffer(ledgerChange)
+	var closedAt time.Time
+	transformed, err := TransformOffer(ledgerChange, closedAt)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}

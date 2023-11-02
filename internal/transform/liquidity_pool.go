@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -9,7 +10,7 @@ import (
 )
 
 // TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
-func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
+func TransformPool(ledgerChange ingest.Change, closedAt time.Time) (PoolOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return PoolOutput{}, err
@@ -65,6 +66,7 @@ func TransformPool(ledgerChange ingest.Change) (PoolOutput, error) {
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
+		ClosedAt:           closedAt,
 	}
 	return transformedPool, nil
 }

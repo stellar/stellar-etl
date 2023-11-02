@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/strkey"
@@ -10,7 +11,7 @@ import (
 )
 
 // TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
-func TransformExpiration(ledgerChange ingest.Change) (ExpirationOutput, error) {
+func TransformExpiration(ledgerChange ingest.Change, closedAt time.Time) (ExpirationOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ExpirationOutput{}, err
@@ -36,6 +37,7 @@ func TransformExpiration(ledgerChange ingest.Change) (ExpirationOutput, error) {
 		LastModifiedLedger:  uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:   uint32(changeType),
 		Deleted:             outputDeleted,
+		ClosedAt:            closedAt,
 	}
 
 	return transformedPool, nil

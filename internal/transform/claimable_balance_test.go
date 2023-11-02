@@ -2,6 +2,7 @@ package transform
 
 import (
 	"testing"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
@@ -34,7 +35,8 @@ func TestTransformClaimableBalance(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformClaimableBalance(test.input.ingest)
+		var closedAt time.Time
+		actualOutput, actualError := TransformClaimableBalance(test.input.ingest, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

@@ -2,6 +2,7 @@ package transform
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -46,7 +47,8 @@ func TestTransformPool(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformPool(test.input.ingest)
+		var closedAt time.Time
+		actualOutput, actualError := TransformPool(test.input.ingest, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

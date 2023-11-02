@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -9,7 +10,7 @@ import (
 )
 
 // TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
+func TransformOffer(ledgerChange ingest.Change, closedAt time.Time) (OfferOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return OfferOutput{}, err
@@ -88,6 +89,7 @@ func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
+		ClosedAt:           closedAt,
 	}
 	return transformedOffer, nil
 }

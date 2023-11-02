@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/strkey"
@@ -59,7 +60,7 @@ func NewTransformContractDataStruct(assetFrom AssetFromContractDataFunc, contrac
 }
 
 // TransformContractData converts a contract data ledger change entry into a form suitable for BigQuery
-func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error, bool) {
+func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string, closedAt time.Time) (ContractDataOutput, error, bool) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractDataOutput{}, err, false
@@ -119,6 +120,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LastModifiedLedger:        uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
+		ClosedAt:                  closedAt,
 	}
 	return transformedData, nil, true
 }

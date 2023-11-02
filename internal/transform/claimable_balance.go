@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -21,7 +22,7 @@ func transformClaimants(claimants []xdr.Claimant) []Claimant {
 }
 
 // TransformClaimableBalance converts a claimable balance from the history archive ingestion system into a form suitable for BigQuery
-func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutput, error) {
+func TransformClaimableBalance(ledgerChange ingest.Change, closedAt time.Time) (ClaimableBalanceOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
@@ -58,6 +59,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change) (ClaimableBalanceOutp
 		LedgerEntryChange:  uint32(changeType),
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
+		ClosedAt:           closedAt,
 	}
 	return transformed, nil
 }

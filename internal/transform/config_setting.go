@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
@@ -10,7 +11,7 @@ import (
 )
 
 // TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
-func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, error) {
+func TransformConfigSetting(ledgerChange ingest.Change, closedAt time.Time) (ConfigSettingOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ConfigSettingOutput{}, err
@@ -136,6 +137,7 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:               uint32(changeType),
 		Deleted:                         outputDeleted,
+		ClosedAt:                        closedAt,
 	}
 	return transformedConfigSetting, nil
 }

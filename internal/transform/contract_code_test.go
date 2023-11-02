@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -43,7 +44,8 @@ func TestTransformContractCode(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformContractCode(test.input)
+		var closedAt time.Time
+		actualOutput, actualError := TransformContractCode(test.input, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

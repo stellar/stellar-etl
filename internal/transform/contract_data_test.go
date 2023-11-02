@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -47,8 +48,9 @@ func TestTransformContractData(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		var closedAt time.Time
 		TransformContractData := NewTransformContractDataStruct(MockAssetFromContractData, MockContractBalanceFromContractData)
-		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase)
+		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

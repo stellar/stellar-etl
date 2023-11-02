@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -34,7 +35,8 @@ var expirationCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, expiration := range expirations {
-			transformed, err := transform.TransformExpiration(expiration)
+			var closedAt time.Time
+			transformed, err := transform.TransformExpiration(expiration, closedAt)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform expiration %+v: %v", expiration, err))
 				numFailures += 1

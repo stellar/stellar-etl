@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
@@ -10,7 +11,7 @@ import (
 )
 
 // TransformSigners converts account signers from the history archive ingestion system into a form suitable for BigQuery
-func TransformSigners(ledgerChange ingest.Change) ([]AccountSignerOutput, error) {
+func TransformSigners(ledgerChange ingest.Change, closedAt time.Time) ([]AccountSignerOutput, error) {
 	var signers []AccountSignerOutput
 
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
@@ -38,6 +39,7 @@ func TransformSigners(ledgerChange ingest.Change) ([]AccountSignerOutput, error)
 			LastModifiedLedger: outputLastModifiedLedger,
 			LedgerEntryChange:  uint32(changeType),
 			Deleted:            outputDeleted,
+			ClosedAt:           closedAt,
 		})
 	}
 	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })

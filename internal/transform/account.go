@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/guregu/null/zero"
 	"github.com/stellar/go/ingest"
@@ -10,7 +11,7 @@ import (
 )
 
 // TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
+func TransformAccount(ledgerChange ingest.Change, closedAt time.Time) (AccountOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return AccountOutput{}, err
@@ -98,6 +99,7 @@ func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 		NumSponsoring:        uint32(accountEntry.NumSponsoring()),
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
+		ClosedAt:             closedAt,
 	}
 	return transformedAccount, nil
 }

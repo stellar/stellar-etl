@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -49,7 +50,8 @@ func TestTransformTrustline(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrustline(test.input.ingest)
+		var closedAt time.Time
+		actualOutput, actualError := TransformTrustline(test.input.ingest, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

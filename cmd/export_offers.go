@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,7 +39,8 @@ var offersCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		for _, offer := range offers {
-			transformed, err := transform.TransformOffer(offer)
+			var closedAt time.Time
+			transformed, err := transform.TransformOffer(offer, closedAt)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform offer %+v: %v", offer, err))
 				numFailures += 1

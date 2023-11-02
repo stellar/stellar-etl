@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/guregu/null"
 
@@ -50,7 +51,8 @@ func TestTransformAccountSigner(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformSigners(test.input.injest)
+		var closedAt time.Time
+		actualOutput, actualError := TransformSigners(test.input.injest, closedAt)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
