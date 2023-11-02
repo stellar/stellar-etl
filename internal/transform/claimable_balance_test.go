@@ -2,6 +2,7 @@ package transform
 
 import (
 	"testing"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
@@ -34,7 +35,15 @@ func TestTransformClaimableBalance(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformClaimableBalance(test.input.ingest)
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
+		actualOutput, actualError := TransformClaimableBalance(test.input.ingest, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -115,5 +124,7 @@ func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 		LastModifiedLedger: 30705278,
 		LedgerEntryChange:  2,
 		Deleted:            true,
+		LedgerSequence:     10,
+		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 	}
 }

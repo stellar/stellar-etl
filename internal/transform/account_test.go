@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
@@ -94,7 +95,15 @@ func TestTransformAccount(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformAccount(test.input.ledgerChange)
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
+		actualOutput, actualError := TransformAccount(test.input.ledgerChange, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -181,5 +190,7 @@ func makeAccountTestOutput() AccountOutput {
 		LastModifiedLedger:   30705278,
 		LedgerEntryChange:    2,
 		Deleted:              true,
+		LedgerSequence:       10,
+		ClosedAt:             time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 	}
 }

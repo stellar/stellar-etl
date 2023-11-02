@@ -17,9 +17,14 @@ var (
 	ExtractBatch = extractBatch
 )
 
+type LedgerChanges struct {
+	Changes       []ingest.Change
+	LedgerHeaders []xdr.LedgerHeaderHistoryEntry
+}
+
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    map[xdr.LedgerEntryType][]ingest.Change
+	Changes    map[xdr.LedgerEntryType]LedgerChanges
 	BatchStart uint32
 	BatchEnd   uint32
 }
@@ -92,7 +97,7 @@ func extractBatch(
 		xdr.LedgerEntryTypeConfigSetting,
 		xdr.LedgerEntryTypeExpiration}
 
-	changes := map[xdr.LedgerEntryType][]ingest.Change{}
+	ledgerChanges := map[xdr.LedgerEntryType]LedgerChanges{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
@@ -107,19 +112,13 @@ func extractBatch(
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
+		var header xdr.LedgerHeaderHistoryEntry
 		if seq <= latestLedger {
 			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
-			// TODO: Add in ledger_closed_at; Update changeCompactors to also save ledger close time.
-			//   AddChange is from the go monorepo so it might be easier to just add a addledgerclose func after it
-			//txReader := changeReader.LedgerTransactionReader
-
-			//closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
-			//if err != nil {
-			//	logger.Fatal(fmt.Sprintf("unable to read close time for ledger %d: ", seq), err)
-			//}
+			header = changeReader.LedgerTransactionReader.GetHeader()
 
 			for {
 				change, err := changeReader.Read()
@@ -145,14 +144,17 @@ func extractBatch(
 
 		for dataType, compactor := range changeCompactors {
 			for _, change := range compactor.GetChanges() {
-				changes[dataType] = append(changes[dataType], change)
+				dataTypeChanges := ledgerChanges[dataType]
+				dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
+				dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
+				ledgerChanges[dataType] = dataTypeChanges
 			}
 		}
 
 	}
 
 	return ChangeBatch{
-		Changes:    changes,
+		Changes:    ledgerChanges,
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,
 	}

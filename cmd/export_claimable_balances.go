@@ -36,8 +36,9 @@ var claimableBalancesCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, balance := range balances {
-			transformed, err := transform.TransformClaimableBalance(balance)
+			transformed, err := transform.TransformClaimableBalance(balance, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform balance %+v: %v", balance, err))
 				numFailures += 1

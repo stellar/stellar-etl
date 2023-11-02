@@ -59,7 +59,7 @@ func NewTransformContractDataStruct(assetFrom AssetFromContractDataFunc, contrac
 }
 
 // TransformContractData converts a contract data ledger change entry into a form suitable for BigQuery
-func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error, bool) {
+func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string, header xdr.LedgerHeaderHistoryEntry) (ContractDataOutput, error, bool) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractDataOutput{}, err, false
@@ -107,6 +107,13 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataDurability := contractData.Durability.String()
 
+	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
+
+	ledgerSequence := header.Header.LedgerSeq
+
 	transformedData := ContractDataOutput{
 		ContractId:                outputContractDataContractId,
 		ContractKeyType:           contractDataKeyType,
@@ -119,6 +126,8 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LastModifiedLedger:        uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
+		ClosedAt:                  closedAt,
+		LedgerSequence:            uint32(ledgerSequence),
 	}
 	return transformedData, nil, true
 }

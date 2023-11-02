@@ -37,8 +37,9 @@ var trustlinesCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, trust := range trustlines {
-			transformed, err := transform.TransformTrustline(trust)
+			transformed, err := transform.TransformTrustline(trust, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform trustline %+v: %v", trust, err))
 				numFailures += 1

@@ -36,8 +36,9 @@ the export_ledger_entry_changes command.`,
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, acc := range accounts {
-			transformed, err := transform.TransformAccount(acc)
+			transformed, err := transform.TransformAccount(acc, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform account: %v", err))
 				numFailures += 1

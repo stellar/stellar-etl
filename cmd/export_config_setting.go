@@ -33,8 +33,9 @@ var configSettingCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, setting := range settings {
-			transformed, err := transform.TransformConfigSetting(setting)
+			transformed, err := transform.TransformConfigSetting(setting, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform config setting %+v: %v", setting, err))
 				numFailures += 1
