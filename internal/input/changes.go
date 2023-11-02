@@ -97,7 +97,7 @@ func extractBatch(
 		xdr.LedgerEntryTypeConfigSetting,
 		xdr.LedgerEntryTypeExpiration}
 
-	changesClosedAt := map[xdr.LedgerEntryType]LedgerChanges{}
+	ledgerChanges := map[xdr.LedgerEntryType]LedgerChanges{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
@@ -144,17 +144,17 @@ func extractBatch(
 
 		for dataType, compactor := range changeCompactors {
 			for _, change := range compactor.GetChanges() {
-				dataTypeChanges := changesClosedAt[dataType]
+				dataTypeChanges := ledgerChanges[dataType]
 				dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
 				dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
-				changesClosedAt[dataType] = dataTypeChanges
+				ledgerChanges[dataType] = dataTypeChanges
 			}
 		}
 
 	}
 
 	return ChangeBatch{
-		Changes:    changesClosedAt,
+		Changes:    ledgerChanges,
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,
 	}
