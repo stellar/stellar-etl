@@ -37,8 +37,8 @@ var offersCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, offer := range offers {
-			var header xdr.LedgerHeaderHistoryEntry
 			transformed, err := transform.TransformOffer(offer, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform offer %+v: %v", offer, err))

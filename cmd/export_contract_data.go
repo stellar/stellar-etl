@@ -33,8 +33,8 @@ var dataCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, data := range datas {
-			var header xdr.LedgerHeaderHistoryEntry
 			TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
 			transformed, err, ok := TransformContractData.TransformContractData(data, env.NetworkPassphrase, header)
 			if err != nil {

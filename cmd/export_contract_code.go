@@ -33,8 +33,8 @@ var codeCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, code := range codes {
-			var header xdr.LedgerHeaderHistoryEntry
 			transformed, err := transform.TransformContractCode(code, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform contract code %+v: %v", code, err))

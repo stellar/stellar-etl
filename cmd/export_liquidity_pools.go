@@ -36,8 +36,8 @@ the export_ledger_entry_changes command.`,
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, pool := range pools {
-			var header xdr.LedgerHeaderHistoryEntry
 			transformed, err := transform.TransformPool(pool, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform pool %+v: %v", pool, err))

@@ -33,8 +33,8 @@ var expirationCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var header xdr.LedgerHeaderHistoryEntry
 		for _, expiration := range expirations {
-			var header xdr.LedgerHeaderHistoryEntry
 			transformed, err := transform.TransformExpiration(expiration, header)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not transform expiration %+v: %v", expiration, err))
