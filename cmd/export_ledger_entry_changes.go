@@ -103,7 +103,7 @@ be exported.`,
 					"contract_data":      {},
 					"contract_code":      {},
 					"config_settings":    {},
-					"expiration":         {},
+					"ttl":                {},
 				}
 
 				for entryType, changes := range batch.Changes {
@@ -236,18 +236,18 @@ be exported.`,
 							}
 							transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], configSettings)
 						}
-					case xdr.LedgerEntryTypeExpiration:
-						if !exports["export-expiration"] {
+					case xdr.LedgerEntryTypeTtl:
+						if !exports["export-ttl"] {
 							continue
 						}
 						for i, change := range changes.Changes {
-							expiration, err := transform.TransformExpiration(change, changes.LedgerHeaders[i])
+							ttl, err := transform.TransformTtl(change, changes.LedgerHeaders[i])
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
-								cmdLogger.LogError(fmt.Errorf("error transforming expiration entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								cmdLogger.LogError(fmt.Errorf("error transforming ttl entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
 								continue
 							}
-							transformedOutputs["expiration"] = append(transformedOutputs["expiration"], expiration)
+							transformedOutputs["ttl"] = append(transformedOutputs["ttl"], ttl)
 						}
 					}
 				}

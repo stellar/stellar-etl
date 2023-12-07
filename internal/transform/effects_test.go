@@ -3763,8 +3763,8 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 	keyHash := xdr.Hash{}
 
 	ledgerEntryKey := xdr.LedgerKey{
-		Type: xdr.LedgerEntryTypeExpiration,
-		Expiration: &xdr.LedgerKeyExpiration{
+		Type: xdr.LedgerEntryTypeTtl,
+		Ttl: &xdr.LedgerKeyTtl{
 			KeyHash: keyHash,
 		},
 	}
@@ -3782,10 +3782,10 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 						State: &xdr.LedgerEntry{
 							LastModifiedLedgerSeq: 1,
 							Data: xdr.LedgerEntryData{
-								Type: xdr.LedgerEntryTypeExpiration,
-								Expiration: &xdr.ExpirationEntry{
-									KeyHash:             keyHash,
-									ExpirationLedgerSeq: 1,
+								Type: xdr.LedgerEntryTypeTtl,
+								Ttl: &xdr.TtlEntry{
+									KeyHash:            keyHash,
+									LiveUntilLedgerSeq: 1,
 								},
 							},
 						},
@@ -3794,10 +3794,10 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
 						Updated: &xdr.LedgerEntry{
 							Data: xdr.LedgerEntryData{
-								Type: xdr.LedgerEntryTypeExpiration,
-								Expiration: &xdr.ExpirationEntry{
-									KeyHash:             keyHash,
-									ExpirationLedgerSeq: 1234,
+								Type: xdr.LedgerEntryTypeTtl,
+								Ttl: &xdr.TtlEntry{
+									KeyHash:            keyHash,
+									LiveUntilLedgerSeq: 1234,
 								},
 							},
 						},
@@ -3814,12 +3814,12 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 				{
 					SourceAccount: xdr.MustMuxedAddressPtr(admin),
 					Body: xdr.OperationBody{
-						Type: xdr.OperationTypeBumpFootprintExpiration,
-						BumpFootprintExpirationOp: &xdr.BumpFootprintExpirationOp{
+						Type: xdr.OperationTypeExtendFootprintTtl,
+						ExtendFootprintTtlOp: &xdr.ExtendFootprintTtlOp{
 							Ext: xdr.ExtensionPoint{
 								V: 0,
 							},
-							LedgersToExpire: xdr.Uint32(1234),
+							ExtendTo: xdr.Uint32(1234),
 						},
 					},
 				},
@@ -3859,10 +3859,10 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 					"entries": []string{
 						ledgerEntryKeyStr,
 					},
-					"ledgers_to_expire": xdr.Uint32(1234),
+					"extend_to": xdr.Uint32(1234),
 				},
-				Type:         int32(EffectBumpFootprintExpiration),
-				TypeString:   EffectTypeNames[EffectBumpFootprintExpiration],
+				Type:         int32(EffectExtendFootprintTtl),
+				TypeString:   EffectTypeNames[EffectExtendFootprintTtl],
 				LedgerClosed: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
@@ -3879,8 +3879,8 @@ func TestAddRestoreFootprintExpirationEffect(t *testing.T) {
 	keyHash := xdr.Hash{}
 
 	ledgerEntryKey := xdr.LedgerKey{
-		Type: xdr.LedgerEntryTypeExpiration,
-		Expiration: &xdr.LedgerKeyExpiration{
+		Type: xdr.LedgerEntryTypeTtl,
+		Ttl: &xdr.LedgerKeyTtl{
 			KeyHash: keyHash,
 		},
 	}
@@ -3898,10 +3898,10 @@ func TestAddRestoreFootprintExpirationEffect(t *testing.T) {
 						State: &xdr.LedgerEntry{
 							LastModifiedLedgerSeq: 1,
 							Data: xdr.LedgerEntryData{
-								Type: xdr.LedgerEntryTypeExpiration,
-								Expiration: &xdr.ExpirationEntry{
-									KeyHash:             keyHash,
-									ExpirationLedgerSeq: 1,
+								Type: xdr.LedgerEntryTypeTtl,
+								Ttl: &xdr.TtlEntry{
+									KeyHash:            keyHash,
+									LiveUntilLedgerSeq: 1,
 								},
 							},
 						},
@@ -3910,10 +3910,10 @@ func TestAddRestoreFootprintExpirationEffect(t *testing.T) {
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
 						Updated: &xdr.LedgerEntry{
 							Data: xdr.LedgerEntryData{
-								Type: xdr.LedgerEntryTypeExpiration,
-								Expiration: &xdr.ExpirationEntry{
-									KeyHash:             keyHash,
-									ExpirationLedgerSeq: 1234,
+								Type: xdr.LedgerEntryTypeTtl,
+								Ttl: &xdr.TtlEntry{
+									KeyHash:            keyHash,
+									LiveUntilLedgerSeq: 1234,
 								},
 							},
 						},

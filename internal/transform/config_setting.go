@@ -70,16 +70,16 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 
 	contractDataEntrySizeBytes, ok := configSetting.GetContractDataEntrySizeBytes()
 
-	stateExpirationSettings, _ := configSetting.GetStateExpirationSettings()
-	maxEntryExpiration := stateExpirationSettings.MaxEntryExpiration
-	minTempEntryExpiration := stateExpirationSettings.MinTempEntryExpiration
-	minPersistentEntryExpiration := stateExpirationSettings.MinPersistentEntryExpiration
-	persistentRentRateDenominator := stateExpirationSettings.PersistentRentRateDenominator
-	tempRentRateDenominator := stateExpirationSettings.TempRentRateDenominator
-	maxEntriesToExpire := stateExpirationSettings.MaxEntriesToExpire
-	bucketListSizeWindowSampleSize := stateExpirationSettings.BucketListSizeWindowSampleSize
-	evictionScanSize := stateExpirationSettings.EvictionScanSize
-	startingEvictionScanLevel := stateExpirationSettings.StartingEvictionScanLevel
+	stateArchivalSettings, _ := configSetting.GetStateArchivalSettings()
+	maxEntryTtl := stateArchivalSettings.MaxEntryTtl
+	minTemporaryTtl := stateArchivalSettings.MinTemporaryTtl
+	minPersistentTtl := stateArchivalSettings.MinPersistentTtl
+	persistentRentRateDenominator := stateArchivalSettings.PersistentRentRateDenominator
+	tempRentRateDenominator := stateArchivalSettings.TempRentRateDenominator
+	maxEntriesToArchive := stateArchivalSettings.MaxEntriesToArchive
+	bucketListSizeWindowSampleSize := stateArchivalSettings.BucketListSizeWindowSampleSize
+	evictionScanSize := stateArchivalSettings.EvictionScanSize
+	startingEvictionScanLevel := stateArchivalSettings.StartingEvictionScanLevel
 
 	contractExecutionLanes, _ := configSetting.GetContractExecutionLanes()
 	ledgerMaxTxCount := contractExecutionLanes.LedgerMaxTxCount
@@ -129,12 +129,12 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		ContractCostParamsMemBytes:      contractCostParamsMemBytes,
 		ContractDataKeySizeBytes:        uint32(contractDataKeySizeBytes),
 		ContractDataEntrySizeBytes:      uint32(contractDataEntrySizeBytes),
-		MaxEntryExpiration:              uint32(maxEntryExpiration),
-		MinTempEntryExpiration:          uint32(minTempEntryExpiration),
-		MinPersistentEntryExpiration:    uint32(minPersistentEntryExpiration),
+		MaxEntryTtl:                     uint32(maxEntryTtl),
+		MinTemporaryTtl:                 uint32(minTemporaryTtl),
+		MinPersistentTtl:                uint32(minPersistentTtl),
 		PersistentRentRateDenominator:   int64(persistentRentRateDenominator),
 		TempRentRateDenominator:         int64(tempRentRateDenominator),
-		MaxEntriesToExpire:              uint32(maxEntriesToExpire),
+		MaxEntriesToArchive:             uint32(maxEntriesToArchive),
 		BucketListSizeWindowSampleSize:  uint32(bucketListSizeWindowSampleSize),
 		EvictionScanSize:                uint64(evictionScanSize),
 		StartingEvictionScanLevel:       uint32(startingEvictionScanLevel),

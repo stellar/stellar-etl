@@ -135,8 +135,8 @@ func mapOperationType(operation xdr.Operation) (string, error) {
 		op_string_type = "liquidity_pool_withdraw"
 	case xdr.OperationTypeInvokeHostFunction:
 		op_string_type = "invoke_host_function"
-	case xdr.OperationTypeBumpFootprintExpiration:
-		op_string_type = "bump_footprint_expiration"
+	case xdr.OperationTypeExtendFootprintTtl:
+		op_string_type = "extend_footprint_ttl"
 	case xdr.OperationTypeRestoreFootprint:
 		op_string_type = "restore_footprint"
 	default:
@@ -1003,10 +1003,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
-	case xdr.OperationTypeBumpFootprintExpiration:
-		op := operation.Body.MustBumpFootprintExpirationOp()
-		details["type"] = "bump_footprint_expiration"
-		details["ledgers_to_expire"] = op.LedgersToExpire
+	case xdr.OperationTypeExtendFootprintTtl:
+		op := operation.Body.MustExtendFootprintTtlOp()
+		details["type"] = "extend_footprint_ttl"
+		details["extend_to"] = op.ExtendTo
 
 		transactionEnvelope := transaction.Envelope.MustV1()
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
@@ -1592,10 +1592,10 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
-	case xdr.OperationTypeBumpFootprintExpiration:
-		op := operation.operation.Body.MustBumpFootprintExpirationOp()
-		details["type"] = "bump_footprint_expiration"
-		details["ledgers_to_expire"] = op.LedgersToExpire
+	case xdr.OperationTypeExtendFootprintTtl:
+		op := operation.operation.Body.MustExtendFootprintTtlOp()
+		details["type"] = "extend_footprint_ttl"
+		details["extend_to"] = op.ExtendTo
 
 		transactionEnvelope := operation.transaction.Envelope.MustV1()
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
@@ -1994,7 +1994,7 @@ func (operation *transactionOperationWrapper) Participants() ([]xdr.AccountId, e
 		// the only direct participant is the source_account
 	case xdr.OperationTypeInvokeHostFunction:
 		// the only direct participant is the source_account
-	case xdr.OperationTypeBumpFootprintExpiration:
+	case xdr.OperationTypeExtendFootprintTtl:
 		// the only direct participant is the source_account
 	case xdr.OperationTypeRestoreFootprint:
 		// the only direct participant is the source_account
