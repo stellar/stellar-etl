@@ -95,7 +95,7 @@ func extractBatch(
 		xdr.LedgerEntryTypeContractData,
 		xdr.LedgerEntryTypeContractCode,
 		xdr.LedgerEntryTypeConfigSetting,
-		xdr.LedgerEntryTypeExpiration}
+		xdr.LedgerEntryTypeTtl}
 
 	ledgerChanges := map[xdr.LedgerEntryType]LedgerChanges{}
 	ctx := context.Background()

@@ -83,8 +83,6 @@ func TransactionProcessing(l xdr.LedgerCloseMeta) []xdr.TransactionResultMeta {
 		return l.MustV0().TxProcessing
 	case 1:
 		return l.MustV1().TxProcessing
-	case 2:
-		return l.MustV2().TxProcessing
 	default:
 		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", l.V))
 	}

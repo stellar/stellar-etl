@@ -126,8 +126,8 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 		// For now, the only effects are related to the events themselves.
 		// Possible add'l work: https://github.com/stellar/go/issues/4585
 		err = wrapper.addInvokeHostFunctionEffects(filterEvents(diagnosticEvents))
-	case xdr.OperationTypeBumpFootprintExpiration:
-		err = wrapper.addBumpFootprintExpirationEffect()
+	case xdr.OperationTypeExtendFootprintTtl:
+		err = wrapper.addExtendFootprintTtlEffect()
 	case xdr.OperationTypeRestoreFootprint:
 		err = wrapper.addRestoreFootprintExpirationEffect()
 	default:
@@ -1426,8 +1426,8 @@ func (e *effectsWrapper) addInvokeHostFunctionEffects(events []contractevents.Ev
 	return nil
 }
 
-func (e *effectsWrapper) addBumpFootprintExpirationEffect() error {
-	op := e.operation.operation.Body.MustBumpFootprintExpirationOp()
+func (e *effectsWrapper) addExtendFootprintTtlEffect() error {
+	op := e.operation.operation.Body.MustExtendFootprintTtlOp()
 
 	// Figure out which entries were affected
 	changes, err := e.operation.transaction.GetOperationChanges(e.operation.index)
@@ -1442,9 +1442,9 @@ func (e *effectsWrapper) addBumpFootprintExpirationEffect() error {
 		}
 		var key xdr.LedgerKey
 		switch change.Post.Data.Type {
-		case xdr.LedgerEntryTypeExpiration:
-			v := change.Post.Data.MustExpiration()
-			if err := key.SetExpiration(v.KeyHash); err != nil {
+		case xdr.LedgerEntryTypeTtl:
+			v := change.Post.Data.MustTtl()
+			if err := key.SetTtl(v.KeyHash); err != nil {
 				return err
 			}
 		default:
@@ -1461,10 +1461,10 @@ func (e *effectsWrapper) addBumpFootprintExpirationEffect() error {
 		entries = append(entries, b64)
 	}
 	details := map[string]interface{}{
-		"entries":           entries,
-		"ledgers_to_expire": op.LedgersToExpire,
+		"entries":   entries,
+		"extend_to": op.ExtendTo,
 	}
-	e.addMuxed(e.operation.SourceAccount(), EffectBumpFootprintExpiration, details)
+	e.addMuxed(e.operation.SourceAccount(), EffectExtendFootprintTtl, details)
 	return nil
 }
 
@@ -1484,9 +1484,9 @@ func (e *effectsWrapper) addRestoreFootprintExpirationEffect() error {
 		}
 		var key xdr.LedgerKey
 		switch change.Post.Data.Type {
-		case xdr.LedgerEntryTypeExpiration:
-			v := change.Post.Data.MustExpiration()
-			if err := key.SetExpiration(v.KeyHash); err != nil {
+		case xdr.LedgerEntryTypeTtl:
+			v := change.Post.Data.MustTtl()
+			if err := key.SetTtl(v.KeyHash); err != nil {
 				return err
 			}
 		default:

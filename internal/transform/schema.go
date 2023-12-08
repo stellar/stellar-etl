@@ -60,7 +60,7 @@ type TransactionOutput struct {
 	MinAccountSequenceLedgerGap  null.Int       `json:"min_account_sequence_ledger_gap"`
 	ExtraSigners                 pq.StringArray `json:"extra_signers"`
 	ClosedAt                     time.Time      `json:"closed_at"`
-	RefundableFee                int64          `json:"refundable_fee"`
+	ResourceFee                  int64          `json:"resource_fee"`
 	SorobanResourcesInstructions uint32         `json:"soroban_resources_instructions"`
 	SorobanResourcesReadBytes    uint32         `json:"soroban_resources_read_bytes"`
 	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
@@ -396,7 +396,7 @@ const (
 	EffectLiquidityPoolRevoked               EffectType = 95
 	EffectContractCredited                   EffectType = 96
 	EffectContractDebited                    EffectType = 97
-	EffectBumpFootprintExpiration            EffectType = 98
+	EffectExtendFootprintTtl                 EffectType = 98
 	EffectRestoreFootprint                   EffectType = 99
 )
 
@@ -452,7 +452,7 @@ var EffectTypeNames = map[EffectType]string{
 	EffectLiquidityPoolRevoked:               "liquidity_pool_revoked",
 	EffectContractCredited:                   "contract_credited",
 	EffectContractDebited:                    "contract_debited",
-	EffectBumpFootprintExpiration:            "bump_footprint_expiration",
+	EffectExtendFootprintTtl:                 "extend_footprint_ttl",
 	EffectRestoreFootprint:                   "restore_footprint",
 }
 
@@ -545,13 +545,13 @@ type ConfigSettingOutput struct {
 	ContractCostParamsMemBytes      []map[string]string `json:"contract_cost_params_mem_bytes"`
 	ContractDataKeySizeBytes        uint32              `json:"contract_data_key_size_bytes"`
 	ContractDataEntrySizeBytes      uint32              `json:"contract_data_entry_size_bytes"`
-	MaxEntryExpiration              uint32              `json:"max_entry_expiration"`
-	MinTempEntryExpiration          uint32              `json:"min_temp_entry_expiration"`
-	MinPersistentEntryExpiration    uint32              `json:"min_persistent_entry_expiration"`
+	MaxEntryTtl                     uint32              `json:"max_entry_ttl"`
+	MinTemporaryTtl                 uint32              `json:"min_temporary_ttl"`
+	MinPersistentTtl                uint32              `json:"min_persistent_ttl"`
 	AutoBumpLedgers                 uint32              `json:"auto_bump_ledgers"`
 	PersistentRentRateDenominator   int64               `json:"persistent_rent_rate_denominator"`
 	TempRentRateDenominator         int64               `json:"temp_rent_rate_denominator"`
-	MaxEntriesToExpire              uint32              `json:"max_entries_to_expire"`
+	MaxEntriesToArchive             uint32              `json:"max_entries_to_archive"`
 	BucketListSizeWindowSampleSize  uint32              `json:"bucket_list_size_window_sample_size"`
 	EvictionScanSize                uint64              `json:"eviction_scan_size"`
 	StartingEvictionScanLevel       uint32              `json:"starting_eviction_scan_level"`
@@ -564,18 +564,18 @@ type ConfigSettingOutput struct {
 	LedgerSequence                  uint32              `json:"ledger_sequence"`
 }
 
-// ExpirationOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
-type ExpirationOutput struct {
-	KeyHash             string    `json:"key_hash"` // key_hash is contract_code_hash or contract_id
-	ExpirationLedgerSeq uint32    `json:"expiration_ledger_seq"`
-	LastModifiedLedger  uint32    `json:"last_modified_ledger"`
-	LedgerEntryChange   uint32    `json:"ledger_entry_change"`
-	Deleted             bool      `json:"deleted"`
-	ClosedAt            time.Time `json:"closed_at"`
-	LedgerSequence      uint32    `json:"ledger_sequence"`
+// TtlOutput is a representation of soroban ttl that aligns with the Bigquery table ttls
+type TtlOutput struct {
+	KeyHash            string    `json:"key_hash"` // key_hash is contract_code_hash or contract_id
+	LiveUntilLedgerSeq uint32    `json:"live_until_ledger_seq"`
+	LastModifiedLedger uint32    `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
+	Deleted            bool      `json:"deleted"`
+	ClosedAt           time.Time `json:"closed_at"`
+	LedgerSequence     uint32    `json:"ledger_sequence"`
 }
 
-// DiagnosticEventOutput is a representation of soroban expiration that aligns with the Bigquery table expirations
+// DiagnosticEventOutput is a representation of soroban diagnostic events that currently are not stored in a BQ table
 type DiagnosticEventOutput struct {
 	TransactionHash          string    `json:"transaction_hash"`
 	LedgerSequence           uint32    `json:"ledger_sequence"`

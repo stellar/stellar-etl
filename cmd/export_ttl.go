@@ -13,9 +13,9 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-var expirationCmd = &cobra.Command{
-	Use:   "export_expiration",
-	Short: "Exports the expiration information.",
+var ttlCmd = &cobra.Command{
+	Use:   "export_ttl",
+	Short: "Exports the ttl information.",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
@@ -25,7 +25,7 @@ var expirationCmd = &cobra.Command{
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 
-		expirations, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeExpiration, env.ArchiveURLs)
+		ttls, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeTtl, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("Error getting ledger entries: ", err)
 		}
@@ -34,17 +34,17 @@ var expirationCmd = &cobra.Command{
 		numFailures := 0
 		totalNumBytes := 0
 		var header xdr.LedgerHeaderHistoryEntry
-		for _, expiration := range expirations {
-			transformed, err := transform.TransformExpiration(expiration, header)
+		for _, ttl := range ttls {
+			transformed, err := transform.TransformTtl(ttl, header)
 			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not transform expiration %+v: %v", expiration, err))
+				cmdLogger.LogError(fmt.Errorf("could not transform ttl %+v: %v", ttl, err))
 				numFailures += 1
 				continue
 			}
 
 			numBytes, err := exportEntry(transformed, outFile, extra)
 			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not export expiration %+v: %v", expiration, err))
+				cmdLogger.LogError(fmt.Errorf("could not export ttl %+v: %v", ttl, err))
 				numFailures += 1
 				continue
 			}
@@ -53,18 +53,18 @@ var expirationCmd = &cobra.Command{
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(expirations), numFailures)
+		printTransformStats(len(ttls), numFailures)
 		maybeUpload(gcpCredentials, gcsBucket, path)
 
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(expirationCmd)
-	utils.AddCommonFlags(expirationCmd.Flags())
-	utils.AddBucketFlags("expiration", expirationCmd.Flags())
-	utils.AddGcsFlags(expirationCmd.Flags())
-	expirationCmd.MarkFlagRequired("end-ledger")
+	rootCmd.AddCommand(ttlCmd)
+	utils.AddCommonFlags(ttlCmd.Flags())
+	utils.AddBucketFlags("ttl", ttlCmd.Flags())
+	utils.AddGcsFlags(ttlCmd.Flags())
+	ttlCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			end-ledger: the ledger sequence number for the end of the export range (required)
