@@ -9,7 +9,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-// TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
+// TransformTtl converts an ttl ledger change entry into a form suitable for BigQuery
 func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (TtlOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
