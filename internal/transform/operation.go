@@ -945,6 +945,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
 			args = append(args, invokeArgs.Args...)
 			params := make([]map[string]string, 0, len(args))
+			var decodedSymbolParamNames []string
 
 			details["type"] = "invoke_contract"
 
@@ -962,10 +963,14 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 					if raw, err := param.MarshalBinary(); err == nil {
 						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
 					}
+					if scValTypeName == "Sym" {
+						decodedSymbolParamNames = append(decodedSymbolParamNames, param.String())
+					}
 				}
 				params = append(params, serializedParam)
 			}
 			details["parameters"] = params
+			details["decoded_symbol_param_names"] = decodedSymbolParamNames
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction, network); err != nil {
 				return nil, err
@@ -1534,6 +1539,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
 			args = append(args, invokeArgs.Args...)
 			params := make([]map[string]string, 0, len(args))
+			var decodedSymbolParamNames []string
 
 			details["type"] = "invoke_contract"
 
@@ -1551,10 +1557,15 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 					if raw, err := param.MarshalBinary(); err == nil {
 						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
 					}
+					if scValTypeName == "Sym" {
+						decodedSymbolParamNames = append(decodedSymbolParamNames, param.String())
+					}
+
 				}
 				params = append(params, serializedParam)
 			}
 			details["parameters"] = params
+			details["decoded_symbol_param_names"] = decodedSymbolParamNames
 
 			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
 				return nil, err
