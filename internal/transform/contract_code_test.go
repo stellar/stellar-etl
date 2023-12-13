@@ -93,6 +93,7 @@ func makeContractCodeTestOutput() []ContractCodeOutput {
 			Deleted:            false,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+			LedgerKeyHash:      "CDP62BQ5XZDE4D7TEB2E7TLAJLAIWOO2U5H2EQIQSNTFJS6LSFOMZRZJ",
 		},
 	}
 }

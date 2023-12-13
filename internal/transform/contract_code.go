@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 
+	"github.com/stellar/go/hash"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
@@ -26,6 +27,11 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		return ContractCodeOutput{}, nil
 	}
 
+	ledgerKey, _ := ledgerEntry.LedgerKey()
+	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
+	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
+	ledgerKeyHash, _ := strkey.Encode(strkey.VersionByteContract, hashedLedgerKeyByte[:])
+
 	contractCodeExtV := contractCode.Ext.V
 
 	contractCodeHashByte, _ := contractCode.Hash.MarshalBinary()
@@ -46,6 +52,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
+		LedgerKeyHash:      ledgerKeyHash,
 	}
 	return transformedCode, nil
 }

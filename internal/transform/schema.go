@@ -498,6 +498,7 @@ type ContractDataOutput struct {
 	Deleted                   bool      `json:"deleted"`
 	ClosedAt                  time.Time `json:"closed_at"`
 	LedgerSequence            uint32    `json:"ledger_sequence"`
+	LedgerKeyHash             string    `json:"ledger_key_hash"`
 }
 
 // ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
@@ -509,6 +510,7 @@ type ContractCodeOutput struct {
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
+	LedgerKeyHash      string    `json:"ledger_key_hash"`
 	//ContractCodeCode                string `json:"contract_code"`
 }
 
