@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/stellar/go/hash"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
@@ -76,10 +75,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, nil, false
 	}
 
-	ledgerKey, _ := ledgerEntry.LedgerKey()
-	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
-	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
-	ledgerKeyHash, _ := strkey.Encode(strkey.VersionByteContract, hashedLedgerKeyByte[:])
+	ledgerKeyHash := utils.LedgerEntryToLedgerKeyHash(ledgerEntry)
 
 	var contractDataAssetType string
 	var contractDataAssetCode string

@@ -10,11 +10,13 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"github.com/stellar/go/hash"
 	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -687,4 +689,13 @@ func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerC
 func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
 	headerHistoryEntry := lcm.LedgerHeaderHistoryEntry()
 	return ExtractLedgerCloseTime(headerHistoryEntry)
+}
+
+func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
+	ledgerKey, _ := ledgerEntry.LedgerKey()
+	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
+	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
+	ledgerKeyHash, _ := strkey.Encode(strkey.VersionByteContract, hashedLedgerKeyByte[:])
+
+	return ledgerKeyHash
 }
