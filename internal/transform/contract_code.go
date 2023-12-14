@@ -26,6 +26,8 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		return ContractCodeOutput{}, nil
 	}
 
+	ledgerKeyHash := utils.LedgerEntryToLedgerKeyHash(ledgerEntry)
+
 	contractCodeExtV := contractCode.Ext.V
 
 	contractCodeHashByte, _ := contractCode.Hash.MarshalBinary()
@@ -46,6 +48,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
+		LedgerKeyHash:      ledgerKeyHash,
 	}
 	return transformedCode, nil
 }

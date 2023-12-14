@@ -945,6 +945,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
 			args = append(args, invokeArgs.Args...)
 			params := make([]map[string]string, 0, len(args))
+			paramsDecoded := make([]map[string]string, 0, len(args))
 
 			details["type"] = "invoke_contract"
 
@@ -957,15 +958,23 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 				serializedParam["value"] = "n/a"
 				serializedParam["type"] = "n/a"
 
+				serializedParamDecoded := map[string]string{}
+				serializedParamDecoded["value"] = "n/a"
+				serializedParamDecoded["type"] = "n/a"
+
 				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
 					serializedParam["type"] = scValTypeName
+					serializedParamDecoded["type"] = scValTypeName
 					if raw, err := param.MarshalBinary(); err == nil {
 						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+						serializedParamDecoded["value"] = param.String()
 					}
 				}
 				params = append(params, serializedParam)
+				paramsDecoded = append(paramsDecoded, serializedParamDecoded)
 			}
 			details["parameters"] = params
+			details["parameters_decoded"] = paramsDecoded
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction, network); err != nil {
 				return nil, err
@@ -1534,6 +1543,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
 			args = append(args, invokeArgs.Args...)
 			params := make([]map[string]string, 0, len(args))
+			paramsDecoded := make([]map[string]string, 0, len(args))
 
 			details["type"] = "invoke_contract"
 
@@ -1546,15 +1556,23 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 				serializedParam["value"] = "n/a"
 				serializedParam["type"] = "n/a"
 
+				serializedParamDecoded := map[string]string{}
+				serializedParamDecoded["value"] = "n/a"
+				serializedParamDecoded["type"] = "n/a"
+
 				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
 					serializedParam["type"] = scValTypeName
+					serializedParamDecoded["type"] = scValTypeName
 					if raw, err := param.MarshalBinary(); err == nil {
 						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+						serializedParamDecoded["value"] = param.String()
 					}
 				}
 				params = append(params, serializedParam)
+				paramsDecoded = append(paramsDecoded, serializedParamDecoded)
 			}
 			details["parameters"] = params
+			details["parameters_decoded"] = paramsDecoded
 
 			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
 				return nil, err

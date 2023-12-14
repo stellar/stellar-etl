@@ -75,6 +75,8 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, nil, false
 	}
 
+	ledgerKeyHash := utils.LedgerEntryToLedgerKeyHash(ledgerEntry)
+
 	var contractDataAssetType string
 	var contractDataAssetCode string
 	var contractDataAssetIssuer string
@@ -128,6 +130,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		Deleted:                   outputDeleted,
 		ClosedAt:                  closedAt,
 		LedgerSequence:            uint32(ledgerSequence),
+		LedgerKeyHash:             ledgerKeyHash,
 	}
 	return transformedData, nil, true
 }

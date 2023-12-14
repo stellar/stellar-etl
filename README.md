@@ -16,7 +16,7 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 	  - [export_contract_data (futurenet, testnet)](#export_contract_data)
 	  - [export_contract_code (futurenet, testnet)](#export_contract_code)
 	  - [export_config_settings (futurenet, testnet)](#export_config_settings)
-	  - [export_expiration (futurenet, testnet)](#export_expiration)
+	  - [export_ttl (futurenet, testnet)](#export_ttl)
 	- [History Archive Commands](#history-archive-commands)
 	  - [export_ledgers](#export_ledgers)
 	  - [export_transactions](#export_transactions)
@@ -65,7 +65,7 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
    - [export_contract_data](#export_contract_data)
    - [export_contract_code](#export_contract_code)
    - [export_config_settings](#export_config_settings)
-   - [export_expiration](#export_expiration)
+   - [export_ttl](#export_ttl)
 - [History Archive Commands](#history-archive-commands)
    - [export_ledgers](#export_ledgers)
    - [export_transactions](#export_transactions)
@@ -186,10 +186,10 @@ Exports historical config settings data from the genesis ledger to the provided 
 
 <br>
 
-### **export_expiration**
+### **export_ttl**
 
 ```bash
-> stellar-etl export_expiration --end-ledger 500000 --output export_expiration.txt
+> stellar-etl export_ttl --end-ledger 500000 --output export_ttl.txt
 ```
 
 Exports historical expiration data from the genesis ledger to the provided end-ledger to an output file. The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it should be used in an initial data dump. In order to get expiration information within a specified ledger range, see the export_ledger_entry_changes command.
