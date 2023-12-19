@@ -275,7 +275,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-contract-code", "", false, "set in order to export contract code changes")
 	flags.BoolP("export-contract-data", "", false, "set in order to export contract data changes")
 	flags.BoolP("export-config-settings", "", false, "set in order to export config settings changes")
-	flags.BoolP("export-expiration", "", false, "set in order to export expiration changes")
+	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
@@ -381,7 +381,7 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 }
 
 // MustExportTypeFlags gets the values for the export-accounts, export-offers, and export-trustlines flags. If any do not exist, it stops the program fatally using the logger
-// func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings, exportExpiration bool) {
+// func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) (exportAccounts, exportOffers, exportTrustlines, exportPools, exportBalances, exportContractCode, exportContractData, exportConfigSettings, exportTtl bool) {
 func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]bool {
 	var err error
 	exports := map[string]bool{
@@ -393,7 +393,7 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-contract-code":   false,
 		"export-contract-data":   false,
 		"export-config-settings": false,
-		"export-expiration":      false,
+		"export-ttl":             false,
 	}
 
 	for export_name, _ := range exports {
