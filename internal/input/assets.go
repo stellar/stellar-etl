@@ -37,7 +37,7 @@ func GetPaymentOperations(start, end uint32, limit int64, isTest bool, isFuture 
 
 		for txIndex, transaction := range transactionSet {
 			for opIndex, op := range transaction.Operations() {
-				if op.Body.Type == xdr.OperationTypePayment {
+				if op.Body.Type == xdr.OperationTypePayment || op.Body.Type == xdr.OperationTypeManageSellOffer {
 					assetSlice = append(assetSlice, AssetTransformInput{
 						Operation:        op,
 						OperationIndex:   int32(opIndex),
