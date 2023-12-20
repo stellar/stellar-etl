@@ -949,7 +949,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 			details["type"] = "invoke_contract"
 
-			transactionEnvelope := transaction.Envelope.MustV1()
+			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -986,7 +986,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			args := op.HostFunction.MustCreateContract()
 			details["type"] = "create_contract"
 
-			transactionEnvelope := transaction.Envelope.MustV1()
+			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1007,7 +1007,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
-			transactionEnvelope := transaction.Envelope.MustV1()
+			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
@@ -1017,13 +1017,13 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["type"] = "extend_footprint_ttl"
 		details["extend_to"] = op.ExtendTo
 
-		transactionEnvelope := transaction.Envelope.MustV1()
+		transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	case xdr.OperationTypeRestoreFootprint:
 		details["type"] = "restore_footprint"
 
-		transactionEnvelope := transaction.Envelope.MustV1()
+		transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
@@ -1547,7 +1547,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 
 			details["type"] = "invoke_contract"
 
-			transactionEnvelope := operation.transaction.Envelope.MustV1()
+			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1584,7 +1584,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			args := op.HostFunction.MustCreateContract()
 			details["type"] = "create_contract"
 
-			transactionEnvelope := operation.transaction.Envelope.MustV1()
+			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1605,7 +1605,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
-			transactionEnvelope := operation.transaction.Envelope.MustV1()
+			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
@@ -1615,13 +1615,13 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		details["type"] = "extend_footprint_ttl"
 		details["extend_to"] = op.ExtendTo
 
-		transactionEnvelope := operation.transaction.Envelope.MustV1()
+		transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	case xdr.OperationTypeRestoreFootprint:
 		details["type"] = "restore_footprint"
 
-		transactionEnvelope := operation.transaction.Envelope.MustV1()
+		transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
@@ -1637,6 +1637,17 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 	}
 
 	return details, nil
+}
+
+func getTransactionV1Envelope(transactionEnvelope xdr.TransactionEnvelope) xdr.TransactionV1Envelope {
+	switch transactionEnvelope.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		return transactionEnvelope.MustV1()
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		return transactionEnvelope.MustFeeBump().Tx.InnerTx.MustV1()
+	}
+
+	return xdr.TransactionV1Envelope{}
 }
 
 func contractIdFromTxEnvelope(transactionEnvelope xdr.TransactionV1Envelope) string {
