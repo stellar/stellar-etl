@@ -247,11 +247,12 @@ func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 }
 
-// AddGcsFlags adds the gcs-related flags: gcs-bucket, gcp-credentials
-func AddGcsFlags(flags *pflag.FlagSet) {
-	flags.String("gcs-bucket", "stellar-etl-cli", "GCS bucket to export to.")
-	flags.StringP("gcp-credentials", "g", "", "Path to GOOGLE_APPLICATION_CREDENTIALS, service account json. Only used for local/dev purposes. "+
-		"When run on GCP, credentials should be inferred by service account.")
+// AddCloudStorageFlags adds the cloud storage releated flags: cloud-storage-bucket, cloud-credentials
+func AddCloudStorageFlags(flags *pflag.FlagSet) {
+	flags.String("cloud-storage-bucket", "stellar-etl-cli", "Cloud storage bucket to export to.")
+	flags.String("cloud-credentials", "", "Path to cloud provider service account credentials. Only used for local/dev purposes. "+
+		"When run on GCP, credentials should be inferred by service account json.")
+	flags.String("cloud-provider", "", "Cloud provider for storage services.")
 }
 
 // AddCoreFlags adds the captive core specific flags: core-executable, core-config, batch-size, and output flags
@@ -337,16 +338,23 @@ func MustBucketFlags(flags *pflag.FlagSet, logger *EtlLogger) (path string) {
 	return
 }
 
-// MustGcsFlags gets the values of the bucket list specific flags: gcp-project and gcs-bucket
-func MustGcsFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, credentials string) {
-	bucket, err := flags.GetString("gcs-bucket")
+// MustCloudStorageFlags gets the values of the bucket list specific flags: cloud-storage-bucket, cloud-credentials
+func MustCloudStorageFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, credentials, provider string) {
+	bucket, err := flags.GetString("cloud-storage-bucket")
 	if err != nil {
-		logger.Fatal("could not get gcs bucket: ", err)
+		logger.Fatal("could not get cloud storage bucket: ", err)
 	}
-	credentials, err = flags.GetString("gcp-credentials")
+
+	credentials, err = flags.GetString("cloud-credentials")
 	if err != nil {
-		logger.Fatal("could not get GOOGLE_APPLICATION_CREDENTIALS file: ", err)
+		logger.Fatal("could not get cloud credentials file: ", err)
 	}
+
+	provider, err = flags.GetString("cloud-provider")
+	if err != nil {
+		logger.Fatal("could not get cloud provider: ", err)
+	}
+
 	return
 }
 

@@ -16,7 +16,7 @@ var effectsCmd = &cobra.Command{
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		transactions, err := input.GetTransactions(startNum, endNum, limit, env)
@@ -53,7 +53,7 @@ var effectsCmd = &cobra.Command{
 
 		printTransformStats(len(transactions), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -61,7 +61,7 @@ func init() {
 	rootCmd.AddCommand(effectsCmd)
 	utils.AddCommonFlags(effectsCmd.Flags())
 	utils.AddArchiveFlags("effects", effectsCmd.Flags())
-	utils.AddGcsFlags(effectsCmd.Flags())
+	utils.AddCloudStorageFlags(effectsCmd.Flags())
 	effectsCmd.MarkFlagRequired("end-ledger")
 
 	/*

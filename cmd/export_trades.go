@@ -23,7 +23,7 @@ var tradesCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		trades, err := input.GetTrades(startNum, endNum, limit, env)
 		if err != nil {
@@ -58,7 +58,7 @@ var tradesCmd = &cobra.Command{
 
 		printTransformStats(len(trades), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -66,7 +66,7 @@ func init() {
 	rootCmd.AddCommand(tradesCmd)
 	utils.AddCommonFlags(tradesCmd.Flags())
 	utils.AddArchiveFlags("trades", tradesCmd.Flags())
-	utils.AddGcsFlags(tradesCmd.Flags())
+	utils.AddCloudStorageFlags(tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
 
 	/*

@@ -26,7 +26,7 @@ the export_ledger_entry_changes command.`,
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
 		if err != nil {
@@ -65,7 +65,7 @@ the export_ledger_entry_changes command.`,
 
 		printTransformStats(numSigners, numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -73,6 +73,6 @@ func init() {
 	rootCmd.AddCommand(accountSignersCmd)
 	utils.AddCommonFlags(accountSignersCmd.Flags())
 	utils.AddBucketFlags("signers", accountSignersCmd.Flags())
-	utils.AddGcsFlags(accountSignersCmd.Flags())
+	utils.AddCloudStorageFlags(accountSignersCmd.Flags())
 	accountSignersCmd.MarkFlagRequired("end-ledger")
 }

@@ -26,7 +26,7 @@ var claimableBalancesCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		balances, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeClaimableBalance, env.ArchiveURLs)
 		if err != nil {
@@ -59,7 +59,7 @@ var claimableBalancesCmd = &cobra.Command{
 
 		printTransformStats(len(balances), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -67,7 +67,7 @@ func init() {
 	rootCmd.AddCommand(claimableBalancesCmd)
 	utils.AddCommonFlags(claimableBalancesCmd.Flags())
 	utils.AddBucketFlags("claimable_balances", claimableBalancesCmd.Flags())
-	utils.AddGcsFlags(claimableBalancesCmd.Flags())
+	utils.AddCloudStorageFlags(claimableBalancesCmd.Flags())
 	claimableBalancesCmd.MarkFlagRequired("end-ledger")
 
 	/*
