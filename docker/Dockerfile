@@ -13,7 +13,7 @@ COPY . .
 RUN go build -v -o /usr/local/bin ./...
 
 # stage 2: runtime enviroment
-FROM chowbao/stellar-core:20.0.0-1615.617729910.focal
+FROM stellar/stellar-core:20.1.0-1656.114b833e7.focal
 
 WORKDIR /etl
 
