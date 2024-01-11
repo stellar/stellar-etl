@@ -80,6 +80,7 @@ func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]
 	return tradeSlice, nil
 }
 
+// operationResultsInTrade returns true if the operation results in a trade
 func operationResultsInTrade(operation xdr.Operation) bool {
 	switch operation.Body.Type {
 	case xdr.OperationTypeManageBuyOffer:
