@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"math/rand"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -538,7 +539,15 @@ var futureArchiveURLs = []string{
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
-	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{UserAgent: "stellar-etl/1.0.0"})
+	var archiveInterface historyarchive.ArchiveInterface
+
+	archivePool, err := historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{UserAgent: "stellar-etl/1.0.0"})
+	if err != nil {
+		return archiveInterface, err
+	}
+
+	// Use random archive pool
+	return archivePool[int32(rand.Intn(len(archivePool)))], nil
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence
