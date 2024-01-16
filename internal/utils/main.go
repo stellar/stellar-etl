@@ -17,6 +17,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/strkey"
+	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -538,7 +539,12 @@ var futureArchiveURLs = []string{
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
-	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{UserAgent: "stellar-etl/1.0.0"})
+	archiveOptions := historyarchive.ArchiveOptions{
+		ConnectOptions: storage.ConnectOptions{
+			UserAgent: "stellar-etl/1.0.0",
+		},
+	}
+	return historyarchive.NewArchivePool(archiveURLS, archiveOptions)
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence
