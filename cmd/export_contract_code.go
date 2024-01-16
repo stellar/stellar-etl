@@ -16,7 +16,10 @@ import (
 var codeCmd = &cobra.Command{
 	Use:   "export_contract_code",
 	Short: "Exports the contract code information.",
-	Long:  ``,
+	Long:  `Exports historical contract code data from the genesis ledger to the provided end-ledger to an output file. 
+	The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
+	should be used in an initial data dump. In order to get offer information within a specified ledger range, see 
+	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)

@@ -33,6 +33,7 @@ type OrderbookParser struct {
 	Logger            *utils.EtlLogger
 }
 
+// convertOffer converts an offer to its normalized form and adds it to the AllConvertedOffers
 func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.NormalizedOfferOutput, index int, offer ingest.Change, seq uint32, wg *sync.WaitGroup) {
 	defer wg.Done()
 	transformed, err := transform.TransformOfferNormalized(offer, seq)
@@ -44,6 +45,7 @@ func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.Normalized
 	}
 }
 
+// NewOrderbookParser creates a new orderbook parser and returns it
 func NewOrderbookParser(logger *utils.EtlLogger) OrderbookParser {
 	return OrderbookParser{
 		Events:            make([][]byte, 0),
@@ -56,6 +58,7 @@ func NewOrderbookParser(logger *utils.EtlLogger) OrderbookParser {
 		Logger:            logger,
 	}
 }
+
 
 func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) {
 	var group sync.WaitGroup

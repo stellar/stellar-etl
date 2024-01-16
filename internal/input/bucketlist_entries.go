@@ -35,6 +35,7 @@ func GetEntriesFromGenesis(end uint32, entryType xdr.LedgerEntryType, archiveURL
 	return readBucketList(archive, checkpointSeq, entryType)
 }
 
+// readBucketList reads the bucket list for the specified checkpoint sequence number and returns a slice of ledger entries of the specified type
 func readBucketList(archive historyarchive.ArchiveInterface, checkpointSeq uint32, entryType xdr.LedgerEntryType) ([]ingest.Change, error) {
 	changeReader, err := ingest.NewCheckpointChangeReader(context.Background(), archive, checkpointSeq)
 	defer changeReader.Close()
