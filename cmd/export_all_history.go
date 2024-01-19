@@ -22,7 +22,7 @@ in order to mitigate egress costs for the entity hosting history archives.`,
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		startNum, _, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
@@ -31,11 +31,13 @@ in order to mitigate egress costs for the entity hosting history archives.`,
 			cmdLogger.Fatal("could not read all history: ", err)
 		}
 
-		getOperations(allHistory.Operations, extra, gcpCredentials, gcsBucket, "exported_operations.txt", env)
-		getTrades(allHistory.Trades, extra, gcpCredentials, gcsBucket, "exported_trades.txt")
-		getEffects(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, "exported_effects.txt", env)
-		getTransactions(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, "exported_transactions.txt")
-		getDiagnosticEvents(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, "exported_diagnostic_events.txt")
+		cmdLogger.Info("start doing other exports")
+		getOperations(allHistory.Operations, extra, gcpCredentials, gcsBucket, path+"exported_operations.txt", env)
+		getTrades(allHistory.Trades, extra, gcpCredentials, gcsBucket, path+"exported_trades.txt")
+		getEffects(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, path+"exported_effects.txt", env)
+		getTransactions(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, path+"exported_transactions.txt")
+		getDiagnosticEvents(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, path+"exported_diagnostic_events.txt")
+		cmdLogger.Info("done doing other exports")
 	},
 }
 
@@ -199,7 +201,7 @@ func getDiagnosticEvents(transactions []input.LedgerTransformInput, extra map[st
 func init() {
 	rootCmd.AddCommand(allHistoryCmd)
 	utils.AddCommonFlags(allHistoryCmd.Flags())
-	utils.AddArchiveFlags("all_history", allHistoryCmd.Flags())
+	utils.AddArchiveFlags("", allHistoryCmd.Flags())
 	utils.AddGcsFlags(allHistoryCmd.Flags())
 	allHistoryCmd.MarkFlagRequired("end-ledger")
 }
