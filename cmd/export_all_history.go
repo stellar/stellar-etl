@@ -16,7 +16,7 @@ var allHistoryCmd = &cobra.Command{
 	Use:   "export_all_history",
 	Short: "Exports all stellar network history.",
 	Long: `Exports historical stellar network data between provided start-ledger/end-ledger to output files. 
-This is a termporary command used to reduce the amount of requests to history archives 
+This is a temporary command used to reduce the amount of requests to history archives 
 in order to mitigate egress costs for the entity hosting history archives.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
