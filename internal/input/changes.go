@@ -51,6 +51,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			UseDB:              false,
+			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
 	if err != nil {

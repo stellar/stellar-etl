@@ -17,6 +17,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/strkey"
+	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -522,7 +523,7 @@ func CreateBackend(start, end uint32, archiveURLs []string) (historyArchiveBacke
 var mainArchiveURLs = []string{
 	"https://history.stellar.org/prd/core-live/core_live_001",
 	"https://history.stellar.org/prd/core-live/core_live_002",
-	//"https://history.stellar.org/prd/core-live/core_live_003",
+	"https://history.stellar.org/prd/core-live/core_live_003",
 }
 
 // testnet is only used for local testing with new Protocol features
@@ -538,7 +539,12 @@ var futureArchiveURLs = []string{
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
-	return historyarchive.NewArchivePool(archiveURLS, historyarchive.ConnectOptions{})
+	archiveOptions := historyarchive.ArchiveOptions{
+		ConnectOptions: storage.ConnectOptions{
+			UserAgent: "stellar-etl/1.0.0",
+		},
+	}
+	return historyarchive.NewArchivePool(archiveURLS, archiveOptions)
 }
 
 // GetLatestLedgerSequence returns the latest ledger sequence
@@ -661,6 +667,7 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			UseDB:              false,
+			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
 	return backend, err

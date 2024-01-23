@@ -11,6 +11,7 @@ import (
 var effectsCmd = &cobra.Command{
 	Use:   "export_effects",
 	Short: "Exports the effects data over a specified range",
+	Long:  "Exports the effects data over a specified range to an output file.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
