@@ -19,25 +19,25 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 		return AssetOutput{}, fmt.Errorf("operation of type %d cannot issue an asset (id %d)", opType, operationID)
 	}
 
-	op := xdr.Asset{}
+	asset := xdr.Asset{}
 	switch opType {
 	case xdr.OperationTypeManageSellOffer:
 		opSellOf, ok := operation.Body.GetManageSellOfferOp()
 		if ok {
 			return AssetOutput{}, fmt.Errorf("operation of type ManageSellOfferOp cannot issue an asset (id %d)", operationID)
 		}
-		op = opSellOf.Selling
+		asset = opSellOf.Selling
 
 	case xdr.OperationTypePayment:
 		opPayment, ok := operation.Body.GetPaymentOp()
 		if !ok {
 			return AssetOutput{}, fmt.Errorf("could not access Payment info for this operation (id %d)", operationID)
 		}
-		op = opPayment.Asset
+		asset = opPayment.Asset
 
 	}
 
-	outputAsset, err := transformSingleAsset(op)
+	outputAsset, err := transformSingleAsset(asset)
 	if err != nil {
 		return AssetOutput{}, fmt.Errorf("%s (id %d)", err.Error(), operationID)
 	}
