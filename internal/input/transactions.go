@@ -38,7 +38,7 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 			return nil, errors.Wrap(err, "error getting ledger from the backend")
 		}
 
-		txReader, err := ingest.NewLedgerChangeReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledgerCloseMeta)
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledgerCloseMeta)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
