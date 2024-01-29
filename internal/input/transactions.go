@@ -33,17 +33,18 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		txReader, err := ingest.NewLedgerTransactionReader(ctx, backend, env.NetworkPassphrase, seq)
+		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
+		if err != nil {
+			return nil, errors.Wrap(err, "error getting ledger from the backend")
+		}
+
+		txReader, err := ingest.NewLedgerChangeReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledgerCloseMeta)
 		if err != nil {
 			return []LedgerTransformInput{}, err
 		}
 
 		lhe := txReader.GetHeader()
 
-		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
-		if err != nil {
-			return nil, errors.Wrap(err, "error getting ledger from the backend")
-		}
 		// A negative limit value means that all input should be processed
 		for int64(len(txSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
