@@ -23,7 +23,7 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 	switch opType {
 	case xdr.OperationTypeManageSellOffer:
 		opSellOf, ok := operation.Body.GetManageSellOfferOp()
-		if ok {
+		if !ok {
 			return AssetOutput{}, fmt.Errorf("operation of type ManageSellOfferOp cannot issue an asset (id %d)", operationID)
 		}
 		asset = opSellOf.Selling
