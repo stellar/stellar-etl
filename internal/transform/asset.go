@@ -2,7 +2,6 @@ package transform
 
 import (
 	"fmt"
-	"hash/fnv"
 
 	"github.com/dgryski/go-farm"
 	"github.com/stellar/stellar-etl/internal/toid"
@@ -52,31 +51,14 @@ func transformSingleAsset(asset xdr.Asset) (AssetOutput, error) {
 		return AssetOutput{}, fmt.Errorf("could not extract asset from this operation")
 	}
 
-	outputAssetID, err := hashAsset(outputAssetCode, outputAssetIssuer)
-	if err != nil {
-		return AssetOutput{}, fmt.Errorf("unable to hash asset for payment operation")
-	}
-
 	farmAssetID := FarmHashAsset(outputAssetCode, outputAssetIssuer, outputAssetType)
 
 	return AssetOutput{
 		AssetCode:   outputAssetCode,
 		AssetIssuer: outputAssetIssuer,
 		AssetType:   outputAssetType,
-		AssetID:     outputAssetID,
-		ID:          farmAssetID,
+		AssetID:     farmAssetID,
 	}, nil
-}
-
-func hashAsset(assetCode, assetIssuer string) (uint64, error) {
-	asset := fmt.Sprintf("%s:%s", assetCode, assetIssuer)
-	fnvHasher := fnv.New64a()
-	if _, err := fnvHasher.Write([]byte(asset)); err != nil {
-		return 0, err
-	}
-
-	hash := fnvHasher.Sum64()
-	return hash, nil
 }
 
 func FarmHashAsset(assetCode, assetIssuer, assetType string) int64 {

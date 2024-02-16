@@ -29,7 +29,7 @@ var assetsCmd = &cobra.Command{
 		}
 
 		// With seenIDs, the code doesn't export duplicate assets within a single export. Note that across exports, assets may be duplicated
-		seenIDs := map[uint64]bool{}
+		seenIDs := map[int64]bool{}
 		numFailures := 0
 		totalNumBytes := 0
 		for _, transformInput := range paymentOps {
