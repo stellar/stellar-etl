@@ -16,7 +16,10 @@ import (
 var ttlCmd = &cobra.Command{
 	Use:   "export_ttl",
 	Short: "Exports the ttl information.",
-	Long:  ``,
+	Long:  `Exports historical ttl data from the genesis ledger to the provided end-ledger to an output file. 
+	The command reads from the bucket list, which includes the full history of the Stellar ledger. As a result, it 
+	should be used in an initial data dump. In order to get offer information within a specified ledger range, see 
+	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
