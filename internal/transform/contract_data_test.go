@@ -131,7 +131,7 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			ContractDataAssetCode:     "",
 			ContractDataAssetIssuer:   "",
 			ContractDataAssetType:     "AssetTypeAssetTypeNative",
-			ContractDataBalanceHolder: "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+			ContractDataBalanceHolder: "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 			ContractDataBalance:       "0",
 			LastModifiedLedger:        24229503,
 			LedgerEntryChange:         1,
