@@ -94,7 +94,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 	dataBalanceHolder, dataBalance, _ := t.ContractBalanceFromContractData(ledgerEntry, passphrase)
 	if dataBalance != nil {
 		holderHashByte, _ := xdr.Hash(dataBalanceHolder).MarshalBinary()
-		contractDataBalanceHolder, _ = strkey.Encode(strkey.VersionByteContract, holderHashByte)
+		contractDataBalanceHolder, _ = strkey.Encode(strkey.VersionByteAccountID, holderHashByte)
 		contractDataBalance = dataBalance.String()
 	}
 
