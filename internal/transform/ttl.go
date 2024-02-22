@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -26,8 +25,7 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 		return TtlOutput{}, nil
 	}
 
-	keyHashByte, _ := ttl.KeyHash.MarshalBinary()
-	keyHash, _ := strkey.Encode(strkey.VersionByteContract, keyHashByte)
+	keyHash := ttl.KeyHash.HexString()
 	liveUntilLedgerSeq := ttl.LiveUntilLedgerSeq
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)

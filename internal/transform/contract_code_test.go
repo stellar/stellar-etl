@@ -86,14 +86,14 @@ func makeContractCodeTestInput() []ingest.Change {
 func makeContractCodeTestOutput() []ContractCodeOutput {
 	return []ContractCodeOutput{
 		{
-			ContractCodeHash:   "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+			ContractCodeHash:   "0000000000000000000000000000000000000000000000000000000000000000",
 			ContractCodeExtV:   1,
 			LastModifiedLedger: 24229503,
 			LedgerEntryChange:  1,
 			Deleted:            false,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-			LedgerKeyHash:      "CDP62BQ5XZDE4D7TEB2E7TLAJLAIWOO2U5H2EQIQSNTFJS6LSFOMZRZJ",
+			LedgerKeyHash:      "dfed061dbe464e0ff320744fcd604ac08b39daa74fa24110936654cbcb915ccc",
 		},
 	}
 }
