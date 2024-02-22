@@ -26,7 +26,7 @@ var configSettingCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		settings, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeConfigSetting, env.ArchiveURLs)
 		if err != nil {
@@ -57,7 +57,7 @@ var configSettingCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(settings), numFailures)
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 	},
 }
@@ -66,7 +66,7 @@ func init() {
 	rootCmd.AddCommand(configSettingCmd)
 	utils.AddCommonFlags(configSettingCmd.Flags())
 	utils.AddBucketFlags("config_settings", configSettingCmd.Flags())
-	utils.AddGcsFlags(configSettingCmd.Flags())
+	utils.AddCloudStorageFlags(configSettingCmd.Flags())
 	configSettingCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

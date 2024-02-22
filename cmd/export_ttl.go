@@ -26,7 +26,7 @@ var ttlCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		ttls, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeTtl, env.ArchiveURLs)
 		if err != nil {
@@ -57,7 +57,7 @@ var ttlCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(ttls), numFailures)
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 	},
 }
@@ -66,7 +66,7 @@ func init() {
 	rootCmd.AddCommand(ttlCmd)
 	utils.AddCommonFlags(ttlCmd.Flags())
 	utils.AddBucketFlags("ttl", ttlCmd.Flags())
-	utils.AddGcsFlags(ttlCmd.Flags())
+	utils.AddCloudStorageFlags(ttlCmd.Flags())
 	ttlCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

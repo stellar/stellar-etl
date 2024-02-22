@@ -19,7 +19,7 @@ var assetsCmd = &cobra.Command{
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		outFile := mustOutFile(path)
 
@@ -61,7 +61,7 @@ var assetsCmd = &cobra.Command{
 
 		printTransformStats(len(paymentOps), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -69,7 +69,7 @@ func init() {
 	rootCmd.AddCommand(assetsCmd)
 	utils.AddCommonFlags(assetsCmd.Flags())
 	utils.AddArchiveFlags("assets", assetsCmd.Flags())
-	utils.AddGcsFlags(assetsCmd.Flags())
+	utils.AddCloudStorageFlags(assetsCmd.Flags())
 	assetsCmd.MarkFlagRequired("end-ledger")
 
 	/*

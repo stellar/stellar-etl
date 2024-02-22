@@ -32,7 +32,7 @@ var exportOrderbooksCmd = &cobra.Command{
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		if batchSize <= 0 {
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
@@ -80,7 +80,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				}
 
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
 			}
 		} else {
 			// otherwise, we export in an unbounded manner where batches are constantly exported
@@ -89,7 +89,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser, gcpCredentials, gcsBucket, extra)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
 				batchNum++
 			}
 		}
@@ -128,7 +128,7 @@ func exportOrderbook(
 	start, end uint32,
 	folderPath string,
 	parser *input.OrderbookParser,
-	gcpCredentials, gcsBucket string,
+	cloudCredentials, cloudStorageBucket, cloudProvider string,
 	extra map[string]string) {
 	marketsFilePath := filepath.Join(folderPath, exportFilename(start, end, "dimMarkets"))
 	offersFilePath := filepath.Join(folderPath, exportFilename(start, end, "dimOffers"))
@@ -157,17 +157,17 @@ func exportOrderbook(
 		cmdLogger.LogError(err)
 	}
 
-	maybeUpload(gcpCredentials, gcsBucket, marketsFilePath)
-	maybeUpload(gcpCredentials, gcsBucket, offersFilePath)
-	maybeUpload(gcpCredentials, gcsBucket, accountsFilePath)
-	maybeUpload(gcpCredentials, gcsBucket, eventsFilePath)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, marketsFilePath)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, offersFilePath)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, accountsFilePath)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, eventsFilePath)
 }
 
 func init() {
 	rootCmd.AddCommand(exportOrderbooksCmd)
 	utils.AddCommonFlags(exportOrderbooksCmd.Flags())
 	utils.AddCoreFlags(exportOrderbooksCmd.Flags(), "orderbooks_output/")
-	utils.AddGcsFlags(exportOrderbooksCmd.Flags())
+	utils.AddCloudStorageFlags(exportOrderbooksCmd.Flags())
 
 	exportOrderbooksCmd.MarkFlagRequired("start-ledger")
 	/*

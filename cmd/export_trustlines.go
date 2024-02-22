@@ -27,7 +27,7 @@ var trustlinesCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		trustlines, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeTrustline, env.ArchiveURLs)
 		if err != nil {
@@ -61,7 +61,7 @@ var trustlinesCmd = &cobra.Command{
 
 		printTransformStats(len(trustlines), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -69,7 +69,7 @@ func init() {
 	rootCmd.AddCommand(trustlinesCmd)
 	utils.AddCommonFlags(trustlinesCmd.Flags())
 	utils.AddBucketFlags("trustlines", trustlinesCmd.Flags())
-	utils.AddGcsFlags(trustlinesCmd.Flags())
+	utils.AddCloudStorageFlags(trustlinesCmd.Flags())
 	trustlinesCmd.MarkFlagRequired("end-ledger")
 
 	/*

@@ -32,7 +32,7 @@ be exported.`,
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
@@ -252,7 +252,7 @@ be exported.`,
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, gcpCredentials, gcsBucket, extra)
+				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
@@ -266,7 +266,7 @@ func exportTransformedData(
 	start, end uint32,
 	folderPath string,
 	transformedOutput map[string][]interface{},
-	gcpCredentials, gcsBucket string,
+	cloudCredentials, cloudStorageBucket, cloudProvider string,
 	extra map[string]string) error {
 
 	for resource, output := range transformedOutput {
@@ -281,7 +281,7 @@ func exportTransformedData(
 				return err
 			}
 		}
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	}
 
 	return nil
@@ -292,7 +292,7 @@ func init() {
 	utils.AddCommonFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCoreFlags(exportLedgerEntryChangesCmd.Flags(), "changes_output/")
 	utils.AddExportTypeFlags(exportLedgerEntryChangesCmd.Flags())
-	utils.AddGcsFlags(exportLedgerEntryChangesCmd.Flags())
+	utils.AddCloudStorageFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
