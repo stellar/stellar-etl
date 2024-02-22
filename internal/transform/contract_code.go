@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -30,8 +29,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 
 	contractCodeExtV := contractCode.Ext.V
 
-	contractCodeHashByte, _ := contractCode.Hash.MarshalBinary()
-	contractCodeHash, _ := strkey.Encode(strkey.VersionByteContract, contractCodeHashByte)
+	contractCodeHash := contractCode.Hash.HexString()
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
 	if err != nil {

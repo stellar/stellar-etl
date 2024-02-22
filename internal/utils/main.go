@@ -16,7 +16,6 @@ import (
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
-	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
@@ -710,7 +709,7 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	ledgerKey, _ := ledgerEntry.LedgerKey()
 	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
 	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
-	ledgerKeyHash, _ := strkey.Encode(strkey.VersionByteContract, hashedLedgerKeyByte[:])
+	ledgerKeyHash := hex.EncodeToString(hashedLedgerKeyByte[:])
 
 	return ledgerKeyHash
 }

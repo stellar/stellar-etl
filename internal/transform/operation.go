@@ -1707,8 +1707,7 @@ func contractCodeFromContractData(ledgerKey xdr.LedgerKey) string {
 		return ""
 	}
 
-	contractCodeHashByte, _ := contractCode.Hash.MarshalBinary()
-	contractCodeHash, _ := strkey.Encode(strkey.VersionByteContract, contractCodeHashByte)
+	contractCodeHash := contractCode.Hash.HexString()
 	return contractCodeHash
 }
 

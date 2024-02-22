@@ -95,7 +95,7 @@ func makeTtlTestInput() []ingest.Change {
 func makeTtlTestOutput() []TtlOutput {
 	return []TtlOutput{
 		{
-			KeyHash:            "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+			KeyHash:            "0000000000000000000000000000000000000000000000000000000000000000",
 			LiveUntilLedgerSeq: 123,
 			LastModifiedLedger: 1,
 			LedgerEntryChange:  1,
