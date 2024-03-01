@@ -23,7 +23,7 @@ in order to mitigate egress costs for the entity hosting history archives.`,
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		allHistory, err := input.GetAllHistory(startNum, endNum, limit, env)
@@ -32,16 +32,16 @@ in order to mitigate egress costs for the entity hosting history archives.`,
 		}
 
 		cmdLogger.Info("start doing other exports")
-		getOperations(allHistory.Operations, extra, gcpCredentials, gcsBucket, path+"exported_operations.txt", env)
-		getTrades(allHistory.Trades, extra, gcpCredentials, gcsBucket, path+"exported_trades.txt")
-		getEffects(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, path+"exported_effects.txt", env)
-		getTransactions(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, path+"exported_transactions.txt")
-		getDiagnosticEvents(allHistory.Ledgers, extra, gcpCredentials, gcsBucket, path+"exported_diagnostic_events.txt")
+		getOperations(allHistory.Operations, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_operations.txt", env)
+		getTrades(allHistory.Trades, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_trades.txt")
+		getEffects(allHistory.Ledgers, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_effects.txt", env)
+		getTransactions(allHistory.Ledgers, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_transactions.txt")
+		getDiagnosticEvents(allHistory.Ledgers, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_diagnostic_events.txt")
 		cmdLogger.Info("done doing other exports")
 	},
 }
 
-func getOperations(operations []input.OperationTransformInput, extra map[string]string, gcpCredentials string, gcsBucket string, path string, env utils.EnvironmentDetails) {
+func getOperations(operations []input.OperationTransformInput, extra map[string]string, cloudStorageBucket string, cloudCredentials string, cloudProvider string, path string, env utils.EnvironmentDetails) {
 	outFileOperations := mustOutFile(path)
 	numFailures := 0
 	totalNumBytes := 0
@@ -68,10 +68,10 @@ func getOperations(operations []input.OperationTransformInput, extra map[string]
 
 	printTransformStats(len(operations), numFailures)
 
-	maybeUpload(gcpCredentials, gcsBucket, path)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 }
 
-func getTrades(trades []input.TradeTransformInput, extra map[string]string, gcpCredentials string, gcsBucket string, path string) {
+func getTrades(trades []input.TradeTransformInput, extra map[string]string, cloudStorageBucket string, cloudCredentials string, cloudProvider string, path string) {
 	outFile := mustOutFile(path)
 	numFailures := 0
 	totalNumBytes := 0
@@ -100,10 +100,10 @@ func getTrades(trades []input.TradeTransformInput, extra map[string]string, gcpC
 
 	printTransformStats(len(trades), numFailures)
 
-	maybeUpload(gcpCredentials, gcsBucket, path)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 }
 
-func getEffects(transactions []input.LedgerTransformInput, extra map[string]string, gcpCredentials string, gcsBucket string, path string, env utils.EnvironmentDetails) {
+func getEffects(transactions []input.LedgerTransformInput, extra map[string]string, cloudStorageBucket string, cloudCredentials string, cloudProvider string, path string, env utils.EnvironmentDetails) {
 	outFile := mustOutFile(path)
 	numFailures := 0
 	totalNumBytes := 0
@@ -133,10 +133,10 @@ func getEffects(transactions []input.LedgerTransformInput, extra map[string]stri
 
 	printTransformStats(len(transactions), numFailures)
 
-	maybeUpload(gcpCredentials, gcsBucket, path)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 }
 
-func getTransactions(transactions []input.LedgerTransformInput, extra map[string]string, gcpCredentials string, gcsBucket string, path string) {
+func getTransactions(transactions []input.LedgerTransformInput, extra map[string]string, cloudStorageBucket string, cloudCredentials string, cloudProvider string, path string) {
 	outFile := mustOutFile(path)
 	numFailures := 0
 	totalNumBytes := 0
@@ -163,10 +163,10 @@ func getTransactions(transactions []input.LedgerTransformInput, extra map[string
 
 	printTransformStats(len(transactions), numFailures)
 
-	maybeUpload(gcpCredentials, gcsBucket, path)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 }
 
-func getDiagnosticEvents(transactions []input.LedgerTransformInput, extra map[string]string, gcpCredentials string, gcsBucket string, path string) {
+func getDiagnosticEvents(transactions []input.LedgerTransformInput, extra map[string]string, cloudStorageBucket string, cloudCredentials string, cloudProvider string, path string) {
 	outFile := mustOutFile(path)
 	numFailures := 0
 	for _, transformInput := range transactions {
@@ -195,13 +195,13 @@ func getDiagnosticEvents(transactions []input.LedgerTransformInput, extra map[st
 
 	printTransformStats(len(transactions), numFailures)
 
-	maybeUpload(gcpCredentials, gcsBucket, path)
+	maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 }
 
 func init() {
 	rootCmd.AddCommand(allHistoryCmd)
 	utils.AddCommonFlags(allHistoryCmd.Flags())
 	utils.AddArchiveFlags("", allHistoryCmd.Flags())
-	utils.AddGcsFlags(allHistoryCmd.Flags())
+	utils.AddCloudStorageFlags(allHistoryCmd.Flags())
 	allHistoryCmd.MarkFlagRequired("end-ledger")
 }

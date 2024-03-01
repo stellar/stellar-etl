@@ -19,7 +19,7 @@ var ledgerTransactionCmd = &cobra.Command{
 		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 
 		ledgerTransaction, err := input.GetTransactions(startNum, endNum, limit, env)
@@ -53,7 +53,7 @@ var ledgerTransactionCmd = &cobra.Command{
 
 		printTransformStats(len(ledgerTransaction), numFailures)
 
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 	},
 }
 
@@ -61,7 +61,7 @@ func init() {
 	rootCmd.AddCommand(ledgerTransactionCmd)
 	utils.AddCommonFlags(ledgerTransactionCmd.Flags())
 	utils.AddArchiveFlags("ledger_transaction", ledgerTransactionCmd.Flags())
-	utils.AddGcsFlags(ledgerTransactionCmd.Flags())
+	utils.AddCloudStorageFlags(ledgerTransactionCmd.Flags())
 	ledgerTransactionCmd.MarkFlagRequired("end-ledger")
 
 	/*

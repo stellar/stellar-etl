@@ -26,7 +26,7 @@ the export_ledger_entry_changes command.`,
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
 		if err != nil {
@@ -57,7 +57,7 @@ the export_ledger_entry_changes command.`,
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(pools), numFailures)
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 	},
 }
@@ -66,7 +66,7 @@ func init() {
 	rootCmd.AddCommand(poolsCmd)
 	utils.AddCommonFlags(poolsCmd.Flags())
 	utils.AddBucketFlags("pools", poolsCmd.Flags())
-	utils.AddGcsFlags(poolsCmd.Flags())
+	utils.AddCloudStorageFlags(poolsCmd.Flags())
 	poolsCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:

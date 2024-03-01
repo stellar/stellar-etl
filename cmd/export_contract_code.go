@@ -26,7 +26,7 @@ var codeCmd = &cobra.Command{
 		cmdLogger.StrictExport = strictExport
 		env := utils.GetEnvironmentDetails(isTest, isFuture)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
-		gcsBucket, gcpCredentials := utils.MustGcsFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		codes, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeContractCode, env.ArchiveURLs)
 		if err != nil {
@@ -57,7 +57,7 @@ var codeCmd = &cobra.Command{
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
 		printTransformStats(len(codes), numFailures)
-		maybeUpload(gcpCredentials, gcsBucket, path)
+		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 	},
 }
@@ -66,7 +66,7 @@ func init() {
 	rootCmd.AddCommand(codeCmd)
 	utils.AddCommonFlags(codeCmd.Flags())
 	utils.AddBucketFlags("contract_code", codeCmd.Flags())
-	utils.AddGcsFlags(codeCmd.Flags())
+	utils.AddCloudStorageFlags(codeCmd.Flags())
 	codeCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
