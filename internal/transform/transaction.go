@@ -155,6 +155,8 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
 	}
 
+	outputTxResultCode := transaction.Result.Result.Result.Code.String()
+
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
 		TransactionHash:              outputTransactionHash,
@@ -184,6 +186,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		SorobanResourcesInstructions: outputSorobanResourcesInstructions,
 		SorobanResourcesReadBytes:    outputSorobanResourcesReadBytes,
 		SorobanResourcesWriteBytes:   outputSorobanResourcesWriteBytes,
+		TransactionResultCode:        outputTxResultCode,
 	}
 
 	// Add Muxed Account Details, if exists

@@ -66,15 +66,28 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
+	outputOperationResults, ok := transaction.Result.Result.OperationResults()
+	if !ok {
+		return OperationOutput{}, err
+	}
+	outputOperationResultCode := outputOperationResults[operationIndex].Code.String()
+	// TODO: add trace code details
+	outputOperationTraceCode, err := mapOperationTrace(*outputOperationResults[operationIndex].Tr)
+	if err != nil {
+		return OperationOutput{}, err
+	}
+
 	transformedOperation := OperationOutput{
-		SourceAccount:      outputSourceAccount,
-		SourceAccountMuxed: outputSourceAccountMuxed.String,
-		Type:               outputOperationType,
-		TypeString:         outputOperationTypeString,
-		TransactionID:      outputTransactionID,
-		OperationID:        outputOperationID,
-		OperationDetails:   outputDetails,
-		ClosedAt:           outputCloseTime,
+		SourceAccount:       outputSourceAccount,
+		SourceAccountMuxed:  outputSourceAccountMuxed.String,
+		Type:                outputOperationType,
+		TypeString:          outputOperationTypeString,
+		TransactionID:       outputTransactionID,
+		OperationID:         outputOperationID,
+		OperationDetails:    outputDetails,
+		ClosedAt:            outputCloseTime,
+		OperationResultCode: outputOperationResultCode,
+		OperationTraceCode:  outputOperationTraceCode,
 	}
 
 	return transformedOperation, nil
@@ -143,6 +156,71 @@ func mapOperationType(operation xdr.Operation) (string, error) {
 		return op_string_type, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
 	}
 	return op_string_type, nil
+}
+
+func mapOperationTrace(operationTrace xdr.OperationResultTr) (string, error) {
+	var operationTraceDescription string
+	operationType := operationTrace.Type
+
+	switch operationType {
+	case xdr.OperationTypeCreateAccount:
+		operationTraceDescription = operationTrace.CreateAccountResult.Code.String()
+	case xdr.OperationTypePayment:
+		operationTraceDescription = operationTrace.PaymentResult.Code.String()
+	case xdr.OperationTypePathPaymentStrictReceive:
+		operationTraceDescription = operationTrace.PathPaymentStrictReceiveResult.Code.String()
+	case xdr.OperationTypePathPaymentStrictSend:
+		operationTraceDescription = operationTrace.PathPaymentStrictSendResult.Code.String()
+	case xdr.OperationTypeManageBuyOffer:
+		operationTraceDescription = operationTrace.ManageBuyOfferResult.Code.String()
+	case xdr.OperationTypeManageSellOffer:
+		operationTraceDescription = operationTrace.ManageSellOfferResult.Code.String()
+	case xdr.OperationTypeCreatePassiveSellOffer:
+		operationTraceDescription = operationTrace.CreatePassiveSellOfferResult.Code.String()
+	case xdr.OperationTypeSetOptions:
+		operationTraceDescription = operationTrace.SetOptionsResult.Code.String()
+	case xdr.OperationTypeChangeTrust:
+		operationTraceDescription = operationTrace.ChangeTrustResult.Code.String()
+	case xdr.OperationTypeAllowTrust:
+		operationTraceDescription = operationTrace.AllowTrustResult.Code.String()
+	case xdr.OperationTypeAccountMerge:
+		operationTraceDescription = operationTrace.AccountMergeResult.Code.String()
+	case xdr.OperationTypeInflation:
+		operationTraceDescription = operationTrace.InflationResult.Code.String()
+	case xdr.OperationTypeManageData:
+		operationTraceDescription = operationTrace.ManageDataResult.Code.String()
+	case xdr.OperationTypeBumpSequence:
+		operationTraceDescription = operationTrace.BumpSeqResult.Code.String()
+	case xdr.OperationTypeCreateClaimableBalance:
+		operationTraceDescription = operationTrace.CreateClaimableBalanceResult.Code.String()
+	case xdr.OperationTypeClaimClaimableBalance:
+		operationTraceDescription = operationTrace.ClaimClaimableBalanceResult.Code.String()
+	case xdr.OperationTypeBeginSponsoringFutureReserves:
+		operationTraceDescription = operationTrace.BeginSponsoringFutureReservesResult.Code.String()
+	case xdr.OperationTypeEndSponsoringFutureReserves:
+		operationTraceDescription = operationTrace.EndSponsoringFutureReservesResult.Code.String()
+	case xdr.OperationTypeRevokeSponsorship:
+		operationTraceDescription = operationTrace.RevokeSponsorshipResult.Code.String()
+	case xdr.OperationTypeClawback:
+		operationTraceDescription = operationTrace.ClawbackResult.Code.String()
+	case xdr.OperationTypeClawbackClaimableBalance:
+		operationTraceDescription = operationTrace.ClawbackClaimableBalanceResult.Code.String()
+	case xdr.OperationTypeSetTrustLineFlags:
+		operationTraceDescription = operationTrace.SetTrustLineFlagsResult.Code.String()
+	case xdr.OperationTypeLiquidityPoolDeposit:
+		operationTraceDescription = operationTrace.LiquidityPoolDepositResult.Code.String()
+	case xdr.OperationTypeLiquidityPoolWithdraw:
+		operationTraceDescription = operationTrace.LiquidityPoolWithdrawResult.Code.String()
+	case xdr.OperationTypeInvokeHostFunction:
+		operationTraceDescription = operationTrace.InvokeHostFunctionResult.Code.String()
+	case xdr.OperationTypeExtendFootprintTtl:
+		operationTraceDescription = operationTrace.ExtendFootprintTtlResult.Code.String()
+	case xdr.OperationTypeRestoreFootprint:
+		operationTraceDescription = operationTrace.RestoreFootprintResult.Code.String()
+	default:
+		return operationTraceDescription, fmt.Errorf("Unknown operation type: %s", operationTrace.Type.String())
+	}
+	return operationTraceDescription, nil
 }
 
 func PoolIDToString(id xdr.PoolId) string {
