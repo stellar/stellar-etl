@@ -622,9 +622,33 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 	}
 	inputEnvelope.Tx.Operations = inputOperations
 	results := []xdr.OperationResult{
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeCreateAccount,
+				CreateAccountResult: &xdr.CreateAccountResult{
+					Code: xdr.CreateAccountResultCodeCreateAccountSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypePayment,
+				PaymentResult: &xdr.PaymentResult{
+					Code: xdr.PaymentResultCodePaymentSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypePayment,
+				PaymentResult: &xdr.PaymentResult{
+					Code: xdr.PaymentResultCodePaymentSuccess,
+				},
+			},
+		},
 		// There needs to be a true result for path payment receive and send
 		xdr.OperationResult{
 			Code: xdr.OperationResultCodeOpInner,
@@ -638,17 +662,105 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeManageSellOffer,
+				ManageSellOfferResult: &xdr.ManageSellOfferResult{
+					Code: xdr.ManageSellOfferResultCodeManageSellOfferSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeManageSellOffer,
+				ManageSellOfferResult: &xdr.ManageSellOfferResult{
+					Code: xdr.ManageSellOfferResultCodeManageSellOfferSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeSetOptions,
+				SetOptionsResult: &xdr.SetOptionsResult{
+					Code: xdr.SetOptionsResultCodeSetOptionsSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeChangeTrust,
+				ChangeTrustResult: &xdr.ChangeTrustResult{
+					Code: xdr.ChangeTrustResultCodeChangeTrustSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeChangeTrust,
+				ChangeTrustResult: &xdr.ChangeTrustResult{
+					Code: xdr.ChangeTrustResultCodeChangeTrustSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeAllowTrust,
+				AllowTrustResult: &xdr.AllowTrustResult{
+					Code: xdr.AllowTrustResultCodeAllowTrustSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeAccountMerge,
+				AccountMergeResult: &xdr.AccountMergeResult{
+					Code: xdr.AccountMergeResultCodeAccountMergeSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInflation,
+				InflationResult: &xdr.InflationResult{
+					Code: xdr.InflationResultCodeInflationSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeManageData,
+				ManageDataResult: &xdr.ManageDataResult{
+					Code: xdr.ManageDataResultCodeManageDataSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeBumpSequence,
+				BumpSeqResult: &xdr.BumpSequenceResult{
+					Code: xdr.BumpSequenceResultCodeBumpSequenceSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeManageBuyOffer,
+				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
+					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
+				},
+			},
+		},
 		xdr.OperationResult{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
@@ -661,21 +773,141 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
-		xdr.OperationResult{},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeCreateClaimableBalance,
+				CreateClaimableBalanceResult: &xdr.CreateClaimableBalanceResult{
+					Code: xdr.CreateClaimableBalanceResultCodeCreateClaimableBalanceSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeClaimClaimableBalance,
+				ClaimClaimableBalanceResult: &xdr.ClaimClaimableBalanceResult{
+					Code: xdr.ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeBeginSponsoringFutureReserves,
+				BeginSponsoringFutureReservesResult: &xdr.BeginSponsoringFutureReservesResult{
+					Code: xdr.BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeRevokeSponsorship,
+				RevokeSponsorshipResult: &xdr.RevokeSponsorshipResult{
+					Code: xdr.RevokeSponsorshipResultCodeRevokeSponsorshipSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeClawback,
+				ClawbackResult: &xdr.ClawbackResult{
+					Code: xdr.ClawbackResultCodeClawbackSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeClawbackClaimableBalance,
+				ClawbackClaimableBalanceResult: &xdr.ClawbackClaimableBalanceResult{
+					Code: xdr.ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeSetTrustLineFlags,
+				SetTrustLineFlagsResult: &xdr.SetTrustLineFlagsResult{
+					Code: xdr.SetTrustLineFlagsResultCodeSetTrustLineFlagsSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeLiquidityPoolDeposit,
+				LiquidityPoolDepositResult: &xdr.LiquidityPoolDepositResult{
+					Code: xdr.LiquidityPoolDepositResultCodeLiquidityPoolDepositSuccess,
+				},
+			},
+		},
+		xdr.OperationResult{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeLiquidityPoolWithdraw,
+				LiquidityPoolWithdrawResult: &xdr.LiquidityPoolWithdrawResult{
+					Code: xdr.LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawSuccess,
+				},
+			},
+		},
 		//xdr.OperationResult{},
 		//xdr.OperationResult{},
 		//xdr.OperationResult{},
@@ -704,7 +936,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"funder":           hardCodedSourceAccountAddress,
 				"starting_balance": 2.5,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "CreateAccountResultCodeCreateAccountSuccess",
 		},
 		OperationOutput{
 			Type:          1,
@@ -721,7 +955,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_issuer": hardCodedDestAccountAddress,
 				"asset_id":     int64(-8205667356306085451),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
 		},
 		OperationOutput{
 			Type:          1,
@@ -736,7 +972,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type": "native",
 				"asset_id":   int64(-5706705804583548011),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
 		},
 		OperationOutput{
 			Type:          2,
@@ -756,7 +994,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_id":          int64(-5706705804583548011),
 				"path":              []Path{usdtAssetPath},
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess",
 		},
 		OperationOutput{
 			Type:          3,
@@ -779,7 +1019,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"buying_asset_type":    "native",
 				"buying_asset_id":      int64(-5706705804583548011),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
 		},
 		OperationOutput{
 			Type:          4,
@@ -801,7 +1043,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"selling_asset_type":  "native",
 				"selling_asset_id":    int64(-5706705804583548011),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
 		},
 		OperationOutput{
 			Type:          5,
@@ -823,7 +1067,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"signer_key":        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 				"signer_weight":     uint32(1),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "SetOptionsResultCodeSetOptionsSuccess",
 		},
 		OperationOutput{
 			Type:          6,
@@ -840,7 +1086,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_issuer": hardCodedDestAccountAddress,
 				"asset_id":     int64(6690054458235693884),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 		},
 		OperationOutput{
 			Type:          6,
@@ -854,7 +1102,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type":        "liquidity_pool_shares",
 				"liquidity_pool_id": "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 		},
 		OperationOutput{
 			Type:          7,
@@ -871,7 +1121,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_issuer": hardCodedSourceAccountAddress,
 				"asset_id":     int64(8485542065083974675),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "AllowTrustResultCodeAllowTrustSuccess",
 		},
 		OperationOutput{
 			Type:          8,
@@ -883,16 +1135,20 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"account": hardCodedSourceAccountAddress,
 				"into":    hardCodedDestAccountAddress,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "AccountMergeResultCodeAccountMergeSuccess",
 		},
 		OperationOutput{
-			Type:             9,
-			TypeString:       "inflation",
-			SourceAccount:    hardCodedSourceAccountAddress,
-			TransactionID:    4096,
-			OperationID:      4108,
-			OperationDetails: map[string]interface{}{},
-			ClosedAt:         hardCodedLedgerClose,
+			Type:                9,
+			TypeString:          "inflation",
+			SourceAccount:       hardCodedSourceAccountAddress,
+			TransactionID:       4096,
+			OperationID:         4108,
+			OperationDetails:    map[string]interface{}{},
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InflationResultCodeInflationSuccess",
 		},
 		OperationOutput{
 			Type:          10,
@@ -904,7 +1160,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"name":  "test",
 				"value": base64.StdEncoding.EncodeToString([]byte{0x76, 0x61, 0x6c, 0x75, 0x65}),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ManageDataResultCodeManageDataSuccess",
 		},
 		OperationOutput{
 			Type:          11,
@@ -915,7 +1173,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"bump_to": "100",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "BumpSequenceResultCodeBumpSequenceSuccess",
 		},
 		OperationOutput{
 			Type:          12,
@@ -938,7 +1198,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"buying_asset_id":      int64(-5706705804583548011),
 				"offer_id":             int64(100),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ManageBuyOfferResultCodeManageBuyOfferSuccess",
 		},
 		OperationOutput{
 			Type:          13,
@@ -958,7 +1220,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type":        "native",
 				"asset_id":          int64(-5706705804583548011),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess",
 		},
 		OperationOutput{
 			Type:          14,
@@ -971,7 +1235,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"amount":    123456.789,
 				"claimants": []Claimant{testClaimantDetails},
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "CreateClaimableBalanceResultCodeCreateClaimableBalanceSuccess",
 		},
 		OperationOutput{
 			Type:          15,
@@ -983,7 +1249,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"claimant":   hardCodedSourceAccountAddress,
 				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess",
 		},
 		OperationOutput{
 			Type:          16,
@@ -994,7 +1262,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"sponsored_id": hardCodedDestAccountAddress,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1006,7 +1276,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"signer_account_id": hardCodedDestAccountAddress,
 				"signer_key":        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1017,7 +1289,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"account_id": hardCodedDestAccountAddress,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1028,7 +1302,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"claimable_balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1040,7 +1316,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"data_account_id": hardCodedDestAccountAddress,
 				"data_name":       "test",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1051,7 +1329,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"offer_id": int64(100),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1063,7 +1343,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"trustline_account_id": testAccount3Address,
 				"trustline_asset":      "USTT:GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          18,
@@ -1074,7 +1356,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"liquidity_pool_id": "0102030405060708090000000000000000000000000000000000000000000000",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
 		OperationOutput{
 			Type:          19,
@@ -1090,7 +1374,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"asset_type":   "credit_alphanum4",
 				"asset_id":     int64(-8205667356306085451),
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ClawbackResultCodeClawbackSuccess",
 		},
 		OperationOutput{
 			Type:          20,
@@ -1101,7 +1387,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess",
 		},
 		OperationOutput{
 			Type:          21,
@@ -1120,7 +1408,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"set_flags":     []int32{4},
 				"set_flags_s":   []string{"clawback_enabled"},
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "SetTrustLineFlagsResultCodeSetTrustLineFlagsSuccess",
 		},
 		OperationOutput{
 			Type:          22,
@@ -1152,7 +1442,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				},
 				"shares_received": 0.0000002,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "LiquidityPoolDepositResultCodeLiquidityPoolDepositSuccess",
 		},
 		OperationOutput{
 			Type:          23,
@@ -1174,7 +1466,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"reserve_b_min_amount":      0.0000001,
 				"shares":                    0.0000004,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawSuccess",
 		},
 		//OperationOutput{
 		//	Type:          24,

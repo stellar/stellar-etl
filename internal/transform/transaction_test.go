@@ -105,6 +105,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesInstructions: 0,
 			SorobanResourcesReadBytes:    0,
 			SorobanResourcesWriteBytes:   0,
+			TransactionResultCode:        "TransactionResultCodeTxFailed",
 		},
 		TransactionOutput{
 			TxEnvelope:                   "AAAABQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAAAABwgAAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAACFPY2AAAAfQAAAAEAAAAAAAAAAAAAAABfBqt0AAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
@@ -132,10 +133,11 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesInstructions: 0,
 			SorobanResourcesReadBytes:    0,
 			SorobanResourcesWriteBytes:   0,
+			TransactionResultCode:        "TransactionResultCodeTxFeeBumpInnerSuccess", //inner fee bump success
 		},
 		TransactionOutput{
 			TxEnvelope:                   "AAAAAgAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAGQBpLyvsiV6gwAAAAIAAAABAAAAAAAAAAAAAAAAXwardAAAAAEAAAAFAAAACgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAMCAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-			TxResult:                     "AAAAAAAAAGT/////AAAAAQAAAAAAAAAAAAAAAAAAAAA=",
+			TxResult:                     "AAAAAAAAAGT////5AAAAAA==",
 			TxMeta:                       "AAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAAA",
 			TxFeeMeta:                    "AAAAAA==",
 			TransactionHash:              "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
@@ -160,6 +162,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesInstructions: 0,
 			SorobanResourcesReadBytes:    0,
 			SorobanResourcesWriteBytes:   0,
+			TransactionResultCode:        "TransactionResultCodeTxInsufficientBalance",
 		},
 	}
 	return
@@ -360,7 +363,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 				Result: xdr.TransactionResult{
 					FeeCharged: 100,
 					Result: xdr.TransactionResultResult{
-						Code:    xdr.TransactionResultCodeTxFailed,
+						Code:    xdr.TransactionResultCodeTxInsufficientBalance,
 						Results: genericResultResults,
 					},
 				},

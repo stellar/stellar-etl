@@ -64,6 +64,7 @@ type TransactionOutput struct {
 	SorobanResourcesInstructions uint32         `json:"soroban_resources_instructions"`
 	SorobanResourcesReadBytes    uint32         `json:"soroban_resources_read_bytes"`
 	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
+	TransactionResultCode        string         `json:"transaction_result_code"`
 }
 
 type LedgerTransactionOutput struct {
@@ -118,14 +119,16 @@ type AccountSignerOutput struct {
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
 type OperationOutput struct {
-	SourceAccount      string                 `json:"source_account"`
-	SourceAccountMuxed string                 `json:"source_account_muxed,omitempty"`
-	Type               int32                  `json:"type"`
-	TypeString         string                 `json:"type_string"`
-	OperationDetails   map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
-	TransactionID      int64                  `json:"transaction_id"`
-	OperationID        int64                  `json:"id"`
-	ClosedAt           time.Time              `json:"closed_at"`
+	SourceAccount       string                 `json:"source_account"`
+	SourceAccountMuxed  string                 `json:"source_account_muxed,omitempty"`
+	Type                int32                  `json:"type"`
+	TypeString          string                 `json:"type_string"`
+	OperationDetails    map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
+	TransactionID       int64                  `json:"transaction_id"`
+	OperationID         int64                  `json:"id"`
+	ClosedAt            time.Time              `json:"closed_at"`
+	OperationResultCode string                 `json:"operation_result_code"`
+	OperationTraceCode  string                 `json:"operation_trace_code"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
