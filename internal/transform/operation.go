@@ -71,7 +71,6 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 	outputOperationResultCode := outputOperationResults[operationIndex].Code.String()
-	// TODO: add trace code details
 	outputOperationTraceCode, err := mapOperationTrace(*outputOperationResults[operationIndex].Tr)
 	if err != nil {
 		return OperationOutput{}, err
