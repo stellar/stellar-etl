@@ -26,18 +26,14 @@ func TransformDiagnosticEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledg
 		return []DiagnosticEventOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err), false
 	}
 
-	transactionMeta, ok := transaction.UnsafeMeta.GetV3()
-	if !ok {
-		return []DiagnosticEventOutput{}, nil, false
-	}
-
-	if transactionMeta.SorobanMeta == nil {
+	diagnosticEvents, err := transaction.GetDiagnosticEvents()
+	if err != nil {
 		return []DiagnosticEventOutput{}, nil, false
 	}
 
 	var transformedDiagnosticEvents []DiagnosticEventOutput
 
-	for _, diagnoticEvent := range transactionMeta.SorobanMeta.DiagnosticEvents {
+	for _, diagnoticEvent := range diagnosticEvents {
 		var outputContractId string
 
 		outputInSuccessfulContractCall := diagnoticEvent.InSuccessfulContractCall
@@ -45,15 +41,9 @@ func TransformDiagnosticEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledg
 		outputExtV := event.Ext.V
 		outputType := event.Type.String()
 		outputBodyV := event.Body.V
-		body, ok := event.Body.GetV0()
-		if !ok {
-			continue
-		}
+		body, _ := event.Body.GetV0()
 
-		outputBody, err := xdr.MarshalBase64(body)
-		if err != nil {
-			continue
-		}
+		outputBody, _ := xdr.MarshalBase64(body)
 
 		if event.ContractId != nil {
 			contractId := *event.ContractId
