@@ -70,10 +70,15 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 	if !ok {
 		return OperationOutput{}, err
 	}
+
 	outputOperationResultCode := outputOperationResults[operationIndex].Code.String()
-	outputOperationTraceCode, err := mapOperationTrace(*outputOperationResults[operationIndex].Tr)
-	if err != nil {
-		return OperationOutput{}, err
+	var outputOperationTraceCode string
+	operationResultTr, ok := outputOperationResults[operationIndex].GetTr()
+	if ok {
+		outputOperationTraceCode, err = mapOperationTrace(operationResultTr)
+		if err != nil {
+			return OperationOutput{}, err
+		}
 	}
 
 	transformedOperation := OperationOutput{
