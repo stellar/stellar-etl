@@ -138,6 +138,9 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var outputSorobanResourcesInstructions uint32
 	var outputSorobanResourcesReadBytes uint32
 	var outputSorobanResourcesWriteBytes uint32
+	var outputInclusionFeeBid int64
+	var outputInclusionFeeCharged int64
+	var outputResourceFeeRefund int64
 
 	transactionEnvelopeV1, ok := transaction.Envelope.GetV1()
 	if ok {
@@ -147,6 +150,20 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
 			outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
 			outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
+			outputInclusionFeeBid = int64(transactionEnvelopeV1.Tx.Fee) - outputResourceFee
+
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, sourceAccount.Address())
+			initialFeeCharged := accountBalanceStart - accountBalanceEnd
+			outputInclusionFeeCharged = initialFeeCharged - outputResourceFee
+
+			meta, ok := transaction.UnsafeMeta.GetV3()
+			if ok {
+				accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
+				outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
+			}
+
+			// TODO: FeeCharged is calculated incorrectly in protocol 20. Remove when protocol is updated and the bug is fixed
+			outputFeeCharged = outputFeeCharged - outputResourceFeeRefund
 		}
 	}
 
@@ -187,6 +204,9 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		SorobanResourcesReadBytes:    outputSorobanResourcesReadBytes,
 		SorobanResourcesWriteBytes:   outputSorobanResourcesWriteBytes,
 		TransactionResultCode:        outputTxResultCode,
+		InclusionFeeBid:              outputInclusionFeeBid,
+		InclusionFeeCharged:          outputInclusionFeeCharged,
+		ResourceFeeRefund:            outputResourceFeeRefund,
 	}
 
 	// Add Muxed Account Details, if exists
@@ -214,6 +234,36 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	}
 
 	return transformedTransaction, nil
+}
+
+func getAccountBalanceFromLedgerEntryChanges(changes xdr.LedgerEntryChanges, sourceAccountAddress string) (int64, int64) {
+	var accountBalanceStart int64
+	var accountBalanceEnd int64
+
+	for _, change := range changes {
+		switch change.Type {
+		case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
+			accountEntry, ok := change.Updated.Data.GetAccount()
+			if !ok {
+				continue
+			}
+
+			if accountEntry.AccountId.Address() == sourceAccountAddress {
+				accountBalanceEnd = int64(accountEntry.Balance)
+			}
+		case xdr.LedgerEntryChangeTypeLedgerEntryState:
+			accountEntry, ok := change.State.Data.GetAccount()
+			if !ok {
+				continue
+			}
+
+			if accountEntry.AccountId.Address() == sourceAccountAddress {
+				accountBalanceStart = int64(accountEntry.Balance)
+			}
+		}
+	}
+
+	return accountBalanceStart, accountBalanceEnd
 }
 
 func formatSigners(s []xdr.SignerKey) pq.StringArray {
