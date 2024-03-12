@@ -65,6 +65,9 @@ type TransactionOutput struct {
 	SorobanResourcesReadBytes    uint32         `json:"soroban_resources_read_bytes"`
 	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
 	TransactionResultCode        string         `json:"transaction_result_code"`
+	InclusionFeeBid              int64          `json:"inclusion_fee_bid"`
+	InclusionFeeCharged          int64          `json:"inclusion_fee_charged"`
+	ResourceFeeRefund            int64          `json:"resource_fee_refund"`
 }
 
 type LedgerTransactionOutput struct {
