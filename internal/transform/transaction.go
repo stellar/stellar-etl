@@ -134,6 +134,8 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	// Note: MaxFee and FeeCharged is the sum of base transaction fees + Soroban fees
 	// Breakdown of Soroban fees can be calculated by the config_setting resource pricing * the resources used
 
+	var sorobanData xdr.SorobanTransactionData
+	var hasSorobanData bool
 	var outputResourceFee int64
 	var outputSorobanResourcesInstructions uint32
 	var outputSorobanResourcesReadBytes uint32
@@ -142,29 +144,33 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var outputInclusionFeeCharged int64
 	var outputResourceFeeRefund int64
 
-	transactionEnvelopeV1, ok := transaction.Envelope.GetV1()
-	if ok {
-		sorobanData, ok := transactionEnvelopeV1.Tx.Ext.GetSorobanData()
+	// Soroban data can exist in V1 and FeeBump transactionEnvelopes
+	switch transaction.Envelope.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		sorobanData, hasSorobanData = transaction.Envelope.V1.Tx.Ext.GetSorobanData()
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		sorobanData, hasSorobanData = transaction.Envelope.FeeBump.Tx.InnerTx.V1.Tx.Ext.GetSorobanData()
+	}
+
+	if hasSorobanData {
+		outputResourceFee = int64(sorobanData.ResourceFee)
+		outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
+		outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
+		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
+		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+
+		accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, sourceAccount.Address())
+		initialFeeCharged := accountBalanceStart - accountBalanceEnd
+		outputInclusionFeeCharged = initialFeeCharged - outputResourceFee
+
+		meta, ok := transaction.UnsafeMeta.GetV3()
 		if ok {
-			outputResourceFee = int64(sorobanData.ResourceFee)
-			outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
-			outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
-			outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
-			outputInclusionFeeBid = int64(transactionEnvelopeV1.Tx.Fee) - outputResourceFee
-
-			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, sourceAccount.Address())
-			initialFeeCharged := accountBalanceStart - accountBalanceEnd
-			outputInclusionFeeCharged = initialFeeCharged - outputResourceFee
-
-			meta, ok := transaction.UnsafeMeta.GetV3()
-			if ok {
-				accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
-				outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
-			}
-
-			// TODO: FeeCharged is calculated incorrectly in protocol 20. Remove when protocol is updated and the bug is fixed
-			outputFeeCharged = outputFeeCharged - outputResourceFeeRefund
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
+			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
 		}
+
+		// TODO: FeeCharged is calculated incorrectly in protocol 20. Remove when protocol is updated and the bug is fixed
+		outputFeeCharged = outputFeeCharged - outputResourceFeeRefund
 	}
 
 	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
