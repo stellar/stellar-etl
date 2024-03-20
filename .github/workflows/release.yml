@@ -30,7 +30,7 @@ jobs:
       - uses: release-drafter/release-drafter@v5
         with:
           commitish: master
-          name: "stellar-dbt ${{ steps.gettag.outputs.TAG }}"
+          name: "stellar-etl ${{ steps.gettag.outputs.TAG }}"
           tag: ${{ github.ref }}
           publish: true
         env:
