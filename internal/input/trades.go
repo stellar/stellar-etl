@@ -10,6 +10,7 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
+	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 )
 
@@ -22,25 +23,29 @@ type TradeTransformInput struct {
 }
 
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
-func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]TradeTransformInput, error) {
+func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]TradeTransformInput, error) {
 	ctx := context.Background()
 
-	backend, err := env.CreateCaptiveCoreBackend()
+	backend, err := utils.CreateLedgerBackend(ctx, useCaptiveCore, env)
+	if err != nil {
+		return []TradeTransformInput{}, err
+	}
 
 	tradeSlice := []TradeTransformInput{}
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
-		changeReader, err := ingest.NewLedgerChangeReader(ctx, backend, env.NetworkPassphrase, seq)
+		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
+		if err != nil {
+			return []TradeTransformInput{}, errors.Wrap(err, "error getting ledger from the backend")
+		}
+
+		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledgerCloseMeta)
 		if err != nil {
 			return []TradeTransformInput{}, err
 		}
-		txReader := changeReader.LedgerTransactionReader
 
 		closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
-		if err != nil {
-			return []TradeTransformInput{}, err
-		}
 
 		for int64(len(tradeSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()

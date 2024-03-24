@@ -84,7 +84,7 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 // extractBatch gets the changes from the ledgers in the range [batchStart, batchEnd] and compacts them
 func extractBatch(
 	batchStart, batchEnd uint32,
-	core *ledgerbackend.CaptiveStellarCore,
+	backend *ledgerbackend.LedgerBackend,
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 
 	dataTypes := []xdr.LedgerEntryType{
@@ -106,16 +106,11 @@ func extractBatch(
 			changeCompactors[dt] = ingest.NewChangeCompactor()
 		}
 
-		latestLedger, err := core.GetLatestLedgerSequence(ctx)
-		if err != nil {
-			logger.Fatal("unable to get the latest ledger sequence: ", err)
-		}
-
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
 		var header xdr.LedgerHeaderHistoryEntry
-		if seq <= latestLedger {
-			changeReader, err := ingest.NewLedgerChangeReader(ctx, core, env.NetworkPassphrase, seq)
+		if seq <= batchEnd {
+			changeReader, err := ingest.NewLedgerChangeReader(ctx, *backend, env.NetworkPassphrase, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
@@ -163,14 +158,14 @@ func extractBatch(
 
 // StreamChanges reads in ledgers, processes the changes, and send the changes to the channel matching their type
 // Ledgers are processed in batches of size <batchSize>.
-func StreamChanges(core *ledgerbackend.CaptiveStellarCore, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
+func StreamChanges(backend *ledgerbackend.LedgerBackend, start, end, batchSize uint32, changeChannel chan ChangeBatch, closeChan chan int, env utils.EnvironmentDetails, logger *utils.EtlLogger) {
 	batchStart := start
 	batchEnd := uint32(math.Min(float64(batchStart+batchSize), float64(end)))
 	for batchStart < batchEnd {
 		if batchEnd < end {
 			batchEnd = uint32(batchEnd - 1)
 		}
-		batch := ExtractBatch(batchStart, batchEnd, core, env, logger)
+		batch := ExtractBatch(batchStart, batchEnd, backend, env, logger)
 		changeChannel <- batch
 		// batchStart and batchEnd should not overlap
 		// overlapping batches causes duplicate record loads

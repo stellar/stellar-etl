@@ -20,13 +20,13 @@ This is a temporary command used to reduce the amount of requests to history arc
 in order to mitigate egress costs for the entity hosting history archives.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 
-		allHistory, err := input.GetAllHistory(startNum, endNum, limit, env)
+		allHistory, err := input.GetAllHistory(startNum, endNum, limit, env, useCaptiveCore)
 		if err != nil {
 			cmdLogger.Fatal("could not read all history: ", err)
 		}

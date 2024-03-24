@@ -233,6 +233,8 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
+	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
+	flags.String("datastore-url", "", "Datastore url to read txmeta files from.")
 }
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
@@ -279,8 +281,20 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
 }
 
-// MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, isFuture bool, extra map[string]string) {
+// MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
+// If any do not exist, it stops the program fatally using the logger
+func MustCommonFlags(
+	flags *pflag.FlagSet,
+	logger *EtlLogger,
+) (
+	endNum uint32,
+	strictExport,
+	isTest bool,
+	isFuture bool,
+	extra map[string]string,
+	useCaptiveCore bool,
+	datastoreUrl string,
+) {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
@@ -305,6 +319,17 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, st
 	if err != nil {
 		logger.Fatal("could not get extra fields string: ", err)
 	}
+
+	useCaptiveCore, err = flags.GetBool("captive-core")
+	if err != nil {
+		logger.Fatal("could not get captive-core flag: ", err)
+	}
+
+	datastoreUrl, err = flags.GetString("datastore-url")
+	if err != nil {
+		logger.Fatal("could not get datastore-url string: ", err)
+	}
+
 	return
 }
 
@@ -622,16 +647,19 @@ type EnvironmentDetails struct {
 	ArchiveURLs       []string
 	BinaryPath        string
 	CoreConfig        string
+	StorageURL        string
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
-func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetails) {
+func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (details EnvironmentDetails) {
 	if isTest {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "docker/stellar-core_testnet.cfg"
+		// TODO: change exporter-test to the real bucket whatever that is
+		details.StorageURL = datastoreUrl
 		return details
 	} else if isFuture {
 		// details.NetworkPassphrase = network.FutureNetworkPassphrase
@@ -639,6 +667,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetai
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
+		details.StorageURL = datastoreUrl
 		return details
 	} else {
 		// default: mainnet
@@ -646,6 +675,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetai
 		details.ArchiveURLs = mainArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "docker/stellar-core.cfg"
+		details.StorageURL = datastoreUrl
 		return details
 	}
 }
@@ -712,4 +742,22 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	ledgerKeyHash := hex.EncodeToString(hashedLedgerKeyByte[:])
 
 	return ledgerKeyHash
+}
+
+// CreateLedgerBackend creates a ledger backend using captive core or datastore
+// Defaults to using datastore
+func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env EnvironmentDetails) (ledgerbackend.LedgerBackend, error) {
+	if useCaptiveCore {
+		backend, err := env.CreateCaptiveCoreBackend()
+		if err != nil {
+			return nil, err
+		}
+		return backend, nil
+	}
+
+	backend, err := ledgerbackend.NewCloudStorageBackend(ctx, env.StorageURL)
+	if err != nil {
+		return nil, err
+	}
+	return backend, nil
 }
