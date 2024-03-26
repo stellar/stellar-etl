@@ -27,9 +27,9 @@ var exportOrderbooksCmd = &cobra.Command{
 	If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
 	confirmed by the Stellar network. In this unbounded case, a stellar-core config path is required to utilize the Captive Core toml.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)

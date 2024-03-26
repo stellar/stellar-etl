@@ -20,11 +20,10 @@ type AllHistoryTransformInput struct {
 
 // GetAllHistory returns a slice of operations, trades, effects, transactions, diagnostic events
 // for the ledgers in the provided range (inclusive on both ends)
-func GetAllHistory(start, end uint32, limit int64, env utils.EnvironmentDetails) (AllHistoryTransformInput, error) {
+func GetAllHistory(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) (AllHistoryTransformInput, error) {
 	ctx := context.Background()
 
-	backend, err := env.CreateCaptiveCoreBackend()
-
+	backend, err := utils.CreateLedgerBackend(ctx, useCaptiveCore, env)
 	if err != nil {
 		return AllHistoryTransformInput{}, err
 	}

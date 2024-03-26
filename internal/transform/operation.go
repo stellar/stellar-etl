@@ -48,7 +48,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 
 	outputOperationType := int32(operation.Body.Type)
 	if outputOperationType < 0 {
-		return OperationOutput{}, fmt.Errorf("The operation type (%d) is negative for  operation %d (operation id=%d)", outputOperationType, operationIndex, outputOperationID)
+		return OperationOutput{}, fmt.Errorf("the operation type (%d) is negative for  operation %d (operation id=%d)", outputOperationType, operationIndex, outputOperationID)
 	}
 
 	outputDetails, err := extractOperationDetails(operation, transaction, operationIndex, network)

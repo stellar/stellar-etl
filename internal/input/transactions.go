@@ -20,11 +20,10 @@ type LedgerTransformInput struct {
 }
 
 // GetTransactions returns a slice of transactions for the ledgers in the provided range (inclusive on both ends)
-func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails) ([]LedgerTransformInput, error) {
+func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]LedgerTransformInput, error) {
 	ctx := context.Background()
 
-	backend, err := env.CreateCaptiveCoreBackend()
-
+	backend, err := utils.CreateLedgerBackend(ctx, useCaptiveCore, env)
 	if err != nil {
 		return []LedgerTransformInput{}, err
 	}
@@ -35,7 +34,7 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 	for seq := start; seq <= end; seq++ {
 		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)
 		if err != nil {
-			return nil, errors.Wrap(err, "error getting ledger from the backend")
+			return []LedgerTransformInput{}, errors.Wrap(err, "error getting ledger from the backend")
 		}
 
 		txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(env.NetworkPassphrase, ledgerCloseMeta)

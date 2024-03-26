@@ -129,7 +129,7 @@ func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) Chang
 
 func mockExtractBatch(
 	batchStart, batchEnd uint32,
-	core *ledgerbackend.CaptiveStellarCore,
+	backend *ledgerbackend.LedgerBackend,
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 	log.Errorf("mock called")
 	return ChangeBatch{
