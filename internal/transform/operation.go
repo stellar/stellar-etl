@@ -66,18 +66,17 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
-	outputOperationResults, ok := transaction.Result.Result.OperationResults()
-	if !ok {
-		return OperationOutput{}, err
-	}
-
-	outputOperationResultCode := outputOperationResults[operationIndex].Code.String()
+	var outputOperationResultCode string
 	var outputOperationTraceCode string
-	operationResultTr, ok := outputOperationResults[operationIndex].GetTr()
+	outputOperationResults, ok := transaction.Result.Result.OperationResults()
 	if ok {
-		outputOperationTraceCode, err = mapOperationTrace(operationResultTr)
-		if err != nil {
-			return OperationOutput{}, err
+		outputOperationResultCode = outputOperationResults[operationIndex].Code.String()
+		operationResultTr, ok := outputOperationResults[operationIndex].GetTr()
+		if ok {
+			outputOperationTraceCode, err = mapOperationTrace(operationResultTr)
+			if err != nil {
+				return OperationOutput{}, err
+			}
 		}
 	}
 
