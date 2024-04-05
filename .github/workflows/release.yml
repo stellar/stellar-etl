@@ -1,0 +1,37 @@
+name: Release Drafter and Publisher
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: read
+
+jobs:
+  new_release:
+    permissions:
+      # write permission is required to create a github release
+      contents: write
+      # write permission is required for autolabeler
+      # otherwise, read permission is required at least
+      pull-requests: write
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # ${{ github.ref }} was not giving v* as tag name, but refs/tags/v* instead, so I had to abbreviate it
+      - name: Get latest abbreviated tag
+        id: gettag
+        run: echo ::set-output name=TAG::$(git describe --tags --abbrev=7)
+
+      - uses: release-drafter/release-drafter@v5
+        with:
+          commitish: master
+          name: "stellar-etl ${{ steps.gettag.outputs.TAG }}"
+          tag: ${{ github.ref }}
+          publish: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

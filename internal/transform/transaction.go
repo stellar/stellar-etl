@@ -170,7 +170,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		}
 
 		// TODO: FeeCharged is calculated incorrectly in protocol 20. Remove when protocol is updated and the bug is fixed
-		outputFeeCharged = outputFeeCharged - outputResourceFeeRefund
+		outputFeeCharged = outputResourceFee - outputResourceFeeRefund + outputInclusionFeeCharged
 	}
 
 	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
