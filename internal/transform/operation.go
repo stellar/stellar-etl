@@ -1782,6 +1782,24 @@ func contractCodeHashFromTxEnvelope(transactionEnvelope xdr.TransactionV1Envelop
 	return ""
 }
 
+func ledgerKeyHashFromTxEnvelope(transactionEnvelope xdr.TransactionV1Envelope) string {
+	for _, ledgerKey := range transactionEnvelope.Tx.Ext.SorobanData.Resources.Footprint.ReadOnly {
+		ledgerKeyHash := utils.LedgerKeyToLedgerKeyHash(ledgerKey)
+		if ledgerKeyHash != "" {
+			return ledgerKeyHash
+		}
+	}
+
+	for _, ledgerKey := range transactionEnvelope.Tx.Ext.SorobanData.Resources.Footprint.ReadWrite {
+		ledgerKeyHash := utils.LedgerKeyToLedgerKeyHash(ledgerKey)
+		if ledgerKeyHash != "" {
+			return ledgerKeyHash
+		}
+	}
+
+	return ""
+}
+
 func contractCodeFromContractData(ledgerKey xdr.LedgerKey) string {
 	contractCode, ok := ledgerKey.GetContractCode()
 	if !ok {
