@@ -1031,6 +1031,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["type"] = "invoke_contract"
 
 			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1068,6 +1069,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["type"] = "create_contract"
 
 			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1089,6 +1091,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
 			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
@@ -1099,12 +1102,14 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["extend_to"] = op.ExtendTo
 
 		transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
+		details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	case xdr.OperationTypeRestoreFootprint:
 		details["type"] = "restore_footprint"
 
 		transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
+		details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
@@ -1629,6 +1634,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["type"] = "invoke_contract"
 
 			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1666,6 +1672,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["type"] = "create_contract"
 
 			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
@@ -1687,6 +1694,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
 			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
@@ -1697,12 +1705,14 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		details["extend_to"] = op.ExtendTo
 
 		transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
+		details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	case xdr.OperationTypeRestoreFootprint:
 		details["type"] = "restore_footprint"
 
 		transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
+		details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
