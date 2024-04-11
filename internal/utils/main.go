@@ -713,3 +713,11 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 
 	return ledgerKeyHash
 }
+
+func LedgerKeyToLedgerKeyHash(ledgerKey xdr.LedgerKey) string {
+	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
+	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
+	ledgerKeyHash := hex.EncodeToString(hashedLedgerKeyByte[:])
+
+	return ledgerKeyHash
+}
