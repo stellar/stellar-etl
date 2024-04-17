@@ -631,21 +631,21 @@ func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetai
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core_testnet.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
 		return details
 	} else if isFuture {
 		// details.NetworkPassphrase = network.FutureNetworkPassphrase
 		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
 		return details
 	} else {
 		// default: mainnet
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core.cfg"
 		return details
 	}
 }
