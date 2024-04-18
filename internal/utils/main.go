@@ -761,3 +761,11 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 	}
 	return backend, nil
 }
+
+func LedgerKeyToLedgerKeyHash(ledgerKey xdr.LedgerKey) string {
+	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
+	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
+	ledgerKeyHash := hex.EncodeToString(hashedLedgerKeyByte[:])
+
+	return ledgerKeyHash
+}
