@@ -126,7 +126,7 @@ be exported.`,
 								}
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
-							if change.AccountSignersChanged() {
+							if utils.AccountSignersChanged(change) {
 								signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)

@@ -30,6 +30,9 @@ func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetail
 
 	txSlice := []LedgerTransformInput{}
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
+	if err != nil {
+		return []LedgerTransformInput{}, err
+	}
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
 		ledgerCloseMeta, err := backend.GetLedger(ctx, seq)

@@ -9,8 +9,7 @@ import (
 )
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetLedgersHistoryArchive(start, end uint32, limit int64, isTest bool, isFuturenet bool) ([]historyarchive.Ledger, error) {
-	env := utils.GetEnvironmentDetails(isTest, isFuturenet, "")
+func GetLedgersHistoryArchive(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]historyarchive.Ledger, error) {
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []historyarchive.Ledger{}, err

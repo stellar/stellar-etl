@@ -39,7 +39,7 @@ the export_ledger_entry_changes command.`,
 		numSigners := 0
 		var header xdr.LedgerHeaderHistoryEntry
 		for _, acc := range accounts {
-			if acc.AccountSignersChanged() {
+			if utils.AccountSignersChanged(acc) {
 				transformed, err := transform.TransformSigners(acc, header)
 				if err != nil {
 					cmdLogger.LogError(fmt.Errorf("could not json transform account signer: %v", err))

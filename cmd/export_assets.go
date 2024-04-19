@@ -28,7 +28,7 @@ var assetsCmd = &cobra.Command{
 		var err error
 
 		if useCaptiveCore {
-			paymentOps, err = input.GetPaymentOperationsHistoryArchive(startNum, endNum, limit, isTest, isFuture)
+			paymentOps, err = input.GetPaymentOperationsHistoryArchive(startNum, endNum, limit, env, useCaptiveCore)
 		} else {
 			paymentOps, err = input.GetPaymentOperations(startNum, endNum, limit, env, useCaptiveCore)
 		}

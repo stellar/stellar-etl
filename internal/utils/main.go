@@ -769,3 +769,74 @@ func LedgerKeyToLedgerKeyHash(ledgerKey xdr.LedgerKey) string {
 
 	return ledgerKeyHash
 }
+
+// AccountSignersChanged returns true if account signers have changed.
+// Notice: this will return true on master key changes too!
+func AccountSignersChanged(c ingest.Change) bool {
+	if c.Type != xdr.LedgerEntryTypeAccount {
+		panic("This should not be called on changes other than Account changes")
+	}
+
+	// New account so new master key (which is also a signer)
+	if c.Pre == nil {
+		return true
+	}
+
+	// Account merged. Account being merge can still have signers.
+	// c.Pre != nil at this point.
+	if c.Post == nil {
+		return true
+	}
+
+	// c.Pre != nil && c.Post != nil at this point.
+	preAccountEntry := c.Pre.Data.MustAccount()
+	postAccountEntry := c.Post.Data.MustAccount()
+
+	preSigners := preAccountEntry.SignerSummary()
+	postSigners := postAccountEntry.SignerSummary()
+
+	if len(preSigners) != len(postSigners) {
+		return true
+	}
+
+	for postSigner, postWeight := range postSigners {
+		preWeight, exist := preSigners[postSigner]
+		if !exist {
+			return true
+		}
+
+		if preWeight != postWeight {
+			return true
+		}
+	}
+
+	preSignerSponsors := preAccountEntry.SignerSponsoringIDs()
+	postSignerSponsors := postAccountEntry.SignerSponsoringIDs()
+
+	if len(preSignerSponsors) != len(postSignerSponsors) {
+		return true
+	}
+
+	for i := 0; i < len(preSignerSponsors); i++ {
+		preSponsor := preSignerSponsors[i]
+		postSponsor := postSignerSponsors[i]
+
+		if preSponsor == nil && postSponsor != nil {
+			return true
+		} else if preSponsor != nil && postSponsor == nil {
+			return true
+		} else if preSponsor != nil && postSponsor != nil {
+			preSponsorAccountID := xdr.AccountId(*preSponsor)
+			preSponsorAddress := preSponsorAccountID.Address()
+
+			postSponsorAccountID := xdr.AccountId(*postSponsor)
+			postSponsorAddress := postSponsorAccountID.Address()
+
+			if preSponsorAddress != postSponsorAddress {
+				return true
+			}
+		}
+	}
+
+	return false
+}

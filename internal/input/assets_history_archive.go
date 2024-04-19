@@ -10,8 +10,7 @@ import (
 )
 
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
-func GetPaymentOperationsHistoryArchive(start, end uint32, limit int64, isTest bool, isFuture bool) ([]AssetTransformInput, error) {
-	env := utils.GetEnvironmentDetails(isTest, isFuture, "")
+func GetPaymentOperationsHistoryArchive(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptivere bool) ([]AssetTransformInput, error) {
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
 		return []AssetTransformInput{}, err
