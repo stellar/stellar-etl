@@ -18,6 +18,9 @@ WORKDIR /etl
 COPY --from=build /usr/local/bin/stellar-etl /usr/local/bin/stellar-etl
 COPY --from=build /usr/src/etl/docker docker
 
+# changing workdir to a new path in order to use mounted empty ephemeral volumes as storage
+WORKDIR /etl/data
+
 # clear entrypoint from stellar-core image
 ENTRYPOINT []
 

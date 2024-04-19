@@ -657,7 +657,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core_testnet.cfg"
+    details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
 		// TODO: change exporter-test to the real bucket whatever that is
 		details.StorageURL = datastoreUrl
 		return details
@@ -666,7 +666,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
+    details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
 		details.StorageURL = datastoreUrl
 		return details
 	} else {
@@ -674,7 +674,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core.cfg"
 		details.StorageURL = datastoreUrl
 		return details
 	}
