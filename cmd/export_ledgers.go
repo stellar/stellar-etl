@@ -27,7 +27,7 @@ var ledgersCmd = &cobra.Command{
 		var err error
 
 		if useCaptiveCore {
-			ledgers, err = input.GetLedgersHistoryArchive(startNum, endNum, limit, isTest, isFuture)
+			ledgers, err = input.GetLedgersHistoryArchive(startNum, endNum, limit, env, useCaptiveCore)
 		} else {
 			ledgers, err = input.GetLedgers(startNum, endNum, limit, env, useCaptiveCore)
 		}
