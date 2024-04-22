@@ -45,7 +45,7 @@ func TestTransformOperation(t *testing.T) {
 		{
 			negativeOpTypeInput,
 			OperationOutput{},
-			fmt.Errorf("The operation type (-1) is negative for  operation 1 (operation id=4098)"),
+			fmt.Errorf("the operation type (-1) is negative for  operation 1 (operation id=4098)"),
 		},
 		{
 			unknownOpTypeInput,

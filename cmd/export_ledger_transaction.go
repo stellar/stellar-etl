@@ -16,13 +16,13 @@ var ledgerTransactionCmd = &cobra.Command{
 	Long:  `Exports the ledger_transaction transaction data over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 
-		ledgerTransaction, err := input.GetTransactions(startNum, endNum, limit, env)
+		ledgerTransaction, err := input.GetTransactions(startNum, endNum, limit, env, useCaptiveCore)
 		if err != nil {
 			cmdLogger.Fatal("could not read ledger_transaction: ", err)
 		}

@@ -22,9 +22,9 @@ should be used in an initial data dump. In order to get account information with
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
@@ -39,7 +39,7 @@ the export_ledger_entry_changes command.`,
 		numSigners := 0
 		var header xdr.LedgerHeaderHistoryEntry
 		for _, acc := range accounts {
-			if acc.AccountSignersChanged() {
+			if utils.AccountSignersChanged(acc) {
 				transformed, err := transform.TransformSigners(acc, header)
 				if err != nil {
 					cmdLogger.LogError(fmt.Errorf("could not json transform account signer: %v", err))

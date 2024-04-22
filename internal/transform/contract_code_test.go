@@ -67,7 +67,7 @@ func makeContractCodeTestInput() []ingest.Change {
 			Type: xdr.LedgerEntryTypeContractCode,
 			ContractCode: &xdr.ContractCodeEntry{
 				Hash: hash,
-				Ext: xdr.ExtensionPoint{
+				Ext: xdr.ContractCodeEntryExt{
 					V: 1,
 				},
 			},

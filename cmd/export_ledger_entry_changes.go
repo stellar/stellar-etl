@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -26,13 +28,15 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 
-		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		_, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+
+		cmd.Flags()
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
@@ -46,7 +50,7 @@ be exported.`,
 		// If none of the export flags are set, then we assume that everything should be exported
 		allFalse := true
 		for _, value := range exports {
-			if true == value {
+			if value {
 				allFalse = false
 				break
 			}
@@ -62,19 +66,15 @@ be exported.`,
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
-		execPath, err = filepath.Abs(execPath)
+		ctx := context.Background()
+		backend, err := utils.CreateLedgerBackend(ctx, useCaptiveCore, env)
 		if err != nil {
-			cmdLogger.Fatal("could not get absolute filepath for stellar-core executable: ", err)
+			cmdLogger.Fatal("error creating a cloud storage backend: ", err)
 		}
 
-		configPath, err = filepath.Abs(configPath)
+		err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, endNum))
 		if err != nil {
-			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
-		}
-
-		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
-		if err != nil {
-			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
+			cmdLogger.Fatal("error preparing ledger range for cloud storage backend: ", err)
 		}
 
 		if endNum == 0 {
@@ -83,7 +83,7 @@ be exported.`,
 
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
-		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+		go input.StreamChanges(&backend, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
 
 		for {
 			select {
@@ -126,7 +126,7 @@ be exported.`,
 								}
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
-							if change.AccountSignersChanged() {
+							if utils.AccountSignersChanged(change) {
 								signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
@@ -295,7 +295,6 @@ func init() {
 	utils.AddCloudStorageFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
-	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period

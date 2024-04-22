@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -16,12 +17,20 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = strictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 
-		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest, isFuture)
+		var ledgers []historyarchive.Ledger
+		var err error
+
+		if useCaptiveCore {
+			ledgers, err = input.GetLedgersHistoryArchive(startNum, endNum, limit, env, useCaptiveCore)
+		} else {
+			ledgers, err = input.GetLedgers(startNum, endNum, limit, env, useCaptiveCore)
+		}
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
