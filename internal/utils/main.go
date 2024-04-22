@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/url"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -657,8 +658,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-    details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
-		// TODO: change exporter-test to the real bucket whatever that is
+		details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
 		details.StorageURL = datastoreUrl
 		return details
 	} else if isFuture {
@@ -666,7 +666,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-    details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
 		details.StorageURL = datastoreUrl
 		return details
 	} else {
@@ -747,6 +747,7 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
 // Defaults to using datastore
 func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env EnvironmentDetails) (ledgerbackend.LedgerBackend, error) {
+	// Create ledger backend from captive core
 	if useCaptiveCore {
 		backend, err := env.CreateCaptiveCoreBackend()
 		if err != nil {
@@ -755,11 +756,29 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		return backend, nil
 	}
 
-	backend, err := ledgerbackend.NewCloudStorageBackend(ctx, env.StorageURL)
+	// Create ledger backend from datastore
+	fileConfig := ledgerbackend.LCMFileConfig{
+		StorageURL:        env.StorageURL,
+		FileSuffix:        ".xdr.gz",
+		LedgersPerFile:    1,
+		FilesPerPartition: 64000,
+	}
+
+	parsed, err := url.Parse(env.StorageURL)
 	if err != nil {
 		return nil, err
 	}
-	return backend, nil
+
+	// Using the GCS datastore backend
+	if parsed.Scheme == "gcs" {
+		backend, err := ledgerbackend.NewGCSBackend(ctx, fileConfig)
+		if err != nil {
+			return nil, err
+		}
+		return backend, nil
+	}
+
+	return nil, errors.New("no valid ledgerbackend selected")
 }
 
 func LedgerKeyToLedgerKeyHash(ledgerKey xdr.LedgerKey) string {
