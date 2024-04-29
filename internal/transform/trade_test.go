@@ -132,31 +132,31 @@ func TestTransformTrade(t *testing.T) {
 	tests := []transformTest{
 		{
 			wrongTypeInput,
-			[]TradeOutput{}, fmt.Errorf("Operation of type OperationTypeBumpSequence at index 0 does not result in trades"),
+			[]TradeOutput{}, fmt.Errorf("operation of type OperationTypeBumpSequence at index 0 does not result in trades"),
 		},
 		{
 			resultOutOfRangeInput,
-			[]TradeOutput{}, fmt.Errorf("Operation index of 0 is out of bounds in result slice (len = 0)"),
+			[]TradeOutput{}, fmt.Errorf("operation index of 0 is out of bounds in result slice (len = 0)"),
 		},
 		{
 			failedTxInput,
-			[]TradeOutput{}, fmt.Errorf("Transaction failed; no trades"),
+			[]TradeOutput{}, fmt.Errorf("transaction failed; no trades"),
 		},
 		{
 			noTrInput,
-			[]TradeOutput{}, fmt.Errorf("Could not get result Tr for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("could not get result Tr for operation at index 0"),
 		},
 		{
 			failedResultInput,
-			[]TradeOutput{}, fmt.Errorf("Could not get ManageOfferSuccess for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("could not get ManageOfferSuccess for operation at index 0"),
 		},
 		{
 			negBaseAmountInput,
-			[]TradeOutput{}, fmt.Errorf("Amount sold is negative (-1) for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("amount sold is negative (-1) for operation at index 0"),
 		},
 		{
 			negCounterAmountInput,
-			[]TradeOutput{}, fmt.Errorf("Amount bought is negative (-2) for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("amount bought is negative (-2) for operation at index 0"),
 		},
 	}
 

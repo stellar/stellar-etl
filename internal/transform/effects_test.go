@@ -78,7 +78,7 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 	}
 	// calling effects should error due to the unknown operation
 	_, err := operation.effects()
-	assert.Contains(t, err.Error(), "Unknown operation type")
+	assert.Contains(t, err.Error(), "unknown operation type")
 }
 
 func TestOperationEffects(t *testing.T) {

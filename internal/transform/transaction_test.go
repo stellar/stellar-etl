@@ -50,17 +50,17 @@ func TestTransformTransaction(t *testing.T) {
 		{
 			negativeSeqInput,
 			TransactionOutput{},
-			fmt.Errorf("The account's sequence number (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
+			fmt.Errorf("the account's sequence number (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			badFeeChargedInput,
 			TransactionOutput{},
-			fmt.Errorf("The fee charged (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
+			fmt.Errorf("the fee charged (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			badTimeboundInput,
 			TransactionOutput{},
-			fmt.Errorf("The max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1 (transaction id=4096)"),
+			fmt.Errorf("the max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 	}
 

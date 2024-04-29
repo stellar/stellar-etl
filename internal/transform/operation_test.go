@@ -50,7 +50,7 @@ func TestTransformOperation(t *testing.T) {
 		{
 			unknownOpTypeInput,
 			OperationOutput{},
-			fmt.Errorf("Unknown operation type: "),
+			fmt.Errorf("unknown operation type: "),
 		},
 	}
 	hardCodedInputTransaction, err := makeOperationTestInput()
