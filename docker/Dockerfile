@@ -11,7 +11,7 @@ COPY . .
 RUN go build -v -o /usr/local/bin ./...
 
 # stage 2: runtime enviroment
-FROM stellar/stellar-core:20.2.0-1716.rc3.34d82fc00.focal
+FROM stellar/unsafe-stellar-core:21.0.0-1812.rc1.a10329cca.focal
 
 WORKDIR /etl
 
