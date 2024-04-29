@@ -58,7 +58,10 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	var outputSorobanFeeWrite1Kb int64
 	lcmV1, ok := lcm.GetV1()
 	if ok {
-		outputSorobanFeeWrite1Kb = int64(lcmV1.Ext.V1.SorobanFeeWrite1Kb)
+		extV1, ok := lcmV1.Ext.GetV1()
+		if ok {
+			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
+		}
 	}
 
 	transformedLedger := LedgerOutput{
