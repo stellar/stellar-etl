@@ -131,7 +131,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	case xdr.OperationTypeRestoreFootprint:
 		err = wrapper.addRestoreFootprintExpirationEffect()
 	default:
-		return nil, fmt.Errorf("Unknown operation type: %s", op.Body.Type)
+		return nil, fmt.Errorf("unknown operation type: %s", op.Body.Type)
 	}
 	if err != nil {
 		return nil, err
@@ -905,7 +905,7 @@ func (e *effectsWrapper) addClaimClaimableBalanceEffects(changes []ingest.Change
 
 	balanceID, err := xdr.MarshalHex(op.BalanceId)
 	if err != nil {
-		return fmt.Errorf("Invalid balanceId in op: %d", e.operation.index)
+		return fmt.Errorf("invalid balanceId in op: %d", e.operation.index)
 	}
 
 	var cBalance xdr.ClaimableBalanceEntry
@@ -919,7 +919,7 @@ func (e *effectsWrapper) addClaimClaimableBalanceEffects(changes []ingest.Change
 			cBalance = change.Pre.Data.MustClaimableBalance()
 			preBalanceID, err := xdr.MarshalHex(cBalance.BalanceId)
 			if err != nil {
-				return fmt.Errorf("Invalid balanceId in meta changes for op: %d", e.operation.index)
+				return fmt.Errorf("invalid balanceId in meta changes for op: %d", e.operation.index)
 			}
 
 			if preBalanceID == balanceID {
@@ -930,7 +930,7 @@ func (e *effectsWrapper) addClaimClaimableBalanceEffects(changes []ingest.Change
 	}
 
 	if !found {
-		return fmt.Errorf("Change not found for balanceId : %s", balanceID)
+		return fmt.Errorf("change not found for balanceId : %s", balanceID)
 	}
 
 	details := map[string]interface{}{

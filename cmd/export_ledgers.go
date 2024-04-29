@@ -5,7 +5,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -23,7 +22,7 @@ var ledgersCmd = &cobra.Command{
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
 
-		var ledgers []historyarchive.Ledger
+		var ledgers []utils.HistoryArchiveLedgerAndLCM
 		var err error
 
 		if useCaptiveCore {
@@ -39,8 +38,8 @@ var ledgersCmd = &cobra.Command{
 
 		numFailures := 0
 		totalNumBytes := 0
-		for i, lcm := range ledgers {
-			transformed, err := transform.TransformLedger(lcm)
+		for i, ledger := range ledgers {
+			transformed, err := transform.TransformLedger(ledger.Ledger, ledger.LCM)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1

@@ -156,7 +156,7 @@ func mapOperationType(operation xdr.Operation) (string, error) {
 	case xdr.OperationTypeRestoreFootprint:
 		op_string_type = "restore_footprint"
 	default:
-		return op_string_type, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
+		return op_string_type, fmt.Errorf("unknown operation type: %s", operation.Body.Type.String())
 	}
 	return op_string_type, nil
 }
@@ -221,7 +221,7 @@ func mapOperationTrace(operationTrace xdr.OperationResultTr) (string, error) {
 	case xdr.OperationTypeRestoreFootprint:
 		operationTraceDescription = operationTrace.RestoreFootprintResult.Code.String()
 	default:
-		return operationTraceDescription, fmt.Errorf("Unknown operation type: %s", operationTrace.Type.String())
+		return operationTraceDescription, fmt.Errorf("unknown operation type: %s", operationTrace.Type.String())
 	}
 	return operationTraceDescription, nil
 }
@@ -277,7 +277,7 @@ func getLiquidityPoolAndProductDelta(operationIndex int32, transaction ingest.Le
 		return lp, delta, nil
 	}
 
-	return nil, nil, fmt.Errorf("Liquidity pool change not found")
+	return nil, nil, fmt.Errorf("liquidity pool change not found")
 }
 
 func getOperationSourceAccount(operation xdr.Operation, transaction ingest.LedgerTransaction) xdr.MuxedAccount {
@@ -564,7 +564,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeCreateAccount:
 		op, ok := operation.Body.GetCreateAccountOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access CreateAccount info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access CreateAccount info for this operation (index %d)", operationIndex)
 		}
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "funder"); err != nil {
@@ -576,7 +576,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypePayment:
 		op, ok := operation.Body.GetPaymentOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access Payment info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access Payment info for this operation (index %d)", operationIndex)
 		}
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
@@ -593,7 +593,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypePathPaymentStrictReceive:
 		op, ok := operation.Body.GetPathPaymentStrictReceiveOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access PathPaymentStrictReceive info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access PathPaymentStrictReceive info for this operation (index %d)", operationIndex)
 		}
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
@@ -615,16 +615,16 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		if transaction.Result.Successful() {
 			allOperationResults, ok := transaction.Result.OperationResults()
 			if !ok {
-				return details, fmt.Errorf("Could not access any results for this transaction")
+				return details, fmt.Errorf("could not access any results for this transaction")
 			}
 			currentOperationResult := allOperationResults[operationIndex]
 			resultBody, ok := currentOperationResult.GetTr()
 			if !ok {
-				return details, fmt.Errorf("Could not access result body for this operation (index %d)", operationIndex)
+				return details, fmt.Errorf("could not access result body for this operation (index %d)", operationIndex)
 			}
 			result, ok := resultBody.GetPathPaymentStrictReceiveResult()
 			if !ok {
-				return details, fmt.Errorf("Could not access PathPaymentStrictReceive result info for this operation (index %d)", operationIndex)
+				return details, fmt.Errorf("could not access PathPaymentStrictReceive result info for this operation (index %d)", operationIndex)
 			}
 			details["source_amount"] = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
@@ -634,7 +634,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypePathPaymentStrictSend:
 		op, ok := operation.Body.GetPathPaymentStrictSendOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access PathPaymentStrictSend info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access PathPaymentStrictSend info for this operation (index %d)", operationIndex)
 		}
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "from"); err != nil {
@@ -656,16 +656,16 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		if transaction.Result.Successful() {
 			allOperationResults, ok := transaction.Result.OperationResults()
 			if !ok {
-				return details, fmt.Errorf("Could not access any results for this transaction")
+				return details, fmt.Errorf("could not access any results for this transaction")
 			}
 			currentOperationResult := allOperationResults[operationIndex]
 			resultBody, ok := currentOperationResult.GetTr()
 			if !ok {
-				return details, fmt.Errorf("Could not access result body for this operation (index %d)", operationIndex)
+				return details, fmt.Errorf("could not access result body for this operation (index %d)", operationIndex)
 			}
 			result, ok := resultBody.GetPathPaymentStrictSendResult()
 			if !ok {
-				return details, fmt.Errorf("Could not access GetPathPaymentStrictSendResult result info for this operation (index %d)", operationIndex)
+				return details, fmt.Errorf("could not access GetPathPaymentStrictSendResult result info for this operation (index %d)", operationIndex)
 			}
 			details["amount"] = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
@@ -675,7 +675,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeManageBuyOffer:
 		op, ok := operation.Body.GetManageBuyOfferOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access ManageBuyOffer info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access ManageBuyOffer info for this operation (index %d)", operationIndex)
 		}
 
 		details["offer_id"] = int64(op.OfferId)
@@ -694,7 +694,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeManageSellOffer:
 		op, ok := operation.Body.GetManageSellOfferOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access ManageSellOffer info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access ManageSellOffer info for this operation (index %d)", operationIndex)
 		}
 
 		details["offer_id"] = int64(op.OfferId)
@@ -713,7 +713,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		op, ok := operation.Body.GetCreatePassiveSellOfferOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access CreatePassiveSellOffer info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access CreatePassiveSellOffer info for this operation (index %d)", operationIndex)
 		}
 
 		details["amount"] = utils.ConvertStroopValueToReal(op.Amount)
@@ -731,7 +731,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeSetOptions:
 		op, ok := operation.Body.GetSetOptionsOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access GetSetOptions info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access GetSetOptions info for this operation (index %d)", operationIndex)
 		}
 
 		if op.InflationDest != nil {
@@ -774,7 +774,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeChangeTrust:
 		op, ok := operation.Body.GetChangeTrustOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access GetChangeTrust info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access GetChangeTrust info for this operation (index %d)", operationIndex)
 		}
 
 		if op.Line.Type == xdr.AssetTypeAssetTypePoolShare {
@@ -796,7 +796,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeAllowTrust:
 		op, ok := operation.Body.GetAllowTrustOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access AllowTrust info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access AllowTrust info for this operation (index %d)", operationIndex)
 		}
 
 		if err := addAssetDetailsToOperationDetails(details, op.Asset.ToAsset(sourceAccount.ToAccountId()), ""); err != nil {
@@ -820,7 +820,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeAccountMerge:
 		destinationAccount, ok := operation.Body.GetDestination()
 		if !ok {
-			return details, fmt.Errorf("Could not access Destination info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access Destination info for this operation (index %d)", operationIndex)
 		}
 
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "account"); err != nil {
@@ -835,7 +835,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeManageData:
 		op, ok := operation.Body.GetManageDataOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access GetManageData info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access GetManageData info for this operation (index %d)", operationIndex)
 		}
 
 		details["name"] = string(op.DataName)
@@ -848,7 +848,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeBumpSequence:
 		op, ok := operation.Body.GetBumpSequenceOp()
 		if !ok {
-			return details, fmt.Errorf("Could not access BumpSequence info for this operation (index %d)", operationIndex)
+			return details, fmt.Errorf("could not access BumpSequence info for this operation (index %d)", operationIndex)
 		}
 		details["bump_to"] = fmt.Sprintf("%d", op.BumpTo)
 
@@ -862,7 +862,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		op := operation.Body.MustClaimClaimableBalanceOp()
 		balanceID, err := xdr.MarshalHex(op.BalanceId)
 		if err != nil {
-			return details, fmt.Errorf("Invalid balanceId in op: %d", operationIndex)
+			return details, fmt.Errorf("invalid balanceId in op: %d", operationIndex)
 		}
 		details["balance_id"] = balanceID
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "claimant"); err != nil {
@@ -908,7 +908,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		op := operation.Body.MustClawbackClaimableBalanceOp()
 		balanceID, err := xdr.MarshalHex(op.BalanceId)
 		if err != nil {
-			return details, fmt.Errorf("Invalid balanceId in op: %d", operationIndex)
+			return details, fmt.Errorf("invalid balanceId in op: %d", operationIndex)
 		}
 		details["balance_id"] = balanceID
 
@@ -1113,7 +1113,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
-		return details, fmt.Errorf("Unknown operation type: %s", operation.Body.Type.String())
+		return details, fmt.Errorf("unknown operation type: %s", operation.Body.Type.String())
 	}
 
 	sponsor, err := getSponsor(operation, transaction, operationIndex)
@@ -1506,7 +1506,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		op := operation.operation.Body.MustClaimClaimableBalanceOp()
 		balanceID, err := xdr.MarshalHex(op.BalanceId)
 		if err != nil {
-			panic(fmt.Errorf("Invalid balanceId in op: %d", operation.index))
+			panic(fmt.Errorf("invalid balanceId in op: %d", operation.index))
 		}
 		details["balance_id"] = balanceID
 		addAccountAndMuxedAccountDetails(details, *source, "claimant")
@@ -1539,7 +1539,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		op := operation.operation.Body.MustClawbackClaimableBalanceOp()
 		balanceID, err := xdr.MarshalHex(op.BalanceId)
 		if err != nil {
-			panic(fmt.Errorf("Invalid balanceId in op: %d", operation.index))
+			panic(fmt.Errorf("invalid balanceId in op: %d", operation.index))
 		}
 		details["balance_id"] = balanceID
 	case xdr.OperationTypeSetTrustLineFlags:
@@ -1716,7 +1716,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 		details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 	default:
-		panic(fmt.Errorf("Unknown operation type: %s", operation.OperationType()))
+		panic(fmt.Errorf("unknown operation type: %s", operation.OperationType()))
 	}
 
 	sponsor, err := operation.getSponsor()
@@ -2135,7 +2135,7 @@ func (operation *transactionOperationWrapper) Participants() ([]xdr.AccountId, e
 	case xdr.OperationTypeRestoreFootprint:
 		// the only direct participant is the source_account
 	default:
-		return participants, fmt.Errorf("Unknown operation type: %s", op.Body.Type)
+		return participants, fmt.Errorf("unknown operation type: %s", op.Body.Type)
 	}
 
 	sponsor, err := operation.getSponsor()
@@ -2162,24 +2162,24 @@ func dedupeParticipants(in []xdr.AccountId) (out []xdr.AccountId) {
 	return
 }
 
-// OperationsParticipants returns a map with all participants per operation
-func operationsParticipants(transaction ingest.LedgerTransaction, sequence uint32) (map[int64][]xdr.AccountId, error) {
-	participants := map[int64][]xdr.AccountId{}
-
-	for opi, op := range transaction.Envelope.Operations() {
-		operation := transactionOperationWrapper{
-			index:          uint32(opi),
-			transaction:    transaction,
-			operation:      op,
-			ledgerSequence: sequence,
-		}
-
-		p, err := operation.Participants()
-		if err != nil {
-			return participants, errors.Wrapf(err, "reading operation %v participants", operation.ID())
-		}
-		participants[operation.ID()] = p
-	}
-
-	return participants, nil
-}
+//// OperationsParticipants returns a map with all participants per operation
+//func operationsParticipants(transaction ingest.LedgerTransaction, sequence uint32) (map[int64][]xdr.AccountId, error) {
+//	participants := map[int64][]xdr.AccountId{}
+//
+//	for opi, op := range transaction.Envelope.Operations() {
+//		operation := transactionOperationWrapper{
+//			index:          uint32(opi),
+//			transaction:    transaction,
+//			operation:      op,
+//			ledgerSequence: sequence,
+//		}
+//
+//		p, err := operation.Participants()
+//		if err != nil {
+//			return participants, errors.Wrapf(err, "reading operation %v participants", operation.ID())
+//		}
+//		participants[operation.ID()] = p
+//	}
+//
+//	return participants, nil
+//}

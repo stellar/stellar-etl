@@ -61,18 +61,18 @@ func TestTransformPool(t *testing.T) {
 	}
 }
 
-func wrapPoolEntry(poolEntry xdr.LiquidityPoolEntry, lastModified int) ingest.Change {
-	return ingest.Change{
-		Type: xdr.LedgerEntryTypeLiquidityPool,
-		Pre: &xdr.LedgerEntry{
-			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
-			Data: xdr.LedgerEntryData{
-				Type:          xdr.LedgerEntryTypeLiquidityPool,
-				LiquidityPool: &poolEntry,
-			},
-		},
-	}
-}
+//func wrapPoolEntry(poolEntry xdr.LiquidityPoolEntry, lastModified int) ingest.Change {
+//	return ingest.Change{
+//		Type: xdr.LedgerEntryTypeLiquidityPool,
+//		Pre: &xdr.LedgerEntry{
+//			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
+//			Data: xdr.LedgerEntryData{
+//				Type:          xdr.LedgerEntryTypeLiquidityPool,
+//				LiquidityPool: &poolEntry,
+//			},
+//		},
+//	}
+//}
 
 func makePoolTestInput() ingest.Change {
 	ledgerEntry := xdr.LedgerEntry{

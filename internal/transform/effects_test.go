@@ -349,6 +349,7 @@ func TestOperationEffects(t *testing.T) {
 
 	harCodedCloseMetaInput := makeLedgerCloseMeta()
 	LedgerClosed, err := utils.GetCloseTime(harCodedCloseMetaInput)
+	assert.NoError(t, err)
 
 	revokeSponsorshipMeta, revokeSponsorshipEffects := getRevokeSponsorshipMeta(t)
 
@@ -2565,12 +2566,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"id":     poolIDStr,
 							"reserves": []base.AssetAmount{
 								{
-									"native",
-									"0.0000200",
+									Asset:  "native",
+									Amount: "0.0000200",
 								},
 								{
-									"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-									"0.0000100",
+									Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+									Amount: "0.0000100",
 								},
 							},
 							"total_shares":     "0.0001000",
@@ -2623,12 +2624,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"id":     poolIDStr,
 							"reserves": []base.AssetAmount{
 								{
-									"native",
-									"0.0000250",
+									Asset:  "native",
+									Amount: "0.0000250",
 								},
 								{
-									"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-									"0.0000160",
+									Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+									Amount: "0.0000160",
 								},
 							},
 							"total_shares":     "0.0001010",
@@ -2637,12 +2638,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 						"reserves_deposited": []base.AssetAmount{
 							{
-								"native",
-								"0.0000050",
+								Asset:  "native",
+								Amount: "0.0000050",
 							},
 							{
-								"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-								"0.0000060",
+								Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+								Amount: "0.0000060",
 							},
 						},
 						"shares_received": "0.0000010",
@@ -2685,12 +2686,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"id":     poolIDStr,
 							"reserves": []base.AssetAmount{
 								{
-									"native",
-									"0.0000189",
+									Asset:  "native",
+									Amount: "0.0000189",
 								},
 								{
-									"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-									"0.0000094",
+									Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+									Amount: "0.0000094",
 								},
 							},
 							"total_shares":     "0.0000990",
@@ -2699,12 +2700,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 						"reserves_received": []base.AssetAmount{
 							{
-								"native",
-								"0.0000011",
+								Asset:  "native",
+								Amount: "0.0000011",
 							},
 							{
-								"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-								"0.0000006",
+								Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+								Amount: "0.0000006",
 							},
 						},
 						"shares_redeemed": "0.0000010",
@@ -2805,12 +2806,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"id":     poolIDStr,
 							"reserves": []base.AssetAmount{
 								{
-									"native",
-									"0.0000189",
+									Asset:  "native",
+									Amount: "0.0000189",
 								},
 								{
-									"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-									"0.0000094",
+									Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+									Amount: "0.0000094",
 								},
 							},
 							"total_shares":     "0.0000990",
@@ -3002,12 +3003,12 @@ func TestLiquidityPoolEffects(t *testing.T) {
 							"id":     poolIDStr,
 							"reserves": []base.AssetAmount{
 								{
-									"native",
-									"0.0000200",
+									Asset:  "native",
+									Amount: "0.0000200",
 								},
 								{
-									"USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
-									"0.0000100",
+									Asset:  "USD:GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
+									Amount: "0.0000100",
 								},
 							},
 							"total_shares":     "0.0001000",
@@ -3326,28 +3327,28 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 
 type ClaimClaimableBalanceEffectsTestSuite struct {
 	suite.Suite
-	ops []xdr.Operation
-	tx  ingest.LedgerTransaction
+	//ops []xdr.Operation
+	//tx  ingest.LedgerTransaction
 }
 
 type CreateClaimableBalanceEffectsTestSuite struct {
 	suite.Suite
-	ops []xdr.Operation
-	tx  ingest.LedgerTransaction
+	//ops []xdr.Operation
+	//tx  ingest.LedgerTransaction
 }
 
 const (
 	networkPassphrase = "Arbitrary Testing Passphrase"
 )
 
-type effect struct {
-	address      string
-	addressMuxed null.String
-	operationID  int64
-	details      map[string]interface{}
-	effectType   EffectType
-	order        uint32
-}
+//type effect struct {
+//	address      string
+//	addressMuxed null.String
+//	operationID  int64
+//	details      map[string]interface{}
+//	effectType   EffectType
+//	order        uint32
+//}
 
 func TestInvokeHostFunctionEffects(t *testing.T) {
 	randAddr := func() string {

@@ -14,7 +14,7 @@ import (
 
 func TestTransformLedger(t *testing.T) {
 	type transformTest struct {
-		input      historyarchive.Ledger
+		input      utils.HistoryArchiveLedgerAndLCM
 		wantOutput LedgerOutput
 		wantErr    error
 	}
@@ -26,10 +26,23 @@ func TestTransformLedger(t *testing.T) {
 
 	tests := []transformTest{
 		{
-			historyarchive.Ledger{
-				Header: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						TotalCoins: -1,
+			utils.HistoryArchiveLedgerAndLCM{
+				Ledger: historyarchive.Ledger{
+					Header: xdr.LedgerHeaderHistoryEntry{
+						Header: xdr.LedgerHeader{
+							TotalCoins: -1,
+						},
+					},
+				},
+				LCM: xdr.LedgerCloseMeta{
+					V: 1,
+					V1: &xdr.LedgerCloseMetaV1{
+						Ext: xdr.LedgerCloseMetaExt{
+							V: 1,
+							V1: &xdr.LedgerCloseMetaExtV1{
+								SorobanFeeWrite1Kb: xdr.Int64(1234),
+							},
+						},
 					},
 				},
 			},
@@ -37,10 +50,23 @@ func TestTransformLedger(t *testing.T) {
 			fmt.Errorf("the total number of coins (-1) is negative for ledger 0 (ledger id=0)"),
 		},
 		{
-			historyarchive.Ledger{
-				Header: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						FeePool: -1,
+			utils.HistoryArchiveLedgerAndLCM{
+				Ledger: historyarchive.Ledger{
+					Header: xdr.LedgerHeaderHistoryEntry{
+						Header: xdr.LedgerHeader{
+							FeePool: -1,
+						},
+					},
+				},
+				LCM: xdr.LedgerCloseMeta{
+					V: 1,
+					V1: &xdr.LedgerCloseMetaV1{
+						Ext: xdr.LedgerCloseMetaExt{
+							V: 1,
+							V1: &xdr.LedgerCloseMetaExtV1{
+								SorobanFeeWrite1Kb: xdr.Int64(1234),
+							},
+						},
 					},
 				},
 			},
@@ -55,7 +81,7 @@ func TestTransformLedger(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformLedger(test.input)
+		actualOutput, actualError := TransformLedger(test.input.Ledger, test.input.LCM)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -88,11 +114,13 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
 		TxSetOperationCount:        "13",
+
+		SorobanFeeWrite1Kb: 1234,
 	}
 	return
 }
 
-func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
+func makeLedgerTestInput() (lcm utils.HistoryArchiveLedgerAndLCM, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
 			utils.CreateSampleTx(0, 3),
@@ -103,7 +131,7 @@ func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
 		utils.CreateSampleResultPair(false, 3),
 		utils.CreateSampleResultPair(true, 10),
 	}
-	lcm = historyarchive.Ledger{
+	ledger := historyarchive.Ledger{
 		Header: xdr.LedgerHeaderHistoryEntry{
 			Header: xdr.LedgerHeader{
 				LedgerSeq:          30578981,
@@ -130,5 +158,21 @@ func makeLedgerTestInput() (lcm historyarchive.Ledger, err error) {
 			Ext: xdr.TransactionHistoryResultEntryExt{},
 		},
 	}
+
+	lcm = utils.HistoryArchiveLedgerAndLCM{
+		Ledger: ledger,
+		LCM: xdr.LedgerCloseMeta{
+			V: 1,
+			V1: &xdr.LedgerCloseMetaV1{
+				Ext: xdr.LedgerCloseMetaExt{
+					V: 1,
+					V1: &xdr.LedgerCloseMetaExtV1{
+						SorobanFeeWrite1Kb: xdr.Int64(1234),
+					},
+				},
+			},
+		},
+	}
+
 	return lcm, nil
 }

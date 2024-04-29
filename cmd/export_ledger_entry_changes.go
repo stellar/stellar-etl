@@ -57,7 +57,7 @@ be exported.`,
 		}
 
 		if allFalse {
-			for export_name, _ := range exports {
+			for export_name := range exports {
 				exports[export_name] = true
 			}
 		}
