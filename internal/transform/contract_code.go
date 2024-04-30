@@ -38,6 +38,31 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 
 	ledgerSequence := header.Header.LedgerSeq
 
+	var outputNInstructions uint32
+	var outputNFunctions uint32
+	var outputNGlobals uint32
+	var outputNTableEntries uint32
+	var outputNTypes uint32
+	var outputNDataSegments uint32
+	var outputNElemSegments uint32
+	var outputNImports uint32
+	var outputNExports uint32
+	var outputNDataSegmentBytes uint32
+
+	extV1, ok := contractCode.Ext.GetV1()
+	if ok {
+		outputNInstructions = uint32(extV1.CostInputs.NInstructions)
+		outputNFunctions = uint32(extV1.CostInputs.NFunctions)
+		outputNGlobals = uint32(extV1.CostInputs.NGlobals)
+		outputNTableEntries = uint32(extV1.CostInputs.NTableEntries)
+		outputNTypes = uint32(extV1.CostInputs.NTypes)
+		outputNDataSegments = uint32(extV1.CostInputs.NDataSegments)
+		outputNElemSegments = uint32(extV1.CostInputs.NElemSegments)
+		outputNImports = uint32(extV1.CostInputs.NImports)
+		outputNExports = uint32(extV1.CostInputs.NExports)
+		outputNDataSegmentBytes = uint32(extV1.CostInputs.NDataSegmentBytes)
+	}
+
 	transformedCode := ContractCodeOutput{
 		ContractCodeHash:   contractCodeHash,
 		ContractCodeExtV:   int32(contractCodeExtV),
@@ -47,6 +72,16 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
 		LedgerKeyHash:      ledgerKeyHash,
+		NInstructions:      outputNInstructions,
+		NFunctions:         outputNFunctions,
+		NGlobals:           outputNGlobals,
+		NTableEntries:      outputNTableEntries,
+		NTypes:             outputNTypes,
+		NDataSegments:      outputNDataSegments,
+		NElemSegments:      outputNElemSegments,
+		NImports:           outputNImports,
+		NExports:           outputNExports,
+		NDataSegmentBytes:  outputNDataSegmentBytes,
 	}
 	return transformedCode, nil
 }

@@ -522,6 +522,16 @@ type ContractCodeOutput struct {
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 	LedgerKeyHash      string    `json:"ledger_key_hash"`
 	//ContractCodeCode                string `json:"contract_code"`
+	NInstructions     uint32 `json:"n_instructions"`
+	NFunctions        uint32 `json:"n_functions"`
+	NGlobals          uint32 `json:"n_globals"`
+	NTableEntries     uint32 `json:"n_table_entries"`
+	NTypes            uint32 `json:"n_types"`
+	NDataSegments     uint32 `json:"n_data_segments"`
+	NElemSegments     uint32 `json:"n_elem_segments"`
+	NImports          uint32 `json:"n_imports"`
+	NExports          uint32 `json:"n_exports"`
+	NDataSegmentBytes uint32 `json:"n_data_segment_bytes"`
 }
 
 // ConfigSettingOutput is a representation of soroban config settings that aligns with the Bigquery table config_settings
