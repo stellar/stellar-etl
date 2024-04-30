@@ -2161,25 +2161,3 @@ func dedupeParticipants(in []xdr.AccountId) (out []xdr.AccountId) {
 	}
 	return
 }
-
-//// OperationsParticipants returns a map with all participants per operation
-//func operationsParticipants(transaction ingest.LedgerTransaction, sequence uint32) (map[int64][]xdr.AccountId, error) {
-//	participants := map[int64][]xdr.AccountId{}
-//
-//	for opi, op := range transaction.Envelope.Operations() {
-//		operation := transactionOperationWrapper{
-//			index:          uint32(opi),
-//			transaction:    transaction,
-//			operation:      op,
-//			ledgerSequence: sequence,
-//		}
-//
-//		p, err := operation.Participants()
-//		if err != nil {
-//			return participants, errors.Wrapf(err, "reading operation %v participants", operation.ID())
-//		}
-//		participants[operation.ID()] = p
-//	}
-//
-//	return participants, nil
-//}

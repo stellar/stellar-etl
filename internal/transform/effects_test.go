@@ -3327,28 +3327,15 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 
 type ClaimClaimableBalanceEffectsTestSuite struct {
 	suite.Suite
-	//ops []xdr.Operation
-	//tx  ingest.LedgerTransaction
 }
 
 type CreateClaimableBalanceEffectsTestSuite struct {
 	suite.Suite
-	//ops []xdr.Operation
-	//tx  ingest.LedgerTransaction
 }
 
 const (
 	networkPassphrase = "Arbitrary Testing Passphrase"
 )
-
-//type effect struct {
-//	address      string
-//	addressMuxed null.String
-//	operationID  int64
-//	details      map[string]interface{}
-//	effectType   EffectType
-//	order        uint32
-//}
 
 func TestInvokeHostFunctionEffects(t *testing.T) {
 	randAddr := func() string {

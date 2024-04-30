@@ -114,8 +114,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		SuccessfulTransactionCount: 1,
 		FailedTransactionCount:     1,
 		TxSetOperationCount:        "13",
-
-		SorobanFeeWrite1Kb: 1234,
+		SorobanFeeWrite1Kb:         1234,
 	}
 	return
 }

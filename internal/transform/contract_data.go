@@ -10,28 +10,14 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-//const (
-//	scDecimalPrecision = 7
-//)
-
 var (
-	// https://github.com/stellar/rs-soroban-env/blob/v0.0.16/soroban-env-host/src/native_contract/token/public_types.rs#L22
-	//nativeAssetSym = xdr.ScSymbol("Native")
 	// these are storage DataKey enum
 	// https://github.com/stellar/rs-soroban-env/blob/v0.0.16/soroban-env-host/src/native_contract/token/storage_types.rs#L23
 	balanceMetadataSym = xdr.ScSymbol("Balance")
-	//metadataSym        = xdr.ScSymbol("METADATA")
-	//metadataNameSym    = xdr.ScSymbol("name")
-	//metadataSymbolSym  = xdr.ScSymbol("symbol")
-	//adminSym           = xdr.ScSymbol("Admin")
-	issuerSym    = xdr.ScSymbol("issuer")
-	assetCodeSym = xdr.ScSymbol("asset_code")
-	//alphaNum4Sym       = xdr.ScSymbol("AlphaNum4")
-	//alphaNum12Sym      = xdr.ScSymbol("AlphaNum12")
-	//decimalSym         = xdr.ScSymbol("decimal")
-	assetInfoSym = xdr.ScSymbol("AssetInfo")
-	//decimalVal   = xdr.Uint32(scDecimalPrecision)
-	assetInfoVec = &xdr.ScVec{
+	issuerSym          = xdr.ScSymbol("issuer")
+	assetCodeSym       = xdr.ScSymbol("asset_code")
+	assetInfoSym       = xdr.ScSymbol("AssetInfo")
+	assetInfoVec       = &xdr.ScVec{
 		xdr.ScVal{
 			Type: xdr.ScValTypeScvSymbol,
 			Sym:  &assetInfoSym,
