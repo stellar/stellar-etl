@@ -17,7 +17,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 
 	contractCode, ok := ledgerEntry.Data.GetContractCode()
 	if !ok {
-		return ContractCodeOutput{}, fmt.Errorf("Could not extract contract code from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return ContractCodeOutput{}, fmt.Errorf("could not extract contract code from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	// LedgerEntryChange must contain a contract code change to be parsed, otherwise skip

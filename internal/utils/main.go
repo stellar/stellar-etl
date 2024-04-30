@@ -859,3 +859,8 @@ func AccountSignersChanged(c ingest.Change) bool {
 
 	return false
 }
+
+type HistoryArchiveLedgerAndLCM struct {
+	Ledger historyarchive.Ledger
+	LCM    xdr.LedgerCloseMeta
+}

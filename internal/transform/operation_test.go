@@ -50,7 +50,7 @@ func TestTransformOperation(t *testing.T) {
 		{
 			unknownOpTypeInput,
 			OperationOutput{},
-			fmt.Errorf("Unknown operation type: "),
+			fmt.Errorf("unknown operation type: "),
 		},
 	}
 	hardCodedInputTransaction, err := makeOperationTestInput()
@@ -129,7 +129,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 	hardCodedDataValue := xdr.DataValue([]byte{0x76, 0x61, 0x6c, 0x75, 0x65})
 	hardCodedSequenceNumber := xdr.SequenceNumber(100)
 	inputOperations := []xdr.Operation{
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeCreateAccount,
@@ -139,7 +139,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePayment,
@@ -150,7 +150,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePayment,
@@ -161,7 +161,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -175,7 +175,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageSellOffer,
@@ -191,7 +191,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeCreatePassiveSellOffer,
@@ -206,7 +206,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeSetOptions,
@@ -223,7 +223,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeChangeTrust,
@@ -233,7 +233,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeChangeTrust,
@@ -243,7 +243,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeAllowTrust,
@@ -254,20 +254,20 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type:        xdr.OperationTypeAccountMerge,
 				Destination: &testAccount4,
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeInflation,
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageData,
@@ -277,7 +277,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeBumpSequence,
@@ -286,7 +286,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeManageBuyOffer,
@@ -302,7 +302,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictSend,
@@ -316,7 +316,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeCreateClaimableBalance,
@@ -327,7 +327,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeClaimClaimableBalance,
@@ -336,7 +336,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeBeginSponsoringFutureReserves,
@@ -345,7 +345,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -358,7 +358,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -373,7 +373,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -388,7 +388,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -404,7 +404,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -420,7 +420,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -436,7 +436,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -451,7 +451,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeClawback,
@@ -462,7 +462,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeClawbackClaimableBalance,
@@ -471,7 +471,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeSetTrustLineFlags,
@@ -483,7 +483,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeLiquidityPoolDeposit,
@@ -502,7 +502,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypeLiquidityPoolWithdraw,
@@ -514,7 +514,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		//xdr.Operation{
+		//{
 		//	SourceAccount: nil,
 		//	Body: xdr.OperationBody{
 		//		Type: xdr.OperationTypeInvokeHostFunction,
@@ -533,7 +533,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		//		},
 		//	},
 		//},
-		//xdr.Operation{
+		//{
 		//	SourceAccount: nil,
 		//	Body: xdr.OperationBody{
 		//		Type: xdr.OperationTypeInvokeHostFunction,
@@ -557,7 +557,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		//		},
 		//	},
 		//},
-		//xdr.Operation{
+		//{
 		//	SourceAccount: nil,
 		//	Body: xdr.OperationBody{
 		//		Type: xdr.OperationTypeInvokeHostFunction,
@@ -584,7 +584,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		//		},
 		//	},
 		//},
-		//xdr.Operation{
+		//{
 		//	SourceAccount: nil,
 		//	Body: xdr.OperationBody{
 		//		Type: xdr.OperationTypeInvokeHostFunction,
@@ -596,7 +596,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		//		},
 		//	},
 		//},
-		//xdr.Operation{
+		//{
 		//	SourceAccount: nil,
 		//	Body: xdr.OperationBody{
 		//		Type: xdr.OperationTypeBumpFootprintExpiration,
@@ -608,7 +608,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		//		},
 		//	},
 		//},
-		//xdr.Operation{
+		//{
 		//	SourceAccount: nil,
 		//	Body: xdr.OperationBody{
 		//		Type: xdr.OperationTypeRestoreFootprint,
@@ -622,7 +622,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 	}
 	inputEnvelope.Tx.Operations = inputOperations
 	results := []xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeCreateAccount,
@@ -631,7 +631,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePayment,
@@ -640,7 +640,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePayment,
@@ -650,7 +650,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 			},
 		},
 		// There needs to be a true result for path payment receive and send
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -662,7 +662,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageSellOffer,
@@ -671,7 +671,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageSellOffer,
@@ -680,7 +680,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeSetOptions,
@@ -689,7 +689,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeChangeTrust,
@@ -698,7 +698,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeChangeTrust,
@@ -707,7 +707,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeAllowTrust,
@@ -716,7 +716,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeAccountMerge,
@@ -725,7 +725,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeInflation,
@@ -734,7 +734,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageData,
@@ -743,7 +743,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeBumpSequence,
@@ -752,7 +752,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageBuyOffer,
@@ -761,7 +761,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePathPaymentStrictSend,
@@ -773,7 +773,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeCreateClaimableBalance,
@@ -782,7 +782,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeClaimClaimableBalance,
@@ -791,7 +791,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeBeginSponsoringFutureReserves,
@@ -800,7 +800,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -809,7 +809,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -818,7 +818,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -827,7 +827,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -836,7 +836,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -845,7 +845,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -854,7 +854,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeRevokeSponsorship,
@@ -863,7 +863,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeClawback,
@@ -872,7 +872,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeClawbackClaimableBalance,
@@ -881,7 +881,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeSetTrustLineFlags,
@@ -890,7 +890,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeLiquidityPoolDeposit,
@@ -899,7 +899,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeLiquidityPoolWithdraw,
@@ -908,12 +908,12 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		//xdr.OperationResult{},
-		//xdr.OperationResult{},
-		//xdr.OperationResult{},
-		//xdr.OperationResult{},
-		//xdr.OperationResult{},
-		//xdr.OperationResult{},
+		//{},
+		//{},
+		//{},
+		//{},
+		//{},
+		//{},
 	}
 	inputTransaction.Result.Result.Result.Results = &results
 	inputTransaction.Envelope.V1 = &inputEnvelope
@@ -925,7 +925,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 	hardCodedDestAccountAddress := testAccount4Address
 	hardCodedLedgerClose := genericCloseTime.UTC()
 	transformedOperations = []OperationOutput{
-		OperationOutput{
+		{
 			SourceAccount: hardCodedSourceAccountAddress,
 			Type:          0,
 			TypeString:    "create_account",
@@ -940,7 +940,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "CreateAccountResultCodeCreateAccountSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          1,
 			TypeString:    "payment",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -959,7 +959,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          1,
 			TypeString:    "payment",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -976,7 +976,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          2,
 			TypeString:    "path_payment_strict_receive",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -998,7 +998,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          3,
 			TypeString:    "manage_sell_offer",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1023,7 +1023,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          4,
 			TypeString:    "create_passive_sell_offer",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1047,7 +1047,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          5,
 			TypeString:    "set_options",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1071,7 +1071,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "SetOptionsResultCodeSetOptionsSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          6,
 			TypeString:    "change_trust",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1090,7 +1090,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          6,
 			TypeString:    "change_trust",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1106,7 +1106,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          7,
 			TypeString:    "allow_trust",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1125,7 +1125,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "AllowTrustResultCodeAllowTrustSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          8,
 			TypeString:    "account_merge",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1139,7 +1139,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "AccountMergeResultCodeAccountMergeSuccess",
 		},
-		OperationOutput{
+		{
 			Type:                9,
 			TypeString:          "inflation",
 			SourceAccount:       hardCodedSourceAccountAddress,
@@ -1150,7 +1150,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InflationResultCodeInflationSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          10,
 			TypeString:    "manage_data",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1164,7 +1164,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageDataResultCodeManageDataSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          11,
 			TypeString:    "bump_sequence",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1177,7 +1177,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "BumpSequenceResultCodeBumpSequenceSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          12,
 			TypeString:    "manage_buy_offer",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1202,7 +1202,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageBuyOfferResultCodeManageBuyOfferSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          13,
 			TypeString:    "path_payment_strict_send",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1224,7 +1224,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          14,
 			TypeString:    "create_claimable_balance",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1239,7 +1239,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "CreateClaimableBalanceResultCodeCreateClaimableBalanceSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          15,
 			TypeString:    "claim_claimable_balance",
 			SourceAccount: testAccount3Address,
@@ -1253,7 +1253,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          16,
 			TypeString:    "begin_sponsoring_future_reserves",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1266,7 +1266,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1280,7 +1280,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1293,7 +1293,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1306,7 +1306,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1320,7 +1320,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1333,7 +1333,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1347,7 +1347,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          18,
 			TypeString:    "revoke_sponsorship",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1360,7 +1360,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          19,
 			TypeString:    "clawback",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1378,7 +1378,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackResultCodeClawbackSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          20,
 			TypeString:    "clawback_claimable_balance",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1391,7 +1391,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          21,
 			TypeString:    "set_trust_line_flags",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1412,7 +1412,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "SetTrustLineFlagsResultCodeSetTrustLineFlagsSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          22,
 			TypeString:    "liquidity_pool_deposit",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1446,7 +1446,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "LiquidityPoolDepositResultCodeLiquidityPoolDepositSuccess",
 		},
-		OperationOutput{
+		{
 			Type:          23,
 			TypeString:    "liquidity_pool_withdraw",
 			SourceAccount: hardCodedSourceAccountAddress,

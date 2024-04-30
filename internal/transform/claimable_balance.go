@@ -33,7 +33,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHead
 	}
 	balanceID, err := xdr.MarshalHex(balanceEntry.BalanceId)
 	if err != nil {
-		return ClaimableBalanceOutput{}, fmt.Errorf("Invalid balanceId in op: %d", uint32(ledgerEntry.LastModifiedLedgerSeq))
+		return ClaimableBalanceOutput{}, fmt.Errorf("invalid balanceId in op: %d", uint32(ledgerEntry.LastModifiedLedgerSeq))
 	}
 	outputFlags := uint32(balanceEntry.Flags())
 	outputAsset, err := transformSingleAsset(balanceEntry.Asset)

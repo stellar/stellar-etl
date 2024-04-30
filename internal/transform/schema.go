@@ -28,46 +28,50 @@ type LedgerOutput struct {
 	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
 	ProtocolVersion            uint32    `json:"protocol_version"`
 	LedgerID                   int64     `json:"id"`
+	SorobanFeeWrite1Kb         int64     `json:"soroban_fee_write_1kb"`
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
-	TransactionHash              string         `json:"transaction_hash"`
-	LedgerSequence               uint32         `json:"ledger_sequence"`
-	Account                      string         `json:"account"`
-	AccountMuxed                 string         `json:"account_muxed,omitempty"`
-	AccountSequence              int64          `json:"account_sequence"`
-	MaxFee                       uint32         `json:"max_fee"`
-	FeeCharged                   int64          `json:"fee_charged"`
-	OperationCount               int32          `json:"operation_count"`
-	TxEnvelope                   string         `json:"tx_envelope"`
-	TxResult                     string         `json:"tx_result"`
-	TxMeta                       string         `json:"tx_meta"`
-	TxFeeMeta                    string         `json:"tx_fee_meta"`
-	CreatedAt                    time.Time      `json:"created_at"`
-	MemoType                     string         `json:"memo_type"`
-	Memo                         string         `json:"memo"`
-	TimeBounds                   string         `json:"time_bounds"`
-	Successful                   bool           `json:"successful"`
-	TransactionID                int64          `json:"id"`
-	FeeAccount                   string         `json:"fee_account,omitempty"`
-	FeeAccountMuxed              string         `json:"fee_account_muxed,omitempty"`
-	InnerTransactionHash         string         `json:"inner_transaction_hash,omitempty"`
-	NewMaxFee                    uint32         `json:"new_max_fee,omitempty"`
-	LedgerBounds                 string         `json:"ledger_bounds"`
-	MinAccountSequence           null.Int       `json:"min_account_sequence"`
-	MinAccountSequenceAge        null.Int       `json:"min_account_sequence_age"`
-	MinAccountSequenceLedgerGap  null.Int       `json:"min_account_sequence_ledger_gap"`
-	ExtraSigners                 pq.StringArray `json:"extra_signers"`
-	ClosedAt                     time.Time      `json:"closed_at"`
-	ResourceFee                  int64          `json:"resource_fee"`
-	SorobanResourcesInstructions uint32         `json:"soroban_resources_instructions"`
-	SorobanResourcesReadBytes    uint32         `json:"soroban_resources_read_bytes"`
-	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
-	TransactionResultCode        string         `json:"transaction_result_code"`
-	InclusionFeeBid              int64          `json:"inclusion_fee_bid"`
-	InclusionFeeCharged          int64          `json:"inclusion_fee_charged"`
-	ResourceFeeRefund            int64          `json:"resource_fee_refund"`
+	TransactionHash                      string         `json:"transaction_hash"`
+	LedgerSequence                       uint32         `json:"ledger_sequence"`
+	Account                              string         `json:"account"`
+	AccountMuxed                         string         `json:"account_muxed,omitempty"`
+	AccountSequence                      int64          `json:"account_sequence"`
+	MaxFee                               uint32         `json:"max_fee"`
+	FeeCharged                           int64          `json:"fee_charged"`
+	OperationCount                       int32          `json:"operation_count"`
+	TxEnvelope                           string         `json:"tx_envelope"`
+	TxResult                             string         `json:"tx_result"`
+	TxMeta                               string         `json:"tx_meta"`
+	TxFeeMeta                            string         `json:"tx_fee_meta"`
+	CreatedAt                            time.Time      `json:"created_at"`
+	MemoType                             string         `json:"memo_type"`
+	Memo                                 string         `json:"memo"`
+	TimeBounds                           string         `json:"time_bounds"`
+	Successful                           bool           `json:"successful"`
+	TransactionID                        int64          `json:"id"`
+	FeeAccount                           string         `json:"fee_account,omitempty"`
+	FeeAccountMuxed                      string         `json:"fee_account_muxed,omitempty"`
+	InnerTransactionHash                 string         `json:"inner_transaction_hash,omitempty"`
+	NewMaxFee                            uint32         `json:"new_max_fee,omitempty"`
+	LedgerBounds                         string         `json:"ledger_bounds"`
+	MinAccountSequence                   null.Int       `json:"min_account_sequence"`
+	MinAccountSequenceAge                null.Int       `json:"min_account_sequence_age"`
+	MinAccountSequenceLedgerGap          null.Int       `json:"min_account_sequence_ledger_gap"`
+	ExtraSigners                         pq.StringArray `json:"extra_signers"`
+	ClosedAt                             time.Time      `json:"closed_at"`
+	ResourceFee                          int64          `json:"resource_fee"`
+	SorobanResourcesInstructions         uint32         `json:"soroban_resources_instructions"`
+	SorobanResourcesReadBytes            uint32         `json:"soroban_resources_read_bytes"`
+	SorobanResourcesWriteBytes           uint32         `json:"soroban_resources_write_bytes"`
+	TransactionResultCode                string         `json:"transaction_result_code"`
+	InclusionFeeBid                      int64          `json:"inclusion_fee_bid"`
+	InclusionFeeCharged                  int64          `json:"inclusion_fee_charged"`
+	ResourceFeeRefund                    int64          `json:"resource_fee_refund"`
+	TotalNonRefundableResourceFeeCharged int64          `json:"non_refundable_resource_fee_charged"`
+	TotalRefundableResourceFeeCharged    int64          `json:"refundable_resource_fee_charged"`
+	RentFeeCharged                       int64          `json:"rent_fee_charged"`
 }
 
 type LedgerTransactionOutput struct {

@@ -68,7 +68,7 @@ func makeAssetTestInput() (inputTransaction ingest.LedgerTransaction, err error)
 	inputEnvelope.Tx.SourceAccount = testAccount1
 
 	inputOperations := []xdr.Operation{
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePayment,
@@ -79,7 +79,7 @@ func makeAssetTestInput() (inputTransaction ingest.LedgerTransaction, err error)
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePayment,
@@ -99,7 +99,7 @@ func makeAssetTestInput() (inputTransaction ingest.LedgerTransaction, err error)
 
 func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 	transformedAssets = []AssetOutput{
-		AssetOutput{
+		{
 			AssetCode:   "USDT",
 			AssetIssuer: "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
 			AssetType:   "credit_alphanum4",
@@ -107,7 +107,7 @@ func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 
 			ID: -8205667356306085451,
 		},
-		AssetOutput{
+		{
 			AssetCode:   "",
 			AssetIssuer: "",
 			AssetType:   "native",

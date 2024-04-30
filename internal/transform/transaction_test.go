@@ -47,20 +47,20 @@ func TestTransformTransaction(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []transformTest{
-		transformTest{
+		{
 			negativeSeqInput,
 			TransactionOutput{},
-			fmt.Errorf("The account's sequence number (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
+			fmt.Errorf("the account's sequence number (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			badFeeChargedInput,
 			TransactionOutput{},
-			fmt.Errorf("The fee charged (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
+			fmt.Errorf("the fee charged (-1) is negative for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 		{
 			badTimeboundInput,
 			TransactionOutput{},
-			fmt.Errorf("The max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1 (transaction id=4096)"),
+			fmt.Errorf("the max time is earlier than the min time (100 < 1594586912) for ledger 0; transaction 1 (transaction id=4096)"),
 		},
 	}
 
@@ -82,7 +82,7 @@ func TestTransformTransaction(t *testing.T) {
 func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 	correctTime, err := time.Parse("2006-1-2 15:04:05 MST", "2020-07-09 05:28:42 UTC")
 	output = []TransactionOutput{
-		TransactionOutput{
+		{
 			TxEnvelope:                   "AAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAABX5ABjydzAABBtwAAAAEAAAAAAAAAAAAAAABfBqt0AAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 			TxResult:                     "AAAAAAAAASz/////AAAAAQAAAAAAAAAAAAAAAAAAAAA=",
 			TxMeta:                       "AAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAAA",
@@ -107,7 +107,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesWriteBytes:   0,
 			TransactionResultCode:        "TransactionResultCodeTxFailed",
 		},
-		TransactionOutput{
+		{
 			TxEnvelope:                   "AAAABQAAAABnzACGTDuJFoxqr+C8NHCe0CHFBXLi+YhhNCIILCIpcgAAAAAAABwgAAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAACFPY2AAAAfQAAAAEAAAAAAAAAAAAAAABfBqt0AAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 			TxResult:                     "AAAAAAAAASwAAAABqH/vXusmAmnDgPLeRWqtcrWbsxWqrHd4YEVuCdrAuvsAAAAAAAAAZAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 			TxMeta:                       "AAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAAA",
@@ -135,7 +135,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesWriteBytes:   0,
 			TransactionResultCode:        "TransactionResultCodeTxFeeBumpInnerSuccess", //inner fee bump success
 		},
-		TransactionOutput{
+		{
 			TxEnvelope:                   "AAAAAgAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAGQBpLyvsiV6gwAAAAIAAAABAAAAAAAAAAAAAAAAXwardAAAAAEAAAAFAAAACgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAMCAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 			TxResult:                     "AAAAAAAAAGT////5AAAAAA==",
 			TxMeta:                       "AAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAAA",
@@ -171,7 +171,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
 	genericResultResults := &[]xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeCreateAccount,
 				CreateAccountResult: &xdr.CreateAccountResult{
@@ -198,7 +198,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 		Ed25519: source.Ed25519,
 	}
 	transaction = []ingest.LedgerTransaction{
-		ingest.LedgerTransaction{
+		{
 			Index:      1,
 			UnsafeMeta: hardCodedMeta,
 			Envelope: xdr.TransactionEnvelope{
@@ -220,7 +220,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							},
 						},
 						Operations: []xdr.Operation{
-							xdr.Operation{
+							{
 								SourceAccount: &testAccount2,
 								Body: xdr.OperationBody{
 									Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -244,7 +244,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 				},
 			},
 		},
-		ingest.LedgerTransaction{
+		{
 			Index:      1,
 			UnsafeMeta: hardCodedMeta,
 			Envelope: xdr.TransactionEnvelope{
@@ -271,7 +271,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 										},
 									},
 									Operations: []xdr.Operation{
-										xdr.Operation{
+										{
 											SourceAccount: &testAccount2,
 											Body: xdr.OperationBody{
 												Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -300,7 +300,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 								Result: xdr.InnerTransactionResultResult{
 									Code: xdr.TransactionResultCodeTxSuccess,
 									Results: &[]xdr.OperationResult{
-										xdr.OperationResult{
+										{
 											Tr: &xdr.OperationResultTr{
 												CreateAccountResult: &xdr.CreateAccountResult{},
 											},
@@ -309,14 +309,12 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 								},
 							},
 						},
-						Results: &[]xdr.OperationResult{
-							xdr.OperationResult{},
-						},
+						Results: &[]xdr.OperationResult{{}},
 					},
 				},
 			},
 		},
-		ingest.LedgerTransaction{
+		{
 			Index:      1,
 			UnsafeMeta: hardCodedMeta,
 			Envelope: xdr.TransactionEnvelope{
@@ -345,7 +343,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							},
 						},
 						Operations: []xdr.Operation{
-							xdr.Operation{
+							{
 								SourceAccount: &testAccount4,
 								Body: xdr.OperationBody{
 									Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -371,19 +369,19 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 		},
 	}
 	historyHeader = []xdr.LedgerHeaderHistoryEntry{
-		xdr.LedgerHeaderHistoryEntry{
+		{
 			Header: xdr.LedgerHeader{
 				LedgerSeq: 30521816,
 				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
 			},
 		},
-		xdr.LedgerHeaderHistoryEntry{
+		{
 			Header: xdr.LedgerHeader{
 				LedgerSeq: 30521817,
 				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
 			},
 		},
-		xdr.LedgerHeaderHistoryEntry{
+		{
 			Header: xdr.LedgerHeader{
 				LedgerSeq: 30521818,
 				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},

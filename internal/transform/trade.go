@@ -20,11 +20,11 @@ import (
 func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
 	operationResults, ok := transaction.Result.OperationResults()
 	if !ok {
-		return []TradeOutput{}, fmt.Errorf("Could not get any results from this transaction")
+		return []TradeOutput{}, fmt.Errorf("could not get any results from this transaction")
 	}
 
 	if !transaction.Result.Successful() {
-		return []TradeOutput{}, fmt.Errorf("Transaction failed; no trades")
+		return []TradeOutput{}, fmt.Errorf("transaction failed; no trades")
 	}
 
 	operation := transaction.Envelope.Operations()[operationIndex]
@@ -50,7 +50,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 		outputSellingAmount := claimOffer.AmountSold()
 		if outputSellingAmount < 0 {
-			return []TradeOutput{}, fmt.Errorf("Amount sold is negative (%d) for operation at index %d", outputSellingAmount, operationIndex)
+			return []TradeOutput{}, fmt.Errorf("amount sold is negative (%d) for operation at index %d", outputSellingAmount, operationIndex)
 		}
 
 		var outputBuyingAssetType, outputBuyingAssetCode, outputBuyingAssetIssuer string
@@ -62,7 +62,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 		outputBuyingAmount := int64(claimOffer.AmountBought())
 		if outputBuyingAmount < 0 {
-			return []TradeOutput{}, fmt.Errorf("Amount bought is negative (%d) for operation at index %d", outputBuyingAmount, operationIndex)
+			return []TradeOutput{}, fmt.Errorf("amount bought is negative (%d) for operation at index %d", outputBuyingAmount, operationIndex)
 		}
 
 		if outputSellingAmount == 0 && outputBuyingAmount == 0 {
@@ -87,7 +87,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			tradeType = int32(2)
 			var fee uint32
 			if fee, err = findPoolFee(transaction, operationIndex, id); err != nil {
-				return []TradeOutput{}, fmt.Errorf("Cannot parse fee for liquidity pool %v", liquidityPoolID)
+				return []TradeOutput{}, fmt.Errorf("cannot parse fee for liquidity pool %v", liquidityPoolID)
 			}
 			outputPoolFee = null.IntFrom(int64(fee))
 
@@ -156,25 +156,25 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 
 func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex int32, operationType xdr.OperationType) (claimedOffers []xdr.ClaimAtom, BuyingOffer *xdr.OfferEntry, sellerIsExact null.Bool, err error) {
 	if operationIndex >= int32(len(operationResults)) {
-		err = fmt.Errorf("Operation index of %d is out of bounds in result slice (len = %d)", operationIndex, len(operationResults))
+		err = fmt.Errorf("operation index of %d is out of bounds in result slice (len = %d)", operationIndex, len(operationResults))
 		return
 	}
 
 	if operationResults[operationIndex].Tr == nil {
-		err = fmt.Errorf("Could not get result Tr for operation at index %d", operationIndex)
+		err = fmt.Errorf("could not get result Tr for operation at index %d", operationIndex)
 		return
 	}
 
 	operationTr, ok := operationResults[operationIndex].GetTr()
 	if !ok {
-		err = fmt.Errorf("Could not get result Tr for operation at index %d", operationIndex)
+		err = fmt.Errorf("could not get result Tr for operation at index %d", operationIndex)
 		return
 	}
 	switch operationType {
 	case xdr.OperationTypeManageBuyOffer:
 		var buyOfferResult xdr.ManageBuyOfferResult
 		if buyOfferResult, ok = operationTr.GetManageBuyOfferResult(); !ok {
-			err = fmt.Errorf("Could not get ManageBuyOfferResult for operation at index %d", operationIndex)
+			err = fmt.Errorf("could not get ManageBuyOfferResult for operation at index %d", operationIndex)
 			return
 		}
 		if success, ok := buyOfferResult.GetSuccess(); ok {
@@ -183,12 +183,12 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 			return
 		}
 
-		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
+		err = fmt.Errorf("could not get ManageOfferSuccess for operation at index %d", operationIndex)
 
 	case xdr.OperationTypeManageSellOffer:
 		var sellOfferResult xdr.ManageSellOfferResult
 		if sellOfferResult, ok = operationTr.GetManageSellOfferResult(); !ok {
-			err = fmt.Errorf("Could not get ManageSellOfferResult for operation at index %d", operationIndex)
+			err = fmt.Errorf("could not get ManageSellOfferResult for operation at index %d", operationIndex)
 			return
 		}
 
@@ -198,7 +198,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 			return
 		}
 
-		err = fmt.Errorf("Could not get ManageOfferSuccess for operation at index %d", operationIndex)
+		err = fmt.Errorf("could not get ManageOfferSuccess for operation at index %d", operationIndex)
 
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		// KNOWN ISSUE: stellar-core creates results for CreatePassiveOffer operations
@@ -219,7 +219,7 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 		var pathSendResult xdr.PathPaymentStrictSendResult
 		sellerIsExact = null.BoolFrom(false)
 		if pathSendResult, ok = operationTr.GetPathPaymentStrictSendResult(); !ok {
-			err = fmt.Errorf("Could not get PathPaymentStrictSendResult for operation at index %d", operationIndex)
+			err = fmt.Errorf("could not get PathPaymentStrictSendResult for operation at index %d", operationIndex)
 			return
 		}
 
@@ -229,13 +229,13 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 			return
 		}
 
-		err = fmt.Errorf("Could not get PathPaymentStrictSendSuccess for operation at index %d", operationIndex)
+		err = fmt.Errorf("could not get PathPaymentStrictSendSuccess for operation at index %d", operationIndex)
 
 	case xdr.OperationTypePathPaymentStrictReceive:
 		var pathReceiveResult xdr.PathPaymentStrictReceiveResult
 		sellerIsExact = null.BoolFrom(true)
 		if pathReceiveResult, ok = operationTr.GetPathPaymentStrictReceiveResult(); !ok {
-			err = fmt.Errorf("Could not get PathPaymentStrictReceiveResult for operation at index %d", operationIndex)
+			err = fmt.Errorf("could not get PathPaymentStrictReceiveResult for operation at index %d", operationIndex)
 			return
 		}
 
@@ -244,10 +244,10 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 			return
 		}
 
-		err = fmt.Errorf("Could not get GetPathPaymentStrictReceiveSuccess for operation at index %d", operationIndex)
+		err = fmt.Errorf("could not get GetPathPaymentStrictReceiveSuccess for operation at index %d", operationIndex)
 
 	default:
-		err = fmt.Errorf("Operation of type %s at index %d does not result in trades", operationType, operationIndex)
+		err = fmt.Errorf("operation of type %s at index %d does not result in trades", operationType, operationIndex)
 		return
 	}
 
@@ -386,7 +386,7 @@ func roundingSlippage(t ingest.LedgerTransaction, operationIndex int32, trade xd
 		}
 		return null.IntFrom(int64(roundingSlippageBips)), nil
 	default:
-		return null.Int{}, fmt.Errorf("Unexpected trade operation type: %v", op.Body.Type)
+		return null.Int{}, fmt.Errorf("unexpected trade operation type: %v", op.Body.Type)
 	}
 
 }

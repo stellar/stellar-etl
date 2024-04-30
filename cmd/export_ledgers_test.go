@@ -121,7 +121,7 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func sortByName(files []os.FileInfo) {
+func sortByName(files []os.DirEntry) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
 	})
@@ -144,14 +144,14 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 
 			// If the output arg specified is a directory, concat the contents for comparison.
 			if stat.IsDir() {
-				files, err := ioutil.ReadDir(outLocation)
+				files, err := os.ReadDir(outLocation)
 				if err != nil {
 					log.Fatal(err)
 				}
 				var buf bytes.Buffer
 				sortByName(files)
 				for _, f := range files {
-					b, err := ioutil.ReadFile(filepath.Join(outLocation, f.Name()))
+					b, err := os.ReadFile(filepath.Join(outLocation, f.Name()))
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -160,7 +160,7 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 				testOutput = buf.Bytes()
 			} else {
 				// If the output is written to a file, read the contents of the file for comparison.
-				testOutput, err = ioutil.ReadFile(outLocation)
+				testOutput, err = os.ReadFile(outLocation)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -197,16 +197,6 @@ func extractErrorMsg(loggerOutput string) string {
 	return loggerOutput[errIndex : errIndex+endIndex]
 }
 
-func removeCoreLogging(loggerOutput string) string {
-	endIndex := strings.Index(loggerOutput, "{\"")
-	// if there is no bracket, then nothing was exported except logs
-	if endIndex == -1 {
-		return ""
-	}
-
-	return loggerOutput[endIndex:]
-}
-
 func getLastSeqNum(archiveURLs []string) uint32 {
 	num, err := utils.GetLatestLedgerSequence(archiveURLs)
 	if err != nil {
@@ -218,10 +208,10 @@ func getLastSeqNum(archiveURLs []string) uint32 {
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
 	t.Helper()
 	f, err := os.OpenFile(goldenFile, os.O_RDWR, 0644)
-	defer f.Close()
 	if err != nil {
 		return "", err
 	}
+	defer f.Close()
 
 	// If the update flag is true, clear the current contents of the golden file and write the actual output
 	// This is useful for when new tests or added or functionality changes that breaks current tests

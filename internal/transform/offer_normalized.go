@@ -25,7 +25,7 @@ func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (Nor
 		return NormalizedOfferOutput{}, fmt.Errorf("offer %d is deleted", transformed.OfferID)
 	}
 
-	buyingAsset, sellingAsset, err := extractAssets(ledgerChange, transformed)
+	buyingAsset, sellingAsset, err := extractAssets(ledgerChange)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
@@ -57,7 +57,7 @@ func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (Nor
 }
 
 // extractAssets extracts the buying and selling assets as strings of the format code:issuer
-func extractAssets(ledgerChange ingest.Change, transformed OfferOutput) (string, string, error) {
+func extractAssets(ledgerChange ingest.Change) (string, string, error) {
 	ledgerEntry, _, _, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return "", "", err
@@ -65,7 +65,7 @@ func extractAssets(ledgerChange ingest.Change, transformed OfferOutput) (string,
 
 	offerEntry, offerFound := ledgerEntry.Data.GetOffer()
 	if !offerFound {
-		return "", "", fmt.Errorf("Could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return "", "", fmt.Errorf("could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	var sellType, sellCode, sellIssuer string

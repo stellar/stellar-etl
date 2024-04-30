@@ -22,17 +22,17 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 
 	lp, ok := ledgerEntry.Data.GetLiquidityPool()
 	if !ok {
-		return PoolOutput{}, fmt.Errorf("Could not extract liquidity pool data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return PoolOutput{}, fmt.Errorf("could not extract liquidity pool data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	cp, ok := lp.Body.GetConstantProduct()
 	if !ok {
-		return PoolOutput{}, fmt.Errorf("Could not extract constant product information for liquidity pool %s", xdr.Hash(lp.LiquidityPoolId).HexString())
+		return PoolOutput{}, fmt.Errorf("could not extract constant product information for liquidity pool %s", xdr.Hash(lp.LiquidityPoolId).HexString())
 	}
 
 	poolType, ok := xdr.LiquidityPoolTypeToString[lp.Body.Type]
 	if !ok {
-		return PoolOutput{}, fmt.Errorf("Unknown liquidity pool type: %d", lp.Body.Type)
+		return PoolOutput{}, fmt.Errorf("unknown liquidity pool type: %d", lp.Body.Type)
 	}
 
 	var assetAType, assetACode, assetAIssuer string
@@ -44,6 +44,9 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 
 	var assetBType, assetBCode, assetBIssuer string
 	err = cp.Params.AssetB.Extract(&assetBType, &assetBCode, &assetBIssuer)
+	if err != nil {
+		return PoolOutput{}, err
+	}
 	assetBID := FarmHashAsset(assetBCode, assetBIssuer, assetBType)
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)

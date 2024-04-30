@@ -11,20 +11,20 @@ import (
 )
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
-func GetLedgers(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]historyarchive.Ledger, error) {
+func GetLedgers(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]utils.HistoryArchiveLedgerAndLCM, error) {
 	ctx := context.Background()
 	backend, err := utils.CreateLedgerBackend(ctx, useCaptiveCore, env)
 	if err != nil {
-		return []historyarchive.Ledger{}, err
+		return []utils.HistoryArchiveLedgerAndLCM{}, err
 	}
 
-	ledgerSlice := []historyarchive.Ledger{}
+	ledgerSlice := []utils.HistoryArchiveLedgerAndLCM{}
 	err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(start, end))
 	panicIf(err)
 	for seq := start; seq <= end; seq++ {
 		lcm, err := backend.GetLedger(ctx, seq)
 		if err != nil {
-			return []historyarchive.Ledger{}, err
+			return []utils.HistoryArchiveLedgerAndLCM{}, err
 		}
 
 		var ext xdr.TransactionHistoryEntryExt
@@ -68,7 +68,12 @@ func GetLedgers(start, end uint32, limit int64, env utils.EnvironmentDetails, us
 			},
 		}
 
-		ledgerSlice = append(ledgerSlice, ledger)
+		ledgerLCM := utils.HistoryArchiveLedgerAndLCM{
+			Ledger: ledger,
+			LCM:    lcm,
+		}
+
+		ledgerSlice = append(ledgerSlice, ledgerLCM)
 		if int64(len(ledgerSlice)) >= limit && limit >= 0 {
 			break
 		}

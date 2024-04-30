@@ -33,17 +33,14 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 	outputAccountSequence := transaction.Envelope.SeqNum()
 	if outputAccountSequence < 0 {
-		return TransactionOutput{}, fmt.Errorf("The account's sequence number (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputAccountSequence, outputLedgerSequence, transactionIndex, outputTransactionID)
+		return TransactionOutput{}, fmt.Errorf("the account's sequence number (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputAccountSequence, outputLedgerSequence, transactionIndex, outputTransactionID)
 	}
 
 	outputMaxFee := transaction.Envelope.Fee()
-	if outputMaxFee < 0 {
-		return TransactionOutput{}, fmt.Errorf("The fee (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputMaxFee, outputLedgerSequence, transactionIndex, outputTransactionID)
-	}
 
 	outputFeeCharged := int64(transaction.Result.Result.FeeCharged)
 	if outputFeeCharged < 0 {
-		return TransactionOutput{}, fmt.Errorf("The fee charged (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputFeeCharged, outputLedgerSequence, transactionIndex, outputTransactionID)
+		return TransactionOutput{}, fmt.Errorf("the fee charged (%d) is negative for ledger %d; transaction %d (transaction id=%d)", outputFeeCharged, outputLedgerSequence, transactionIndex, outputTransactionID)
 	}
 
 	outputOperationCount := int32(len(transaction.Envelope.Operations()))
@@ -94,7 +91,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	if timeBound != nil {
 		if timeBound.MaxTime < timeBound.MinTime && timeBound.MaxTime != 0 {
 
-			return TransactionOutput{}, fmt.Errorf("The max time is earlier than the min time (%d < %d) for ledger %d; transaction %d (transaction id=%d)",
+			return TransactionOutput{}, fmt.Errorf("the max time is earlier than the min time (%d < %d) for ledger %d; transaction %d (transaction id=%d)",
 				timeBound.MaxTime, timeBound.MinTime, outputLedgerSequence, transactionIndex, outputTransactionID)
 		}
 
@@ -143,6 +140,9 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var outputInclusionFeeBid int64
 	var outputInclusionFeeCharged int64
 	var outputResourceFeeRefund int64
+	var outputTotalNonRefundableResourceFeeCharged int64
+	var outputTotalRefundableResourceFeeCharged int64
+	var outputRentFeeCharged int64
 
 	// Soroban data can exist in V1 and FeeBump transactionEnvelopes
 	switch transaction.Envelope.Type {
@@ -167,6 +167,12 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		if ok {
 			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
+			extV1, ok := meta.SorobanMeta.Ext.GetV1()
+			if ok {
+				outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
+				outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
+				outputRentFeeCharged = int64(extV1.RentFeeCharged)
+			}
 		}
 
 		// TODO: FeeCharged is calculated incorrectly in protocol 20. Remove when protocol is updated and the bug is fixed
@@ -182,37 +188,40 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
-		TransactionHash:              outputTransactionHash,
-		LedgerSequence:               outputLedgerSequence,
-		TransactionID:                outputTransactionID,
-		Account:                      outputAccount,
-		AccountSequence:              outputAccountSequence,
-		MaxFee:                       outputMaxFee,
-		FeeCharged:                   outputFeeCharged,
-		OperationCount:               outputOperationCount,
-		TxEnvelope:                   outputTxEnvelope,
-		TxResult:                     outputTxResult,
-		TxMeta:                       outputTxMeta,
-		TxFeeMeta:                    outputTxFeeMeta,
-		CreatedAt:                    outputCreatedAt,
-		MemoType:                     outputMemoType,
-		Memo:                         outputMemoContents,
-		TimeBounds:                   outputTimeBounds,
-		Successful:                   outputSuccessful,
-		LedgerBounds:                 outputLedgerBound,
-		MinAccountSequence:           outputMinSequence,
-		MinAccountSequenceAge:        outputMinSequenceAge,
-		MinAccountSequenceLedgerGap:  outputMinSequenceLedgerGap,
-		ExtraSigners:                 formatSigners(transaction.Envelope.ExtraSigners()),
-		ClosedAt:                     outputCloseTime,
-		ResourceFee:                  outputResourceFee,
-		SorobanResourcesInstructions: outputSorobanResourcesInstructions,
-		SorobanResourcesReadBytes:    outputSorobanResourcesReadBytes,
-		SorobanResourcesWriteBytes:   outputSorobanResourcesWriteBytes,
-		TransactionResultCode:        outputTxResultCode,
-		InclusionFeeBid:              outputInclusionFeeBid,
-		InclusionFeeCharged:          outputInclusionFeeCharged,
-		ResourceFeeRefund:            outputResourceFeeRefund,
+		TransactionHash:                      outputTransactionHash,
+		LedgerSequence:                       outputLedgerSequence,
+		TransactionID:                        outputTransactionID,
+		Account:                              outputAccount,
+		AccountSequence:                      outputAccountSequence,
+		MaxFee:                               outputMaxFee,
+		FeeCharged:                           outputFeeCharged,
+		OperationCount:                       outputOperationCount,
+		TxEnvelope:                           outputTxEnvelope,
+		TxResult:                             outputTxResult,
+		TxMeta:                               outputTxMeta,
+		TxFeeMeta:                            outputTxFeeMeta,
+		CreatedAt:                            outputCreatedAt,
+		MemoType:                             outputMemoType,
+		Memo:                                 outputMemoContents,
+		TimeBounds:                           outputTimeBounds,
+		Successful:                           outputSuccessful,
+		LedgerBounds:                         outputLedgerBound,
+		MinAccountSequence:                   outputMinSequence,
+		MinAccountSequenceAge:                outputMinSequenceAge,
+		MinAccountSequenceLedgerGap:          outputMinSequenceLedgerGap,
+		ExtraSigners:                         formatSigners(transaction.Envelope.ExtraSigners()),
+		ClosedAt:                             outputCloseTime,
+		ResourceFee:                          outputResourceFee,
+		SorobanResourcesInstructions:         outputSorobanResourcesInstructions,
+		SorobanResourcesReadBytes:            outputSorobanResourcesReadBytes,
+		SorobanResourcesWriteBytes:           outputSorobanResourcesWriteBytes,
+		TransactionResultCode:                outputTxResultCode,
+		InclusionFeeBid:                      outputInclusionFeeBid,
+		InclusionFeeCharged:                  outputInclusionFeeCharged,
+		ResourceFeeRefund:                    outputResourceFeeRefund,
+		TotalNonRefundableResourceFeeCharged: outputTotalNonRefundableResourceFeeCharged,
+		TotalRefundableResourceFeeCharged:    outputTotalRefundableResourceFeeCharged,
+		RentFeeCharged:                       outputRentFeeCharged,
 	}
 
 	// Add Muxed Account Details, if exists

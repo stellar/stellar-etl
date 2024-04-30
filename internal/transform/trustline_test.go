@@ -37,7 +37,7 @@ func TestTransformTrustline(t *testing.T) {
 					},
 				},
 			},
-			TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is LedgerEntryTypeOffer"),
+			TrustlineOutput{}, fmt.Errorf("could not extract trustline data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
 

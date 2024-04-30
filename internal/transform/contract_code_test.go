@@ -31,7 +31,7 @@ func TestTransformContractCode(t *testing.T) {
 					},
 				},
 			},
-			ContractCodeOutput{}, fmt.Errorf("Could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
+			ContractCodeOutput{}, fmt.Errorf("could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
 

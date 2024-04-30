@@ -18,7 +18,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 
 	configSetting, ok := ledgerEntry.Data.GetConfigSetting()
 	if !ok {
-		return ConfigSettingOutput{}, fmt.Errorf("Could not extract config setting from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return ConfigSettingOutput{}, fmt.Errorf("could not extract config setting from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	configSettingId := configSetting.ConfigSettingId
@@ -48,7 +48,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	writeFee1KbBucketListHigh := contractLedgerCost.WriteFee1KbBucketListHigh
 	bucketListWriteFeeGrowthFactor := contractLedgerCost.BucketListWriteFeeGrowthFactor
 
-	contractHistoricalData, ok := configSetting.GetContractHistoricalData()
+	contractHistoricalData, _ := configSetting.GetContractHistoricalData()
 	feeHistorical1Kb := contractHistoricalData.FeeHistorical1Kb
 
 	contractMetaData, _ := configSetting.GetContractEvents()
@@ -66,9 +66,9 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	paramsMemBytes, _ := configSetting.GetContractCostParamsMemBytes()
 	contractCostParamsMemBytes := serializeParams(paramsMemBytes)
 
-	contractDataKeySizeBytes, ok := configSetting.GetContractDataKeySizeBytes()
+	contractDataKeySizeBytes, _ := configSetting.GetContractDataKeySizeBytes()
 
-	contractDataEntrySizeBytes, ok := configSetting.GetContractDataEntrySizeBytes()
+	contractDataEntrySizeBytes, _ := configSetting.GetContractDataEntrySizeBytes()
 
 	stateArchivalSettings, _ := configSetting.GetStateArchivalSettings()
 	maxEntryTtl := stateArchivalSettings.MaxEntryTtl

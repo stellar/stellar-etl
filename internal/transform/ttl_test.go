@@ -31,7 +31,7 @@ func TestTransformTtl(t *testing.T) {
 					},
 				},
 			},
-			TtlOutput{}, fmt.Errorf("Could not extract ttl from ledger entry; actual type is LedgerEntryTypeOffer"),
+			TtlOutput{}, fmt.Errorf("could not extract ttl from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
 

@@ -98,7 +98,7 @@ func makeDiagnosticEventTestInput() (transaction []ingest.LedgerTransaction, his
 	}
 
 	genericResultResults := &[]xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeCreateAccount,
 				CreateAccountResult: &xdr.CreateAccountResult{
@@ -118,7 +118,7 @@ func makeDiagnosticEventTestInput() (transaction []ingest.LedgerTransaction, his
 	}
 
 	transaction = []ingest.LedgerTransaction{
-		ingest.LedgerTransaction{
+		{
 			Index:      1,
 			UnsafeMeta: hardCodedMeta,
 			Envelope: xdr.TransactionEnvelope{
@@ -140,7 +140,7 @@ func makeDiagnosticEventTestInput() (transaction []ingest.LedgerTransaction, his
 							},
 						},
 						Operations: []xdr.Operation{
-							xdr.Operation{
+							{
 								SourceAccount: &testAccount2,
 								Body: xdr.OperationBody{
 									Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -166,7 +166,7 @@ func makeDiagnosticEventTestInput() (transaction []ingest.LedgerTransaction, his
 		},
 	}
 	historyHeader = []xdr.LedgerHeaderHistoryEntry{
-		xdr.LedgerHeaderHistoryEntry{
+		{
 			Header: xdr.LedgerHeader{
 				LedgerSeq: 30521816,
 				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},

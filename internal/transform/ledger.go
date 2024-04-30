@@ -12,7 +12,7 @@ import (
 )
 
 // TransformLedger converts a ledger from the history archive ingestion system into a form suitable for BigQuery
-func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
+func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta) (LedgerOutput, error) {
 	ledgerHeader := inputLedger.Header.Header
 
 	outputSequence := uint32(ledgerHeader.LedgerSeq)
@@ -55,6 +55,15 @@ func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
 
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
+	var outputSorobanFeeWrite1Kb int64
+	lcmV1, ok := lcm.GetV1()
+	if ok {
+		extV1, ok := lcmV1.Ext.GetV1()
+		if ok {
+			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
+		}
+	}
+
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,
 		LedgerID:                   outputLedgerID,
@@ -73,6 +82,7 @@ func TransformLedger(inputLedger historyarchive.Ledger) (LedgerOutput, error) {
 		BaseReserve:                outputBaseReserve,
 		MaxTxSetSize:               outputMaxTxSetSize,
 		ProtocolVersion:            outputProtocolVersion,
+		SorobanFeeWrite1Kb:         outputSorobanFeeWrite1Kb,
 	}
 	return transformedLedger, nil
 }
@@ -93,7 +103,7 @@ func extractCounts(ledger historyarchive.Ledger) (transactionCount int32, operat
 	results := ledger.TransactionResult.TxResultSet.Results
 	txCount := len(transactions)
 	if txCount != len(results) {
-		err = fmt.Errorf("The number of transactions and results are different (%d != %d)", txCount, len(results))
+		err = fmt.Errorf("the number of transactions and results are different (%d != %d)", txCount, len(results))
 		return
 	}
 
@@ -107,7 +117,7 @@ func extractCounts(ledger historyarchive.Ledger) (transactionCount int32, operat
 		if results[i].Result.Successful() {
 			operationResults, ok := results[i].Result.OperationResults()
 			if !ok {
-				err = fmt.Errorf("Could not access operation results for result %d", i)
+				err = fmt.Errorf("could not access operation results for result %d", i)
 				return
 			}
 

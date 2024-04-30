@@ -38,7 +38,7 @@ func TestTransformAccount(t *testing.T) {
 				},
 			},
 			},
-			AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is LedgerEntryTypeOffer"),
+			AccountOutput{}, fmt.Errorf("could not extract account data from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 		{
 			inputStruct{wrapAccountEntry(xdr.AccountEntry{
@@ -46,7 +46,7 @@ func TestTransformAccount(t *testing.T) {
 				Balance:   -1,
 			}, 0),
 			},
-			AccountOutput{}, fmt.Errorf("Balance is negative (-1) for account: %s", genericAccountAddress),
+			AccountOutput{}, fmt.Errorf("balance is negative (-1) for account: %s", genericAccountAddress),
 		},
 		{
 			inputStruct{wrapAccountEntry(xdr.AccountEntry{
@@ -61,7 +61,7 @@ func TestTransformAccount(t *testing.T) {
 				},
 			}, 0),
 			},
-			AccountOutput{}, fmt.Errorf("The buying liabilities count is negative (-1) for account: %s", genericAccountAddress),
+			AccountOutput{}, fmt.Errorf("the buying liabilities count is negative (-1) for account: %s", genericAccountAddress),
 		},
 		{
 			inputStruct{wrapAccountEntry(xdr.AccountEntry{
@@ -76,7 +76,7 @@ func TestTransformAccount(t *testing.T) {
 				},
 			}, 0),
 			},
-			AccountOutput{}, fmt.Errorf("The selling liabilities count is negative (-2) for account: %s", genericAccountAddress),
+			AccountOutput{}, fmt.Errorf("the selling liabilities count is negative (-2) for account: %s", genericAccountAddress),
 		},
 		{
 			inputStruct{wrapAccountEntry(xdr.AccountEntry{
@@ -84,7 +84,7 @@ func TestTransformAccount(t *testing.T) {
 				SeqNum:    -3,
 			}, 0),
 			},
-			AccountOutput{}, fmt.Errorf("Account sequence number is negative (-3) for account: %s", genericAccountAddress),
+			AccountOutput{}, fmt.Errorf("account sequence number is negative (-3) for account: %s", genericAccountAddress),
 		},
 		{
 			inputStruct{

@@ -17,7 +17,7 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 
 	ttl, ok := ledgerEntry.Data.GetTtl()
 	if !ok {
-		return TtlOutput{}, fmt.Errorf("Could not extract ttl from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return TtlOutput{}, fmt.Errorf("could not extract ttl from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	// LedgerEntryChange must contain a ttl change to be parsed, otherwise skip

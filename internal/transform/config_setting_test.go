@@ -31,7 +31,7 @@ func TestTransformConfigSetting(t *testing.T) {
 					},
 				},
 			},
-			ConfigSettingOutput{}, fmt.Errorf("Could not extract config setting from ledger entry; actual type is LedgerEntryTypeOffer"),
+			ConfigSettingOutput{}, fmt.Errorf("could not extract config setting from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
 
@@ -82,8 +82,8 @@ func makeConfigSettingTestInput() []ingest.Change {
 }
 
 func makeConfigSettingTestOutput() []ConfigSettingOutput {
-	contractMapType := make([]map[string]string, 0, 0)
-	bucket := make([]uint64, 0, 0)
+	contractMapType := make([]map[string]string, 0)
+	bucket := make([]uint64, 0)
 
 	return []ConfigSettingOutput{
 		{

@@ -18,7 +18,7 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 
 	offerEntry, offerFound := ledgerEntry.Data.GetOffer()
 	if !offerFound {
-		return OfferOutput{}, fmt.Errorf("Could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return OfferOutput{}, fmt.Errorf("could not extract offer data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	outputSellerID, err := offerEntry.SellerId.GetAddress()
@@ -28,7 +28,7 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 
 	outputOfferID := int64(offerEntry.OfferId)
 	if outputOfferID < 0 {
-		return OfferOutput{}, fmt.Errorf("OfferID is negative (%d) for offer from account: %s", outputOfferID, outputSellerID)
+		return OfferOutput{}, fmt.Errorf("offerID is negative (%d) for offer from account: %s", outputOfferID, outputSellerID)
 	}
 
 	outputSellingAsset, err := transformSingleAsset(offerEntry.Selling)
@@ -43,21 +43,21 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 
 	outputAmount := offerEntry.Amount
 	if outputAmount < 0 {
-		return OfferOutput{}, fmt.Errorf("Amount is negative (%d) for offer %d", outputAmount, outputOfferID)
+		return OfferOutput{}, fmt.Errorf("amount is negative (%d) for offer %d", outputAmount, outputOfferID)
 	}
 
 	outputPriceN := int32(offerEntry.Price.N)
 	if outputPriceN < 0 {
-		return OfferOutput{}, fmt.Errorf("Price numerator is negative (%d) for offer %d", outputPriceN, outputOfferID)
+		return OfferOutput{}, fmt.Errorf("price numerator is negative (%d) for offer %d", outputPriceN, outputOfferID)
 	}
 
 	outputPriceD := int32(offerEntry.Price.D)
 	if outputPriceD == 0 {
-		return OfferOutput{}, fmt.Errorf("Price denominator is 0 for offer %d", outputOfferID)
+		return OfferOutput{}, fmt.Errorf("price denominator is 0 for offer %d", outputOfferID)
 	}
 
 	if outputPriceD < 0 {
-		return OfferOutput{}, fmt.Errorf("Price denominator is negative (%d) for offer %d", outputPriceD, outputOfferID)
+		return OfferOutput{}, fmt.Errorf("price denominator is negative (%d) for offer %d", outputPriceD, outputOfferID)
 	}
 
 	var outputPrice float64
