@@ -796,7 +796,6 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 
 	// Create ledger backend from datastore
 	params := make(map[string]string)
-	//params["destination_bucket_path"] = "ledger-exporter/ledgers"
 	params["destination_bucket_path"] = env.DatastorePath
 	dataStoreConfig := datastore.DataStoreConfig{
 		Type:   "GCS",
