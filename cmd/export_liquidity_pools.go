@@ -22,13 +22,13 @@ should be used in an initial data dump. In order to get liqudity pools informati
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
-		pools, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
+		pools, err := input.GetEntriesFromGenesis(commonArgs.EndNum, xdr.LedgerEntryTypeLiquidityPool, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
@@ -45,7 +45,7 @@ the export_ledger_entry_changes command.`,
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, extra)
+			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export pool %+v: %v", pool, err))
 				numFailures += 1

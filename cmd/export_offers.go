@@ -23,13 +23,13 @@ var offersCmd = &cobra.Command{
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
-		offers, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
+		offers, err := input.GetEntriesFromGenesis(commonArgs.EndNum, xdr.LedgerEntryTypeOffer, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read offers: ", err)
 		}
@@ -46,7 +46,7 @@ var offersCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, extra)
+			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export offer %+v: %v", offer, err))
 				numFailures += 1

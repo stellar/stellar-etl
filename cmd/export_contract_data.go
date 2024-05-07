@@ -22,13 +22,13 @@ var dataCmd = &cobra.Command{
 	the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
-		datas, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeContractData, env.ArchiveURLs)
+		datas, err := input.GetEntriesFromGenesis(commonArgs.EndNum, xdr.LedgerEntryTypeContractData, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("Error getting ledger entries: ", err)
 		}
@@ -50,7 +50,7 @@ var dataCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, extra)
+			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export contract data %+v: %v", data, err))
 				numFailures += 1

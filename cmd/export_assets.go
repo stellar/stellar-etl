@@ -16,21 +16,21 @@ var assetsCmd = &cobra.Command{
 	Long:  `Exports the assets that are created from payment operations over a specified ledger range`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 
 		outFile := mustOutFile(path)
 
 		var paymentOps []input.AssetTransformInput
 		var err error
 
-		if useCaptiveCore {
-			paymentOps, err = input.GetPaymentOperationsHistoryArchive(startNum, endNum, limit, env, useCaptiveCore)
+		if commonArgs.UseCaptiveCore {
+			paymentOps, err = input.GetPaymentOperationsHistoryArchive(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		} else {
-			paymentOps, err = input.GetPaymentOperations(startNum, endNum, limit, env, useCaptiveCore)
+			paymentOps, err = input.GetPaymentOperations(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		}
 		if err != nil {
 			cmdLogger.Fatal("could not read asset: ", err)
@@ -55,7 +55,7 @@ var assetsCmd = &cobra.Command{
 			}
 
 			seenIDs[transformed.AssetID] = true
-			numBytes, err := exportEntry(transformed, outFile, extra)
+			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.Error(err)
 				numFailures += 1

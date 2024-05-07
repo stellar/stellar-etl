@@ -27,9 +27,9 @@ var exportOrderbooksCmd = &cobra.Command{
 	If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
 	confirmed by the Stellar network. In this unbounded case, a stellar-core config path is required to utilize the Captive Core toml.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 
 		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
@@ -38,7 +38,7 @@ var exportOrderbooksCmd = &cobra.Command{
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
 		}
 
-		if configPath == "" && endNum == 0 {
+		if configPath == "" && commonArgs.EndNum == 0 {
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
@@ -54,7 +54,7 @@ var exportOrderbooksCmd = &cobra.Command{
 		}
 
 		checkpointSeq := utils.GetMostRecentCheckpoint(startNum)
-		core, err := input.PrepareCaptiveCore(execPath, configPath, checkpointSeq, endNum, env)
+		core, err := input.PrepareCaptiveCore(execPath, configPath, checkpointSeq, commonArgs.EndNum, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
 		}
@@ -66,21 +66,21 @@ var exportOrderbooksCmd = &cobra.Command{
 
 		orderbookChannel := make(chan input.OrderbookBatch)
 
-		go input.StreamOrderbooks(core, startNum, endNum, batchSize, orderbookChannel, orderbook, env, cmdLogger)
+		go input.StreamOrderbooks(core, startNum, commonArgs.EndNum, batchSize, orderbookChannel, orderbook, env, cmdLogger)
 
 		// If the end sequence number is defined, we work in a closed range and export a finite number of batches
-		if endNum != 0 {
-			batchCount := uint32(math.Ceil(float64(endNum-startNum+1) / float64(batchSize)))
+		if commonArgs.EndNum != 0 {
+			batchCount := uint32(math.Ceil(float64(commonArgs.EndNum-startNum+1) / float64(batchSize)))
 			for i := uint32(0); i < batchCount; i++ {
 				batchStart := startNum + i*batchSize
 				// Subtract 1 from the end batch number because batches do not include the last batch in the range
 				batchEnd := batchStart + batchSize - 1
-				if batchEnd > endNum {
-					batchEnd = endNum
+				if batchEnd > commonArgs.EndNum {
+					batchEnd = commonArgs.EndNum
 				}
 
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, cloudCredentials, cloudStorageBucket, cloudProvider, commonArgs.Extra)
 			}
 		} else {
 			// otherwise, we export in an unbounded manner where batches are constantly exported
@@ -89,7 +89,7 @@ var exportOrderbooksCmd = &cobra.Command{
 				batchStart := startNum + batchNum*batchSize
 				batchEnd := batchStart + batchSize - 1
 				parser := input.ReceiveParsedOrderbooks(orderbookChannel, cmdLogger)
-				exportOrderbook(batchStart, batchEnd, outputFolder, parser, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
+				exportOrderbook(batchStart, batchEnd, outputFolder, parser, cloudCredentials, cloudStorageBucket, cloudProvider, commonArgs.Extra)
 				batchNum++
 			}
 		}

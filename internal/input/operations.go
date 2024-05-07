@@ -71,6 +71,7 @@ func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails,
 		}
 
 		txReader.Close()
+
 		if int64(len(opSlice)) >= limit && limit >= 0 {
 			break
 		}

@@ -28,9 +28,9 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 
 		_, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
@@ -62,28 +62,28 @@ be exported.`,
 			}
 		}
 
-		if configPath == "" && endNum == 0 {
+		if configPath == "" && commonArgs.EndNum == 0 {
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
 		ctx := context.Background()
-		backend, err := utils.CreateLedgerBackend(ctx, useCaptiveCore, env)
+		backend, err := utils.CreateLedgerBackend(ctx, commonArgs.UseCaptiveCore, env)
 		if err != nil {
 			cmdLogger.Fatal("error creating a cloud storage backend: ", err)
 		}
 
-		err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, endNum))
+		err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, commonArgs.EndNum))
 		if err != nil {
 			cmdLogger.Fatal("error preparing ledger range for cloud storage backend: ", err)
 		}
 
-		if endNum == 0 {
-			endNum = math.MaxInt32
+		if commonArgs.EndNum == 0 {
+			commonArgs.EndNum = math.MaxInt32
 		}
 
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
-		go input.StreamChanges(&backend, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+		go input.StreamChanges(&backend, startNum, commonArgs.EndNum, batchSize, changeChan, closeChan, env, cmdLogger)
 
 		for {
 			select {
@@ -252,7 +252,16 @@ be exported.`,
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
+				err := exportTransformedData(
+					batch.BatchStart,
+					batch.BatchEnd,
+					outputFolder,
+					transformedOutputs,
+					cloudCredentials,
+					cloudStorageBucket,
+					cloudProvider,
+					commonArgs.Extra,
+				)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue

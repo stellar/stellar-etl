@@ -22,13 +22,13 @@ should be used in an initial data dump. In order to get account information with
 the export_ledger_entry_changes command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, _, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
-		accounts, err := input.GetEntriesFromGenesis(endNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
+		accounts, err := input.GetEntriesFromGenesis(commonArgs.EndNum, xdr.LedgerEntryTypeAccount, env.ArchiveURLs)
 		if err != nil {
 			cmdLogger.Fatal("could not read accounts: ", err)
 		}
@@ -48,7 +48,7 @@ the export_ledger_entry_changes command.`,
 				}
 
 				for _, entry := range transformed {
-					numBytes, err := exportEntry(entry, outFile, extra)
+					numBytes, err := exportEntry(entry, outFile, commonArgs.Extra)
 					if err != nil {
 						cmdLogger.LogError(fmt.Errorf("could not export entry: %v", err))
 						numFailures += 1

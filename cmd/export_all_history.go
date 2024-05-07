@@ -20,23 +20,23 @@ This is a temporary command used to reduce the amount of requests to history arc
 in order to mitigate egress costs for the entity hosting history archives.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
 
-		allHistory, err := input.GetAllHistory(startNum, endNum, limit, env, useCaptiveCore)
+		allHistory, err := input.GetAllHistory(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		if err != nil {
 			cmdLogger.Fatal("could not read all history: ", err)
 		}
 
 		cmdLogger.Info("start doing other exports")
-		getOperations(allHistory.Operations, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_operations.txt", env)
-		getTrades(allHistory.Trades, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_trades.txt")
-		getEffects(allHistory.Ledgers, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_effects.txt", env)
-		getTransactions(allHistory.Ledgers, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_transactions.txt")
-		getDiagnosticEvents(allHistory.Ledgers, extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_diagnostic_events.txt")
+		getOperations(allHistory.Operations, commonArgs.Extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_operations.txt", env)
+		getTrades(allHistory.Trades, commonArgs.Extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_trades.txt")
+		getEffects(allHistory.Ledgers, commonArgs.Extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_effects.txt", env)
+		getTransactions(allHistory.Ledgers, commonArgs.Extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_transactions.txt")
+		getDiagnosticEvents(allHistory.Ledgers, commonArgs.Extra, cloudStorageBucket, cloudCredentials, cloudProvider, path+"exported_diagnostic_events.txt")
 		cmdLogger.Info("done doing other exports")
 	},
 }

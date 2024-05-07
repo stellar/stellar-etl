@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net/url"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -17,6 +16,7 @@ import (
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/support/datastore"
 	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
@@ -235,7 +235,10 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
-	flags.String("datastore-url", "", "Datastore url to read txmeta files from.")
+	flags.String("datastore-path", "ledger-exporter/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.Uint32("num-workers", 5, "Number of workers to spawn that read txmeta files from the datastore.")
+	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
+	flags.Uint32("retry-wait", 5, "Time in seconds to wait for GetLedger retry.")
 }
 
 // AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
@@ -282,56 +285,84 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
 }
 
+type CommonFlagValues struct {
+	EndNum         uint32
+	StrictExport   bool
+	IsTest         bool
+	IsFuture       bool
+	Extra          map[string]string
+	UseCaptiveCore bool
+	DatastorePath  string
+	NumWorkers     uint32
+	RetryLimit     uint32
+	RetryWait      uint32
+}
+
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
 // If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(
-	flags *pflag.FlagSet,
-	logger *EtlLogger,
-) (
-	endNum uint32,
-	strictExport,
-	isTest bool,
-	isFuture bool,
-	extra map[string]string,
-	useCaptiveCore bool,
-	datastoreUrl string,
-) {
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
 	}
 
-	strictExport, err = flags.GetBool("strict-export")
+	strictExport, err := flags.GetBool("strict-export")
 	if err != nil {
 		logger.Fatal("could not get strict-export boolean: ", err)
 	}
 
-	isTest, err = flags.GetBool("testnet")
+	isTest, err := flags.GetBool("testnet")
 	if err != nil {
 		logger.Fatal("could not get testnet boolean: ", err)
 	}
 
-	isFuture, err = flags.GetBool("futurenet")
+	isFuture, err := flags.GetBool("futurenet")
 	if err != nil {
 		logger.Fatal("could not get futurenet boolean: ", err)
 	}
 
-	extra, err = flags.GetStringToString("extra-fields")
+	extra, err := flags.GetStringToString("extra-fields")
 	if err != nil {
 		logger.Fatal("could not get extra fields string: ", err)
 	}
 
-	useCaptiveCore, err = flags.GetBool("captive-core")
+	useCaptiveCore, err := flags.GetBool("captive-core")
 	if err != nil {
 		logger.Fatal("could not get captive-core flag: ", err)
 	}
 
-	datastoreUrl, err = flags.GetString("datastore-url")
+	datastorePath, err := flags.GetString("datastore-path")
 	if err != nil {
-		logger.Fatal("could not get datastore-url string: ", err)
+		logger.Fatal("could not get datastore-bucket-path string: ", err)
 	}
 
-	return
+	numWorkers, err := flags.GetUint32("num-workers")
+	if err != nil {
+		logger.Fatal("could not get num-workers uint32: ", err)
+	}
+
+	retryLimit, err := flags.GetUint32("retry-limit")
+	if err != nil {
+		logger.Fatal("could not get retry-limit uint32: ", err)
+	}
+
+	retryWait, err := flags.GetUint32("retry-wait")
+	if err != nil {
+		logger.Fatal("could not get retry-wait uint32: ", err)
+	}
+
+	return CommonFlagValues{
+		EndNum:         endNum,
+		StrictExport:   strictExport,
+		IsTest:         isTest,
+		IsFuture:       isFuture,
+		Extra:          extra,
+		UseCaptiveCore: useCaptiveCore,
+		DatastorePath:  datastorePath,
+		NumWorkers:     numWorkers,
+		RetryLimit:     retryLimit,
+		RetryWait:      retryWait,
+	}
 }
 
 // MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
@@ -430,7 +461,7 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-ttl":             false,
 	}
 
-	for export_name, _ := range exports {
+	for export_name := range exports {
 		exports[export_name], err = flags.GetBool(export_name)
 		if err != nil {
 			logger.Fatalf("could not get %s flag: %v", export_name, err)
@@ -649,6 +680,7 @@ type EnvironmentDetails struct {
 	BinaryPath        string
 	CoreConfig        string
 	StorageURL        string
+	Network           string
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
@@ -660,6 +692,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
 		details.StorageURL = datastoreUrl
+		details.Network = "testnet"
 		return details
 	} else if isFuture {
 		// details.NetworkPassphrase = network.FutureNetworkPassphrase
@@ -668,6 +701,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
 		details.StorageURL = datastoreUrl
+		details.Network = "futurenet"
 		return details
 	} else {
 		// default: mainnet
@@ -676,6 +710,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core.cfg"
 		details.StorageURL = datastoreUrl
+		details.Network = "pubnet"
 		return details
 	}
 }
@@ -714,6 +749,9 @@ func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerC
 	ctx := context.Background()
 
 	backend, err := e.CreateCaptiveCoreBackend()
+	if err != nil {
+		return xdr.LedgerCloseMeta{}, err
+	}
 
 	ledgerRange := ledgerbackend.UnboundedRange(end)
 
@@ -757,28 +795,43 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 	}
 
 	// Create ledger backend from datastore
-	fileConfig := ledgerbackend.LCMFileConfig{
-		StorageURL:        env.StorageURL,
-		FileSuffix:        ".xdr.gz",
-		LedgersPerFile:    1,
-		FilesPerPartition: 64000,
+	params := make(map[string]string)
+	//params["destination_bucket_path"] = "ledger-exporter/ledgers"
+	params["destination_bucket_path"] = env.StorageURL
+	dataStoreConfig := datastore.DataStoreConfig{
+		Type:   "GCS",
+		Params: params,
 	}
 
-	parsed, err := url.Parse(env.StorageURL)
+	dataStore, err := datastore.NewDataStore(ctx, dataStoreConfig, env.Network)
 	if err != nil {
 		return nil, err
 	}
 
-	// Using the GCS datastore backend
-	if parsed.Scheme == "gcs" {
-		backend, err := ledgerbackend.NewGCSBackend(ctx, fileConfig)
-		if err != nil {
-			return nil, err
-		}
-		return backend, nil
+	// TODO: In the future these will come from a config file written by ledgerexporter
+	// Hard code ledger batch values for now
+	ledgerBatchConfig := datastore.LedgerBatchConfig{
+		LedgersPerFile:    1,
+		FilesPerPartition: 64000,
+		FileSuffix:        ".xdr.gz",
 	}
 
-	return nil, errors.New("no valid ledgerbackend selected")
+	// TODO: In the future CompressionType should be removed as it won't be configurable
+	BSBackendConfig := ledgerbackend.BufferedStorageBackendConfig{
+		LedgerBatchConfig: ledgerBatchConfig,
+		CompressionType:   "gzip",
+		DataStore:         dataStore,
+		BufferSize:        1000,
+		NumWorkers:        5,
+		RetryLimit:        3,
+		RetryWait:         5,
+	}
+
+	backend, err := ledgerbackend.NewBufferedStorageBackend(ctx, BSBackendConfig)
+	if err != nil {
+		return nil, err
+	}
+	return backend, nil
 }
 
 func LedgerKeyToLedgerKeyHash(ledgerKey xdr.LedgerKey) string {
