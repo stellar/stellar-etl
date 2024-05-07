@@ -30,7 +30,7 @@ be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
+		env := utils.GetEnvironmentDetails(commonArgs)
 
 		_, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)

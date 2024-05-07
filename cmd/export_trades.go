@@ -22,7 +22,7 @@ var tradesCmd = &cobra.Command{
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
+		env := utils.GetEnvironmentDetails(commonArgs)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		trades, err := input.GetTrades(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)

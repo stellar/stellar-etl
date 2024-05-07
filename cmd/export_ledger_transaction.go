@@ -20,7 +20,7 @@ var ledgerTransactionCmd = &cobra.Command{
 		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(commonArgs.IsTest, commonArgs.IsFuture, commonArgs.DatastorePath)
+		env := utils.GetEnvironmentDetails(commonArgs)
 
 		ledgerTransaction, err := input.GetTransactions(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		if err != nil {

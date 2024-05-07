@@ -236,6 +236,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	flags.String("datastore-path", "ledger-exporter/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.Uint32("buffer-size", 5, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 5, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
 	flags.Uint32("retry-wait", 5, "Time in seconds to wait for GetLedger retry.")
@@ -293,6 +294,7 @@ type CommonFlagValues struct {
 	Extra          map[string]string
 	UseCaptiveCore bool
 	DatastorePath  string
+	BufferSize     uint32
 	NumWorkers     uint32
 	RetryLimit     uint32
 	RetryWait      uint32
@@ -336,6 +338,11 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		logger.Fatal("could not get datastore-bucket-path string: ", err)
 	}
 
+	bufferSize, err := flags.GetUint32("buffer-size")
+	if err != nil {
+		logger.Fatal("could not get buffer-size uint32: ", err)
+	}
+
 	numWorkers, err := flags.GetUint32("num-workers")
 	if err != nil {
 		logger.Fatal("could not get num-workers uint32: ", err)
@@ -359,6 +366,7 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		Extra:          extra,
 		UseCaptiveCore: useCaptiveCore,
 		DatastorePath:  datastorePath,
+		BufferSize:     bufferSize,
 		NumWorkers:     numWorkers,
 		RetryLimit:     retryLimit,
 		RetryWait:      retryWait,
@@ -679,29 +687,29 @@ type EnvironmentDetails struct {
 	ArchiveURLs       []string
 	BinaryPath        string
 	CoreConfig        string
-	DatastorePath     string
 	Network           string
+	CommonFlagValues  CommonFlagValues
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
-func GetEnvironmentDetails(isTest bool, isFuture bool, datastorePath string) (details EnvironmentDetails) {
-	if isTest {
+func GetEnvironmentDetails(commonFlags CommonFlagValues) (details EnvironmentDetails) {
+	if commonFlags.IsTest {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
-		details.DatastorePath = datastorePath
 		details.Network = "testnet"
+		details.CommonFlagValues = commonFlags
 		return details
-	} else if isFuture {
+	} else if commonFlags.IsFuture {
 		// details.NetworkPassphrase = network.FutureNetworkPassphrase
 		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
-		details.DatastorePath = datastorePath
 		details.Network = "futurenet"
+		details.CommonFlagValues = commonFlags
 		return details
 	} else {
 		// default: mainnet
@@ -709,8 +717,8 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastorePath string) (de
 		details.ArchiveURLs = mainArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core.cfg"
-		details.DatastorePath = datastorePath
 		details.Network = "pubnet"
+		details.CommonFlagValues = commonFlags
 		return details
 	}
 }
@@ -796,7 +804,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 
 	// Create ledger backend from datastore
 	params := make(map[string]string)
-	params["destination_bucket_path"] = env.DatastorePath
+	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath
 	dataStoreConfig := datastore.DataStoreConfig{
 		Type:   "GCS",
 		Params: params,
@@ -820,10 +828,10 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		LedgerBatchConfig: ledgerBatchConfig,
 		CompressionType:   "gzip",
 		DataStore:         dataStore,
-		BufferSize:        1000,
-		NumWorkers:        5,
-		RetryLimit:        3,
-		RetryWait:         5,
+		BufferSize:        env.CommonFlagValues.BufferSize,
+		NumWorkers:        env.CommonFlagValues.NumWorkers,
+		RetryLimit:        env.CommonFlagValues.RetryLimit,
+		RetryWait:         time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
 	}
 
 	backend, err := ledgerbackend.NewBufferedStorageBackend(ctx, BSBackendConfig)
