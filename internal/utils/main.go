@@ -679,19 +679,19 @@ type EnvironmentDetails struct {
 	ArchiveURLs       []string
 	BinaryPath        string
 	CoreConfig        string
-	StorageURL        string
+	DatastorePath     string
 	Network           string
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
-func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (details EnvironmentDetails) {
+func GetEnvironmentDetails(isTest bool, isFuture bool, datastorePath string) (details EnvironmentDetails) {
 	if isTest {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
-		details.StorageURL = datastoreUrl
+		details.DatastorePath = datastorePath
 		details.Network = "testnet"
 		return details
 	} else if isFuture {
@@ -700,7 +700,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
-		details.StorageURL = datastoreUrl
+		details.DatastorePath = datastorePath
 		details.Network = "futurenet"
 		return details
 	} else {
@@ -709,7 +709,7 @@ func GetEnvironmentDetails(isTest bool, isFuture bool, datastoreUrl string) (det
 		details.ArchiveURLs = mainArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
 		details.CoreConfig = "/etl/docker/stellar-core.cfg"
-		details.StorageURL = datastoreUrl
+		details.DatastorePath = datastorePath
 		details.Network = "pubnet"
 		return details
 	}
@@ -797,7 +797,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 	// Create ledger backend from datastore
 	params := make(map[string]string)
 	//params["destination_bucket_path"] = "ledger-exporter/ledgers"
-	params["destination_bucket_path"] = env.StorageURL
+	params["destination_bucket_path"] = env.DatastorePath
 	dataStoreConfig := datastore.DataStoreConfig{
 		Type:   "GCS",
 		Params: params,
