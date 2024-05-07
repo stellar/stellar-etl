@@ -16,13 +16,13 @@ var diagnosticEventsCmd = &cobra.Command{
 	Long:  `Exports the diagnostic events over a specified range to an output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		env := utils.GetEnvironmentDetails(commonArgs)
 
-		transactions, err := input.GetTransactions(startNum, endNum, limit, env, useCaptiveCore)
+		transactions, err := input.GetTransactions(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		if err != nil {
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}
@@ -42,7 +42,7 @@ var diagnosticEventsCmd = &cobra.Command{
 				continue
 			}
 			for _, diagnosticEvent := range transformed {
-				_, err := exportEntry(diagnosticEvent, outFile, extra)
+				_, err := exportEntry(diagnosticEvent, outFile, commonArgs.Extra)
 				if err != nil {
 					cmdLogger.LogError(fmt.Errorf("could not export diagnostic event: %v", err))
 					numFailures += 1

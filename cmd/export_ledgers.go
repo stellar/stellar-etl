@@ -16,19 +16,19 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra, useCaptiveCore, datastoreUrl := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture, datastoreUrl)
+		env := utils.GetEnvironmentDetails(commonArgs)
 
 		var ledgers []utils.HistoryArchiveLedgerAndLCM
 		var err error
 
-		if useCaptiveCore {
-			ledgers, err = input.GetLedgersHistoryArchive(startNum, endNum, limit, env, useCaptiveCore)
+		if commonArgs.UseCaptiveCore {
+			ledgers, err = input.GetLedgersHistoryArchive(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		} else {
-			ledgers, err = input.GetLedgers(startNum, endNum, limit, env, useCaptiveCore)
+			ledgers, err = input.GetLedgers(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		}
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
@@ -46,7 +46,7 @@ var ledgersCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, extra)
+			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1
