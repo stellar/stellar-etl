@@ -235,7 +235,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
-	flags.String("datastore-path", "ledger-exporter/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.String("datastore-path", "sdf-ledger-close-metas/ledgers", "Datastore bucket path to read txmeta files from.")
 	flags.Uint32("buffer-size", 5, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 5, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
@@ -820,13 +820,11 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 	ledgerBatchConfig := datastore.LedgerBatchConfig{
 		LedgersPerFile:    1,
 		FilesPerPartition: 64000,
-		FileSuffix:        ".xdr.gz",
 	}
 
 	// TODO: In the future CompressionType should be removed as it won't be configurable
 	BSBackendConfig := ledgerbackend.BufferedStorageBackendConfig{
 		LedgerBatchConfig: ledgerBatchConfig,
-		CompressionType:   "gzip",
 		DataStore:         dataStore,
 		BufferSize:        env.CommonFlagValues.BufferSize,
 		NumWorkers:        env.CommonFlagValues.NumWorkers,
