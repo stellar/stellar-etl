@@ -1,5 +1,5 @@
-
 # **Stellar ETL**
+
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
 
 ## **Table of Contents**
@@ -16,23 +16,25 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
     - [export_diagnostic_events](#export_diagnostic_events)
     - [export_ledger_entry_changes](#export_ledger_entry_changes)
   - [Utility Commands](#utility-commands)
-    - [get_ledger_range_from_times](#get_ledger_range_from_times) 
+    - [get_ledger_range_from_times](#get_ledger_range_from_times)
 - [Schemas](#schemas)
 - [Extensions](#extensions)
   - [Adding New Commands](#adding-new-commands)
 
 <br>
 
-***
+---
 
 # **Exporting the Ledger Chain**
 
 ## **Docker**
+
 1. Download the latest version of docker [Docker](https://www.docker.com/get-started)
 2. Pull the latest stellar-etl Docker image: `docker pull stellar/stellar-etl:latest`
 3. Run the Docker images with the desired stellar-etl command: `docker run stellar/stellar-etl:latest stellar-etl [etl-command] [etl-command arguments]`
 
 ## **Manual Installation**
+
 1. Install Golang v1.22.1 or later: https://golang.org/dl/
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. If using captive-core, download and install Stellar-Core v20.0.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
@@ -40,23 +42,27 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 5. Run export commands to export information about the legder
 
 ## **Manual build for local development**
+
 1. Clone this repo `git clone https://github.com/stellar/stellar-etl`
 2. Build stellar-etl with `go build`
 3. Run export commands to export information about the legder
 
-> *_Note:_* If using the GCS datastore, you can run the following to set GCP credentials to use in your shell
+> _*Note:*_ If using the GCS datastore, you can run the following to set GCP credentials to use in your shell
+
 ```
 gcloud auth login
 gcloud config set project dev-hubble
 gcloud auth application-default login
 ```
-> *_Note:_* Instructions for installing gcloud can be found [here](https://cloud.google.com/sdk/docs/install-sdk)
+
+> _*Note:*_ Instructions for installing gcloud can be found [here](https://cloud.google.com/sdk/docs/install-sdk)
 
 <br>
 
-***
+---
 
 # **Command Reference**
+
 - [Export Commands](#export-commands)
   - [export_ledgers](#export_ledgers)
   - [export_transactions](#export_transactions)
@@ -73,11 +79,11 @@ Every command accepts a `-h` parameter, which provides a help screen containing 
 
 Commands have the option to read from testnet with the `--testnet` flag, from futurenet with the `--futurenet` flag, and defaults to reading from mainnet without any flags.
 
-> *_NOTE:_* Adding both flags will default to testnet. Each stellar-etl command can only run from one network at a time.
+> _*NOTE:*_ Adding both flags will default to testnet. Each stellar-etl command can only run from one network at a time.
 
 <br>
 
-***
+---
 
 ## **Export Commands**
 
@@ -85,8 +91,8 @@ These commands export information using the Ledger Exporter output files within 
 
 #### Common Flags
 
-| Flag | Description | Default |
-| ---- | ----------- | ------- |
+| Flag           | Description                                                                                   | Default                 |
+| -------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
 | start-ledger   | The ledger sequence number for the beginning of the export period. Defaults to genesis ledger | 2                       |
 | end-ledger     | The ledger sequence number for the end of the export range                                    | 0                       |
 | strict-export  | If set, transform errors will be fatal                                                        | false                   |
@@ -100,14 +106,14 @@ These commands export information using the Ledger Exporter output files within 
 | retry-limit    | Datastore GetLedger retry limit                                                               | 3                       |
 | retry-wait     | Time in seconds to wait for GetLedger retry                                                   | 5                       |
 
-> *_NOTE:_* Using captive-core requires a Stellar Core instance that is v20.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, trustlines, claimable balances, liquidity pools, or account signers.
-As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
+> _*NOTE:*_ Using captive-core requires a Stellar Core instance that is v20.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, trustlines, claimable balances, liquidity pools, or account signers.
+> As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
 
-> *_NOTE:_* The txmeta files used by stellar-etl come from [ledgerexporter](https://github.com/stellar/go/tree/master/exp/services/ledgerexporter)
+> _*NOTE:*_ The txmeta files used by stellar-etl come from [ledgerexporter](https://github.com/stellar/go/tree/master/exp/services/ledgerexporter)
 
 <br>
 
-***
+---
 
 ### **export_ledgers**
 
@@ -116,11 +122,11 @@ As the Stellar network grows, the Stellar Core instance has to catch up on an in
 --end-ledger 500000 --output exported_ledgers.txt
 ```
 
-This command exports ledgers within the provided range. 
+This command exports ledgers within the provided range.
 
 <br>
 
-***
+---
 
 ### **export_transactions**
 
@@ -133,7 +139,7 @@ This command exports transactions within the provided range.
 
 <br>
 
-***
+---
 
 ### **export_operations**
 
@@ -146,7 +152,7 @@ This command exports operations within the provided range.
 
 <br>
 
-***
+---
 
 ### **export_effects**
 
@@ -159,9 +165,10 @@ This command exports effects within the provided range.
 
 <br>
 
-***
+---
 
 ### **export_assets**
+
 ```bash
 > stellar-etl export_assets \
 --start-ledger 1000 \
@@ -172,9 +179,10 @@ Exports the assets that are created from payment operations over a specified led
 
 <br>
 
-***
+---
 
 ### **export_trades**
+
 ```bash
 > stellar-etl export_trades \
 --start-ledger 1000 \
@@ -185,9 +193,10 @@ Exports trade data within the specified range to an output file
 
 <br>
 
-***
+---
 
 ### **export_diagnostic_events**
+
 ```bash
 > stellar-etl export_diagnostic_events \
 --start-ledger 1000 \
@@ -198,7 +207,7 @@ Exports diagnostic events data within the specified range to an output file
 
 <br>
 
-***
+---
 
 ### **export_ledger_entry_changes**
 
@@ -214,43 +223,46 @@ Changes are exported in batches of a size defined by the `--batch-size` flag. By
 This command has two modes: bounded and unbounded.
 
 #### **Bounded**
- If both a start and end ledger are provided, then the command runs in a bounded mode. This means that once all the ledgers in the range are processed and exported, the command shuts down.
- 
+
+If both a start and end ledger are provided, then the command runs in a bounded mode. This means that once all the ledgers in the range are processed and exported, the command shuts down.
+
 #### **Unbounded**
+
 If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, stellar-etl will block and wait for the next sequentially written ledger file in the datastore. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new stellar-etl instances.
 
 The following are the ledger entry type flags that can be used to export data:
 
-* export-accounts
-* export-trustlines
-* export-offers
-* export-pools
-* export-balances
-* export-contract-code
-* export-contract-data
-* export-config-settings
-* export-ttl
+- export-accounts
+- export-trustlines
+- export-offers
+- export-pools
+- export-balances
+- export-contract-code
+- export-contract-data
+- export-config-settings
+- export-ttl
 
 <br>
 
-***
+---
 
 ## **Utility Commands**
 
 These commands aid in the usage of [Export Commands](#export-commands).
 
 ### **get_ledger_range_from_times**
+
 ```bash
 > stellar-etl get_ledger_range_from_times \
 --start-time 2019-09-13T23:00:00+00:00 \
 --end-time 2019-09-14T13:35:10+00:00 --output exported_range.txt
 ```
 
-This command takes in a start and end time and converts it to a ledger range. The ledger range that is returned will be the smallest possible ledger range that completely covers the provided time period. 
+This command takes in a start and end time and converts it to a ledger range. The ledger range that is returned will be the smallest possible ledger range that completely covers the provided time period.
 
 <br>
 
-***
+---
 
 # Schemas
 
@@ -258,26 +270,28 @@ See https://github.com/stellar/stellar-etl/blob/master/internal/transform/schema
 
 <br>
 
-***
+---
 
 # Extensions
+
 This section covers some possible extensions or further work that can be done.
 
 ## **Adding New Commands**
+
 In general, in order to add new commands, you need to add these files:
 
- - `export_new_data_structure.go` in the `cmd` folder
-	 - This file can be generated with cobra by calling: `cobra add {command}`
-	 - This file will parse flags, create output files, get the transformed data from the input package, and then export the data.
- - `export_new_data_structure_test.go` in the `cmd` folder
-	 - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
-	 - Test data should be stored in the `testdata/new_data_structure` folder
- - `new_data_structure.go` in the `internal/input` folder
-	 - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, or a captive core instance. 
-	 - This file should extract the data and transform it, and return the transformed data.
-	 - If working with captive core, the methods need to work in the background. There should be methods that export batches of data and send them to a channel. There should be other methods that read from the channel and transform the data so it can be exported.
+- `export_new_data_structure.go` in the `cmd` folder
+  - This file can be generated with cobra by calling: `cobra add {command}`
+  - This file will parse flags, create output files, get the transformed data from the input package, and then export the data.
+- `export_new_data_structure_test.go` in the `cmd` folder
+  - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
+  - Test data should be stored in the `testdata/new_data_structure` folder
+- `new_data_structure.go` in the `internal/input` folder
+  - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, or a captive core instance.
+  - This file should extract the data and transform it, and return the transformed data.
+  - If working with captive core, the methods need to work in the background. There should be methods that export batches of data and send them to a channel. There should be other methods that read from the channel and transform the data so it can be exported.
 - `new_data_structure.go` in the `internal/transform` folder
-	- This file will contain the methods needed to transform the extracted data into a form that is suitable for BigQuery.
-	- The struct definition for the transformed object should be stored in `schemas.go` in the `internal/transform` folder.
+  - This file will contain the methods needed to transform the extracted data into a form that is suitable for BigQuery.
+  - The struct definition for the transformed object should be stored in `schemas.go` in the `internal/transform` folder.
 
 A good number of common methods are already written and stored in the `util` package.
