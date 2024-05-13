@@ -822,6 +822,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		FilesPerPartition: 64000,
 	}
 
+	// TODO: In the future CompressionType should be removed as it won't be configurable
 	BSBackendConfig := ledgerbackend.BufferedStorageBackendConfig{
 		LedgerBatchConfig: ledgerBatchConfig,
 		DataStore:         dataStore,
