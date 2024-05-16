@@ -87,7 +87,9 @@ Commands have the option to read from testnet with the `--testnet` flag, from fu
 
 ## **Export Commands**
 
-These commands export information using the Ledger Exporter output files within a specified datastore (currently [datastore](https://github.com/stellar/go/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
+These commands export information using the [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md) output files within a specified datastore (currently [datastore](https://github.com/stellar/go/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
+
+> _*NOTE:*_ The datastore must contain the expected compressed LedgerCloseMetaBatch XDR binary files as exported from [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md#exported-files).
 
 #### Common Flags
 
@@ -106,10 +108,12 @@ These commands export information using the Ledger Exporter output files within 
 | retry-limit    | Datastore GetLedger retry limit                                                               | 3                       |
 | retry-wait     | Time in seconds to wait for GetLedger retry                                                   | 5                       |
 
-> _*NOTE:*_ Using captive-core requires a Stellar Core instance that is v20.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. These changes can be in the form of accounts, offers, trustlines, claimable balances, liquidity pools, or account signers.
-> As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
-
-> _*NOTE:*_ The txmeta files used by stellar-etl come from [ledgerexporter](https://github.com/stellar/go/tree/master/exp/services/ledgerexporter)
+> _*NOTE:*_ Using captive-core requires a Stellar Core instance that is v20.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. More information about the Stellar ledger information can be found [here](https://developers.stellar.org/network/horizon/api-reference/resources).
+> <br> As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
+> <br><br> Recommended resources for running captive-core within a KubernetesPod: 
+> ```
+> {cpu: 3.5, memory: 20Gi, ephemeral-storage: 12Gi}
+> ```
 
 <br>
 
@@ -226,7 +230,7 @@ This command has two modes: bounded and unbounded.
 
 If both a start and end ledger are provided, then the command runs in a bounded mode. This means that once all the ledgers in the range are processed and exported, the command shuts down.
 
-#### **Unbounded**
+#### **Unbounded (Currently Unsupported)**
 
 If only a start ledger is provided, then the command runs in an unbounded fashion starting from the provided ledger. In this mode, stellar-etl will block and wait for the next sequentially written ledger file in the datastore. Since the changes are continually exported in batches, this process can be continually run in the background in order to avoid the overhead of closing and starting new stellar-etl instances.
 
@@ -287,8 +291,7 @@ In general, in order to add new commands, you need to add these files:
   - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
   - Test data should be stored in the `testdata/new_data_structure` folder
 - `new_data_structure.go` in the `internal/input` folder
-  - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, or a captive core instance.
-  - This file should extract the data and transform it, and return the transformed data.
+  - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, a captive core instance, or a datastore.
   - If working with captive core, the methods need to work in the background. There should be methods that export batches of data and send them to a channel. There should be other methods that read from the channel and transform the data so it can be exported.
 - `new_data_structure.go` in the `internal/transform` folder
   - This file will contain the methods needed to transform the extracted data into a form that is suitable for BigQuery.
