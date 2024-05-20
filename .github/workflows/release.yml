@@ -2,14 +2,19 @@ name: Release Drafter and Publisher
 
 on:
   push:
-    tags:
-      - v*
+    branches:
+      feature/CI-enhancements
+
+#on:
+#  pull_request:
+#    types: [closed]
 
 permissions:
   contents: read
 
 jobs:
   new_release:
+    # if: github.event.pull_request.merged == true
     permissions:
       # write permission is required to create a github release
       contents: write
@@ -21,17 +26,45 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Get branch name
+        id: getbranch
+        run: echo ::set-output name=BRANCH::${GITHUB_REF#refs/heads/}
 
       # ${{ github.ref }} was not giving v* as tag name, but refs/tags/v* instead, so I had to abbreviate it
       - name: Get latest abbreviated tag
         id: gettag
-        run: echo ::set-output name=TAG::$(git describe --tags --abbrev=7)
+        run: echo ::set-output name=TAG::$(git describe --tags --abbrev=0)
+
+      - name: Calculate next version
+        id: nextversion
+        run: |
+          BRANCH_NAME="${{ steps.getbranch.outputs.BRANCH }}"
+          CURRENT_VERSION="${{ steps.gettag.outputs.TAG }}"
+          echo "The version is $CURRENT_VERSION"
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          if [[ $BRANCH_NAME =~ ^feature/ ]]; then
+            VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
+          elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
+            VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
+          elif [[ $BRANCH_NAME =~ ^release/ ]]; then
+            VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
+          fi
+          NEXT_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
+          echo ::set-output name=NEXT_VERSION::"$NEXT_VERSION"
+      
+      - name: Create and publish new tag
+        run: |
+          git tag ${{ steps.nextversion.outputs.NEXT_VERSION }}
+          git push origin ${{ steps.nextversion.outputs.NEXT_VERSION }}
 
       - uses: release-drafter/release-drafter@v5
         with:
           commitish: master
-          name: "stellar-etl ${{ steps.gettag.outputs.TAG }}"
-          tag: ${{ github.ref }}
-          publish: true
+          name: "stellar-etl ${{ steps.nextversion.outputs.NEXT_VERSION }}"
+          tag: ${{ steps.nextversion.outputs.NEXT_VERSION }}
+          publish: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
