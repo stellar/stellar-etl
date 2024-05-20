@@ -3,7 +3,7 @@ name: Release Drafter and Publisher
 on:
   push:
     branches:
-      patch/CI-enhancements
+      release/CI-enhancements
 
 #on:
 #  pull_request:
@@ -50,7 +50,6 @@ jobs:
           elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
             VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
           elif [[ $BRANCH_NAME =~ ^release/ ]]; then
-            echo " inside release is: $VERSION_PARTS[0] "
             VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
           fi
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
