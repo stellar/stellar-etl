@@ -3,7 +3,7 @@ name: Release Drafter and Publisher
 on:
   push:
     branches:
-      feature/CI-enhancements
+      release/CI-enhancements
 
 #on:
 #  pull_request:
