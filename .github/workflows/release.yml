@@ -43,6 +43,7 @@ jobs:
         run: |
           BRANCH_NAME="${{ steps.getbranch.outputs.BRANCH }}"
           CURRENT_VERSION="${{ steps.gettag.outputs.TAG }}"
+          CURRENT_VERSION="${CURRENT_VERSION#v}"  # Remove the 'v' from the start of the version
           echo "The version is $CURRENT_VERSION"
           IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
           if [[ $BRANCH_NAME =~ ^feature/ ]]; then
@@ -50,7 +51,7 @@ jobs:
           elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
             VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
           elif [[ $BRANCH_NAME =~ ^release/ ]]; then
-            echo " the release is: $VERSION_PARTS[0] "
+            echo " inside release is: $VERSION_PARTS[0] "
             VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
           fi
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
