@@ -36,7 +36,7 @@ jobs:
       # ${{ github.ref }} was not giving v* as tag name, but refs/tags/v* instead, so I had to abbreviate it
       - name: Get latest abbreviated tag
         id: gettag
-        run: echo ::set-output name=TAG::$(git describe --tags --abbrev=0)
+        run: echo ::set-output name=TAG::$(git describe --tags --abbrev=0) 
 
       - name: Calculate next version
         id: nextversion
