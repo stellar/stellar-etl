@@ -50,7 +50,7 @@ jobs:
           elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
             VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
           elif [[ $BRANCH_NAME =~ ^release/ ]]; then
-            echo "1 and 1 is 1"
+            echo " the release is: $VERSION_PARTS[0] "
             VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
           fi
           NEXT_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
