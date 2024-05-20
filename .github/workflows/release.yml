@@ -33,7 +33,7 @@ jobs:
         id: getbranch
         run: echo ::set-output name=BRANCH::${GITHUB_REF#refs/heads/}
 
-      # ${{ github.ref }} was not giving v* as tag name, but refs/tags/v* instead, so I had to abbreviate it
+      # ${{ github.ref }} was not giving v* as tag name, but refs/tags/v* instead, so It had to be abbreviated
       - name: Get latest abbreviated tag
         id: gettag
         run: echo ::set-output name=TAG::$(git describe --tags --abbrev=0) 
@@ -44,7 +44,6 @@ jobs:
           BRANCH_NAME="${{ steps.getbranch.outputs.BRANCH }}"
           CURRENT_VERSION="${{ steps.gettag.outputs.TAG }}"
           CURRENT_VERSION="${CURRENT_VERSION#v}"  # Remove the 'v' from the start of the version
-          echo "The version is $CURRENT_VERSION"
           IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
           if [[ $BRANCH_NAME =~ ^feature/ ]]; then
             VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
