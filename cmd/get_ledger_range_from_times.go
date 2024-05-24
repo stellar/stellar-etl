@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stellar/stellar-etl/internal/input"
+	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -24,6 +26,11 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 	If the time range goes into the future, the ledger range will end on the most recent ledger. If the time
 	range covers time before the network started, the ledger range will start with the genesis ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		// _, path, _ := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+
 		startString, err := cmd.Flags().GetString("start-time")
 		if err != nil {
 			cmdLogger.Fatal("could not get start time: ", err)
@@ -44,7 +51,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get testnet boolean: ", err)
 		}
 
-        isFuture, err := cmd.Flags().GetBool("futurenet")
+		isFuture, err := cmd.Flags().GetBool("futurenet")
 		if err != nil {
 			cmdLogger.Fatal("could not get futurenet boolean: ", err)
 		}
@@ -75,16 +82,32 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			outFile := mustOutFile(path)
 			outFile.Write(marshalled)
 			outFile.WriteString("\n")
+
+			numFailures := 0
+			totalNumBytes := 0
+			numBytes, err := exportEntry(marshalled, outFile, commonArgs.Extra)
+			if err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export ledger ranges: %v", err))
+				numFailures += 1
+			}
+			totalNumBytes += numBytes
+
 			outFile.Close()
+			cmdLogger.Info("Number of bytes written: ", totalNumBytes)
+
+			printTransformStats(2, numFailures)
+
+			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 		} else {
 			fmt.Println(string(marshalled))
 		}
+
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(getLedgerRangeFromTimesCmd)
-
+	utils.AddCloudStorageFlags(getLedgerRangeFromTimesCmd.Flags())
 	getLedgerRangeFromTimesCmd.Flags().StringP("start-time", "s", "", "The start time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("end-time", "e", "", "The end time")
 	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
