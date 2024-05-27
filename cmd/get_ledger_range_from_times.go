@@ -27,8 +27,6 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 	range covers time before the network started, the ledger range will start with the genesis ledger.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		// _, path, _ := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		startString, err := cmd.Flags().GetString("start-time")
@@ -85,7 +83,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 
 			numFailures := 0
 			totalNumBytes := 0
-			numBytes, err := exportEntry(marshalled, outFile, commonArgs.Extra)
+			numBytes, err := exportEntry(marshalled, outFile, nil)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export ledger ranges: %v", err))
 				numFailures += 1
