@@ -78,12 +78,9 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 
 		if path != "" {
 			outFile := mustOutFile(path)
-			outFile.Write(marshalled)
-			outFile.WriteString("\n")
-
 			numFailures := 0
 			totalNumBytes := 0
-			numBytes, err := exportEntry(marshalled, outFile, nil)
+			numBytes, err := exportEntry(toExport, outFile, nil)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export ledger ranges: %v", err))
 				numFailures += 1
