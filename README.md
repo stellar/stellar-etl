@@ -2,6 +2,16 @@
 
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
 
+## ** Before creating a branch **
+
+Pay attention, it is very important to know if your modification to this repository is a release (breaking changes), a feature (functionalities) or a patch(to fix bugs). With that information, create your branch name like this:
+
+* ```release/<branch-name>```
+* ```feature/<branch-name>```
+* ```patch/<branch-name>```
+
+If branch is already made, just rename it *before passing the pull request*.
+
 ## **Table of Contents**
 
 - [Exporting the Ledger Chain](#exporting-the-ledger-chain)
