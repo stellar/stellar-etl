@@ -10,9 +10,7 @@ change is, and why it is being made, with enough context for anyone to understan
 * [ ] This PR has reasonably narrow scope (if not, break it down into smaller PRs).
 * [ ] This PR avoids mixing refactoring changes with feature changes (split into two PRs
   otherwise).
-* [ ] This PR's title starts with name of package that is most changed in the PR, ex.
-  `services/friendbot`, or `all` or `doc` if the changes are broad or impact many
-  packages.
+* [ ] This PR's title starts with the jira ticket associated with the PR.
 
 ### Thoroughness
 
