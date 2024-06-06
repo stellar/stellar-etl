@@ -31,7 +31,7 @@ jobs:
       # ${{ github.ref }} was not giving v* as tag name, but refs/tags/v* instead, so It had to be abbreviated
       - name: Get latest abbreviated tag
         id: gettag
-        run: echo ::set-output name=TAG::$(git describe --tags --abbrev=0) 
+        run: echo ::set-output name=TAG::$(git describe --tags $(git rev-list --tags --max-count=1)) # get the latest tag across all branches and put it in the output TAG
 
       - name: Calculate next version
         id: nextversion
@@ -40,12 +40,15 @@ jobs:
           CURRENT_VERSION="${{ steps.gettag.outputs.TAG }}"
           CURRENT_VERSION="${CURRENT_VERSION#v}"  # Remove the 'v' from the start of the version
           IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-          if [[ $BRANCH_NAME =~ ^feature/ ]]; then
+          if [[ $BRANCH_NAME =~ ^release/ ]]; then
+            VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
+            VERSION_PARTS[1]=0
+            VERSION_PARTS[2]=0
+          elif [[ $BRANCH_NAME =~ ^feature/ ]]; then
             VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
+            VERSION_PARTS[2]=0
           elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
             VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
-          elif [[ $BRANCH_NAME =~ ^release/ ]]; then
-            VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
           fi
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
           echo ::set-output name=NEXT_VERSION::"$NEXT_VERSION"
