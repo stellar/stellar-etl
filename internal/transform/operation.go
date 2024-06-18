@@ -1030,9 +1030,14 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 			details["type"] = "invoke_contract"
 
+			contractId, err := invokeArgs.ContractAddress.String()
+			if err != nil {
+				return nil, err
+			}
+
 			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
-			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
 			for _, param := range args {
@@ -1633,9 +1638,14 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 
 			details["type"] = "invoke_contract"
 
+			contractId, err := invokeArgs.ContractAddress.String()
+			if err != nil {
+				return nil, err
+			}
+
 			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
-			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
 			for _, param := range args {
