@@ -39,6 +39,8 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 
 	for _, contractEvent := range contractEvents {
 		var outputContractId string
+		outputTopicsJson := make(map[string][]map[string]string, 1)
+		outputTopicsDecodedJson := make(map[string][]map[string]string, 1)
 
 		outputInSuccessfulContractCall := contractEvent.InSuccessfulContractCall
 		event := contractEvent.Event
@@ -47,6 +49,8 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 
 		eventTopics := getEventTopics(event.Body)
 		outputTopics, outputTopicsDecoded := serializeScValArray(eventTopics)
+		outputTopicsJson["topics"] = outputTopics
+		outputTopicsDecodedJson["topics_decoded"] = outputTopicsDecoded
 
 		eventData := getEventData(event.Body)
 		outputData, outputDataDecoded := serializeScVal(eventData)
@@ -72,8 +76,8 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 			ContractId:               outputContractId,
 			Type:                     int32(outputType),
 			TypeString:               outputTypeString,
-			Topics:                   outputTopics,
-			TopicsDecoded:            outputTopicsDecoded,
+			Topics:                   outputTopicsJson,
+			TopicsDecoded:            outputTopicsDecodedJson,
 			Data:                     outputData,
 			DataDecoded:              outputDataDecoded,
 			ContractEventXDR:         outputContractEventXDR,
