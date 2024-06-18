@@ -45,14 +45,16 @@ func TestTransformContractEvent(t *testing.T) {
 
 func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
 
-	topics := []map[string]string{
+	topics := make(map[string][]map[string]string, 1)
+	topics["topics"] = []map[string]string{
 		{
 			"type":  "B",
 			"value": "AAAAAAAAAAE=",
 		},
 	}
 
-	topicsDecoded := []map[string]string{
+	topicsDecoded := make(map[string][]map[string]string, 1)
+	topicsDecoded["topics_decoded"] = []map[string]string{
 		{
 			"type":  "B",
 			"value": "true",
