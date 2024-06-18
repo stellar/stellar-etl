@@ -12,7 +12,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// TransformContractEvent converts a transaction's contract events and diagnostic events from the history archive ingestion system into a form suitable for BigQuery.
+// TransformContractEvent converts a transaction's contract events and diagnostic events into a form suitable for BigQuery.
 // It is known that contract events are a subset of the diagnostic events XDR definition. We are opting to call all of these events
 // contract events for better clarity to data analytics users.
 func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.LedgerHeaderHistoryEntry) ([]ContractEventOutput, error) {
