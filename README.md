@@ -6,11 +6,11 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 
 Pay attention, it is very important to know if your modification to this repository is a release (breaking changes), a feature (functionalities) or a patch(to fix bugs). With that information, create your branch name like this:
 
-* ```release/<branch-name>```
-* ```feature/<branch-name>```
-* ```patch/<branch-name>```
+- `release/<branch-name>`
+- `feature/<branch-name>`
+- `patch/<branch-name>`
 
-If branch is already made, just rename it *before passing the pull request*.
+If branch is already made, just rename it _before passing the pull request_.
 
 ## **Table of Contents**
 
@@ -120,7 +120,8 @@ These commands export information using the [Ledger Exporter](https://github.com
 
 > _*NOTE:*_ Using captive-core requires a Stellar Core instance that is v20.0.0 or later. The commands use the Core instance to retrieve information about changes from the ledger. More information about the Stellar ledger information can be found [here](https://developers.stellar.org/network/horizon/api-reference/resources).
 > <br> As the Stellar network grows, the Stellar Core instance has to catch up on an increasingly large amount of information. This catch-up process can add some overhead to the commands in this category. In order to avoid this overhead, run prefer processing larger ranges instead of many small ones, or use unbounded mode.
-> <br><br> Recommended resources for running captive-core within a KubernetesPod: 
+> <br><br> Recommended resources for running captive-core within a KubernetesPod:
+>
 > ```
 > {cpu: 3.5, memory: 20Gi, ephemeral-storage: 12Gi}
 > ```

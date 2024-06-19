@@ -59,7 +59,6 @@ func NewOrderbookParser(logger *utils.EtlLogger) OrderbookParser {
 	}
 }
 
-
 func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) {
 	var group sync.WaitGroup
 	allConverted := make([]transform.NormalizedOfferOutput, len(orderbook))
@@ -119,7 +118,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 	}
 }
 
-// GetOfferChanges gets the offer changes that ocurred between the firstSeq ledger and nextSeq ledger
+// GetOfferChanges gets the offer changes that occurred between the firstSeq ledger and nextSeq ledger
 func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, env utils.EnvironmentDetails, firstSeq, nextSeq uint32) (*ingest.ChangeCompactor, error) {
 	offChanges := ingest.NewChangeCompactor()
 	ctx := context.Background()

@@ -1,0 +1,14 @@
+linters:
+  disable:
+    - errcheck
+  enable:
+    - goimports # Check import statements are formatted according to the 'goimport' command. Reformat imports in autofix mode.
+    - importas # Enforces consistent import aliases.
+    - misspell # Finds commonly misspelled English words.
+    - nestif # Reports deeply nested if statements.
+    - nilerr # Finds the code that returns nil even if it checks that the error is not nil.
+    - unparam # Finds unused function parameters.
+
+linters-settings:
+  unparam:
+    check-exported: false
