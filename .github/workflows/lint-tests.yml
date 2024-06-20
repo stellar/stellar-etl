@@ -1,16 +1,16 @@
 name: Linting
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/CI-improv
+      - master
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
-    # if: >-
-    # github.event.pull_request.merged == false &&
-    # github.event.pull_request.state == 'open'
+    if: >-
+      github.event.pull_request.merged == false &&
+      github.event.pull_request.state == 'open'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
