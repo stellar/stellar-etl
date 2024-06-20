@@ -206,7 +206,6 @@ func UpdateOrderbook(start, end uint32, orderbook []ingest.Change, core *ledgerb
 		changeCache.AddChange(change)
 	}
 
-	orderbook = changeCache.GetChanges()
 }
 
 // StreamOrderbooks exports all the batches of orderbooks between start and end to the orderbookChannel. If end is 0, then it exports in an unbounded fashion

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -229,7 +229,7 @@ func getGolden(t *testing.T, goldenFile string, actual string, update bool) (str
 		return actual, nil
 	}
 
-	wantOutput, err := ioutil.ReadAll(f)
+	wantOutput, err := io.ReadAll(f)
 	if err != nil {
 		return "", err
 	}

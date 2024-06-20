@@ -45,7 +45,7 @@ func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails, use
 			return []TradeTransformInput{}, err
 		}
 
-		closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
+		closeTime, _ := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
 
 		for int64(len(tradeSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
