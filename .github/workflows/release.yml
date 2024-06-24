@@ -17,13 +17,13 @@ jobs:
       # otherwise, read permission is required at least
       pull-requests: write
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
+
       - name: Get branch name
         id: getbranch
         run: echo ::set-output name=BRANCH::${GITHUB_HEAD_REF}
@@ -52,7 +52,7 @@ jobs:
           fi
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
           echo ::set-output name=NEXT_VERSION::"$NEXT_VERSION"
-      
+
       - name: Create and publish new tag
         run: |
           git tag ${{ steps.nextversion.outputs.NEXT_VERSION }}

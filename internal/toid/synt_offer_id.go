@@ -22,8 +22,9 @@ const (
 // Due to the 2nd bit being used, the largest possible toid is:
 // 0011111111111111111111111111111100000000000000000001000000000001
 // \          ledger              /\    transaction   /\    op    /
-//            = 1073741823
-//              with avg. 5 sec close time will reach in ~170 years
+//
+//	= 1073741823
+//	  with avg. 5 sec close time will reach in ~170 years
 func EncodeOfferId(id uint64, typ OfferIDType) int64 {
 	// First ensure the bits we're going to change are 0s
 	if id&mask != 0 {
