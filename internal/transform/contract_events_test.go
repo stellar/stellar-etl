@@ -74,6 +74,8 @@ func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
 	output = [][]ContractEventOutput{{
 		ContractEventOutput{
 			TransactionHash:          "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			TransactionID:            131090201534533632,
+			Successful:               false,
 			LedgerSequence:           30521816,
 			ClosedAt:                 time.Date(2020, time.July, 9, 5, 28, 42, 0, time.UTC),
 			InSuccessfulContractCall: true,
