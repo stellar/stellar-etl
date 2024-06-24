@@ -600,6 +600,8 @@ type TtlOutput struct {
 // ContractEventOutput is a representation of soroban contract events and diagnostic events
 type ContractEventOutput struct {
 	TransactionHash          string                         `json:"transaction_hash"`
+	TransactionID            int64                          `json:"transaction_id"`
+	Successful               bool                           `json:"successful"`
 	LedgerSequence           uint32                         `json:"ledger_sequence"`
 	ClosedAt                 time.Time                      `json:"closed_at"`
 	InSuccessfulContractCall bool                           `json:"in_successful_contract_call"`

@@ -68,8 +68,13 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 			return []ContractEventOutput{}, err
 		}
 
+		outputTransactionID := toid.New(int32(outputLedgerSequence), int32(transactionIndex), 0).ToInt64()
+		outputSuccessful := transaction.Result.Successful()
+
 		transformedDiagnosticEvent := ContractEventOutput{
 			TransactionHash:          outputTransactionHash,
+			TransactionID:            outputTransactionID,
+			Successful:               outputSuccessful,
 			LedgerSequence:           outputLedgerSequence,
 			ClosedAt:                 outputCloseTime,
 			InSuccessfulContractCall: outputInSuccessfulContractCall,
