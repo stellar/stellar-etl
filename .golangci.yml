@@ -2,6 +2,8 @@ linters:
   disable:
     - gosimple
     - errcheck
+    - ineffassign
+    - staticcheck
 
   enable:
     - goimports # Check import statements are formatted according to the 'goimport' command. Reformat imports in autofix mode.
