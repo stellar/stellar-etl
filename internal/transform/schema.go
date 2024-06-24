@@ -136,6 +136,7 @@ type OperationOutput struct {
 	ClosedAt            time.Time              `json:"closed_at"`
 	OperationResultCode string                 `json:"operation_result_code"`
 	OperationTraceCode  string                 `json:"operation_trace_code"`
+	LedgerSequence      uint32                 `json:"ledger_sequence"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
@@ -345,13 +346,14 @@ type SponsorshipOutput struct {
 
 // EffectOutput is a representation of an operation that aligns with the BigQuery table history_effects
 type EffectOutput struct {
-	Address      string                 `json:"address"`
-	AddressMuxed null.String            `json:"address_muxed,omitempty"`
-	OperationID  int64                  `json:"operation_id"`
-	Details      map[string]interface{} `json:"details"`
-	Type         int32                  `json:"type"`
-	TypeString   string                 `json:"type_string"`
-	LedgerClosed time.Time              `json:"closed_at"`
+	Address        string                 `json:"address"`
+	AddressMuxed   null.String            `json:"address_muxed,omitempty"`
+	OperationID    int64                  `json:"operation_id"`
+	Details        map[string]interface{} `json:"details"`
+	Type           int32                  `json:"type"`
+	TypeString     string                 `json:"type_string"`
+	LedgerClosed   time.Time              `json:"closed_at"`
+	LedgerSequence uint32                 `json:"ledger_sequence"`
 }
 
 // EffectType is the numeric type for an effect

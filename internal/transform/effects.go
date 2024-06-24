@@ -157,6 +157,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 
 	for i := range wrapper.effects {
 		wrapper.effects[i].LedgerClosed = operation.ledgerClosed
+		wrapper.effects[i].LedgerSequence = operation.ledgerSequence
 	}
 
 	return wrapper.effects, nil

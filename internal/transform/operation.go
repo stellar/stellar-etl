@@ -91,6 +91,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		ClosedAt:            outputCloseTime,
 		OperationResultCode: outputOperationResultCode,
 		OperationTraceCode:  outputOperationTraceCode,
+		LedgerSequence:      uint32(ledgerSeq),
 	}
 
 	return transformedOperation, nil
