@@ -597,16 +597,20 @@ type TtlOutput struct {
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 }
 
-// DiagnosticEventOutput is a representation of soroban diagnostic events that currently are not stored in a BQ table
-type DiagnosticEventOutput struct {
-	TransactionHash          string    `json:"transaction_hash"`
-	LedgerSequence           uint32    `json:"ledger_sequence"`
-	TransactionID            int64     `json:"transaction_id"`
-	ClosedAt                 time.Time `json:"closed_at"`
-	InSuccessfulContractCall bool      `json:"in_successful_contract_call"`
-	ExtV                     int32     `json:"ext_v"`
-	ContractId               string    `json:"contract_id"`
-	Type                     string    `json:"type"`
-	BodyV                    int32     `json:"body_v"`
-	Body                     string    `json:"body"`
+// ContractEventOutput is a representation of soroban contract events and diagnostic events
+type ContractEventOutput struct {
+	TransactionHash          string                         `json:"transaction_hash"`
+	TransactionID            int64                          `json:"transaction_id"`
+	Successful               bool                           `json:"successful"`
+	LedgerSequence           uint32                         `json:"ledger_sequence"`
+	ClosedAt                 time.Time                      `json:"closed_at"`
+	InSuccessfulContractCall bool                           `json:"in_successful_contract_call"`
+	ContractId               string                         `json:"contract_id"`
+	Type                     int32                          `json:"type"`
+	TypeString               string                         `json:"type_string"`
+	Topics                   map[string][]map[string]string `json:"topics"`
+	TopicsDecoded            map[string][]map[string]string `json:"topics_decoded"`
+	Data                     map[string]string              `json:"data"`
+	DataDecoded              map[string]string              `json:"data_decoded"`
+	ContractEventXDR         string                         `json:"contract_event_xdr"`
 }
