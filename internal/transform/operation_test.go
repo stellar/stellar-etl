@@ -82,6 +82,7 @@ func makeLedgerCloseMeta() (ledgerCloseMeta xdr.LedgerCloseMeta) {
 					ScpValue: xdr.StellarValue{
 						CloseTime: 0,
 					},
+					LedgerSeq: 0,
 				},
 			},
 		},

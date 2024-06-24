@@ -43,13 +43,12 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 		return AssetOutput{}, fmt.Errorf("%s (id %d)", err.Error(), operationID)
 	}
 
-	header := lcm.LedgerHeaderHistoryEntry()
-	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	outputCloseTime, err := utils.GetCloseTime(lcm)
 	if err != nil {
 		return AssetOutput{}, err
 	}
-	outputAsset.ClosedAt = closedAt
-	outputAsset.LedgerSequence = uint32(header.Header.LedgerSeq)
+	outputAsset.ClosedAt = outputCloseTime
+	outputAsset.LedgerSequence = utils.GetLedgerSequence(lcm)
 
 	return outputAsset, nil
 }
