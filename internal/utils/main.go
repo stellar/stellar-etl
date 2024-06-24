@@ -227,7 +227,7 @@ func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr
 	return txMeta
 }
 
-// AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
+// AddCommonFlags adds the flags common to all commands: start-ledger, end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
 	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
@@ -236,22 +236,18 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	flags.String("datastore-path", "sdf-ledger-close-metas/ledgers", "Datastore bucket path to read txmeta files from.")
-	flags.Uint32("buffer-size", 5, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
-	flags.Uint32("num-workers", 5, "Number of workers to spawn that read txmeta files from the datastore.")
+	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
+	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
 	flags.Uint32("retry-wait", 5, "Time in seconds to wait for GetLedger retry.")
 }
 
-// AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
+// AddArchiveFlags adds the history archive specific flags: output, and limit
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Rename AddArchiveFlags to something more relevant
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
-}
-
-// AddBucketFlags adds the bucket list specifc flags: output
-func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
-	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 }
 
 // AddCloudStorageFlags adds the cloud storage releated flags: cloud-storage-bucket, cloud-credentials
@@ -263,11 +259,13 @@ func AddCloudStorageFlags(flags *pflag.FlagSet) {
 }
 
 // AddCoreFlags adds the captive core specific flags: core-executable, core-config, batch-size, and output flags
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Deprecate?
 func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
 	flags.StringP("core-config", "c", "", "Filepath to the config file for stellar-core")
 
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
+	// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Move output to different flag group
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
 
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
@@ -284,6 +282,138 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-contract-data", "", false, "set in order to export contract data changes")
 	flags.BoolP("export-config-settings", "", false, "set in order to export config settings changes")
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
+}
+
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
+// Some flags should be named better
+type FlagValues struct {
+	StartNum       uint32
+	EndNum         uint32
+	StrictExport   bool
+	IsTest         bool
+	IsFuture       bool
+	Extra          map[string]string
+	UseCaptiveCore bool
+	DatastorePath  string
+	BufferSize     uint32
+	NumWorkers     uint32
+	RetryLimit     uint32
+	RetryWait      uint32
+	Path           string
+	Limit          int64
+	Bucket         string
+	Credentials    string
+	Provider       string
+}
+
+// MustFlags gets the values of the the flags for all commands.
+// If any do not exist, it stops the program fatally using the logger
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Not sure if all these arg checks are necessary
+func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
+	endNum, err := flags.GetUint32("end-ledger")
+	if err != nil {
+		logger.Fatal("could not get end sequence number: ", err)
+	}
+
+	strictExport, err := flags.GetBool("strict-export")
+	if err != nil {
+		logger.Fatal("could not get strict-export boolean: ", err)
+	}
+
+	isTest, err := flags.GetBool("testnet")
+	if err != nil {
+		logger.Fatal("could not get testnet boolean: ", err)
+	}
+
+	isFuture, err := flags.GetBool("futurenet")
+	if err != nil {
+		logger.Fatal("could not get futurenet boolean: ", err)
+	}
+
+	extra, err := flags.GetStringToString("extra-fields")
+	if err != nil {
+		logger.Fatal("could not get extra fields string: ", err)
+	}
+
+	useCaptiveCore, err := flags.GetBool("captive-core")
+	if err != nil {
+		logger.Fatal("could not get captive-core flag: ", err)
+	}
+
+	datastorePath, err := flags.GetString("datastore-path")
+	if err != nil {
+		logger.Fatal("could not get datastore-bucket-path string: ", err)
+	}
+
+	bufferSize, err := flags.GetUint32("buffer-size")
+	if err != nil {
+		logger.Fatal("could not get buffer-size uint32: ", err)
+	}
+
+	numWorkers, err := flags.GetUint32("num-workers")
+	if err != nil {
+		logger.Fatal("could not get num-workers uint32: ", err)
+	}
+
+	retryLimit, err := flags.GetUint32("retry-limit")
+	if err != nil {
+		logger.Fatal("could not get retry-limit uint32: ", err)
+	}
+
+	retryWait, err := flags.GetUint32("retry-wait")
+	if err != nil {
+		logger.Fatal("could not get retry-wait uint32: ", err)
+	}
+
+	startNum, err := flags.GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	path, err := flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	limit, err := flags.GetInt64("limit")
+	if err != nil {
+		logger.Fatal("could not get limit: ", err)
+	}
+
+	bucket, err := flags.GetString("cloud-storage-bucket")
+	if err != nil {
+		logger.Fatal("could not get cloud storage bucket: ", err)
+	}
+
+	credentials, err := flags.GetString("cloud-credentials")
+	if err != nil {
+		logger.Fatal("could not get cloud credentials file: ", err)
+	}
+
+	provider, err := flags.GetString("cloud-provider")
+	if err != nil {
+		logger.Fatal("could not get cloud provider: ", err)
+	}
+
+	return FlagValues{
+		StartNum:       startNum,
+		EndNum:         endNum,
+		StrictExport:   strictExport,
+		IsTest:         isTest,
+		IsFuture:       isFuture,
+		Extra:          extra,
+		UseCaptiveCore: useCaptiveCore,
+		DatastorePath:  datastorePath,
+		BufferSize:     bufferSize,
+		NumWorkers:     numWorkers,
+		RetryLimit:     retryLimit,
+		RetryWait:      retryWait,
+		Path:           path,
+		Limit:          limit,
+		Bucket:         bucket,
+		Credentials:    credentials,
+		Provider:       provider,
+	}
 }
 
 type CommonFlagValues struct {

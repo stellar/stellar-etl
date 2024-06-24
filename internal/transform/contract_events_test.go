@@ -10,20 +10,20 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-func TestTransformDiagnosticEvent(t *testing.T) {
+func TestTransformContractEvent(t *testing.T) {
 	type inputStruct struct {
 		transaction   ingest.LedgerTransaction
 		historyHeader xdr.LedgerHeaderHistoryEntry
 	}
 	type transformTest struct {
 		input      inputStruct
-		wantOutput []DiagnosticEventOutput
+		wantOutput []ContractEventOutput
 		wantErr    error
 	}
 
-	hardCodedTransaction, hardCodedLedgerHeader, err := makeDiagnosticEventTestInput()
+	hardCodedTransaction, hardCodedLedgerHeader, err := makeContractEventTestInput()
 	assert.NoError(t, err)
-	hardCodedOutput, err := makeDiagnosticEventTestOutput()
+	hardCodedOutput, err := makeContractEventTestOutput()
 	assert.NoError(t, err)
 
 	tests := []transformTest{}
@@ -37,30 +37,61 @@ func TestTransformDiagnosticEvent(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError, _ := TransformDiagnosticEvent(test.input.transaction, test.input.historyHeader)
+		actualOutput, actualError := TransformContractEvent(test.input.transaction, test.input.historyHeader)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
 }
 
-func makeDiagnosticEventTestOutput() (output [][]DiagnosticEventOutput, err error) {
-	output = [][]DiagnosticEventOutput{{
-		DiagnosticEventOutput{
+func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
+
+	topics := make(map[string][]map[string]string, 1)
+	topics["topics"] = []map[string]string{
+		{
+			"type":  "B",
+			"value": "AAAAAAAAAAE=",
+		},
+	}
+
+	topicsDecoded := make(map[string][]map[string]string, 1)
+	topicsDecoded["topics_decoded"] = []map[string]string{
+		{
+			"type":  "B",
+			"value": "true",
+		},
+	}
+
+	data := map[string]string{
+		"type":  "B",
+		"value": "AAAAAAAAAAE=",
+	}
+
+	dataDecoded := map[string]string{
+		"type":  "B",
+		"value": "true",
+	}
+
+	output = [][]ContractEventOutput{{
+		ContractEventOutput{
 			TransactionHash:          "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
-			LedgerSequence:           30521816,
 			TransactionID:            131090201534533632,
+			Successful:               false,
+			LedgerSequence:           30521816,
 			ClosedAt:                 time.Date(2020, time.July, 9, 5, 28, 42, 0, time.UTC),
 			InSuccessfulContractCall: true,
-			ExtV:                     0,
 			ContractId:               "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
-			Type:                     "ContractEventTypeDiagnostic",
-			BodyV:                    0,
-			Body:                     "AAAAAQAAAAAAAAABAAAAAAAAAAE=",
+			Type:                     2,
+			TypeString:               "ContractEventTypeDiagnostic",
+			Topics:                   topics,
+			TopicsDecoded:            topicsDecoded,
+			Data:                     data,
+			DataDecoded:              dataDecoded,
+			ContractEventXDR:         "AAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAB",
 		},
 	}}
 	return
 }
-func makeDiagnosticEventTestInput() (transaction []ingest.LedgerTransaction, historyHeader []xdr.LedgerHeaderHistoryEntry, err error) {
+func makeContractEventTestInput() (transaction []ingest.LedgerTransaction, historyHeader []xdr.LedgerHeaderHistoryEntry, err error) {
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
 	var hardCodedContractId xdr.Hash
