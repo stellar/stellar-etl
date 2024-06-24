@@ -77,6 +77,7 @@ func MockContractBalanceFromContractData(ledgerEntry xdr.LedgerEntry, passphrase
 func makeContractDataTestInput() []ingest.Change {
 	var hash xdr.Hash
 	var scStr xdr.ScString = "a"
+	var testVal bool = true
 
 	contractDataLedgerEntry := xdr.LedgerEntry{
 		LastModifiedLedgerSeq: 24229503,
@@ -109,6 +110,10 @@ func makeContractDataTestInput() []ingest.Change {
 					},
 				},
 				Durability: xdr.ContractDataDurabilityPersistent,
+				Val: xdr.ScVal{
+					Type: xdr.ScValTypeScvBool,
+					B:    &testVal,
+				},
 			},
 		},
 	}
@@ -123,6 +128,26 @@ func makeContractDataTestInput() []ingest.Change {
 }
 
 func makeContractDataTestOutput() []ContractDataOutput {
+	key := map[string]string{
+		"type":  "Instance",
+		"value": "AAAAEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAADgAAAAFhAAAAAAAADgAAAAFhAAAA",
+	}
+
+	keyDecoded := map[string]string{
+		"type":  "Instance",
+		"value": "0000000000000000000000000000000000000000000000000000000000000000: [{a a}]",
+	}
+
+	val := map[string]string{
+		"type":  "B",
+		"value": "AAAAAAAAAAE=",
+	}
+
+	valDecoded := map[string]string{
+		"type":  "B",
+		"value": "true",
+	}
+
 	return []ContractDataOutput{
 		{
 			ContractId:                "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
@@ -139,6 +164,11 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			LedgerSequence:            10,
 			ClosedAt:                  time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 			LedgerKeyHash:             "abfc33272095a9df4c310cff189040192a8aee6f6a23b6b462889114d80728ca",
+			Key:                       key,
+			KeyDecoded:                keyDecoded,
+			Val:                       val,
+			ValDecoded:                valDecoded,
+			ContractDataXDR:           "AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAA4AAAABYQAAAAAAAA4AAAABYQAAAAAAAAEAAAAAAAAAAQ==",
 		},
 	}
 }
