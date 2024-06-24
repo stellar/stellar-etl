@@ -6,12 +6,13 @@ import (
 
 	"github.com/dgryski/go-farm"
 	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/xdr"
 )
 
 // TransformAsset converts an asset from a payment operation into a form suitable for BigQuery
-func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIndex int32, ledgerSeq int32) (AssetOutput, error) {
+func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIndex int32, ledgerSeq int32, lcm xdr.LedgerCloseMeta) (AssetOutput, error) {
 	operationID := toid.New(ledgerSeq, int32(transactionIndex), operationIndex).ToInt64()
 
 	opType := operation.Body.Type
@@ -41,6 +42,14 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 	if err != nil {
 		return AssetOutput{}, fmt.Errorf("%s (id %d)", err.Error(), operationID)
 	}
+
+	header := lcm.LedgerHeaderHistoryEntry()
+	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return AssetOutput{}, err
+	}
+	outputAsset.ClosedAt = closedAt
+	outputAsset.LedgerSequence = uint32(header.Header.LedgerSeq)
 
 	return outputAsset, nil
 }

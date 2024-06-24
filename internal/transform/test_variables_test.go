@@ -193,3 +193,17 @@ var testClaimantDetails = Claimant{
 	Destination: testAccount1Address,
 	Predicate:   xdr.ClaimPredicate{},
 }
+
+var genericLedgerCloseMeta = xdr.LedgerCloseMeta{
+	V: 0,
+	V0: &xdr.LedgerCloseMetaV0{
+		LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				LedgerSeq: 2,
+				ScpValue: xdr.StellarValue{
+					CloseTime: 10,
+				},
+			},
+		},
+	},
+}

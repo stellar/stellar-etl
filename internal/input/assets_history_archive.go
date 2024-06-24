@@ -35,6 +35,7 @@ func GetPaymentOperationsHistoryArchive(start, end uint32, limit int64, env util
 						OperationIndex:   int32(opIndex),
 						TransactionIndex: int32(txIndex),
 						LedgerSeqNum:     int32(seq),
+						LedgerCloseMeta:  xdr.LedgerCloseMeta{}, // Using historyArchive will not support getting LCM
 					})
 				}
 

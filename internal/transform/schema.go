@@ -213,11 +213,13 @@ type PoolOutput struct {
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
 type AssetOutput struct {
-	AssetCode   string `json:"asset_code"`
-	AssetIssuer string `json:"asset_issuer"`
-	AssetType   string `json:"asset_type"`
-	AssetID     uint64 `json:"id"`
-	ID          int64  `json:"asset_id"`
+	AssetCode      string    `json:"asset_code"`
+	AssetIssuer    string    `json:"asset_issuer"`
+	AssetType      string    `json:"asset_type"`
+	AssetID        uint64    `json:"id"`
+	ID             int64     `json:"asset_id"`
+	ClosedAt       time.Time `json:"closed_at"`
+	LedgerSequence uint32    `json:"ledger_sequence"`
 }
 
 // TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
