@@ -22,7 +22,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 
 	trustEntry, ok := ledgerEntry.Data.GetTrustLine()
 	if !ok {
-		return TrustlineOutput{}, fmt.Errorf("Could not extract trustline data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return TrustlineOutput{}, fmt.Errorf("could not extract trustline data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	outputAccountID, err := trustEntry.AccountId.GetAddress()
@@ -86,12 +86,12 @@ func trustLineEntryToLedgerKeyString(trustLine xdr.TrustLineEntry) (string, erro
 	ledgerKey := &xdr.LedgerKey{}
 	err := ledgerKey.SetTrustline(trustLine.AccountId, trustLine.Asset)
 	if err != nil {
-		return "", fmt.Errorf("Error running ledgerKey.SetTrustline when calculating ledger key")
+		return "", fmt.Errorf("error running ledgerKey.SetTrustline when calculating ledger key")
 	}
 
 	key, err := ledgerKey.MarshalBinary()
 	if err != nil {
-		return "", fmt.Errorf("Error running MarshalBinaryCompress when calculating ledger key")
+		return "", fmt.Errorf("error running MarshalBinaryCompress when calculating ledger key")
 	}
 
 	return base64.StdEncoding.EncodeToString(key), nil

@@ -14,15 +14,15 @@ var effectsCmd = &cobra.Command{
 	Long:  "Exports the effects data over a specified range to an output file.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		env := utils.GetEnvironmentDetails(commonArgs)
 
-		transactions, err := input.GetTransactions(startNum, endNum, limit, env)
+		transactions, err := input.GetTransactions(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		if err != nil {
-			cmdLogger.Fatalf("could not read transactions in [%d, %d] (limit=%d): %v", startNum, endNum, limit, err)
+			cmdLogger.Fatalf("could not read transactions in [%d, %d] (limit=%d): %v", startNum, commonArgs.EndNum, limit, err)
 		}
 
 		outFile := mustOutFile(path)
@@ -39,7 +39,7 @@ var effectsCmd = &cobra.Command{
 			}
 
 			for _, transformed := range effects {
-				numBytes, err := exportEntry(transformed, outFile, extra)
+				numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					numFailures += 1

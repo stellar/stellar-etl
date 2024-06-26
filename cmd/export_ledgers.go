@@ -16,12 +16,20 @@ var ledgersCmd = &cobra.Command{
 	Long:  `Exports ledger data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
 		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+		env := utils.GetEnvironmentDetails(commonArgs)
 
-		ledgers, err := input.GetLedgers(startNum, endNum, limit, isTest, isFuture)
+		var ledgers []utils.HistoryArchiveLedgerAndLCM
+		var err error
+
+		if commonArgs.UseCaptiveCore {
+			ledgers, err = input.GetLedgersHistoryArchive(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
+		} else {
+			ledgers, err = input.GetLedgers(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
+		}
 		if err != nil {
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
@@ -30,15 +38,15 @@ var ledgersCmd = &cobra.Command{
 
 		numFailures := 0
 		totalNumBytes := 0
-		for i, lcm := range ledgers {
-			transformed, err := transform.TransformLedger(lcm)
+		for i, ledger := range ledgers {
+			transformed, err := transform.TransformLedger(ledger.Ledger, ledger.LCM)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, extra)
+			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1

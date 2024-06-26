@@ -10,27 +10,13 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-const (
-	scDecimalPrecision = 7
-)
-
 var (
-	// https://github.com/stellar/rs-soroban-env/blob/v0.0.16/soroban-env-host/src/native_contract/token/public_types.rs#L22
-	nativeAssetSym = xdr.ScSymbol("Native")
 	// these are storage DataKey enum
 	// https://github.com/stellar/rs-soroban-env/blob/v0.0.16/soroban-env-host/src/native_contract/token/storage_types.rs#L23
 	balanceMetadataSym = xdr.ScSymbol("Balance")
-	metadataSym        = xdr.ScSymbol("METADATA")
-	metadataNameSym    = xdr.ScSymbol("name")
-	metadataSymbolSym  = xdr.ScSymbol("symbol")
-	adminSym           = xdr.ScSymbol("Admin")
 	issuerSym          = xdr.ScSymbol("issuer")
 	assetCodeSym       = xdr.ScSymbol("asset_code")
-	alphaNum4Sym       = xdr.ScSymbol("AlphaNum4")
-	alphaNum12Sym      = xdr.ScSymbol("AlphaNum12")
-	decimalSym         = xdr.ScSymbol("decimal")
 	assetInfoSym       = xdr.ScSymbol("AssetInfo")
-	decimalVal         = xdr.Uint32(scDecimalPrecision)
 	assetInfoVec       = &xdr.ScVec{
 		xdr.ScVal{
 			Type: xdr.ScValTypeScvSymbol,
@@ -67,7 +53,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractData, ok := ledgerEntry.Data.GetContractData()
 	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contract data from ledger entry; actual type is %s", ledgerEntry.Data.Type), false
+		return ContractDataOutput{}, fmt.Errorf("could not extract contract data from ledger entry; actual type is %s", ledgerEntry.Data.Type), false
 	}
 
 	if contractData.Key.Type.String() == "ScValTypeScvLedgerKeyNonce" {
@@ -100,7 +86,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
-		return ContractDataOutput{}, fmt.Errorf("Could not extract contractId data information from contractData"), false
+		return ContractDataOutput{}, fmt.Errorf("could not extract contractId data information from contractData"), false
 	}
 
 	contractDataKeyType := contractData.Key.Type.String()

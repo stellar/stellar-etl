@@ -28,42 +28,50 @@ type LedgerOutput struct {
 	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
 	ProtocolVersion            uint32    `json:"protocol_version"`
 	LedgerID                   int64     `json:"id"`
+	SorobanFeeWrite1Kb         int64     `json:"soroban_fee_write_1kb"`
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
 type TransactionOutput struct {
-	TransactionHash              string         `json:"transaction_hash"`
-	LedgerSequence               uint32         `json:"ledger_sequence"`
-	Account                      string         `json:"account"`
-	AccountMuxed                 string         `json:"account_muxed,omitempty"`
-	AccountSequence              int64          `json:"account_sequence"`
-	MaxFee                       uint32         `json:"max_fee"`
-	FeeCharged                   int64          `json:"fee_charged"`
-	OperationCount               int32          `json:"operation_count"`
-	TxEnvelope                   string         `json:"tx_envelope"`
-	TxResult                     string         `json:"tx_result"`
-	TxMeta                       string         `json:"tx_meta"`
-	TxFeeMeta                    string         `json:"tx_fee_meta"`
-	CreatedAt                    time.Time      `json:"created_at"`
-	MemoType                     string         `json:"memo_type"`
-	Memo                         string         `json:"memo"`
-	TimeBounds                   string         `json:"time_bounds"`
-	Successful                   bool           `json:"successful"`
-	TransactionID                int64          `json:"id"`
-	FeeAccount                   string         `json:"fee_account,omitempty"`
-	FeeAccountMuxed              string         `json:"fee_account_muxed,omitempty"`
-	InnerTransactionHash         string         `json:"inner_transaction_hash,omitempty"`
-	NewMaxFee                    uint32         `json:"new_max_fee,omitempty"`
-	LedgerBounds                 string         `json:"ledger_bounds"`
-	MinAccountSequence           null.Int       `json:"min_account_sequence"`
-	MinAccountSequenceAge        null.Int       `json:"min_account_sequence_age"`
-	MinAccountSequenceLedgerGap  null.Int       `json:"min_account_sequence_ledger_gap"`
-	ExtraSigners                 pq.StringArray `json:"extra_signers"`
-	ClosedAt                     time.Time      `json:"closed_at"`
-	ResourceFee                  int64          `json:"resource_fee"`
-	SorobanResourcesInstructions uint32         `json:"soroban_resources_instructions"`
-	SorobanResourcesReadBytes    uint32         `json:"soroban_resources_read_bytes"`
-	SorobanResourcesWriteBytes   uint32         `json:"soroban_resources_write_bytes"`
+	TransactionHash                      string         `json:"transaction_hash"`
+	LedgerSequence                       uint32         `json:"ledger_sequence"`
+	Account                              string         `json:"account"`
+	AccountMuxed                         string         `json:"account_muxed,omitempty"`
+	AccountSequence                      int64          `json:"account_sequence"`
+	MaxFee                               uint32         `json:"max_fee"`
+	FeeCharged                           int64          `json:"fee_charged"`
+	OperationCount                       int32          `json:"operation_count"`
+	TxEnvelope                           string         `json:"tx_envelope"`
+	TxResult                             string         `json:"tx_result"`
+	TxMeta                               string         `json:"tx_meta"`
+	TxFeeMeta                            string         `json:"tx_fee_meta"`
+	CreatedAt                            time.Time      `json:"created_at"`
+	MemoType                             string         `json:"memo_type"`
+	Memo                                 string         `json:"memo"`
+	TimeBounds                           string         `json:"time_bounds"`
+	Successful                           bool           `json:"successful"`
+	TransactionID                        int64          `json:"id"`
+	FeeAccount                           string         `json:"fee_account,omitempty"`
+	FeeAccountMuxed                      string         `json:"fee_account_muxed,omitempty"`
+	InnerTransactionHash                 string         `json:"inner_transaction_hash,omitempty"`
+	NewMaxFee                            uint32         `json:"new_max_fee,omitempty"`
+	LedgerBounds                         string         `json:"ledger_bounds"`
+	MinAccountSequence                   null.Int       `json:"min_account_sequence"`
+	MinAccountSequenceAge                null.Int       `json:"min_account_sequence_age"`
+	MinAccountSequenceLedgerGap          null.Int       `json:"min_account_sequence_ledger_gap"`
+	ExtraSigners                         pq.StringArray `json:"extra_signers"`
+	ClosedAt                             time.Time      `json:"closed_at"`
+	ResourceFee                          int64          `json:"resource_fee"`
+	SorobanResourcesInstructions         uint32         `json:"soroban_resources_instructions"`
+	SorobanResourcesReadBytes            uint32         `json:"soroban_resources_read_bytes"`
+	SorobanResourcesWriteBytes           uint32         `json:"soroban_resources_write_bytes"`
+	TransactionResultCode                string         `json:"transaction_result_code"`
+	InclusionFeeBid                      int64          `json:"inclusion_fee_bid"`
+	InclusionFeeCharged                  int64          `json:"inclusion_fee_charged"`
+	ResourceFeeRefund                    int64          `json:"resource_fee_refund"`
+	TotalNonRefundableResourceFeeCharged int64          `json:"non_refundable_resource_fee_charged"`
+	TotalRefundableResourceFeeCharged    int64          `json:"refundable_resource_fee_charged"`
+	RentFeeCharged                       int64          `json:"rent_fee_charged"`
 }
 
 type LedgerTransactionOutput struct {
@@ -118,14 +126,16 @@ type AccountSignerOutput struct {
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
 type OperationOutput struct {
-	SourceAccount      string                 `json:"source_account"`
-	SourceAccountMuxed string                 `json:"source_account_muxed,omitempty"`
-	Type               int32                  `json:"type"`
-	TypeString         string                 `json:"type_string"`
-	OperationDetails   map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
-	TransactionID      int64                  `json:"transaction_id"`
-	OperationID        int64                  `json:"id"`
-	ClosedAt           time.Time              `json:"closed_at"`
+	SourceAccount       string                 `json:"source_account"`
+	SourceAccountMuxed  string                 `json:"source_account_muxed,omitempty"`
+	Type                int32                  `json:"type"`
+	TypeString          string                 `json:"type_string"`
+	OperationDetails    map[string]interface{} `json:"details"` //Details is a JSON object that varies based on operation type
+	TransactionID       int64                  `json:"transaction_id"`
+	OperationID         int64                  `json:"id"`
+	ClosedAt            time.Time              `json:"closed_at"`
+	OperationResultCode string                 `json:"operation_result_code"`
+	OperationTraceCode  string                 `json:"operation_trace_code"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
@@ -511,6 +521,16 @@ type ContractCodeOutput struct {
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 	LedgerKeyHash      string    `json:"ledger_key_hash"`
 	//ContractCodeCode                string `json:"contract_code"`
+	NInstructions     uint32 `json:"n_instructions"`
+	NFunctions        uint32 `json:"n_functions"`
+	NGlobals          uint32 `json:"n_globals"`
+	NTableEntries     uint32 `json:"n_table_entries"`
+	NTypes            uint32 `json:"n_types"`
+	NDataSegments     uint32 `json:"n_data_segments"`
+	NElemSegments     uint32 `json:"n_elem_segments"`
+	NImports          uint32 `json:"n_imports"`
+	NExports          uint32 `json:"n_exports"`
+	NDataSegmentBytes uint32 `json:"n_data_segment_bytes"`
 }
 
 // ConfigSettingOutput is a representation of soroban config settings that aligns with the Bigquery table config_settings
@@ -576,16 +596,20 @@ type TtlOutput struct {
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 }
 
-// DiagnosticEventOutput is a representation of soroban diagnostic events that currently are not stored in a BQ table
-type DiagnosticEventOutput struct {
-	TransactionHash          string    `json:"transaction_hash"`
-	LedgerSequence           uint32    `json:"ledger_sequence"`
-	TransactionID            int64     `json:"transaction_id"`
-	ClosedAt                 time.Time `json:"closed_at"`
-	InSuccessfulContractCall bool      `json:"in_successful_contract_call"`
-	ExtV                     int32     `json:"ext_v"`
-	ContractId               string    `json:"contract_id"`
-	Type                     string    `json:"type"`
-	BodyV                    int32     `json:"body_v"`
-	Body                     string    `json:"body"`
+// ContractEventOutput is a representation of soroban contract events and diagnostic events
+type ContractEventOutput struct {
+	TransactionHash          string                         `json:"transaction_hash"`
+	TransactionID            int64                          `json:"transaction_id"`
+	Successful               bool                           `json:"successful"`
+	LedgerSequence           uint32                         `json:"ledger_sequence"`
+	ClosedAt                 time.Time                      `json:"closed_at"`
+	InSuccessfulContractCall bool                           `json:"in_successful_contract_call"`
+	ContractId               string                         `json:"contract_id"`
+	Type                     int32                          `json:"type"`
+	TypeString               string                         `json:"type_string"`
+	Topics                   map[string][]map[string]string `json:"topics"`
+	TopicsDecoded            map[string][]map[string]string `json:"topics_decoded"`
+	Data                     map[string]string              `json:"data"`
+	DataDecoded              map[string]string              `json:"data_decoded"`
+	ContractEventXDR         string                         `json:"contract_event_xdr"`
 }

@@ -44,7 +44,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get testnet boolean: ", err)
 		}
 
-        isFuture, err := cmd.Flags().GetBool("futurenet")
+		isFuture, err := cmd.Flags().GetBool("futurenet")
 		if err != nil {
 			cmdLogger.Fatal("could not get futurenet boolean: ", err)
 		}

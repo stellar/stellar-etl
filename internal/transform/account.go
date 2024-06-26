@@ -18,7 +18,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 
 	accountEntry, accountFound := ledgerEntry.Data.GetAccount()
 	if !accountFound {
-		return AccountOutput{}, fmt.Errorf("Could not extract account data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
+		return AccountOutput{}, fmt.Errorf("could not extract account data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
 
 	outputID, err := accountEntry.AccountId.GetAddress()
@@ -28,7 +28,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 
 	outputBalance := accountEntry.Balance
 	if outputBalance < 0 {
-		return AccountOutput{}, fmt.Errorf("Balance is negative (%d) for account: %s", outputBalance, outputID)
+		return AccountOutput{}, fmt.Errorf("balance is negative (%d) for account: %s", outputBalance, outputID)
 	}
 
 	//The V1 struct is the first version of the extender from accountEntry. It contains information on liabilities, and in the future
@@ -39,17 +39,17 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		liabilities := accountExtensionInfo.Liabilities
 		outputBuyingLiabilities, outputSellingLiabilities = liabilities.Buying, liabilities.Selling
 		if outputBuyingLiabilities < 0 {
-			return AccountOutput{}, fmt.Errorf("The buying liabilities count is negative (%d) for account: %s", outputBuyingLiabilities, outputID)
+			return AccountOutput{}, fmt.Errorf("the buying liabilities count is negative (%d) for account: %s", outputBuyingLiabilities, outputID)
 		}
 
 		if outputSellingLiabilities < 0 {
-			return AccountOutput{}, fmt.Errorf("The selling liabilities count is negative (%d) for account: %s", outputSellingLiabilities, outputID)
+			return AccountOutput{}, fmt.Errorf("the selling liabilities count is negative (%d) for account: %s", outputSellingLiabilities, outputID)
 		}
 	}
 
 	outputSequenceNumber := int64(accountEntry.SeqNum)
 	if outputSequenceNumber < 0 {
-		return AccountOutput{}, fmt.Errorf("Account sequence number is negative (%d) for account: %s", outputSequenceNumber, outputID)
+		return AccountOutput{}, fmt.Errorf("account sequence number is negative (%d) for account: %s", outputSequenceNumber, outputID)
 	}
 	outputSequenceLedger := accountEntry.SeqLedger()
 	outputSequenceTime := accountEntry.SeqTime()

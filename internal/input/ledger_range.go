@@ -32,7 +32,11 @@ const avgCloseTime = time.Second * 5 // average time to close a stellar ledger
 func GetLedgerRange(startTime, endTime time.Time, isTest bool, isFuture bool) (int64, int64, error) {
 	startTime = startTime.UTC()
 	endTime = endTime.UTC()
-	env := utils.GetEnvironmentDetails(isTest, isFuture)
+	commonFlagValues := utils.CommonFlagValues{
+		IsTest:   isTest,
+		IsFuture: isFuture,
+	}
+	env := utils.GetEnvironmentDetails(commonFlagValues)
 
 	if startTime.After(endTime) {
 		return 0, 0, fmt.Errorf("start time must be less than or equal to the end time")

@@ -1,7 +1,5 @@
 # stage 1: build stellar-etl app
-# golang 1.19, pinned by sha digest
-#FROM golang@sha256:04f76f956e51797a44847e066bde1341c01e09054d3878ae88c7f77f09897c4d AS build
-FROM golang:1.20.5-buster AS build
+FROM golang:1.22.1-alpine AS build
 
 WORKDIR /usr/src/etl
 
@@ -13,12 +11,15 @@ COPY . .
 RUN go build -v -o /usr/local/bin ./...
 
 # stage 2: runtime enviroment
-FROM stellar/stellar-core:20.2.0-1716.rc3.34d82fc00.focal
+FROM stellar/stellar-core:21.0.0-1872.c6f474133.focal
 
 WORKDIR /etl
 
 COPY --from=build /usr/local/bin/stellar-etl /usr/local/bin/stellar-etl
 COPY --from=build /usr/src/etl/docker docker
+
+# changing workdir to a new path in order to use mounted empty ephemeral volumes as storage
+WORKDIR /etl/data
 
 # clear entrypoint from stellar-core image
 ENTRYPOINT []

@@ -65,14 +65,14 @@ func TestTransformTrade(t *testing.T) {
 	noTrEnvelope := genericManageBuyOfferEnvelope
 	noTrInput.transaction.Envelope.V1 = &noTrEnvelope
 	noTrInput.transaction.Result = wrapOperationsResultsSlice([]xdr.OperationResult{
-		xdr.OperationResult{Tr: nil},
+		{Tr: nil},
 	}, true)
 
 	failedResultInput := genericInput
 	failedResultEnvelope := genericManageBuyOfferEnvelope
 	failedResultInput.transaction.Envelope.V1 = &failedResultEnvelope
 	failedResultInput.transaction.Result = wrapOperationsResultsSlice([]xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
@@ -85,14 +85,14 @@ func TestTransformTrade(t *testing.T) {
 	negBaseAmountEnvelope := genericManageBuyOfferEnvelope
 	negBaseAmountInput.transaction.Envelope.V1 = &negBaseAmountEnvelope
 	negBaseAmountInput.transaction.Result = wrapOperationsResultsSlice([]xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
 					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
 						OffersClaimed: []xdr.ClaimAtom{
-							xdr.ClaimAtom{
+							{
 								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
 								OrderBook: &xdr.ClaimOfferAtom{
 									SellerId:   genericAccountID,
@@ -109,14 +109,14 @@ func TestTransformTrade(t *testing.T) {
 	negCounterAmountEnvelope := genericManageBuyOfferEnvelope
 	negCounterAmountInput.transaction.Envelope.V1 = &negCounterAmountEnvelope
 	negCounterAmountInput.transaction.Result = wrapOperationsResultsSlice([]xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
 					Code: xdr.ManageBuyOfferResultCodeManageBuyOfferSuccess,
 					Success: &xdr.ManageOfferSuccessResult{
 						OffersClaimed: []xdr.ClaimAtom{
-							xdr.ClaimAtom{
+							{
 								Type: xdr.ClaimAtomTypeClaimAtomTypeOrderBook,
 								OrderBook: &xdr.ClaimOfferAtom{
 									SellerId:     genericAccountID,
@@ -132,31 +132,31 @@ func TestTransformTrade(t *testing.T) {
 	tests := []transformTest{
 		{
 			wrongTypeInput,
-			[]TradeOutput{}, fmt.Errorf("Operation of type OperationTypeBumpSequence at index 0 does not result in trades"),
+			[]TradeOutput{}, fmt.Errorf("operation of type OperationTypeBumpSequence at index 0 does not result in trades"),
 		},
 		{
 			resultOutOfRangeInput,
-			[]TradeOutput{}, fmt.Errorf("Operation index of 0 is out of bounds in result slice (len = 0)"),
+			[]TradeOutput{}, fmt.Errorf("operation index of 0 is out of bounds in result slice (len = 0)"),
 		},
 		{
 			failedTxInput,
-			[]TradeOutput{}, fmt.Errorf("Transaction failed; no trades"),
+			[]TradeOutput{}, fmt.Errorf("transaction failed; no trades"),
 		},
 		{
 			noTrInput,
-			[]TradeOutput{}, fmt.Errorf("Could not get result Tr for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("could not get result Tr for operation at index 0"),
 		},
 		{
 			failedResultInput,
-			[]TradeOutput{}, fmt.Errorf("Could not get ManageOfferSuccess for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("could not get ManageOfferSuccess for operation at index 0"),
 		},
 		{
 			negBaseAmountInput,
-			[]TradeOutput{}, fmt.Errorf("Amount sold is negative (-1) for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("amount sold is negative (-1) for operation at index 0"),
 		},
 		{
 			negCounterAmountInput,
-			[]TradeOutput{}, fmt.Errorf("Amount bought is negative (-2) for operation at index 0"),
+			[]TradeOutput{}, fmt.Errorf("amount bought is negative (-2) for operation at index 0"),
 		},
 	}
 
@@ -240,23 +240,21 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 	}
 
 	inputOperations := []xdr.Operation{
-
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type:              xdr.OperationTypeManageSellOffer,
 				ManageSellOfferOp: &xdr.ManageSellOfferOp{},
 			},
 		},
-
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type:             xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferOp: &xdr.ManageBuyOfferOp{},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictSend,
@@ -265,7 +263,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -274,21 +272,21 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type:                    xdr.OperationTypePathPaymentStrictSend,
 				PathPaymentStrictSendOp: &xdr.PathPaymentStrictSendOp{},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: &testAccount3,
 			Body: xdr.OperationBody{
 				Type:                       xdr.OperationTypePathPaymentStrictReceive,
 				PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{},
 			},
 		},
-		xdr.Operation{
+		{
 			SourceAccount: nil,
 			Body: xdr.OperationBody{
 				Type:                     xdr.OperationTypeCreatePassiveSellOffer,
@@ -298,7 +296,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 	}
 	inputEnvelope.Tx.Operations = inputOperations
 	results := []xdr.OperationResult{
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageSellOffer,
@@ -313,7 +311,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 			},
 		},
 
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeManageBuyOffer,
 				ManageBuyOfferResult: &xdr.ManageBuyOfferResult{
@@ -326,7 +324,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePathPaymentStrictSend,
@@ -340,7 +338,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Code: xdr.OperationResultCodeOpInner,
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePathPaymentStrictReceive,
@@ -354,7 +352,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePathPaymentStrictSend,
 				PathPaymentStrictSendResult: &xdr.PathPaymentStrictSendResult{
@@ -367,7 +365,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypePathPaymentStrictReceive,
 				PathPaymentStrictReceiveResult: &xdr.PathPaymentStrictReceiveResult{
@@ -380,7 +378,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 				},
 			},
 		},
-		xdr.OperationResult{
+		{
 			Tr: &xdr.OperationResultTr{
 				Type: xdr.OperationTypeCreatePassiveSellOffer,
 				CreatePassiveSellOfferResult: &xdr.ManageSellOfferResult{
@@ -395,7 +393,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 
 	unsafeMeta := xdr.TransactionMetaV1{
 		Operations: []xdr.OperationMeta{
-			xdr.OperationMeta{
+			{
 				Changes: xdr.LedgerEntryChanges{
 					xdr.LedgerEntryChange{
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
@@ -431,7 +429,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
-			xdr.OperationMeta{
+			{
 				Changes: xdr.LedgerEntryChanges{
 					xdr.LedgerEntryChange{
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
@@ -467,7 +465,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
-			xdr.OperationMeta{
+			{
 				Changes: xdr.LedgerEntryChanges{
 					xdr.LedgerEntryChange{
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
@@ -535,7 +533,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
-			xdr.OperationMeta{
+			{
 				Changes: xdr.LedgerEntryChanges{
 					xdr.LedgerEntryChange{
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
@@ -602,7 +600,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
-			xdr.OperationMeta{
+			{
 				Changes: xdr.LedgerEntryChanges{
 					xdr.LedgerEntryChange{
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
@@ -656,7 +654,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
-			xdr.OperationMeta{
+			{
 				Changes: xdr.LedgerEntryChanges{
 					xdr.LedgerEntryChange{
 						Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
@@ -710,7 +708,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 					},
 				},
 			},
-			xdr.OperationMeta{},
+			{},
 		}}
 
 	inputTransaction.Result.Result.Result.Results = &results
@@ -834,13 +832,13 @@ func makeTradeTestOutput() [][]TradeOutput {
 	offerTwoOutputSecondPlace.SellerIsExact = null.BoolFrom(false)
 
 	output := [][]TradeOutput{
-		[]TradeOutput{offerOneOutput},
-		[]TradeOutput{offerTwoOutput},
-		[]TradeOutput{onePriceIsAmount, offerTwoOutputSecondPlace},
-		[]TradeOutput{twoPriceIsAmount, offerOneOutputSecondPlace},
-		[]TradeOutput{lPOneOutput},
-		[]TradeOutput{lPTwoOutput},
-		[]TradeOutput{},
+		{offerOneOutput},
+		{offerTwoOutput},
+		{onePriceIsAmount, offerTwoOutputSecondPlace},
+		{twoPriceIsAmount, offerOneOutputSecondPlace},
+		{lPOneOutput},
+		{lPTwoOutput},
+		{},
 	}
 	return output
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/support/datastore"
 	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
@@ -226,25 +227,27 @@ func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr
 	return txMeta
 }
 
-// AddCommonFlags adds the flags common to all commands: end-ledger, stdout, and strict-export
+// AddCommonFlags adds the flags common to all commands: start-ledger, end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
 	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
+	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
+	flags.String("datastore-path", "sdf-ledger-close-metas/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
+	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
+	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
+	flags.Uint32("retry-wait", 5, "Time in seconds to wait for GetLedger retry.")
 }
 
-// AddArchiveFlags adds the history archive specific flags: start-ledger, output, and limit
+// AddArchiveFlags adds the history archive specific flags: output, and limit
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Rename AddArchiveFlags to something more relevant
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
-}
-
-// AddBucketFlags adds the bucket list specifc flags: output
-func AddBucketFlags(objectName string, flags *pflag.FlagSet) {
-	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 }
 
 // AddCloudStorageFlags adds the cloud storage releated flags: cloud-storage-bucket, cloud-credentials
@@ -256,11 +259,13 @@ func AddCloudStorageFlags(flags *pflag.FlagSet) {
 }
 
 // AddCoreFlags adds the captive core specific flags: core-executable, core-config, batch-size, and output flags
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Deprecate?
 func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.StringP("core-executable", "x", "", "Filepath to the stellar-core executable")
 	flags.StringP("core-config", "c", "", "Filepath to the config file for stellar-core")
 
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
+	// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Move output to different flag group
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
 
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
@@ -279,33 +284,223 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
 }
 
-// MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export. If any do not exist, it stops the program fatally using the logger
-func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) (endNum uint32, strictExport, isTest bool, isFuture bool, extra map[string]string) {
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
+// Some flags should be named better
+type FlagValues struct {
+	StartNum       uint32
+	EndNum         uint32
+	StrictExport   bool
+	IsTest         bool
+	IsFuture       bool
+	Extra          map[string]string
+	UseCaptiveCore bool
+	DatastorePath  string
+	BufferSize     uint32
+	NumWorkers     uint32
+	RetryLimit     uint32
+	RetryWait      uint32
+	Path           string
+	Limit          int64
+	Bucket         string
+	Credentials    string
+	Provider       string
+}
+
+// MustFlags gets the values of the the flags for all commands.
+// If any do not exist, it stops the program fatally using the logger
+// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Not sure if all these arg checks are necessary
+func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
 	}
 
-	strictExport, err = flags.GetBool("strict-export")
+	strictExport, err := flags.GetBool("strict-export")
 	if err != nil {
 		logger.Fatal("could not get strict-export boolean: ", err)
 	}
 
-	isTest, err = flags.GetBool("testnet")
+	isTest, err := flags.GetBool("testnet")
 	if err != nil {
 		logger.Fatal("could not get testnet boolean: ", err)
 	}
 
-	isFuture, err = flags.GetBool("futurenet")
+	isFuture, err := flags.GetBool("futurenet")
 	if err != nil {
 		logger.Fatal("could not get futurenet boolean: ", err)
 	}
 
-	extra, err = flags.GetStringToString("extra-fields")
+	extra, err := flags.GetStringToString("extra-fields")
 	if err != nil {
 		logger.Fatal("could not get extra fields string: ", err)
 	}
-	return
+
+	useCaptiveCore, err := flags.GetBool("captive-core")
+	if err != nil {
+		logger.Fatal("could not get captive-core flag: ", err)
+	}
+
+	datastorePath, err := flags.GetString("datastore-path")
+	if err != nil {
+		logger.Fatal("could not get datastore-bucket-path string: ", err)
+	}
+
+	bufferSize, err := flags.GetUint32("buffer-size")
+	if err != nil {
+		logger.Fatal("could not get buffer-size uint32: ", err)
+	}
+
+	numWorkers, err := flags.GetUint32("num-workers")
+	if err != nil {
+		logger.Fatal("could not get num-workers uint32: ", err)
+	}
+
+	retryLimit, err := flags.GetUint32("retry-limit")
+	if err != nil {
+		logger.Fatal("could not get retry-limit uint32: ", err)
+	}
+
+	retryWait, err := flags.GetUint32("retry-wait")
+	if err != nil {
+		logger.Fatal("could not get retry-wait uint32: ", err)
+	}
+
+	startNum, err := flags.GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	path, err := flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	limit, err := flags.GetInt64("limit")
+	if err != nil {
+		logger.Fatal("could not get limit: ", err)
+	}
+
+	bucket, err := flags.GetString("cloud-storage-bucket")
+	if err != nil {
+		logger.Fatal("could not get cloud storage bucket: ", err)
+	}
+
+	credentials, err := flags.GetString("cloud-credentials")
+	if err != nil {
+		logger.Fatal("could not get cloud credentials file: ", err)
+	}
+
+	provider, err := flags.GetString("cloud-provider")
+	if err != nil {
+		logger.Fatal("could not get cloud provider: ", err)
+	}
+
+	return FlagValues{
+		StartNum:       startNum,
+		EndNum:         endNum,
+		StrictExport:   strictExport,
+		IsTest:         isTest,
+		IsFuture:       isFuture,
+		Extra:          extra,
+		UseCaptiveCore: useCaptiveCore,
+		DatastorePath:  datastorePath,
+		BufferSize:     bufferSize,
+		NumWorkers:     numWorkers,
+		RetryLimit:     retryLimit,
+		RetryWait:      retryWait,
+		Path:           path,
+		Limit:          limit,
+		Bucket:         bucket,
+		Credentials:    credentials,
+		Provider:       provider,
+	}
+}
+
+type CommonFlagValues struct {
+	EndNum         uint32
+	StrictExport   bool
+	IsTest         bool
+	IsFuture       bool
+	Extra          map[string]string
+	UseCaptiveCore bool
+	DatastorePath  string
+	BufferSize     uint32
+	NumWorkers     uint32
+	RetryLimit     uint32
+	RetryWait      uint32
+}
+
+// MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
+// If any do not exist, it stops the program fatally using the logger
+func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
+	endNum, err := flags.GetUint32("end-ledger")
+	if err != nil {
+		logger.Fatal("could not get end sequence number: ", err)
+	}
+
+	strictExport, err := flags.GetBool("strict-export")
+	if err != nil {
+		logger.Fatal("could not get strict-export boolean: ", err)
+	}
+
+	isTest, err := flags.GetBool("testnet")
+	if err != nil {
+		logger.Fatal("could not get testnet boolean: ", err)
+	}
+
+	isFuture, err := flags.GetBool("futurenet")
+	if err != nil {
+		logger.Fatal("could not get futurenet boolean: ", err)
+	}
+
+	extra, err := flags.GetStringToString("extra-fields")
+	if err != nil {
+		logger.Fatal("could not get extra fields string: ", err)
+	}
+
+	useCaptiveCore, err := flags.GetBool("captive-core")
+	if err != nil {
+		logger.Fatal("could not get captive-core flag: ", err)
+	}
+
+	datastorePath, err := flags.GetString("datastore-path")
+	if err != nil {
+		logger.Fatal("could not get datastore-bucket-path string: ", err)
+	}
+
+	bufferSize, err := flags.GetUint32("buffer-size")
+	if err != nil {
+		logger.Fatal("could not get buffer-size uint32: ", err)
+	}
+
+	numWorkers, err := flags.GetUint32("num-workers")
+	if err != nil {
+		logger.Fatal("could not get num-workers uint32: ", err)
+	}
+
+	retryLimit, err := flags.GetUint32("retry-limit")
+	if err != nil {
+		logger.Fatal("could not get retry-limit uint32: ", err)
+	}
+
+	retryWait, err := flags.GetUint32("retry-wait")
+	if err != nil {
+		logger.Fatal("could not get retry-wait uint32: ", err)
+	}
+
+	return CommonFlagValues{
+		EndNum:         endNum,
+		StrictExport:   strictExport,
+		IsTest:         isTest,
+		IsFuture:       isFuture,
+		Extra:          extra,
+		UseCaptiveCore: useCaptiveCore,
+		DatastorePath:  datastorePath,
+		BufferSize:     bufferSize,
+		NumWorkers:     numWorkers,
+		RetryLimit:     retryLimit,
+		RetryWait:      retryWait,
+	}
 }
 
 // MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
@@ -404,7 +599,7 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-ttl":             false,
 	}
 
-	for export_name, _ := range exports {
+	for export_name := range exports {
 		exports[export_name], err = flags.GetBool(export_name)
 		if err != nil {
 			logger.Fatalf("could not get %s flag: %v", export_name, err)
@@ -622,30 +817,38 @@ type EnvironmentDetails struct {
 	ArchiveURLs       []string
 	BinaryPath        string
 	CoreConfig        string
+	Network           string
+	CommonFlagValues  CommonFlagValues
 }
 
 // GetPassphrase returns the correct Network Passphrase based on env preference
-func GetEnvironmentDetails(isTest bool, isFuture bool) (details EnvironmentDetails) {
-	if isTest {
+func GetEnvironmentDetails(commonFlags CommonFlagValues) (details EnvironmentDetails) {
+	if commonFlags.IsTest {
 		// testnet passphrase to be used for testing
 		details.NetworkPassphrase = network.TestNetworkPassphrase
 		details.ArchiveURLs = testArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core_testnet.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core_testnet.cfg"
+		details.Network = "testnet"
+		details.CommonFlagValues = commonFlags
 		return details
-	} else if isFuture {
+	} else if commonFlags.IsFuture {
 		// details.NetworkPassphrase = network.FutureNetworkPassphrase
 		details.NetworkPassphrase = "Test SDF Future Network ; October 2022"
 		details.ArchiveURLs = futureArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core_futurenet.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core_futurenet.cfg"
+		details.Network = "futurenet"
+		details.CommonFlagValues = commonFlags
 		return details
 	} else {
 		// default: mainnet
 		details.NetworkPassphrase = network.PublicNetworkPassphrase
 		details.ArchiveURLs = mainArchiveURLs
 		details.BinaryPath = "/usr/bin/stellar-core"
-		details.CoreConfig = "docker/stellar-core.cfg"
+		details.CoreConfig = "/etl/docker/stellar-core.cfg"
+		details.Network = "pubnet"
+		details.CommonFlagValues = commonFlags
 		return details
 	}
 }
@@ -684,6 +887,9 @@ func (e EnvironmentDetails) GetUnboundedLedgerCloseMeta(end uint32) (xdr.LedgerC
 	ctx := context.Background()
 
 	backend, err := e.CreateCaptiveCoreBackend()
+	if err != nil {
+		return xdr.LedgerCloseMeta{}, err
+	}
 
 	ledgerRange := ledgerbackend.UnboundedRange(end)
 
@@ -712,4 +918,136 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	ledgerKeyHash := hex.EncodeToString(hashedLedgerKeyByte[:])
 
 	return ledgerKeyHash
+}
+
+// CreateLedgerBackend creates a ledger backend using captive core or datastore
+// Defaults to using datastore
+func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env EnvironmentDetails) (ledgerbackend.LedgerBackend, error) {
+	// Create ledger backend from captive core
+	if useCaptiveCore {
+		backend, err := env.CreateCaptiveCoreBackend()
+		if err != nil {
+			return nil, err
+		}
+		return backend, nil
+	}
+
+	// Create ledger backend from datastore
+	params := make(map[string]string)
+	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath
+	dataStoreConfig := datastore.DataStoreConfig{
+		Type:   "GCS",
+		Params: params,
+	}
+
+	dataStore, err := datastore.NewDataStore(ctx, dataStoreConfig, env.Network)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: In the future these will come from a config file written by ledgerexporter
+	// Hard code ledger batch values for now
+	ledgerBatchConfig := datastore.LedgerBatchConfig{
+		LedgersPerFile:    1,
+		FilesPerPartition: 64000,
+	}
+
+	BSBackendConfig := ledgerbackend.BufferedStorageBackendConfig{
+		LedgerBatchConfig: ledgerBatchConfig,
+		DataStore:         dataStore,
+		BufferSize:        env.CommonFlagValues.BufferSize,
+		NumWorkers:        env.CommonFlagValues.NumWorkers,
+		RetryLimit:        env.CommonFlagValues.RetryLimit,
+		RetryWait:         time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
+	}
+
+	backend, err := ledgerbackend.NewBufferedStorageBackend(ctx, BSBackendConfig)
+	if err != nil {
+		return nil, err
+	}
+	return backend, nil
+}
+
+func LedgerKeyToLedgerKeyHash(ledgerKey xdr.LedgerKey) string {
+	ledgerKeyByte, _ := ledgerKey.MarshalBinary()
+	hashedLedgerKeyByte := hash.Hash(ledgerKeyByte)
+	ledgerKeyHash := hex.EncodeToString(hashedLedgerKeyByte[:])
+
+	return ledgerKeyHash
+}
+
+// AccountSignersChanged returns true if account signers have changed.
+// Notice: this will return true on master key changes too!
+func AccountSignersChanged(c ingest.Change) bool {
+	if c.Type != xdr.LedgerEntryTypeAccount {
+		panic("This should not be called on changes other than Account changes")
+	}
+
+	// New account so new master key (which is also a signer)
+	if c.Pre == nil {
+		return true
+	}
+
+	// Account merged. Account being merge can still have signers.
+	// c.Pre != nil at this point.
+	if c.Post == nil {
+		return true
+	}
+
+	// c.Pre != nil && c.Post != nil at this point.
+	preAccountEntry := c.Pre.Data.MustAccount()
+	postAccountEntry := c.Post.Data.MustAccount()
+
+	preSigners := preAccountEntry.SignerSummary()
+	postSigners := postAccountEntry.SignerSummary()
+
+	if len(preSigners) != len(postSigners) {
+		return true
+	}
+
+	for postSigner, postWeight := range postSigners {
+		preWeight, exist := preSigners[postSigner]
+		if !exist {
+			return true
+		}
+
+		if preWeight != postWeight {
+			return true
+		}
+	}
+
+	preSignerSponsors := preAccountEntry.SignerSponsoringIDs()
+	postSignerSponsors := postAccountEntry.SignerSponsoringIDs()
+
+	if len(preSignerSponsors) != len(postSignerSponsors) {
+		return true
+	}
+
+	for i := 0; i < len(preSignerSponsors); i++ {
+		preSponsor := preSignerSponsors[i]
+		postSponsor := postSignerSponsors[i]
+
+		if preSponsor == nil && postSponsor != nil {
+			return true
+		} else if preSponsor != nil && postSponsor == nil {
+			return true
+		} else if preSponsor != nil && postSponsor != nil {
+			preSponsorAccountID := xdr.AccountId(*preSponsor)
+			preSponsorAddress := preSponsorAccountID.Address()
+
+			postSponsorAccountID := xdr.AccountId(*postSponsor)
+			postSponsorAddress := postSponsorAccountID.Address()
+
+			if preSponsorAddress != postSponsorAddress {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+type HistoryArchiveLedgerAndLCM struct {
+	Ledger historyarchive.Ledger
+	LCM    xdr.LedgerCloseMeta
 }

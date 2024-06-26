@@ -31,7 +31,7 @@ func TestTransformContractCode(t *testing.T) {
 					},
 				},
 			},
-			ContractCodeOutput{}, fmt.Errorf("Could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
+			ContractCodeOutput{}, fmt.Errorf("could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
 	}
 
@@ -67,8 +67,22 @@ func makeContractCodeTestInput() []ingest.Change {
 			Type: xdr.LedgerEntryTypeContractCode,
 			ContractCode: &xdr.ContractCodeEntry{
 				Hash: hash,
-				Ext: xdr.ExtensionPoint{
+				Ext: xdr.ContractCodeEntryExt{
 					V: 1,
+					V1: &xdr.ContractCodeEntryV1{
+						CostInputs: xdr.ContractCodeCostInputs{
+							NInstructions:     1,
+							NFunctions:        2,
+							NGlobals:          3,
+							NTableEntries:     4,
+							NTypes:            5,
+							NDataSegments:     6,
+							NElemSegments:     7,
+							NImports:          8,
+							NExports:          9,
+							NDataSegmentBytes: 10,
+						},
+					},
 				},
 			},
 		},
@@ -94,6 +108,16 @@ func makeContractCodeTestOutput() []ContractCodeOutput {
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 			LedgerKeyHash:      "dfed061dbe464e0ff320744fcd604ac08b39daa74fa24110936654cbcb915ccc",
+			NInstructions:      1,
+			NFunctions:         2,
+			NGlobals:           3,
+			NTableEntries:      4,
+			NTypes:             5,
+			NDataSegments:      6,
+			NElemSegments:      7,
+			NImports:           8,
+			NExports:           9,
+			NDataSegmentBytes:  10,
 		},
 	}
 }

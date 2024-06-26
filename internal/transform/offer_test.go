@@ -37,7 +37,7 @@ func TestTransformOffer(t *testing.T) {
 				},
 			},
 			},
-			OfferOutput{}, fmt.Errorf("Could not extract offer data from ledger entry; actual type is LedgerEntryTypeAccount"),
+			OfferOutput{}, fmt.Errorf("could not extract offer data from ledger entry; actual type is LedgerEntryTypeAccount"),
 		},
 		{
 			inputStruct{wrapOfferEntry(xdr.OfferEntry{
@@ -45,7 +45,7 @@ func TestTransformOffer(t *testing.T) {
 				OfferId:  -1,
 			}, 0),
 			},
-			OfferOutput{}, fmt.Errorf("OfferID is negative (-1) for offer from account: %s", genericAccountAddress),
+			OfferOutput{}, fmt.Errorf("offerID is negative (-1) for offer from account: %s", genericAccountAddress),
 		},
 		{
 			inputStruct{wrapOfferEntry(xdr.OfferEntry{
@@ -53,7 +53,7 @@ func TestTransformOffer(t *testing.T) {
 				Amount:   -2,
 			}, 0),
 			},
-			OfferOutput{}, fmt.Errorf("Amount is negative (-2) for offer 0"),
+			OfferOutput{}, fmt.Errorf("amount is negative (-2) for offer 0"),
 		},
 		{
 			inputStruct{wrapOfferEntry(xdr.OfferEntry{
@@ -64,7 +64,7 @@ func TestTransformOffer(t *testing.T) {
 				},
 			}, 0),
 			},
-			OfferOutput{}, fmt.Errorf("Price numerator is negative (-3) for offer 0"),
+			OfferOutput{}, fmt.Errorf("price numerator is negative (-3) for offer 0"),
 		},
 		{
 			inputStruct{wrapOfferEntry(xdr.OfferEntry{
@@ -75,7 +75,7 @@ func TestTransformOffer(t *testing.T) {
 				},
 			}, 0),
 			},
-			OfferOutput{}, fmt.Errorf("Price denominator is negative (-4) for offer 0"),
+			OfferOutput{}, fmt.Errorf("price denominator is negative (-4) for offer 0"),
 		},
 		{
 			inputStruct{wrapOfferEntry(xdr.OfferEntry{
@@ -86,7 +86,7 @@ func TestTransformOffer(t *testing.T) {
 				},
 			}, 0),
 			},
-			OfferOutput{}, fmt.Errorf("Price denominator is 0 for offer 0"),
+			OfferOutput{}, fmt.Errorf("price denominator is 0 for offer 0"),
 		},
 		{
 			inputStruct{

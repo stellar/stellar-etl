@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-//
 // ID represents the total order of Ledgers, Transactions and
 // Operations.
 //
@@ -19,36 +18,35 @@ import (
 //
 // The follow diagram shows this format:
 //
-//    0                   1                   2                   3
-//    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//   |                    Ledger Sequence Number                     |
-//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//   |     Transaction Application Order     |       Op Index        |
-//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//	 0                   1                   2                   3
+//	 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+//	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//	|                    Ledger Sequence Number                     |
+//	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//	|     Transaction Application Order     |       Op Index        |
+//	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //
 // By component:
 //
 // Ledger Sequence: 32-bits
 //
-//   A complete ledger sequence number in which the operation was validated.
+//	A complete ledger sequence number in which the operation was validated.
 //
-//   Expressed in network byte order.
+//	Expressed in network byte order.
 //
 // Transaction Application Order: 20-bits
 //
-//   The order that the transaction was applied within the ledger it was
-//   validated.  Accommodates up to 1,048,575 transactions in a single ledger.
+//	The order that the transaction was applied within the ledger it was
+//	validated.  Accommodates up to 1,048,575 transactions in a single ledger.
 //
-//   Expressed in network byte order.
+//	Expressed in network byte order.
 //
 // Operation Index: 12-bits
 //
-//   The index of the operation within its parent transaction. Accommodates up
-//   to 4095 operations per transaction.
+//	The index of the operation within its parent transaction. Accommodates up
+//	to 4095 operations per transaction.
 //
-//   Expressed in network byte order.
-//
+//	Expressed in network byte order.
 //
 // Note: API Clients should not be interpreting this value.  We will use it
 // as an opaque paging token that clients can parrot back to us after having read
@@ -59,7 +57,6 @@ import (
 // transaction as well.  Given that this ID is only meant for ordering within a
 // single type of object, the sharing of ids across object types seems
 // acceptable.
-//
 type ID struct {
 	LedgerSequence   int32
 	TransactionOrder int32

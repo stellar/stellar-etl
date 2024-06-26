@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
@@ -17,22 +19,24 @@ var exportLedgerEntryChangesCmd = &cobra.Command{
 	Use:   "export_ledger_entry_changes",
 	Short: "This command exports the changes in accounts, offers, trustlines and liquidity pools.",
 	Long: `This command instantiates a stellar-core instance and uses it to export about accounts, offers, trustlines and liquidity pools.
-The information is exported in batches determined by the batch-size flag. Each exported file will include the changes to the 
+The information is exported in batches determined by the batch-size flag. Each exported file will include the changes to the
 relevant data type that occurred during that batch.
 
-If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are 
-confirmed by the Stellar network. 
+If the end-ledger is omitted, then the stellar-core node will continue running and exporting information as new ledgers are
+confirmed by the Stellar network.
 
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		endNum, strictExport, isTest, isFuture, extra := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = strictExport
-		env := utils.GetEnvironmentDetails(isTest, isFuture)
+		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
+		cmdLogger.StrictExport = commonArgs.StrictExport
+		env := utils.GetEnvironmentDetails(commonArgs)
 
-		execPath, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		_, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+
+		cmd.Flags()
 
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
@@ -46,44 +50,40 @@ be exported.`,
 		// If none of the export flags are set, then we assume that everything should be exported
 		allFalse := true
 		for _, value := range exports {
-			if true == value {
+			if value {
 				allFalse = false
 				break
 			}
 		}
 
 		if allFalse {
-			for export_name, _ := range exports {
+			for export_name := range exports {
 				exports[export_name] = true
 			}
 		}
 
-		if configPath == "" && endNum == 0 {
+		if configPath == "" && commonArgs.EndNum == 0 {
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
 
-		execPath, err = filepath.Abs(execPath)
+		ctx := context.Background()
+		backend, err := utils.CreateLedgerBackend(ctx, commonArgs.UseCaptiveCore, env)
 		if err != nil {
-			cmdLogger.Fatal("could not get absolute filepath for stellar-core executable: ", err)
+			cmdLogger.Fatal("error creating a cloud storage backend: ", err)
 		}
 
-		configPath, err = filepath.Abs(configPath)
+		err = backend.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, commonArgs.EndNum))
 		if err != nil {
-			cmdLogger.Fatal("could not get absolute filepath for the config file: ", err)
+			cmdLogger.Fatal("error preparing ledger range for cloud storage backend: ", err)
 		}
 
-		core, err := input.PrepareCaptiveCore(execPath, configPath, startNum, endNum, env)
-		if err != nil {
-			cmdLogger.Fatal("error creating a prepared captive core instance: ", err)
-		}
-
-		if endNum == 0 {
-			endNum = math.MaxInt32
+		if commonArgs.EndNum == 0 {
+			commonArgs.EndNum = math.MaxInt32
 		}
 
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
-		go input.StreamChanges(core, startNum, endNum, batchSize, changeChan, closeChan, env, cmdLogger)
+		go input.StreamChanges(&backend, startNum, commonArgs.EndNum, batchSize, changeChan, closeChan, env, cmdLogger)
 
 		for {
 			select {
@@ -126,7 +126,7 @@ be exported.`,
 								}
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
-							if change.AccountSignersChanged() {
+							if utils.AccountSignersChanged(change) {
 								signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
@@ -252,7 +252,16 @@ be exported.`,
 					}
 				}
 
-				err := exportTransformedData(batch.BatchStart, batch.BatchEnd, outputFolder, transformedOutputs, cloudCredentials, cloudStorageBucket, cloudProvider, extra)
+				err := exportTransformedData(
+					batch.BatchStart,
+					batch.BatchEnd,
+					outputFolder,
+					transformedOutputs,
+					cloudCredentials,
+					cloudStorageBucket,
+					cloudProvider,
+					commonArgs.Extra,
+				)
 				if err != nil {
 					cmdLogger.LogError(err)
 					continue
@@ -295,7 +304,6 @@ func init() {
 	utils.AddCloudStorageFlags(exportLedgerEntryChangesCmd.Flags())
 
 	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
-	exportLedgerEntryChangesCmd.MarkFlagRequired("core-executable")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period
