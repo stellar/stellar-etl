@@ -103,16 +103,13 @@ func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 			AssetCode:   "USDT",
 			AssetIssuer: "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
 			AssetType:   "credit_alphanum4",
-			AssetID:     1229977787683536144,
-
-			ID: -8205667356306085451,
+			AssetID:     -8205667356306085451,
 		},
 		{
 			AssetCode:   "",
 			AssetIssuer: "",
 			AssetType:   "native",
-			AssetID:     12638146518625398189,
-			ID:          -5706705804583548011,
+			AssetID:     -5706705804583548011,
 		},
 	}
 	return
