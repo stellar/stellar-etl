@@ -82,6 +82,7 @@ func makeLedgerCloseMeta() (ledgerCloseMeta xdr.LedgerCloseMeta) {
 					ScpValue: xdr.StellarValue{
 						CloseTime: 0,
 					},
+					LedgerSeq: 0,
 				},
 			},
 		},
@@ -939,6 +940,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "CreateAccountResultCodeCreateAccountSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          1,
@@ -958,6 +960,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          1,
@@ -975,6 +978,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          2,
@@ -997,6 +1001,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          3,
@@ -1022,6 +1027,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          4,
@@ -1046,6 +1052,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          5,
@@ -1070,6 +1077,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "SetOptionsResultCodeSetOptionsSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          6,
@@ -1089,6 +1097,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          6,
@@ -1105,6 +1114,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          7,
@@ -1124,6 +1134,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "AllowTrustResultCodeAllowTrustSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          8,
@@ -1138,6 +1149,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "AccountMergeResultCodeAccountMergeSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:                9,
@@ -1149,6 +1161,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InflationResultCodeInflationSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          10,
@@ -1163,6 +1176,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageDataResultCodeManageDataSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          11,
@@ -1176,6 +1190,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "BumpSequenceResultCodeBumpSequenceSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          12,
@@ -1201,6 +1216,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageBuyOfferResultCodeManageBuyOfferSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          13,
@@ -1223,6 +1239,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          14,
@@ -1238,6 +1255,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "CreateClaimableBalanceResultCodeCreateClaimableBalanceSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          15,
@@ -1252,6 +1270,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          16,
@@ -1265,6 +1284,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1279,6 +1299,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1292,6 +1313,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1305,6 +1327,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1319,6 +1342,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1332,6 +1356,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1346,6 +1371,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          18,
@@ -1359,6 +1385,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          19,
@@ -1377,6 +1404,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackResultCodeClawbackSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          20,
@@ -1390,6 +1418,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          21,
@@ -1411,6 +1440,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "SetTrustLineFlagsResultCodeSetTrustLineFlagsSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          22,
@@ -1445,6 +1475,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "LiquidityPoolDepositResultCodeLiquidityPoolDepositSuccess",
+			LedgerSequence:      0,
 		},
 		{
 			Type:          23,
@@ -1469,6 +1500,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawSuccess",
+			LedgerSequence:      0,
 		},
 		//OperationOutput{
 		//	Type:          24,

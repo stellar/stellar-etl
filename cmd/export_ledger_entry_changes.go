@@ -204,7 +204,7 @@ be exported.`,
 							}
 
 							// Empty contract data that has no error is a nonce. Does not need to be recorded
-							if contractData == (transform.ContractDataOutput{}) {
+							if contractData.ContractId == "" {
 								continue
 							}
 

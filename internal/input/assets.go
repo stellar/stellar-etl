@@ -14,6 +14,7 @@ type AssetTransformInput struct {
 	OperationIndex   int32
 	TransactionIndex int32
 	LedgerSeqNum     int32
+	LedgerCloseMeta  xdr.LedgerCloseMeta
 }
 
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
@@ -44,6 +45,7 @@ func GetPaymentOperations(start, end uint32, limit int64, env utils.EnvironmentD
 						OperationIndex:   int32(opIndex),
 						TransactionIndex: int32(txIndex),
 						LedgerSeqNum:     int32(seq),
+						LedgerCloseMeta:  ledger,
 					})
 				}
 

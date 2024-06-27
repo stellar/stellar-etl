@@ -911,6 +911,11 @@ func GetCloseTime(lcm xdr.LedgerCloseMeta) (time.Time, error) {
 	return ExtractLedgerCloseTime(headerHistoryEntry)
 }
 
+func GetLedgerSequence(lcm xdr.LedgerCloseMeta) uint32 {
+	headerHistoryEntry := lcm.LedgerHeaderHistoryEntry()
+	return uint32(headerHistoryEntry.Header.LedgerSeq)
+}
+
 func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	ledgerKey, _ := ledgerEntry.LedgerKey()
 	ledgerKeyByte, _ := ledgerKey.MarshalBinary()

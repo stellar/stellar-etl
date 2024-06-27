@@ -136,6 +136,7 @@ type OperationOutput struct {
 	ClosedAt            time.Time              `json:"closed_at"`
 	OperationResultCode string                 `json:"operation_result_code"`
 	OperationTraceCode  string                 `json:"operation_trace_code"`
+	LedgerSequence      uint32                 `json:"ledger_sequence"`
 }
 
 // ClaimableBalanceOutput is a representation of a claimable balances that aligns with the BigQuery table claimable_balances
@@ -213,10 +214,12 @@ type PoolOutput struct {
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
 type AssetOutput struct {
-	AssetCode   string `json:"asset_code"`
-	AssetIssuer string `json:"asset_issuer"`
-	AssetType   string `json:"asset_type"`
-	AssetID     int64  `json:"asset_id"`
+	AssetCode      string    `json:"asset_code"`
+	AssetIssuer    string    `json:"asset_issuer"`
+	AssetType      string    `json:"asset_type"`
+	AssetID        int64     `json:"asset_id"`
+	ClosedAt       time.Time `json:"closed_at"`
+	LedgerSequence uint32    `json:"ledger_sequence"`
 }
 
 // TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
@@ -342,13 +345,14 @@ type SponsorshipOutput struct {
 
 // EffectOutput is a representation of an operation that aligns with the BigQuery table history_effects
 type EffectOutput struct {
-	Address      string                 `json:"address"`
-	AddressMuxed null.String            `json:"address_muxed,omitempty"`
-	OperationID  int64                  `json:"operation_id"`
-	Details      map[string]interface{} `json:"details"`
-	Type         int32                  `json:"type"`
-	TypeString   string                 `json:"type_string"`
-	LedgerClosed time.Time              `json:"closed_at"`
+	Address        string                 `json:"address"`
+	AddressMuxed   null.String            `json:"address_muxed,omitempty"`
+	OperationID    int64                  `json:"operation_id"`
+	Details        map[string]interface{} `json:"details"`
+	Type           int32                  `json:"type"`
+	TypeString     string                 `json:"type_string"`
+	LedgerClosed   time.Time              `json:"closed_at"`
+	LedgerSequence uint32                 `json:"ledger_sequence"`
 }
 
 // EffectType is the numeric type for an effect
@@ -494,20 +498,25 @@ type TestTransaction struct {
 
 // ContractDataOutput is a representation of contract data that aligns with the Bigquery table soroban_contract_data
 type ContractDataOutput struct {
-	ContractId                string    `json:"contract_id"`
-	ContractKeyType           string    `json:"contract_key_type"`
-	ContractDurability        string    `json:"contract_durability"`
-	ContractDataAssetCode     string    `json:"asset_code"`
-	ContractDataAssetIssuer   string    `json:"asset_issuer"`
-	ContractDataAssetType     string    `json:"asset_type"`
-	ContractDataBalanceHolder string    `json:"balance_holder"`
-	ContractDataBalance       string    `json:"balance"` // balance is a string because it is go type big.Int
-	LastModifiedLedger        uint32    `json:"last_modified_ledger"`
-	LedgerEntryChange         uint32    `json:"ledger_entry_change"`
-	Deleted                   bool      `json:"deleted"`
-	ClosedAt                  time.Time `json:"closed_at"`
-	LedgerSequence            uint32    `json:"ledger_sequence"`
-	LedgerKeyHash             string    `json:"ledger_key_hash"`
+	ContractId                string            `json:"contract_id"`
+	ContractKeyType           string            `json:"contract_key_type"`
+	ContractDurability        string            `json:"contract_durability"`
+	ContractDataAssetCode     string            `json:"asset_code"`
+	ContractDataAssetIssuer   string            `json:"asset_issuer"`
+	ContractDataAssetType     string            `json:"asset_type"`
+	ContractDataBalanceHolder string            `json:"balance_holder"`
+	ContractDataBalance       string            `json:"balance"` // balance is a string because it is go type big.Int
+	LastModifiedLedger        uint32            `json:"last_modified_ledger"`
+	LedgerEntryChange         uint32            `json:"ledger_entry_change"`
+	Deleted                   bool              `json:"deleted"`
+	ClosedAt                  time.Time         `json:"closed_at"`
+	LedgerSequence            uint32            `json:"ledger_sequence"`
+	LedgerKeyHash             string            `json:"ledger_key_hash"`
+	Key                       map[string]string `json:"key"`
+	KeyDecoded                map[string]string `json:"key_decoded"`
+	Val                       map[string]string `json:"val"`
+	ValDecoded                map[string]string `json:"val_decoded"`
+	ContractDataXDR           string            `json:"contract_data_xdr"`
 }
 
 // ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
