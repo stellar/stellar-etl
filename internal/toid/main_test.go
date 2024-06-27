@@ -18,7 +18,7 @@ func TestID_ToInt64(t *testing.T) {
 		expected    int64
 		shouldPanic bool
 	}{
-		// accomodates 12-bits of precision for the operation field
+		// accommodates 12-bits of precision for the operation field
 		{
 			id:       &ID{0, 0, 1},
 			expected: 1,
@@ -31,7 +31,7 @@ func TestID_ToInt64(t *testing.T) {
 			id:          &ID{0, 0, 4096},
 			shouldPanic: true,
 		},
-		// accomodates 20-bits of precision for the transaction field
+		// accommodates 20-bits of precision for the transaction field
 		{
 			id:       &ID{0, 1, 0},
 			expected: 4096,
@@ -44,7 +44,7 @@ func TestID_ToInt64(t *testing.T) {
 			id:          &ID{0, 1048576, 0},
 			shouldPanic: true,
 		},
-		// accomodates 32-bits of precision for the ledger field
+		// accommodates 32-bits of precision for the ledger field
 		{
 			id:       &ID{1, 0, 0},
 			expected: 4294967296,

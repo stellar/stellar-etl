@@ -217,8 +217,7 @@ type AssetOutput struct {
 	AssetCode      string    `json:"asset_code"`
 	AssetIssuer    string    `json:"asset_issuer"`
 	AssetType      string    `json:"asset_type"`
-	AssetID        uint64    `json:"id"`
-	ID             int64     `json:"asset_id"`
+	AssetID        int64     `json:"asset_id"`
 	ClosedAt       time.Time `json:"closed_at"`
 	LedgerSequence uint32    `json:"ledger_sequence"`
 }
