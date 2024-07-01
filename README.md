@@ -55,7 +55,19 @@ If branch is already made, just rename it _before passing the pull request_.
 
 1. Clone this repo `git clone https://github.com/stellar/stellar-etl`
 2. Build stellar-etl with `go build`
-3. Run export commands to export information about the legder
+3. Build the docker image locally with `make docker-build`
+4. Run the docker container in interactive mode to run export commands.
+
+```sh
+$ docker run --platform linux/amd64 -it stellar/stellar-etl:latest /bin/bash
+```
+
+5. Run export commands to export information about the legder
+   Example command to export ledger data
+
+```sh
+root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.txt
+```
 
 > _*Note:*_ If using the GCS datastore, you can run the following to set GCP credentials to use in your shell
 
@@ -63,6 +75,12 @@ If branch is already made, just rename it _before passing the pull request_.
 gcloud auth login
 gcloud config set project dev-hubble
 gcloud auth application-default login
+```
+
+Add following to docker run command to pass gcloud credentials to docker container
+
+```
+-e GOOGLE_APPLICATION_CREDENTIALS=/.config/gcp/credentials.json -v "$HOME/.config/gcloud/application_default_credentials.json":/.config/gcp/credentials.json:ro
 ```
 
 > _*Note:*_ Instructions for installing gcloud can be found [here](https://cloud.google.com/sdk/docs/install-sdk)
