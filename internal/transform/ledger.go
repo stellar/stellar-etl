@@ -1,7 +1,7 @@
 package transform
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 
@@ -74,7 +74,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		if err != nil {
 			return LedgerOutput{}, err
 		}
-		outputSignature = hex.EncodeToString(LedgerCloseValueSignature.Signature)
+		outputSignature = base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature)
 	}
 
 	transformedLedger := LedgerOutput{
