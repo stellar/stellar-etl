@@ -57,11 +57,14 @@ If branch is already made, just rename it _before passing the pull request_.
 2. Build stellar-etl with `go build`
 3. Build the docker image locally with `make docker-build`
 4. Run the docker container in interactive mode to run export commands.
+
 ```sh
 $ docker run --platform linux/amd64 -it stellar/stellar-etl:latest /bin/bash
 ```
+
 5. Run export commands to export information about the legder
-Example command to export ledger data
+   Example command to export ledger data
+
 ```sh
 root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.txt
 ```
