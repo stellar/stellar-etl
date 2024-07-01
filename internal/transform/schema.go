@@ -29,6 +29,8 @@ type LedgerOutput struct {
 	ProtocolVersion            uint32    `json:"protocol_version"`
 	LedgerID                   int64     `json:"id"`
 	SorobanFeeWrite1Kb         int64     `json:"soroban_fee_write_1kb"`
+	NodeID                     string    `json:"node_id"`
+	Signature                  string    `json:"signature"`
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions

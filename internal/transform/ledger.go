@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/historyarchive"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
@@ -64,6 +66,17 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 	}
 
+	var outputNodeID string
+	var outputSignature string
+	LedgerCloseValueSignature, ok := ledgerHeader.ScpValue.Ext.GetLcValueSignature()
+	if ok {
+		outputNodeID, err = getAddress(LedgerCloseValueSignature.NodeId)
+		if err != nil {
+			return LedgerOutput{}, err
+		}
+		outputSignature = hex.EncodeToString(LedgerCloseValueSignature.Signature)
+	}
+
 	transformedLedger := LedgerOutput{
 		Sequence:                   outputSequence,
 		LedgerID:                   outputLedgerID,
@@ -83,6 +96,8 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		MaxTxSetSize:               outputMaxTxSetSize,
 		ProtocolVersion:            outputProtocolVersion,
 		SorobanFeeWrite1Kb:         outputSorobanFeeWrite1Kb,
+		NodeID:                     outputNodeID,
+		Signature:                  outputSignature,
 	}
 	return transformedLedger, nil
 }
@@ -166,4 +181,21 @@ func getTransactionPhase(transactionPhase []xdr.TransactionPhase) (transactionEn
 	}
 	return transactionSlice
 
+}
+
+// TODO: This should be moved into the go monorepo xdr functions
+// Or nodeID should just be an xdr.AccountId but the error message would be incorrect
+func getAddress(nodeID xdr.NodeId) (string, error) {
+	switch nodeID.Type {
+	case xdr.PublicKeyTypePublicKeyTypeEd25519:
+		ed, ok := nodeID.GetEd25519()
+		if !ok {
+			return "", fmt.Errorf("Could not get Ed25519")
+		}
+		raw := make([]byte, 32)
+		copy(raw, ed[:])
+		return strkey.Encode(strkey.VersionByteAccountID, raw)
+	default:
+		return "", fmt.Errorf("Unknown node id type: %v", nodeID.Type)
+	}
 }
