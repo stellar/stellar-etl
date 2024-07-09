@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/amount"
@@ -158,6 +159,8 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	for i := range wrapper.effects {
 		wrapper.effects[i].LedgerClosed = operation.ledgerClosed
 		wrapper.effects[i].LedgerSequence = operation.ledgerSequence
+		wrapper.effects[i].EffectIndex = uint32(i)
+		wrapper.effects[i].EffectId = strings.Join([]string{strconv.FormatInt(wrapper.effects[i].OperationID, 10), strconv.FormatUint(uint64(wrapper.effects[i].EffectIndex), 10)}, "-")
 	}
 
 	return wrapper.effects, nil
