@@ -167,11 +167,13 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		if ok {
 			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
-			extV1, ok := meta.SorobanMeta.Ext.GetV1()
-			if ok {
-				outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
-				outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
-				outputRentFeeCharged = int64(extV1.RentFeeCharged)
+			if meta.SorobanMeta != nil {
+				extV1, ok := meta.SorobanMeta.Ext.GetV1()
+				if ok {
+					outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
+					outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
+					outputRentFeeCharged = int64(extV1.RentFeeCharged)
+				}
 			}
 		}
 
@@ -238,8 +240,8 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	if transaction.Envelope.IsFeeBump() {
 		feeBumpAccount := transaction.Envelope.FeeBumpAccount()
 		feeAccount := feeBumpAccount.ToAccountId()
-		if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
-			feeAccountMuxed := feeAccount.Address()
+		if feeBumpAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
+			feeAccountMuxed := feeBumpAccount.Address()
 			transformedTransaction.FeeAccountMuxed = feeAccountMuxed
 		}
 		transformedTransaction.FeeAccount = feeAccount.Address()
