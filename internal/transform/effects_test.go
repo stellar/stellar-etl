@@ -3,6 +3,7 @@ package transform
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -1738,6 +1739,10 @@ func TestOperationEffects(t *testing.T) {
 				ledgerSequence: tc.sequence,
 				ledgerClosed:   LedgerClosed,
 			}
+			for i := range tc.expected {
+				tc.expected[i].EffectIndex = uint32(i)
+				tc.expected[i].EffectId = fmt.Sprintf("%d-%d", tc.expected[i].OperationID, tc.expected[i].EffectIndex)
+			}
 
 			effects, err := operation.effects()
 			tt.NoError(err)
@@ -1882,6 +1887,11 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 			LedgerSequence: 46,
 		},
 	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
+	}
+
 	tt.Equal(expected, effects)
 }
 
@@ -2008,6 +2018,11 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 			LedgerSequence: 46,
 		},
 	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
+	}
+
 	tt.Equal(expected, effects)
 }
 
@@ -2112,6 +2127,11 @@ func TestOperationEffectsAllowTrustAuthorizedToMaintainLiabilities(t *testing.T)
 			LedgerSequence: 1,
 		},
 	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
+	}
+
 	tt.Equal(expected, effects)
 }
 
@@ -2177,6 +2197,11 @@ func TestOperationEffectsClawback(t *testing.T) {
 			LedgerSequence: 1,
 		},
 	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
+	}
+
 	tt.Equal(expected, effects)
 }
 
@@ -2225,6 +2250,11 @@ func TestOperationEffectsClawbackClaimableBalance(t *testing.T) {
 			LedgerSequence: 1,
 		},
 	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
+	}
+
 	tt.Equal(expected, effects)
 }
 
@@ -2283,6 +2313,11 @@ func TestOperationEffectsSetTrustLineFlags(t *testing.T) {
 			LedgerSequence: 1,
 		},
 	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
+	}
+
 	tt.Equal(expected, effects)
 }
 
@@ -2483,6 +2518,10 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 			LedgerClosed:   genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
+	}
+	for i := range expected {
+		expected[i].EffectIndex = uint32(i)
+		expected[i].EffectId = fmt.Sprintf("%d-%d", expected[i].OperationID, expected[i].EffectIndex)
 	}
 
 	// pick an operation with no intrinsic effects
@@ -3169,6 +3208,11 @@ func TestLiquidityPoolEffects(t *testing.T) {
 			},
 		}
 
+		for i := range tc.expected {
+			tc.expected[i].EffectIndex = uint32(i)
+			tc.expected[i].EffectId = fmt.Sprintf("%d-%d", tc.expected[i].OperationID, tc.expected[i].EffectIndex)
+		}
+
 		t.Run(tc.desc, func(t *testing.T) {
 			operation := transactionOperationWrapper{
 				index:          0,
@@ -3785,6 +3829,11 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 				network:        networkPassphrase,
 			}
 
+			for i := range testCase.expected {
+				testCase.expected[i].EffectIndex = uint32(i)
+				testCase.expected[i].EffectId = fmt.Sprintf("%d-%d", testCase.expected[i].OperationID, testCase.expected[i].EffectIndex)
+			}
+
 			effects, err := operation.effects()
 			assert.NoErrorf(t, err, "event type %v", testCase.eventType)
 			assert.Lenf(t, effects, len(testCase.expected), "event type %v", testCase.eventType)
@@ -3970,6 +4019,8 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 				TypeString:     EffectTypeNames[EffectExtendFootprintTtl],
 				LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
 				LedgerSequence: 1,
+				EffectIndex:    0,
+				EffectId:       fmt.Sprintf("%d-%d", toid.New(1, 0, 1).ToInt64(), 0),
 			},
 		},
 		effects,
@@ -4085,6 +4136,8 @@ func TestAddRestoreFootprintExpirationEffect(t *testing.T) {
 				TypeString:     EffectTypeNames[EffectRestoreFootprint],
 				LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
 				LedgerSequence: 1,
+				EffectIndex:    0,
+				EffectId:       fmt.Sprintf("%d-%d", toid.New(1, 0, 1).ToInt64(), 0),
 			},
 		},
 		effects,
