@@ -240,8 +240,8 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	if transaction.Envelope.IsFeeBump() {
 		feeBumpAccount := transaction.Envelope.FeeBumpAccount()
 		feeAccount := feeBumpAccount.ToAccountId()
-		if feeBumpAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
-			feeAccountMuxed := feeBumpAccount.Address()
+		if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
+			feeAccountMuxed := feeAccount.Address()
 			transformedTransaction.FeeAccountMuxed = feeAccountMuxed
 		}
 		transformedTransaction.FeeAccount = feeAccount.Address()
