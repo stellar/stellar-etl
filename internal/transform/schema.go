@@ -355,6 +355,8 @@ type EffectOutput struct {
 	TypeString     string                 `json:"type_string"`
 	LedgerClosed   time.Time              `json:"closed_at"`
 	LedgerSequence uint32                 `json:"ledger_sequence"`
+	EffectIndex    uint32                 `json:"index"`
+	EffectId       string                 `json:"id"`
 }
 
 // EffectType is the numeric type for an effect
