@@ -167,11 +167,13 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		if ok {
 			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
-			extV1, ok := meta.SorobanMeta.Ext.GetV1()
-			if ok {
-				outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
-				outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
-				outputRentFeeCharged = int64(extV1.RentFeeCharged)
+			if meta.SorobanMeta != nil {
+				extV1, ok := meta.SorobanMeta.Ext.GetV1()
+				if ok {
+					outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
+					outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
+					outputRentFeeCharged = int64(extV1.RentFeeCharged)
+				}
 			}
 		}
 
