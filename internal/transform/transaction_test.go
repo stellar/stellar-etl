@@ -251,7 +251,7 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 				Type: xdr.EnvelopeTypeEnvelopeTypeTxFeeBump,
 				FeeBump: &xdr.FeeBumpTransactionEnvelope{
 					Tx: xdr.FeeBumpTransaction{
-						FeeSource: testAccount3,
+						FeeSource: testAccount5,
 						Fee:       7200,
 						InnerTx: xdr.FeeBumpTransactionInnerTx{
 							Type: xdr.EnvelopeTypeEnvelopeTypeTx,
