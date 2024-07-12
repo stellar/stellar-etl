@@ -103,6 +103,7 @@ var testAccount5 = xdr.MuxedAccount{
 		Ed25519: xdr.Uint256(dummyEd25519),
 	},
 }
+var testAccount5Address = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
 
 // a selection of hardcoded assets and their AssetOutput representations
 
