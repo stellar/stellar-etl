@@ -230,7 +230,7 @@ type TrustlineOutput struct {
 	AccountID          string      `json:"account_id"`
 	AssetCode          string      `json:"asset_code"`
 	AssetIssuer        string      `json:"asset_issuer"`
-	AssetType          int32       `json:"asset_type"`
+	AssetType          string      `json:"asset_type"`
 	AssetID            int64       `json:"asset_id"`
 	Balance            float64     `json:"balance"`
 	TrustlineLimit     int64       `json:"trust_line_limit"`
