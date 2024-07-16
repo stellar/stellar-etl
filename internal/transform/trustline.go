@@ -61,7 +61,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 	transformedTrustline := TrustlineOutput{
 		LedgerKey:          outputLedgerKey,
 		AccountID:          outputAccountID,
-		AssetType:          int32(asset.Type),
+		AssetType:          asset.Type.String(),
 		AssetCode:          outputAssetCode,
 		AssetIssuer:        outputAssetIssuer,
 		AssetID:            outputAssetID,
