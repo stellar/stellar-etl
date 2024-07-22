@@ -39,15 +39,13 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 		return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not create ledger key string for trustline with account %s and asset %s", outputAccountID, asset.ToAsset().StringCanonical()))
 	}
 
-	var assetTypeString string
 	if asset.Type == xdr.AssetTypeAssetTypePoolShare {
 		poolID = PoolIDToString(trustEntry.Asset.MustLiquidityPoolId())
-		assetTypeString = "pool_share"
+		assetType = "pool_share"
 	} else {
 		if err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer); err != nil {
 			return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s", outputAccountID))
 		}
-		assetTypeString = assetType
 	}
 
 	outputAssetID := FarmHashAsset(outputAssetCode, outputAssetIssuer, asset.Type.String())
@@ -64,7 +62,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 	transformedTrustline := TrustlineOutput{
 		LedgerKey:          outputLedgerKey,
 		AccountID:          outputAccountID,
-		AssetType:          assetTypeString,
+		AssetType:          assetType,
 		AssetCode:          outputAssetCode,
 		AssetIssuer:        outputAssetIssuer,
 		AssetID:            outputAssetID,
