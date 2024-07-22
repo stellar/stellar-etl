@@ -41,6 +41,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 
 	if asset.Type == xdr.AssetTypeAssetTypePoolShare {
 		poolID = PoolIDToString(trustEntry.Asset.MustLiquidityPoolId())
+		assetType = "pool_share"
 	} else {
 		if err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer); err != nil {
 			return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s", outputAccountID))
@@ -61,7 +62,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 	transformedTrustline := TrustlineOutput{
 		LedgerKey:          outputLedgerKey,
 		AccountID:          outputAccountID,
-		AssetType:          int32(asset.Type),
+		AssetType:          assetType,
 		AssetCode:          outputAssetCode,
 		AssetIssuer:        outputAssetIssuer,
 		AssetID:            outputAssetID,

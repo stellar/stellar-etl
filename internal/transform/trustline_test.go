@@ -128,7 +128,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 		{
 			LedgerKey:          "AAAAAQAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAFFVEgAAAAAAGfMAIZMO4kWjGqv4Lw0cJ7QIcUFcuL5iGE0IggsIily",
 			AccountID:          testAccount1Address,
-			AssetType:          1,
+			AssetType:          "credit_alphanum4",
 			AssetIssuer:        testAccount3Address,
 			AssetCode:          "ETH",
 			AssetID:            -2311386320395871674,
@@ -146,7 +146,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 		{
 			LedgerKey:          "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 			AccountID:          testAccount2Address,
-			AssetType:          3,
+			AssetType:          "pool_share",
 			AssetID:            -1967220342708457407,
 			Balance:            0.5,
 			TrustlineLimit:     1111111111111111111,
