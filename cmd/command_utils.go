@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/xitongsys/parquet-go-source/local"
+	"github.com/xitongsys/parquet-go/writer"
 )
 
 type CloudStorage interface {
@@ -102,6 +106,10 @@ func exportFilename(start, end uint32, dataType string) string {
 	return fmt.Sprintf("%d-%d-%s.txt", start, end-1, dataType)
 }
 
+func exportParquetFilename(start, end uint32, dataType string) string {
+	return fmt.Sprintf("%d-%d-%s.parquet", start, end-1, dataType)
+}
+
 func deleteLocalFiles(path string) {
 	err := os.RemoveAll(path)
 	if err != nil {
@@ -133,5 +141,25 @@ func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path strin
 		}
 	default:
 		cmdLogger.Error("Unknown cloud provider")
+	}
+}
+
+func writeParquet(data []transform.SchemaParquet, path string, schema interface{}) {
+	parquetFile, err := local.NewLocalFileWriter(path)
+	if err != nil {
+		cmdLogger.Fatal("could not create parquet file: ", err)
+	}
+	defer parquetFile.Close()
+
+	writer, err := writer.NewParquetWriter(parquetFile, schema, 1)
+	if err != nil {
+		cmdLogger.Fatal("could not create parquet file writer: ", err)
+	}
+	defer writer.WriteStop()
+
+	for _, record := range data {
+		if err := writer.Write(record.ToParquet()); err != nil {
+			cmdLogger.Fatal("could not write record to parquet file: ", err)
+		}
 	}
 }

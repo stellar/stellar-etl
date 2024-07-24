@@ -240,6 +240,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
 	flags.Uint32("retry-wait", 5, "Time in seconds to wait for GetLedger retry.")
+	flags.Bool("write-parquet", true, "If set, write output as parquet files.")
 }
 
 // AddArchiveFlags adds the history archive specific flags: output, and limit
@@ -247,6 +248,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
+	flags.String("parquet-output", "exported_"+objectName+".parquet", "Filename of the parquet output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 }
 
@@ -267,6 +269,7 @@ func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.Uint32P("batch-size", "b", 64, "number of ledgers to export changes from in each batches")
 	// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Move output to different flag group
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the output files")
+	flags.String("parquet-output", defaultFolder, "Folder that will contain the parquet output files")
 
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 }
@@ -300,10 +303,12 @@ type FlagValues struct {
 	RetryLimit     uint32
 	RetryWait      uint32
 	Path           string
+	ParquetPath    string
 	Limit          int64
 	Bucket         string
 	Credentials    string
 	Provider       string
+	WriteParquet   bool
 }
 
 // MustFlags gets the values of the the flags for all commands.
@@ -375,6 +380,11 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 		logger.Fatal("could not get output filename: ", err)
 	}
 
+	parquetPath, err := flags.GetString("parquet-output")
+	if err != nil {
+		logger.Fatal("could not get parquet-output filename: ", err)
+	}
+
 	limit, err := flags.GetInt64("limit")
 	if err != nil {
 		logger.Fatal("could not get limit: ", err)
@@ -395,6 +405,11 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 		logger.Fatal("could not get cloud provider: ", err)
 	}
 
+	writeParquet, err := flags.GetBool("write-parquet")
+	if err != nil {
+		logger.Fatal("could not get write-parquet flag: ", err)
+	}
+
 	return FlagValues{
 		StartNum:       startNum,
 		EndNum:         endNum,
@@ -409,10 +424,12 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 		RetryLimit:     retryLimit,
 		RetryWait:      retryWait,
 		Path:           path,
+		ParquetPath:    parquetPath,
 		Limit:          limit,
 		Bucket:         bucket,
 		Credentials:    credentials,
 		Provider:       provider,
+		WriteParquet:   writeParquet,
 	}
 }
 
@@ -428,6 +445,7 @@ type CommonFlagValues struct {
 	NumWorkers     uint32
 	RetryLimit     uint32
 	RetryWait      uint32
+	WriteParquet   bool
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
@@ -488,6 +506,11 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		logger.Fatal("could not get retry-wait uint32: ", err)
 	}
 
+	writeParquet, err := flags.GetBool("write-parquet")
+	if err != nil {
+		logger.Fatal("could not get write-parquet flag: ", err)
+	}
+
 	return CommonFlagValues{
 		EndNum:         endNum,
 		StrictExport:   strictExport,
@@ -500,11 +523,12 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		NumWorkers:     numWorkers,
 		RetryLimit:     retryLimit,
 		RetryWait:      retryWait,
+		WriteParquet:   writeParquet,
 	}
 }
 
 // MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
-func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32, path string, limit int64) {
+func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32, path string, parquetPath string, limit int64) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
@@ -513,6 +537,11 @@ func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32,
 	path, err = flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
+	}
+
+	parquetPath, err = flags.GetString("parquet-output")
+	if err != nil {
+		logger.Fatal("could not get parquet-output filename: ", err)
 	}
 
 	limit, err = flags.GetInt64("limit")
@@ -554,7 +583,7 @@ func MustCloudStorageFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, cre
 }
 
 // MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, and output flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPath string, startNum, batchSize uint32, path string) {
+func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPath string, startNum, batchSize uint32, path, parquetPath string) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -566,6 +595,11 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 	}
 
 	path, err = flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output filename: ", err)
+	}
+
+	parquetPath, err = flags.GetString("parquet-output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
 	}

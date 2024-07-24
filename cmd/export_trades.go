@@ -21,7 +21,7 @@ var tradesCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
@@ -33,6 +33,7 @@ var tradesCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var transformedTrades []transform.SchemaParquet
 		for _, tradeInput := range trades {
 			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 			if err != nil {
@@ -50,6 +51,8 @@ var tradesCmd = &cobra.Command{
 					continue
 				}
 				totalNumBytes += numBytes
+
+				transformedTrades = append(transformedTrades, transformed)
 			}
 		}
 
@@ -59,6 +62,11 @@ var tradesCmd = &cobra.Command{
 		printTransformStats(len(trades), numFailures)
 
 		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+
+		if commonArgs.WriteParquet {
+			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			writeParquet(transformedTrades, parquetPath, new(transform.TradeOutputParquet))
+		}
 	},
 }
 
