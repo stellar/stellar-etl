@@ -1,3 +1,6 @@
+// This file includes interfaces and functions for converting data structures/schemas
+// to the appropriate parquet data structure/schema.
+
 package transform
 
 import (

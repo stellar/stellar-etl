@@ -144,6 +144,20 @@ func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path strin
 	}
 }
 
+// writeParquet creates the parquet file and writes the exported data into it.
+//
+// Parameters:
+//
+//	  data []transform.SchemaParquet  - The slice of data to be written to the Parquet file.
+//										   SchemaParquet is an interface used to call ToParquet()
+//										   which is defined for each schema/export.
+//	  path string                     - The file path where the Parquet file will be created and written.
+//										   For example, "some/file/path/export_output.parquet"
+//	  schema interface{}              - The schema that defines the structure of the Parquet file.
+//
+// Errors:
+//
+// stellar-etl will log a Fatal error and stop in the case it cannot create or write to the parquet file
 func writeParquet(data []transform.SchemaParquet, path string, schema interface{}) {
 	parquetFile, err := local.NewLocalFileWriter(path)
 	if err != nil {
