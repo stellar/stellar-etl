@@ -941,6 +941,11 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "CreateAccountResultCodeCreateAccountSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"account":          hardCodedDestAccountAddress,
+				"funder":           hardCodedSourceAccountAddress,
+				"starting_balance": 2.5,
+			},
 		},
 		{
 			Type:          1,
@@ -961,6 +966,15 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"from":         hardCodedSourceAccountAddress,
+				"to":           hardCodedDestAccountAddress,
+				"amount":       35.0,
+				"asset_code":   "USDT",
+				"asset_type":   "credit_alphanum4",
+				"asset_issuer": hardCodedDestAccountAddress,
+				"asset_id":     int64(-8205667356306085451),
+			},
 		},
 		{
 			Type:          1,
@@ -979,6 +993,13 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PaymentResultCodePaymentSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"from":       hardCodedSourceAccountAddress,
+				"to":         hardCodedDestAccountAddress,
+				"amount":     35.0,
+				"asset_type": "native",
+				"asset_id":   int64(-5706705804583548011),
+			},
 		},
 		{
 			Type:          2,
@@ -1002,6 +1023,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"from":              hardCodedSourceAccountAddress,
+				"to":                hardCodedDestAccountAddress,
+				"source_amount":     894.6764349,
+				"source_max":        895.14959,
+				"amount":            895.14959,
+				"source_asset_type": "native",
+				"source_asset_id":   int64(-5706705804583548011),
+				"asset_type":        "native",
+				"asset_id":          int64(-5706705804583548011),
+				"path":              []Path{usdtAssetPath},
+			},
 		},
 		{
 			Type:          3,
@@ -1028,6 +1061,21 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"price":    0.514092,
+				"amount":   76.586,
+				"offer_id": int64(0.0),
+				"price_r": Price{
+					Numerator:   128523,
+					Denominator: 250000,
+				},
+				"selling_asset_code":   "USDT",
+				"selling_asset_type":   "credit_alphanum4",
+				"selling_asset_issuer": hardCodedDestAccountAddress,
+				"selling_asset_id":     int64(-8205667356306085451),
+				"buying_asset_type":    "native",
+				"buying_asset_id":      int64(-5706705804583548011),
+			},
 		},
 		{
 			Type:          4,
@@ -1053,6 +1101,20 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageSellOfferResultCodeManageSellOfferSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"amount": 63.1595,
+				"price":  0.0791606,
+				"price_r": Price{
+					Numerator:   99583200,
+					Denominator: 1257990000,
+				},
+				"buying_asset_code":   "USDT",
+				"buying_asset_type":   "credit_alphanum4",
+				"buying_asset_issuer": hardCodedDestAccountAddress,
+				"buying_asset_id":     int64(-8205667356306085451),
+				"selling_asset_type":  "native",
+				"selling_asset_id":    int64(-5706705804583548011),
+			},
 		},
 		{
 			Type:          5,
@@ -1078,6 +1140,20 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "SetOptionsResultCodeSetOptionsSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"inflation_dest":    hardCodedDestAccountAddress,
+				"clear_flags":       []int32{1, 2},
+				"clear_flags_s":     []string{"auth_required", "auth_revocable"},
+				"set_flags":         []int32{4},
+				"set_flags_s":       []string{"auth_immutable"},
+				"master_key_weight": uint32(3),
+				"low_threshold":     uint32(1),
+				"med_threshold":     uint32(3),
+				"high_threshold":    uint32(5),
+				"home_domain":       "2019=DRA;n-test",
+				"signer_key":        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				"signer_weight":     uint32(1),
+			},
 		},
 		{
 			Type:          6,
@@ -1098,6 +1174,15 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"trustor":      hardCodedSourceAccountAddress,
+				"trustee":      hardCodedDestAccountAddress,
+				"limit":        50000000000.0,
+				"asset_code":   "USSD",
+				"asset_type":   "credit_alphanum4",
+				"asset_issuer": hardCodedDestAccountAddress,
+				"asset_id":     int64(6690054458235693884),
+			},
 		},
 		{
 			Type:          6,
@@ -1115,6 +1200,12 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"trustor":           hardCodedSourceAccountAddress,
+				"limit":             50000000000.0,
+				"asset_type":        "liquidity_pool_shares",
+				"liquidity_pool_id": "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
+			},
 		},
 		{
 			Type:          7,
@@ -1135,6 +1226,15 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "AllowTrustResultCodeAllowTrustSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"trustee":      hardCodedSourceAccountAddress,
+				"trustor":      hardCodedDestAccountAddress,
+				"authorize":    true,
+				"asset_code":   "USDT",
+				"asset_type":   "credit_alphanum4",
+				"asset_issuer": hardCodedSourceAccountAddress,
+				"asset_id":     int64(8485542065083974675),
+			},
 		},
 		{
 			Type:          8,
@@ -1150,18 +1250,23 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "AccountMergeResultCodeAccountMergeSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"account": hardCodedSourceAccountAddress,
+				"into":    hardCodedDestAccountAddress,
+			},
 		},
 		{
-			Type:                9,
-			TypeString:          "inflation",
-			SourceAccount:       hardCodedSourceAccountAddress,
-			TransactionID:       4096,
-			OperationID:         4108,
-			OperationDetails:    map[string]interface{}{},
-			ClosedAt:            hardCodedLedgerClose,
-			OperationResultCode: "OperationResultCodeOpInner",
-			OperationTraceCode:  "InflationResultCodeInflationSuccess",
-			LedgerSequence:      0,
+			Type:                 9,
+			TypeString:           "inflation",
+			SourceAccount:        hardCodedSourceAccountAddress,
+			TransactionID:        4096,
+			OperationID:          4108,
+			OperationDetails:     map[string]interface{}{},
+			ClosedAt:             hardCodedLedgerClose,
+			OperationResultCode:  "OperationResultCodeOpInner",
+			OperationTraceCode:   "InflationResultCodeInflationSuccess",
+			LedgerSequence:       0,
+			OperationDetailsJSON: map[string]interface{}{},
 		},
 		{
 			Type:          10,
@@ -1177,6 +1282,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageDataResultCodeManageDataSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"name":  "test",
+				"value": base64.StdEncoding.EncodeToString([]byte{0x76, 0x61, 0x6c, 0x75, 0x65}),
+			},
 		},
 		{
 			Type:          11,
@@ -1191,6 +1300,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "BumpSequenceResultCodeBumpSequenceSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"bump_to": "100",
+			},
 		},
 		{
 			Type:          12,
@@ -1217,6 +1329,21 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ManageBuyOfferResultCodeManageBuyOfferSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"price":  0.3496823,
+				"amount": 765.4501001,
+				"price_r": Price{
+					Numerator:   635863285,
+					Denominator: 1818402817,
+				},
+				"selling_asset_code":   "USDT",
+				"selling_asset_type":   "credit_alphanum4",
+				"selling_asset_issuer": hardCodedDestAccountAddress,
+				"selling_asset_id":     int64(-8205667356306085451),
+				"buying_asset_type":    "native",
+				"buying_asset_id":      int64(-5706705804583548011),
+				"offer_id":             int64(100),
+			},
 		},
 		{
 			Type:          13,
@@ -1240,6 +1367,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"from":              hardCodedSourceAccountAddress,
+				"to":                hardCodedDestAccountAddress,
+				"source_amount":     0.1598182,
+				"destination_min":   "428.0460538",
+				"amount":            433.4043858,
+				"path":              []Path{usdtAssetPath},
+				"source_asset_type": "native",
+				"source_asset_id":   int64(-5706705804583548011),
+				"asset_type":        "native",
+				"asset_id":          int64(-5706705804583548011),
+			},
 		},
 		{
 			Type:          14,
@@ -1256,6 +1395,11 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "CreateClaimableBalanceResultCodeCreateClaimableBalanceSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"asset":     "USDT:GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				"amount":    123456.789,
+				"claimants": []Claimant{testClaimantDetails},
+			},
 		},
 		{
 			Type:          15,
@@ -1271,6 +1415,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"claimant":   hardCodedSourceAccountAddress,
+				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+			},
 		},
 		{
 			Type:          16,
@@ -1285,6 +1433,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "BeginSponsoringFutureReservesResultCodeBeginSponsoringFutureReservesSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"sponsored_id": hardCodedDestAccountAddress,
+			},
 		},
 		{
 			Type:          18,
@@ -1300,6 +1451,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"signer_account_id": hardCodedDestAccountAddress,
+				"signer_key":        "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+			},
 		},
 		{
 			Type:          18,
@@ -1314,6 +1469,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"account_id": hardCodedDestAccountAddress,
+			},
 		},
 		{
 			Type:          18,
@@ -1328,6 +1486,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"claimable_balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+			},
 		},
 		{
 			Type:          18,
@@ -1343,6 +1504,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"data_account_id": hardCodedDestAccountAddress,
+				"data_name":       "test",
+			},
 		},
 		{
 			Type:          18,
@@ -1357,6 +1522,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"offer_id": int64(100),
+			},
 		},
 		{
 			Type:          18,
@@ -1372,6 +1540,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"trustline_account_id": testAccount3Address,
+				"trustline_asset":      "USTT:GBT4YAEGJQ5YSFUMNKX6BPBUOCPNAIOFAVZOF6MIME2CECBMEIUXFZZN",
+			},
 		},
 		{
 			Type:          18,
@@ -1386,6 +1558,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"liquidity_pool_id": "0102030405060708090000000000000000000000000000000000000000000000",
+			},
 		},
 		{
 			Type:          19,
@@ -1405,6 +1580,14 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackResultCodeClawbackSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"from":         hardCodedDestAccountAddress,
+				"amount":       0.1598182,
+				"asset_code":   "USDT",
+				"asset_issuer": "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				"asset_type":   "credit_alphanum4",
+				"asset_id":     int64(-8205667356306085451),
+			},
 		},
 		{
 			Type:          20,
@@ -1419,6 +1602,9 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+			},
 		},
 		{
 			Type:          21,
@@ -1441,6 +1627,17 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "SetTrustLineFlagsResultCodeSetTrustLineFlagsSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"asset_code":    "USDT",
+				"asset_issuer":  "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				"asset_type":    "credit_alphanum4",
+				"asset_id":      int64(-8205667356306085451),
+				"trustor":       testAccount4Address,
+				"clear_flags":   []int32{1, 2},
+				"clear_flags_s": []string{"authorized", "authorized_to_maintain_liabilities"},
+				"set_flags":     []int32{4},
+				"set_flags_s":   []string{"clawback_enabled"},
+			},
 		},
 		{
 			Type:          22,
@@ -1476,6 +1673,30 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "LiquidityPoolDepositResultCodeLiquidityPoolDepositSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"liquidity_pool_id":        "0102030405060708090000000000000000000000000000000000000000000000",
+				"reserve_a_asset_type":     "native",
+				"reserve_a_asset_id":       int64(-5706705804583548011),
+				"reserve_a_max_amount":     0.0001,
+				"reserve_a_deposit_amount": 0.0001,
+				"reserve_b_asset_type":     "credit_alphanum4",
+				"reserve_b_asset_code":     "USSD",
+				"reserve_b_asset_issuer":   "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				"reserve_b_asset_id":       int64(6690054458235693884),
+				"reserve_b_deposit_amount": 0.00001,
+				"reserve_b_max_amount":     0.00001,
+				"max_price":                1000000.0000000,
+				"max_price_r": Price{
+					Numerator:   1000000,
+					Denominator: 1,
+				},
+				"min_price": 0.0000010,
+				"min_price_r": Price{
+					Numerator:   1,
+					Denominator: 1000000,
+				},
+				"shares_received": 0.0000002,
+			},
 		},
 		{
 			Type:          23,
@@ -1501,6 +1722,20 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "LiquidityPoolWithdrawResultCodeLiquidityPoolWithdrawSuccess",
 			LedgerSequence:      0,
+			OperationDetailsJSON: map[string]interface{}{
+				"liquidity_pool_id":         "0102030405060708090000000000000000000000000000000000000000000000",
+				"reserve_a_asset_type":      "native",
+				"reserve_a_asset_id":        int64(-5706705804583548011),
+				"reserve_a_min_amount":      0.0000001,
+				"reserve_a_withdraw_amount": -0.0001,
+				"reserve_b_asset_type":      "credit_alphanum4",
+				"reserve_b_asset_code":      "USSD",
+				"reserve_b_asset_issuer":    "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HGZPA",
+				"reserve_b_asset_id":        int64(6690054458235693884),
+				"reserve_b_withdraw_amount": -0.00001,
+				"reserve_b_min_amount":      0.0000001,
+				"shares":                    0.0000004,
+			},
 		},
 		//OperationOutput{
 		//	Type:          24,

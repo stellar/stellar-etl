@@ -83,17 +83,18 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 	outputLedgerSequence := utils.GetLedgerSequence(ledgerCloseMeta)
 
 	transformedOperation := OperationOutput{
-		SourceAccount:       outputSourceAccount,
-		SourceAccountMuxed:  outputSourceAccountMuxed.String,
-		Type:                outputOperationType,
-		TypeString:          outputOperationTypeString,
-		TransactionID:       outputTransactionID,
-		OperationID:         outputOperationID,
-		OperationDetails:    outputDetails,
-		ClosedAt:            outputCloseTime,
-		OperationResultCode: outputOperationResultCode,
-		OperationTraceCode:  outputOperationTraceCode,
-		LedgerSequence:      outputLedgerSequence,
+		SourceAccount:        outputSourceAccount,
+		SourceAccountMuxed:   outputSourceAccountMuxed.String,
+		Type:                 outputOperationType,
+		TypeString:           outputOperationTypeString,
+		TransactionID:        outputTransactionID,
+		OperationID:          outputOperationID,
+		OperationDetails:     outputDetails,
+		ClosedAt:             outputCloseTime,
+		OperationResultCode:  outputOperationResultCode,
+		OperationTraceCode:   outputOperationTraceCode,
+		LedgerSequence:       outputLedgerSequence,
+		OperationDetailsJSON: outputDetails,
 	}
 
 	return transformedOperation, nil
