@@ -16,7 +16,7 @@ var effectsCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
@@ -28,6 +28,7 @@ var effectsCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var transformedEffects []transform.SchemaParquet
 		for _, transformInput := range transactions {
 			LedgerSeq := uint32(transformInput.LedgerHistory.Header.LedgerSeq)
 			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
@@ -46,6 +47,10 @@ var effectsCmd = &cobra.Command{
 					continue
 				}
 				totalNumBytes += numBytes
+
+				if commonArgs.WriteParquet {
+					transformedEffects = append(transformedEffects, transformed)
+				}
 			}
 		}
 
@@ -55,6 +60,11 @@ var effectsCmd = &cobra.Command{
 		printTransformStats(len(transactions), numFailures)
 
 		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+
+		if commonArgs.WriteParquet {
+			writeParquet(transformedEffects, parquetPath, new(transform.EffectOutputParquet))
+			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+		}
 	},
 }
 

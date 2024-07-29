@@ -29,6 +29,7 @@ var contractEventsCmd = &cobra.Command{
 
 		outFile := mustOutFile(cmdArgs.Path)
 		numFailures := 0
+		var transformedEvents []transform.SchemaParquet
 		for _, transformInput := range transactions {
 			transformed, err := transform.TransformContractEvent(transformInput.Transaction, transformInput.LedgerHistory)
 			if err != nil {
@@ -45,7 +46,12 @@ var contractEventsCmd = &cobra.Command{
 					numFailures += 1
 					continue
 				}
+
+				if commonArgs.WriteParquet {
+					transformedEvents = append(transformedEvents, contractEvent)
+				}
 			}
+
 		}
 
 		outFile.Close()
@@ -53,6 +59,12 @@ var contractEventsCmd = &cobra.Command{
 		printTransformStats(len(transactions), numFailures)
 
 		maybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.Path)
+
+		if commonArgs.WriteParquet {
+			writeParquet(transformedEvents, cmdArgs.ParquetPath, new(transform.ContractEventOutputParquet))
+			maybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.ParquetPath)
+		}
+
 	},
 }
 

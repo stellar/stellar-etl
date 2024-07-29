@@ -18,7 +18,7 @@ var operationsCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
@@ -30,6 +30,7 @@ var operationsCmd = &cobra.Command{
 		outFile := mustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
+		var transformedOps []transform.SchemaParquet
 		for _, transformInput := range operations {
 			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
 			if err != nil {
@@ -46,6 +47,10 @@ var operationsCmd = &cobra.Command{
 				continue
 			}
 			totalNumBytes += numBytes
+
+			if commonArgs.WriteParquet {
+				transformedOps = append(transformedOps, transformed)
+			}
 		}
 
 		outFile.Close()
@@ -54,6 +59,11 @@ var operationsCmd = &cobra.Command{
 		printTransformStats(len(operations), numFailures)
 
 		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+
+		if commonArgs.WriteParquet {
+			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			writeParquet(transformedOps, parquetPath, new(transform.OperationOutputParquet))
+		}
 	},
 }
 

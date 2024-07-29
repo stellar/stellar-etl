@@ -18,7 +18,7 @@ var ledgersCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
@@ -38,6 +38,7 @@ var ledgersCmd = &cobra.Command{
 
 		numFailures := 0
 		totalNumBytes := 0
+		var transformedLedgers []transform.SchemaParquet
 		for i, ledger := range ledgers {
 			transformed, err := transform.TransformLedger(ledger.Ledger, ledger.LCM)
 			if err != nil {
@@ -53,6 +54,10 @@ var ledgersCmd = &cobra.Command{
 				continue
 			}
 			totalNumBytes += numBytes
+
+			if commonArgs.WriteParquet {
+				transformedLedgers = append(transformedLedgers, transformed)
+			}
 		}
 
 		outFile.Close()
@@ -61,6 +66,11 @@ var ledgersCmd = &cobra.Command{
 		printTransformStats(len(ledgers), numFailures)
 
 		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+
+		if commonArgs.WriteParquet {
+			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			writeParquet(transformedLedgers, parquetPath, new(transform.LedgerOutputParquet))
+		}
 	},
 }
 
