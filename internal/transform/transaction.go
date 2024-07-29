@@ -127,6 +127,12 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputMinSequenceLedgerGap = null.IntFrom(int64(*minSequenceLedgerGap))
 	}
 
+	xdrSignatures := transaction.Envelope.Signatures()
+	signatures := make([]string, len(xdrSignatures))
+	for i, sig := range xdrSignatures {
+		signatures[i] = base64.StdEncoding.EncodeToString(sig.Signature)
+	}
+
 	// Soroban fees and resources
 	// Note: MaxFee and FeeCharged is the sum of base transaction fees + Soroban fees
 	// Breakdown of Soroban fees can be calculated by the config_setting resource pricing * the resources used
@@ -224,6 +230,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		TotalNonRefundableResourceFeeCharged: outputTotalNonRefundableResourceFeeCharged,
 		TotalRefundableResourceFeeCharged:    outputTotalRefundableResourceFeeCharged,
 		RentFeeCharged:                       outputRentFeeCharged,
+		Signatures:                           signatures,
 	}
 
 	// Add Muxed Account Details, if exists
