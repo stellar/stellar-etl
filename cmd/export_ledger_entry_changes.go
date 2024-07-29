@@ -32,7 +32,7 @@ be exported.`,
 		cmdLogger.StrictExport = commonArgs.StrictExport
 		env := utils.GetEnvironmentDetails(commonArgs)
 
-		_, configPath, startNum, batchSize, outputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		_, configPath, startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
@@ -41,6 +41,11 @@ be exported.`,
 		err := os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
 			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
+		}
+
+		err = os.MkdirAll(parquetOutputFolder, os.ModePerm)
+		if err != nil {
+			cmdLogger.Fatalf("unable to mkdir %s: %v", parquetOutputFolder, err)
 		}
 
 		if batchSize <= 0 {
@@ -256,11 +261,13 @@ be exported.`,
 					batch.BatchStart,
 					batch.BatchEnd,
 					outputFolder,
+					parquetOutputFolder,
 					transformedOutputs,
 					cloudCredentials,
 					cloudStorageBucket,
 					cloudProvider,
 					commonArgs.Extra,
+					commonArgs.WriteParquet,
 				)
 				if err != nil {
 					cmdLogger.LogError(err)
@@ -274,23 +281,81 @@ be exported.`,
 func exportTransformedData(
 	start, end uint32,
 	folderPath string,
+	parquetFolderPath string,
 	transformedOutput map[string][]interface{},
 	cloudCredentials, cloudStorageBucket, cloudProvider string,
-	extra map[string]string) error {
+	extra map[string]string,
+	WriteParquet bool) error {
 
 	for resource, output := range transformedOutput {
 		// Filenames are typically exclusive of end point. This processor
 		// is different and we have to increment by 1 since the end batch number
 		// is included in this filename.
 		path := filepath.Join(folderPath, exportFilename(start, end+1, resource))
+		parquetPath := filepath.Join(parquetFolderPath, exportParquetFilename(start, end+1, resource))
 		outFile := mustOutFile(path)
+		var transformedResource []transform.SchemaParquet
+		var parquetSchema interface{}
+		var skip bool
 		for _, o := range output {
 			_, err := exportEntry(o, outFile, extra)
 			if err != nil {
 				return err
 			}
+
+			if WriteParquet {
+				switch v := o.(type) {
+				case transform.AccountOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.AccountOutputParquet)
+					skip = false
+				case transform.AccountSignerOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.AccountSignerOutputParquet)
+					skip = false
+				case transform.ClaimableBalanceOutput:
+					// Skipping ClaimableBalanceOutputParquet because it is not needed in the current scope of work
+					// Note that ClaimableBalanceOutputParquet uses nested structs that will need to be handled
+					// for parquet conversio
+					skip = true
+				case transform.ConfigSettingOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.ConfigSettingOutputParquet)
+					skip = false
+				case transform.ContractCodeOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.ContractCodeOutputParquet)
+					skip = false
+				case transform.ContractDataOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.ContractDataOutputParquet)
+					skip = false
+				case transform.PoolOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.PoolOutputParquet)
+					skip = false
+				case transform.OfferOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.OfferOutputParquet)
+					skip = false
+				case transform.TrustlineOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.TrustlineOutputParquet)
+					skip = false
+				case transform.TtlOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.TtlOutputParquet)
+					skip = false
+				}
+			}
 		}
+
 		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+
+		if !skip && WriteParquet {
+			writeParquet(transformedResource, parquetPath, parquetSchema)
+			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+		}
 	}
 
 	return nil
