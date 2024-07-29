@@ -136,7 +136,7 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesReadBytes:    0,
 			SorobanResourcesWriteBytes:   0,
 			TransactionResultCode:        "TransactionResultCodeTxFeeBumpInnerSuccess", //inner fee bump success
-			Signatures:                   []string{},
+			Signatures:                   []string{"9GuLXL2cz09UOAJGSxbtMmTyn7Eb8EJ6ti29TgV/Gj2z7uVMIM56DZqFlJUd+jCELFajOCAsS1fi+0wEO7aECA=="},
 		},
 		{
 			TxEnvelope:                   "AAAAAgAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAGQBpLyvsiV6gwAAAAIAAAABAAAAAAAAAAAAAAAAXwardAAAAAEAAAAFAAAACgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAMCAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFjQq+PAAAAQPRri1y9nM9PVDgCRksW7TJk8p+xG/BCerYtvU4Ffxo9s+7lTCDOeg2ahZSVHfowhCxWozggLEtX4vtMBDu2hAg=",
