@@ -122,7 +122,9 @@ type OperationOutputParquet struct {
 	LedgerSequence      int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=INT64, convertedtype=UINT_64"`
 }
 
-//// Skipping ClaimableBalanceOutputParquet because it is not needed
+//// Skipping ClaimableBalanceOutputParquet because it is not needed in the current scope of work
+//// Note that ClaimableBalanceOutputParquet uses nested structs that will need to be handled
+//// for parquet conversion
 //type ClaimableBalanceOutputParquet struct {
 //}
 

@@ -1,5 +1,10 @@
 // This file includes interfaces and functions for converting data structures/schemas
 // to the appropriate parquet data structure/schema.
+//
+// Note that uint32 data types need to be converted to int64 due to restrictions
+// from the parquet-go package. Conversion is to int64 due to the possible loss of
+// data in the conversion from uint32 -> int32.
+// This applies to all the ToParquet() functions in this file.
 
 package transform
 
@@ -21,6 +26,9 @@ func toJSONString(v interface{}) string {
 
 func (lo LedgerOutput) ToParquet() interface{} {
 	return LedgerOutputParquet{
+		// Note that uint32 data types need to be converted to int64 due to restrictions
+		// from the parquet-go package. Conversion is to int64 due to the possible loss of
+		// data in the conversion from uint32 -> int32.
 		Sequence:                   int64(lo.Sequence),
 		LedgerHash:                 lo.LedgerHash,
 		PreviousLedgerHash:         lo.PreviousLedgerHash,

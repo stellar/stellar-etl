@@ -48,7 +48,9 @@ var transactionsCmd = &cobra.Command{
 			}
 			totalNumBytes += numBytes
 
-			transformedTransaction = append(transformedTransaction, transformed)
+			if commonArgs.WriteParquet {
+				transformedTransaction = append(transformedTransaction, transformed)
+			}
 		}
 
 		outFile.Close()

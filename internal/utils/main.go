@@ -240,7 +240,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
 	flags.Uint32("retry-wait", 5, "Time in seconds to wait for GetLedger retry.")
-	flags.Bool("write-parquet", true, "If set, write output as parquet files.")
+	flags.Bool("write-parquet", false, "If set, write output as parquet files.")
 }
 
 // AddArchiveFlags adds the history archive specific flags: output, and limit

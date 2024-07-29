@@ -64,7 +64,9 @@ var assetsCmd = &cobra.Command{
 			}
 			totalNumBytes += numBytes
 
-			transformedAssets = append(transformedAssets, transformed)
+			if commonArgs.WriteParquet {
+				transformedAssets = append(transformedAssets, transformed)
+			}
 		}
 
 		outFile.Close()

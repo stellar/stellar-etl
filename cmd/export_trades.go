@@ -52,7 +52,9 @@ var tradesCmd = &cobra.Command{
 				}
 				totalNumBytes += numBytes
 
-				transformedTrades = append(transformedTrades, transformed)
+				if commonArgs.WriteParquet {
+					transformedTrades = append(transformedTrades, transformed)
+				}
 			}
 		}
 

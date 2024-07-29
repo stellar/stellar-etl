@@ -55,7 +55,9 @@ var ledgersCmd = &cobra.Command{
 			}
 			totalNumBytes += numBytes
 
-			transformedLedgers = append(transformedLedgers, transformed)
+			if commonArgs.WriteParquet {
+				transformedLedgers = append(transformedLedgers, transformed)
+			}
 		}
 
 		outFile.Close()

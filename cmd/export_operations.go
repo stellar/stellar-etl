@@ -48,7 +48,9 @@ var operationsCmd = &cobra.Command{
 			}
 			totalNumBytes += numBytes
 
-			transformedOps = append(transformedOps, transformed)
+			if commonArgs.WriteParquet {
+				transformedOps = append(transformedOps, transformed)
+			}
 		}
 
 		outFile.Close()

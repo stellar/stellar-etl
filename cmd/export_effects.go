@@ -48,7 +48,9 @@ var effectsCmd = &cobra.Command{
 				}
 				totalNumBytes += numBytes
 
-				transformedEffects = append(transformedEffects, transformed)
+				if commonArgs.WriteParquet {
+					transformedEffects = append(transformedEffects, transformed)
+				}
 			}
 		}
 

@@ -302,46 +302,51 @@ func exportTransformedData(
 			if err != nil {
 				return err
 			}
-			switch v := o.(type) {
-			case transform.AccountOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.AccountOutputParquet)
-				skip = false
-			case transform.AccountSignerOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.AccountSignerOutputParquet)
-				skip = false
-			case transform.ClaimableBalanceOutput:
-				// Skip
-				skip = true
-			case transform.ConfigSettingOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.ConfigSettingOutputParquet)
-				skip = false
-			case transform.ContractCodeOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.ContractCodeOutputParquet)
-				skip = false
-			case transform.ContractDataOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.ContractDataOutputParquet)
-				skip = false
-			case transform.PoolOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.PoolOutputParquet)
-				skip = false
-			case transform.OfferOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.OfferOutputParquet)
-				skip = false
-			case transform.TrustlineOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.TrustlineOutputParquet)
-				skip = false
-			case transform.TtlOutput:
-				transformedResource = append(transformedResource, v)
-				parquetSchema = new(transform.TtlOutputParquet)
-				skip = false
+
+			if WriteParquet {
+				switch v := o.(type) {
+				case transform.AccountOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.AccountOutputParquet)
+					skip = false
+				case transform.AccountSignerOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.AccountSignerOutputParquet)
+					skip = false
+				case transform.ClaimableBalanceOutput:
+					// Skipping ClaimableBalanceOutputParquet because it is not needed in the current scope of work
+					// Note that ClaimableBalanceOutputParquet uses nested structs that will need to be handled
+					// for parquet conversio
+					skip = true
+				case transform.ConfigSettingOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.ConfigSettingOutputParquet)
+					skip = false
+				case transform.ContractCodeOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.ContractCodeOutputParquet)
+					skip = false
+				case transform.ContractDataOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.ContractDataOutputParquet)
+					skip = false
+				case transform.PoolOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.PoolOutputParquet)
+					skip = false
+				case transform.OfferOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.OfferOutputParquet)
+					skip = false
+				case transform.TrustlineOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.TrustlineOutputParquet)
+					skip = false
+				case transform.TtlOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.TtlOutputParquet)
+					skip = false
+				}
 			}
 		}
 

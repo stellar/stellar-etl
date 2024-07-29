@@ -47,7 +47,9 @@ var contractEventsCmd = &cobra.Command{
 					continue
 				}
 
-				transformedEvents = append(transformedEvents, contractEvent)
+				if commonArgs.WriteParquet {
+					transformedEvents = append(transformedEvents, contractEvent)
+				}
 			}
 
 		}
