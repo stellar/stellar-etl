@@ -12,6 +12,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
@@ -224,7 +225,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		TotalNonRefundableResourceFeeCharged: outputTotalNonRefundableResourceFeeCharged,
 		TotalRefundableResourceFeeCharged:    outputTotalRefundableResourceFeeCharged,
 		RentFeeCharged:                       outputRentFeeCharged,
-		Signatures:                           getSignatures(transaction.Envelope.Signatures()),
+		TxSigners:                            getTxSigners(transaction.Envelope.Signatures()),
 	}
 
 	// Add Muxed Account Details, if exists
@@ -250,7 +251,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		transformedTransaction.InnerTransactionHash = hex.EncodeToString(innerHash[:])
 		transformedTransaction.NewMaxFee = uint32(transaction.Envelope.FeeBumpFee())
 
-		transformedTransaction.Signatures = getSignatures(transaction.Envelope.FeeBump.Signatures)
+		transformedTransaction.TxSigners = getTxSigners(transaction.Envelope.FeeBump.Signatures)
 	}
 
 	return transformedTransaction, nil
@@ -299,11 +300,13 @@ func formatSigners(s []xdr.SignerKey) pq.StringArray {
 	return signers
 }
 
-func getSignatures(xdrSignatures []xdr.DecoratedSignature) []string {
-	signatures := make([]string, len(xdrSignatures))
+func getTxSigners(xdrSignatures []xdr.DecoratedSignature) []string {
+	signers := make([]string, len(xdrSignatures))
+
 	for i, sig := range xdrSignatures {
-		signatures[i] = base64.StdEncoding.EncodeToString(sig.Signature)
+		signerAccount, _ := strkey.Encode(strkey.VersionByteAccountID, sig.Signature)
+		signers[i] = signerAccount
 	}
 
-	return signatures
+	return signers
 }

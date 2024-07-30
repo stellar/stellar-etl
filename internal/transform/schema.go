@@ -74,7 +74,7 @@ type TransactionOutput struct {
 	TotalNonRefundableResourceFeeCharged int64          `json:"non_refundable_resource_fee_charged"`
 	TotalRefundableResourceFeeCharged    int64          `json:"refundable_resource_fee_charged"`
 	RentFeeCharged                       int64          `json:"rent_fee_charged"`
-	Signatures                           []string       `json:"signatures"`
+	TxSigners                            []string       `json:"tx_signers"`
 }
 
 type LedgerTransactionOutput struct {
