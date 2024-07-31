@@ -28,12 +28,15 @@ Copy above files in a GCS bucket.
 Following is example to extract FeeAccountMuxed:
 
 ```javascript
-    let tx_meta = "AAAABQAAAQAAABYMYQ4r9W/uB9X6q6VU6feQhS2kQoRy9CjvwtYXdPRSih2hZeSSAAAAAAAAAZAAAAACAAAAAJwLL0Ul/CyRZdXuenmdXrzVyX9X56m4kYPYmgppVIj8AAAAZAAF9PwAAAABAAAAAAAAAAAAAAABAAAAAQAAAQAAAFj7+8N85JwLL0Ul/CyRZdXuenmdXrzVyX9X56m4kYPYmgppVIj8AAAAAAAAAADN5igtu93OKhkj2NrSHuPEJktU+0gJ0LiNavJirLAmRwAAAAAF9eEAAAAAAAAAAAFpVIj8AAAAQElnt70S4sGicHyhsN1S29DEREZ7i2HU96+8DfyshlFLCoQudDIxThnVEg2KQDrW61R19M7Ms9IAsznURc5y3wIAAAAAAAAAAaFl5JIAAABAIf9/ecA3id1mbHzJ2S9W5bRVqrjQr/c2+jHEuDNZevt3LDVSc+DmRMYie0eQ+vE7B3D+fRPb9yFzpfx4meTfBg==";
+let tx_meta =
+  "AAAABQAAAQAAABYMYQ4r9W/uB9X6q6VU6feQhS2kQoRy9CjvwtYXdPRSih2hZeSSAAAAAAAAAZAAAAACAAAAAJwLL0Ul/CyRZdXuenmdXrzVyX9X56m4kYPYmgppVIj8AAAAZAAF9PwAAAABAAAAAAAAAAAAAAABAAAAAQAAAQAAAFj7+8N85JwLL0Ul/CyRZdXuenmdXrzVyX9X56m4kYPYmgppVIj8AAAAAAAAAADN5igtu93OKhkj2NrSHuPEJktU+0gJ0LiNavJirLAmRwAAAAAF9eEAAAAAAAAAAAFpVIj8AAAAQElnt70S4sGicHyhsN1S29DEREZ7i2HU96+8DfyshlFLCoQudDIxThnVEg2KQDrW61R19M7Ms9IAsznURc5y3wIAAAAAAAAAAaFl5JIAAABAIf9/ecA3id1mbHzJ2S9W5bRVqrjQr/c2+jHEuDNZevt3LDVSc+DmRMYie0eQ+vE7B3D+fRPb9yFzpfx4meTfBg==";
 
-    let txe = StellarBase.xdr.TransactionEnvelope.fromXDR(tx_meta, 'base64');
-    let tx = txe.feeBump();
-    let sourceAccount = StellarBase.encodeMuxedAccountToAddress(tx.tx().feeSource());
-    console.log(sourceAccount)
+let txe = StellarBase.xdr.TransactionEnvelope.fromXDR(tx_meta, "base64");
+let tx = txe.feeBump();
+let sourceAccount = StellarBase.encodeMuxedAccountToAddress(
+  tx.tx().feeSource(),
+);
+console.log(sourceAccount);
 ```
 
 Above will print `MBX64B6V7KV2KVHJ66IIKLNEIKCHF5BI57BNMF3U6RJIUHNBMXSJEAAACYGGCDRL6UFO2`, which is the `fee_account_muxed` value
