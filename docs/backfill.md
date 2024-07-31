@@ -84,3 +84,47 @@ Row | transaction_hash | fee_account
 2 | a9e49dff6202663633b83f3645fbf8c2cfeb915db99b2b884a86791b9f8eae2f | MBX64B6V7KV2KVHJ66IIKLNEIKCHF5BI57BNMF3U6RJIUHNBMXSJEAAACYGGCDRL6UFO2
 3 | 00dba50c8689477e6990103338a0eb326725e07a7b7ff187359abf11c23c582a| MC5BEU3DCIMHOHRQDVDAPEPZGMBBALPJ3IQY23VTXC3454SQMNWVSAAACYGGCDRL6UX42
 4 | 2e1c53a9fe1d48ddc493febe467178994e669e3eebf3a4cca646b3cb666616de|MAMYAUW45TC54C3QORQP7OOFYKOXCJTXOG2WIV5LP2HDMR67MWP6IAAACYGGCDRL6VCZM
+
+# Updating values of columns using UDF
+
+```
+CREATE TEMP FUNCTION getFeeBumpAccountIfExists(tx_meta STRING)
+RETURNS STRING
+LANGUAGE js
+OPTIONS (
+  library=["gs://stellar-test-js-udf/stellar-base.min.js"]
+)
+AS r"""
+    let txe = StellarBase.xdr.TransactionEnvelope.fromXDR(tx_meta, 'base64');
+    let tx = txe.feeBump();
+    let sourceAccount = StellarBase.encodeMuxedAccountToAddress(tx.tx().feeSource());
+    return sourceAccount
+
+""";
+
+MERGE `crypto_stellar.history_transactions` AS target
+USING (
+  WITH fee_bump_transactions AS (
+    SELECT batch_run_date, transaction_hash, tx_envelope AS tx_meta
+    FROM `crypto_stellar.history_transactions`
+    WHERE batch_run_date > '2020-08-03'
+      AND batch_run_date < '2020-08-05'
+      AND inner_transaction_hash IS NOT NULL
+  ),
+  calculated_fee_account AS (
+    SELECT batch_run_date, transaction_hash, getFeeBumpAccountIfExists(tx_meta) AS fee_account
+    FROM fee_bump_transactions
+  ),
+  calculated_fee_muxed_account AS (
+    SELECT batch_run_date, transaction_hash, fee_account
+    FROM calculated_fee_account
+    WHERE fee_account LIKE 'M%' -- muxed accounts
+  )
+  SELECT batch_run_date, transaction_hash, fee_account AS fee_account_muxed
+  FROM calculated_fee_muxed_account
+) AS source
+ON target.batch_run_date = source.batch_run_date
+   AND target.transaction_hash = source.transaction_hash
+WHEN MATCHED THEN
+  UPDATE SET target.fee_account_muxed = source.fee_account_muxed;
+```
