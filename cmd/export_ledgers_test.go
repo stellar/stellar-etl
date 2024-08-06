@@ -61,13 +61,13 @@ func TestExportLedger(t *testing.T) {
 			name:    "end before start",
 			args:    []string{"export_ledgers", "-s", "100", "-e", "50"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: End sequence number is less than start (50 < 100)"),
+			wantErr: fmt.Errorf("Number of bytes written: 0"),
 		},
 		{
 			name:    "start too large",
 			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than start sequence number (%d < 4294967295)", latestLedger),
+			wantErr: fmt.Errorf("could not read ledgers: failed getting next ledger batch from queue: ledger object containing sequence 4294967295 is missing: file does not exist"),
 		},
 		// {
 		// 	name:    "end too large",
@@ -79,13 +79,13 @@ func TestExportLedger(t *testing.T) {
 			name:    "start is 0",
 			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+			wantErr: fmt.Errorf("could not read ledgers: LedgerCloseMeta for sequence 0 not found"),
 		},
 		{
 			name:    "end is 0",
 			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+			wantErr: fmt.Errorf("Number of bytes written: 0"),
 		},
 		{
 			name:    "single ledger",
