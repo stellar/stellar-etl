@@ -111,6 +111,12 @@ func sortByName(files []os.DirEntry) {
 	})
 }
 
+func runCLITestDefault(t *testing.T, test cliTest, goldenFolder string, update_in bool) {
+	update = &update_in
+	fmt.Println(update)
+	runCLITest(t, test, goldenFolder)
+}
+
 func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 	flag.Parse()
 	t.Run(test.name, func(t *testing.T) {
@@ -142,6 +148,10 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 		if idxOfOutputArg > -1 {
 			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
+			// _, err = clearOutputFile(outLocation)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
 
 			if stat.IsDir() {
 				files, err := os.ReadDir(outLocation)
