@@ -31,8 +31,7 @@ func TestExportTransactions(t *testing.T) {
 			wantErr: nil,
 		},
 	}
-
 	for _, test := range tests {
-		runCLITestDefault(t, test, "testdata/transactions/", true)
+		runCLITest(t, test, "testdata/transactions/")
 	}
 }

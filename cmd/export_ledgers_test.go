@@ -121,19 +121,40 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
+func removeAll(path string) error {
+	// Walk through the directory tree
+	err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Remove the file or directory
+		if info.IsDir() {
+			// Remove the directory after its contents are removed
+			if p != path {
+				return os.Remove(p)
+			}
+		} else {
+			return os.Remove(p)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Remove the root directory after its contents have been removed
+	return os.Remove(path)
+}
+
 func sortByName(files []os.DirEntry) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
 	})
 }
 
-func runCLITestDefault(t *testing.T, test cliTest, goldenFolder string, update_in bool) {
-	update = &update_in
-	fmt.Println(update)
-	runCLITest(t, test, goldenFolder)
-}
-
 func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
+	flag.Parse()
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
@@ -152,7 +173,7 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 				}
 			} else {
 				if stat.IsDir() {
-					err := os.Remove(outLocation)
+					err := removeAll(outLocation)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -249,7 +270,7 @@ func clearOutputFile(outputFile string) (string, error) {
 
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
 	t.Helper()
-	f, err := os.OpenFile(goldenFile, os.O_RDWR, 0644)
+	f, err := os.OpenFile(goldenFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return "", err
 	}
@@ -267,7 +288,6 @@ func getGolden(t *testing.T, goldenFile string, actual string, update bool) (str
 		if err != nil {
 			return "", err
 		}
-
 		return actual, nil
 	}
 

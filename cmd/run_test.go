@@ -17,6 +17,6 @@ func TestIntegration(t *testing.T) {
 
 	for _, test := range tests {
 		fmt.Println(test)
-		runCLITestDefault(t, test, "testdata/integration/", false)
+		runCLITest(t, test, "testdata/integration/")
 	}
 }
