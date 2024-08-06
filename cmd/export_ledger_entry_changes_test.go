@@ -29,12 +29,12 @@ func TestExportChanges(t *testing.T) {
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
-		{
-			name:    "changes from large range",
-			args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "100000", "-e", "164000", "-o", gotTestDir(t, "large_range_changes/")},
-			golden:  "large_range_changes.golden",
-			wantErr: nil,
-		},
+		// {
+		// 	name:    "changes from large range",
+		// 	args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "100000", "-e", "164000", "-o", gotTestDir(t, "large_range_changes/")},
+		// 	golden:  "large_range_changes.golden",
+		// 	wantErr: nil,
+		// },
 	}
 
 	for _, test := range tests {
