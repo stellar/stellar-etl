@@ -148,10 +148,6 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 		if idxOfOutputArg > -1 {
 			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
-			// _, err = clearOutputFile(outLocation)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
 
 			if stat.IsDir() {
 				files, err := os.ReadDir(outLocation)
