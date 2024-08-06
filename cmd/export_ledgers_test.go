@@ -14,14 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 var executableName = "stellar-etl"
-var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
-var archiveURLs = []string{archiveURL}
-var latestLedger = getLastSeqNum(archiveURLs)
 var update = flag.Bool("update", false, "update the golden files of this test")
 var gotFolder = "testdata/got/"
 
@@ -245,14 +241,6 @@ func extractErrorMsg(loggerOutput string) string {
 	errIndex := strings.Index(loggerOutput, "msg=") + 5
 	endIndex := strings.Index(loggerOutput[errIndex:], "\"")
 	return loggerOutput[errIndex : errIndex+endIndex]
-}
-
-func getLastSeqNum(archiveURLs []string) uint32 {
-	num, err := utils.GetLatestLedgerSequence(archiveURLs)
-	if err != nil {
-		panic(err)
-	}
-	return num
 }
 
 func clearOutputFile(outputFile string) (string, error) {
