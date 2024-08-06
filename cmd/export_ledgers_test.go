@@ -138,21 +138,39 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
 
+		idxOfOutputArg := indexOf(test.args, "-o")
+		var testOutput []byte
+		var outLocation string
+		var stat os.FileInfo
+		if idxOfOutputArg > -1 {
+			outLocation = test.args[idxOfOutputArg+1]
+			stat, err = os.Stat(outLocation)
+			if err != nil {
+				// Check if the error is due to the file not existing
+				if !os.IsNotExist(err) {
+					assert.NoError(t, err)
+				}
+			} else {
+				if stat.IsDir() {
+					err := os.Remove(outLocation)
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					_, err = clearOutputFile(outLocation)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+			}
+		}
+
 		cmd := exec.Command(path.Join(dir, executableName), test.args...)
 		errOut, actualError := cmd.CombinedOutput()
-
-		idxOfOutputArg := indexOf(test.args, "-o")
-		testOutput := []byte{}
 		if idxOfOutputArg > -1 {
-			outLocation := test.args[idxOfOutputArg+1]
-			stat, err := os.Stat(outLocation)
+			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
-			// _, err = clearOutputFile(outLocation)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
 
-			// If the output arg specified is a directory, concat the contents for comparison.
 			if stat.IsDir() {
 				files, err := os.ReadDir(outLocation)
 				if err != nil {
@@ -176,6 +194,7 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 				}
 			}
 		}
+
 		// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
 		// Instead, it's wrapped in other os/system errors
 		// By reading the error text from the logger, we can extract the lower level error that the user would see
@@ -216,7 +235,7 @@ func getLastSeqNum(archiveURLs []string) uint32 {
 }
 
 func clearOutputFile(outputFile string) (string, error) {
-	f, err := os.OpenFile(outputFile, os.O_RDWR, 0644)
+	f, err := os.OpenFile(outputFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return "", err
 	}
