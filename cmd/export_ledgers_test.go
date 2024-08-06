@@ -127,6 +127,12 @@ func sortByName(files []os.DirEntry) {
 	})
 }
 
+func runCLITestDefault(t *testing.T, test cliTest, goldenFolder string, update_in bool) {
+	update = &update_in
+	fmt.Println(update)
+	runCLITest(t, test, goldenFolder)
+}
+
 func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()
@@ -141,6 +147,10 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 			outLocation := test.args[idxOfOutputArg+1]
 			stat, err := os.Stat(outLocation)
 			assert.NoError(t, err)
+			// _, err = clearOutputFile(outLocation)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
 
 			// If the output arg specified is a directory, concat the contents for comparison.
 			if stat.IsDir() {
@@ -203,6 +213,19 @@ func getLastSeqNum(archiveURLs []string) uint32 {
 		panic(err)
 	}
 	return num
+}
+
+func clearOutputFile(outputFile string) (string, error) {
+	f, err := os.OpenFile(outputFile, os.O_RDWR, 0644)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	err = os.Truncate(outputFile, 0)
+	if err != nil {
+		return "", err
+	}
+	return "", nil
 }
 
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
