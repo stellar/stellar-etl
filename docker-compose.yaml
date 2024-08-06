@@ -7,5 +7,7 @@ services:
     restart: always
     volumes:
       - $HOME/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro
+      - ./testdata:/usr/src/etl/testdata
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json
+ 
