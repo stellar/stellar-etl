@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - integration-test
   pull_request:
     branches:
       - master
