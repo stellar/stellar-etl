@@ -24,17 +24,19 @@ func TestExportChanges(t *testing.T) {
 			wantErr: fmt.Errorf("batch-size (0) must be greater than 0"),
 		},
 		{
-			name:    "changes from single ledger",
-			args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "140116", "-e", "140116", "-o", gotTestDir(t, "single/")},
-			golden:  "single_ledger.golden",
-			wantErr: nil,
+			name:              "all changes from ledger entry",
+			args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265350", "-o", gotTestDir(t, "all/")},
+			golden:            "all.golden",
+			wantErr:           nil,
+			sortForComparison: true,
 		},
-		// {
-		// 	name:    "changes from large range",
-		// 	args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "100000", "-e", "164000", "-o", gotTestDir(t, "large_range_changes/")},
-		// 	golden:  "large_range_changes.golden",
-		// 	wantErr: nil,
-		// },
+		{
+			name:              "account changes from ledger entry",
+			args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265400", "-o", gotTestDir(t, "accounts/"), "--export-accounts", "true"},
+			golden:            "accounts.golden",
+			wantErr:           nil,
+			sortForComparison: true,
+		},
 	}
 
 	for _, test := range tests {
