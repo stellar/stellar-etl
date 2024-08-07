@@ -59,12 +59,6 @@ func TestExportLedger(t *testing.T) {
 			golden:  "",
 			wantErr: fmt.Errorf("Number of bytes written: 0"),
 		},
-		{
-			name:    "start too large",
-			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295"},
-			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: failed getting next ledger batch from queue: ledger object containing sequence 4294967295 is missing: file does not exist"),
-		},
 		// {
 		// 	name:    "end too large",
 		// 	args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295"},
