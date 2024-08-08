@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - integration-test
   pull_request:
     branches:
       - master
@@ -35,14 +34,14 @@ jobs:
 
       - name: Create GCP Credentials File
         run: |
-          echo "${{ secrets.CREDS_TEST_HUBBLE }}" > ${{ runner.workspace }}/gcp-key.json
+          echo "$CREDS_TEST_HUBBLE" > ${{ runner.workspace }}/gcp-key.json
+        shell: bash
+        env:
+          CREDS_TEST_HUBBLE: ${{secrets.CREDS_TEST_HUBBLE}}
 
       - name: Run tests
         run: |
-          docker-compose run integration-tests go test -v -run ^TestExportTransactions$ ./cmd -timeout 30m
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.workspace }}/gcp-key.json
-          # docker-compose run integration-tests go test ./cmd -v -timeout 30m
+          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json integration-tests go test -v ./cmd -timeout 30m
 
       - name: Stop and remove containers
         run: |
