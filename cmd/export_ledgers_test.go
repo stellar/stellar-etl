@@ -111,32 +111,6 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func removeAll(path string) error {
-	// Walk through the directory tree
-	err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Remove the file or directory
-		if info.IsDir() {
-			// Remove the directory after its contents are removed
-			if p != path {
-				return os.Remove(p)
-			}
-		} else {
-			return os.Remove(p)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Remove the root directory after its contents have been removed
-	return os.Remove(path)
-}
-
 func sortByName(files []os.DirEntry) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
@@ -155,23 +129,16 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 		var stat os.FileInfo
 		if idxOfOutputArg > -1 {
 			outLocation = test.args[idxOfOutputArg+1]
-			stat, err = os.Stat(outLocation)
+			_, err = os.Stat(outLocation)
 			if err != nil {
 				// Check if the error is due to the file not existing
 				if !os.IsNotExist(err) {
 					assert.NoError(t, err)
 				}
 			} else {
-				if stat.IsDir() {
-					err := removeAll(outLocation)
-					if err != nil {
-						log.Fatal(err)
-					}
-				} else {
-					_, err = clearOutputFile(outLocation)
-					if err != nil {
-						log.Fatal(err)
-					}
+				err = deleteLocalFiles(outLocation)
+				if err != nil {
+					log.Fatal(err)
 				}
 			}
 		}
@@ -235,19 +202,6 @@ func extractErrorMsg(loggerOutput string) string {
 	errIndex := strings.Index(loggerOutput, "msg=") + 5
 	endIndex := strings.Index(loggerOutput[errIndex:], "\"")
 	return loggerOutput[errIndex : errIndex+endIndex]
-}
-
-func clearOutputFile(outputFile string) (string, error) {
-	f, err := os.OpenFile(outputFile, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-	err = os.Truncate(outputFile, 0)
-	if err != nil {
-		return "", err
-	}
-	return "", nil
 }
 
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
