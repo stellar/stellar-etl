@@ -33,9 +33,15 @@ jobs:
         run: |
           docker-compose up -d
 
+      - name: Create GCP Credentials File
+        run: |
+          echo "${{ secrets.CREDS_TEST_HUBBLE }}" > ${{ runner.workspace }}/gcp-key.json
+
       - name: Run tests
         run: |
           docker-compose run integration-tests go test -v -run ^TestExportTransactions$ ./cmd -timeout 30m
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.workspace }}/gcp-key.json
           # docker-compose run integration-tests go test ./cmd -v -timeout 30m
 
       - name: Stop and remove containers
