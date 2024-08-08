@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  docker-compose:
+  integration-tests:
     runs-on: ubuntu-latest
 
     steps:
