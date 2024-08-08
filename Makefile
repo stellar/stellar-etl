@@ -31,3 +31,6 @@ int-test-update:
 	-e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
 	integration-tests \
 	go test -v ./cmd -timeout 30m -args -update=true
+
+lint:
+	pre-commit run --show-diff-on-failure --color=always --all-files
