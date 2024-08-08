@@ -13,4 +13,4 @@
 {"asset_code":"BRL","asset_id":-1545228899966542584,"asset_issuer":"GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP","asset_type":"credit_alphanum4","closed_at":"2020-07-27T21:12:51Z","ledger_sequence":30820015}
 {"asset_code":"MOBI","asset_id":1840363765008335035,"asset_issuer":"GA6HCMBLTZS5VYYBCATRBRZ3BZJMAFUDKYYF6AH6MVCMGWMRDNSWJPIH","asset_type":"credit_alphanum4","closed_at":"2020-07-27T21:12:51Z","ledger_sequence":30820015}
 {"asset_code":"LAX","asset_id":3714635468612961543,"asset_issuer":"GAZZB5KPOWEWK4C5S5H5B6YPR2EQMUIJEFFBNQ6MWYYAG7DOEELBOHLW","asset_type":"credit_alphanum4","closed_at":"2020-07-27T21:12:51Z","ledger_sequence":30820015}
-{"asset_code":"PAR","asset_id":-8320572527185980835,"asset_issuer":"GDYG7OEXT7GO2WOYJKRFMYK6PXQTPFRKO4JSNRRZWE4JM2V6QWQR2QZD","asset_type":"credit_alphanum4","closed_at":"2020-07-27T21:12:51Z","ledger_sequence":30820015}
+{"asset_code":"ZAR","asset_id":-8320572527185980835,"asset_issuer":"GDYG7OEXT7GO2WOYJKRFMYK6PXQTPFRKO4JSNRRZWE4JM2V6QWQR2QZD","asset_type":"credit_alphanum4","closed_at":"2020-07-27T21:12:51Z","ledger_sequence":30820015}
