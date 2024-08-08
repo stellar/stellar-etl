@@ -105,32 +105,6 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func removeAll(path string) error {
-	// Walk through the directory tree
-	err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Remove the file or directory
-		if info.IsDir() {
-			// Remove the directory after its contents are removed
-			if p != path {
-				return os.Remove(p)
-			}
-		} else {
-			return os.Remove(p)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Remove the root directory after its contents have been removed
-	return os.Remove(path)
-}
-
 func sortByName(files []os.DirEntry) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
