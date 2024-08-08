@@ -5,8 +5,9 @@ services:
       dockerfile: docker/Dockerfile.test
     container_name: stellar-etl-integration-tests
     restart: always
-    volumes:
-      - $HOME/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro
-      - ./testdata:/usr/src/etl/testdata
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json
+    # volumes:
+    #   - $HOME/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro
+    #   - ./testdata:/usr/src/etl/testdata
+    # environment:
+    #   # - GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json
+    #   - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-key.json
