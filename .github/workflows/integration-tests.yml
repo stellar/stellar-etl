@@ -41,7 +41,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json integration-tests go test -v ./cmd -timeout 30m
+          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json integration-tests go test -v -cover ./cmd -timeout 30m
 
       - name: Stop and remove containers
         run: |
