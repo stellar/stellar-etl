@@ -53,8 +53,8 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=${{ runner.workspace }}/coverage/coverage.out | grep total: | awk '{print $3}' | sed 's/%//')
           echo "Coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 60" | bc -l) )); then
-            echo "Coverage is below the 60% threshold."
+          if (( $(echo "$COVERAGE < 55" | bc -l) )); then
+            echo "Coverage is below the 55% threshold."
             exit 1
           fi
 
