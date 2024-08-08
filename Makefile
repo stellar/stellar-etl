@@ -13,3 +13,21 @@ docker-build:
 docker-push:
 	$(SUDO) docker push $(ETLHASH)
 	$(SUDO) docker push stellar/stellar-etl:latest
+
+int-test:
+	docker-compose build
+	docker-compose run \
+	-v $(HOME)/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro \
+	-v $(PWD)/testdata:/usr/src/etl/testdata \
+	-e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
+	integration-tests \
+	go test -v ./cmd -timeout 30m
+
+int-test-update:
+	docker-compose build
+	docker-compose run \
+	-v $(HOME)/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro \
+	-v $(PWD)/testdata:/usr/src/etl/testdata \
+	-e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
+	integration-tests \
+	go test -v ./cmd -timeout 30m -args -update=true

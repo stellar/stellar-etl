@@ -16,9 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Set up Docker Compose
         run: |
           sudo apt-get update
@@ -41,7 +38,25 @@ jobs:
 
       - name: Run tests
         run: |
-          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json integration-tests go test -v -cover ./cmd -timeout 30m
+          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro \
+            -v ${{ runner.workspace }}/coverage/:/usr/coverage/ \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
+            integration-tests \
+            go test -v -coverprofile=/usr/coverage/coverage.out ./cmd ./internal/transform -timeout 30m
+
+      - name: Generate Coverage Report
+        run: |
+          go tool cover -func=${{ runner.workspace }}/coverage/coverage.out
+
+      - name: Check Coverage
+        id: coverage
+        run: |
+          COVERAGE=$(go tool cover -func=${{ runner.workspace }}/coverage/coverage.out | grep total: | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 60" | bc -l) )); then
+            echo "Coverage is below the 60% threshold."
+            exit 1
+          fi
 
       - name: Stop and remove containers
         run: |
