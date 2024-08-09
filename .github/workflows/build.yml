@@ -20,11 +20,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Make docker image
-        uses: make docker-build
+      - name: Add SHORT_SHA env property with commit short sha
+        run: |
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "Short SHA: $SHORT_SHA"
 
-      - name: Retag docker image
-        uses: docker tag stellar/stellar-etl:${{ github.sha }} stellar/stellar-etl-dev:${{ github.sha }}
+      - name: Make docker image
+        working-directory: .
+        run: make docker-build
+        env:
+          ETLHASH: stellar/stellar-etl-dev:${SHORT_SHA}
 
       - name: Push docker image
-        uses: docker push stellar/stellar-etl-dev:${{ github.sha }}
+        working-directory: .
+        run: docker push stellar/stellar-etl-dev:${SHORT_SHA}
