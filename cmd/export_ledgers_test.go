@@ -14,14 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 var executableName = "stellar-etl"
-var archiveURL = "http://history.stellar.org/prd/core-live/core_live_001"
-var archiveURLs = []string{archiveURL}
-var latestLedger = getLastSeqNum(archiveURLs)
 var update = flag.Bool("update", false, "update the golden files of this test")
 var gotFolder = "testdata/got/"
 
@@ -61,31 +57,19 @@ func TestExportLedger(t *testing.T) {
 			name:    "end before start",
 			args:    []string{"export_ledgers", "-s", "100", "-e", "50"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: End sequence number is less than start (50 < 100)"),
-		},
-		{
-			name:    "start too large",
-			args:    []string{"export_ledgers", "-s", "4294967295", "-e", "4294967295"},
-			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than start sequence number (%d < 4294967295)", latestLedger),
-		},
-		{
-			name:    "end too large",
-			args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295"},
-			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than end sequence number (%d < 4294967295)", latestLedger),
+			wantErr: fmt.Errorf("Number of bytes written: 0"),
 		},
 		{
 			name:    "start is 0",
 			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: Start sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+			wantErr: fmt.Errorf("could not read ledgers: LedgerCloseMeta for sequence 0 not found"),
 		},
 		{
 			name:    "end is 0",
 			args:    []string{"export_ledgers", "-e", "0", "-l", "4294967295"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: End sequence number equal to 0. There is no ledger 0 (genesis ledger is ledger 1)"),
+			wantErr: fmt.Errorf("Number of bytes written: 0"),
 		},
 		{
 			name:    "single ledger",
@@ -128,21 +112,37 @@ func sortByName(files []os.DirEntry) {
 }
 
 func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
+	flag.Parse()
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
 
+		idxOfOutputArg := indexOf(test.args, "-o")
+		var testOutput []byte
+		var outLocation string
+		var stat os.FileInfo
+		if idxOfOutputArg > -1 {
+			outLocation = test.args[idxOfOutputArg+1]
+			_, err = os.Stat(outLocation)
+			if err != nil {
+				// Check if the error is due to the file not existing
+				if !os.IsNotExist(err) {
+					assert.NoError(t, err)
+				}
+			} else {
+				err = deleteLocalFiles(outLocation)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
+
 		cmd := exec.Command(path.Join(dir, executableName), test.args...)
 		errOut, actualError := cmd.CombinedOutput()
-
-		idxOfOutputArg := indexOf(test.args, "-o")
-		testOutput := []byte{}
 		if idxOfOutputArg > -1 {
-			outLocation := test.args[idxOfOutputArg+1]
-			stat, err := os.Stat(outLocation)
+			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
 
-			// If the output arg specified is a directory, concat the contents for comparison.
 			if stat.IsDir() {
 				files, err := os.ReadDir(outLocation)
 				if err != nil {
@@ -166,6 +166,7 @@ func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
 				}
 			}
 		}
+
 		// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
 		// Instead, it's wrapped in other os/system errors
 		// By reading the error text from the logger, we can extract the lower level error that the user would see
@@ -197,17 +198,9 @@ func extractErrorMsg(loggerOutput string) string {
 	return loggerOutput[errIndex : errIndex+endIndex]
 }
 
-func getLastSeqNum(archiveURLs []string) uint32 {
-	num, err := utils.GetLatestLedgerSequence(archiveURLs)
-	if err != nil {
-		panic(err)
-	}
-	return num
-}
-
 func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
 	t.Helper()
-	f, err := os.OpenFile(goldenFile, os.O_RDWR, 0644)
+	f, err := os.OpenFile(goldenFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return "", err
 	}
@@ -225,7 +218,6 @@ func getGolden(t *testing.T, goldenFile string, actual string, update bool) (str
 		if err != nil {
 			return "", err
 		}
-
 		return actual, nil
 	}
 

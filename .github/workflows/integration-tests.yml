@@ -1,0 +1,67 @@
+name: Integration Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build Docker Image
+        run: |
+          docker-compose build
+
+      - name: Build and start services
+        run: |
+          docker-compose up -d
+
+      - name: Create GCP Credentials File
+        run: |
+          echo "$CREDS_TEST_HUBBLE" > ${{ runner.workspace }}/gcp-key.json
+        shell: bash
+        env:
+          CREDS_TEST_HUBBLE: ${{secrets.CREDS_TEST_HUBBLE}}
+
+      - name: Run tests
+        run: |
+          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro \
+            -v ${{ runner.workspace }}/coverage/:/usr/coverage/ \
+            -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
+            integration-tests \
+            go test -v -coverprofile=/usr/coverage/coverage.out ./cmd ./internal/transform -timeout 30m
+
+      - name: Generate Coverage Report
+        run: |
+          go tool cover -func=${{ runner.workspace }}/coverage/coverage.out
+
+      - name: Check Coverage
+        id: coverage
+        run: |
+          COVERAGE=$(go tool cover -func=${{ runner.workspace }}/coverage/coverage.out | grep total: | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 55" | bc -l) )); then
+            echo "Coverage is below the 55% threshold."
+            exit 1
+          fi
+
+      - name: Stop and remove containers
+        run: |
+          docker-compose down
