@@ -22,6 +22,7 @@ type LedgerOutputParquet struct {
 	SorobanFeeWrite1Kb         int64  `parquet:"name=soroban_fee_write_1kb, type=INT64"`
 	NodeID                     string `parquet:"name=node_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Signature                  string `parquet:"name=signature, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TotalByteSizeOfBucketList  int64  `parquet:"name=total_byte_size_of_bucket_list, type=INT64, convertedtype=UINT_64`
 }
 
 // TransactionOutputParquet is a representation of a transaction that aligns with the BigQuery table history_transactions
