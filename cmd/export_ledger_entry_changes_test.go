@@ -45,7 +45,7 @@ func TestExportChanges(t *testing.T) {
 			sortForComparison: true,
 		},
 		{
-			name:              "Trustllines from ledger entry",
+			name:              "trustlines from ledger entry",
 			args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265400", "-o", gotTestDir(t, "trustlines/"), "--export-trustlines", "true"},
 			golden:            "trustlines.golden",
 			wantErr:           nil,
