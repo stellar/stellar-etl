@@ -59,12 +59,6 @@ func TestExportLedger(t *testing.T) {
 			golden:  "",
 			wantErr: fmt.Errorf("Number of bytes written: 0"),
 		},
-		// {
-		// 	name:    "end too large",
-		// 	args:    []string{"export_ledgers", "-e", "4294967295", "-l", "4294967295"},
-		// 	golden:  "",
-		// 	wantErr: fmt.Errorf("could not read ledgers: Latest sequence number is less than end sequence number (%d < 4294967295)", latestLedger),
-		// },
 		{
 			name:    "start is 0",
 			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
