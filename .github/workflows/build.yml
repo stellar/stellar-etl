@@ -1,0 +1,30 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Make docker image
+        uses: make docker-build
+
+      - name: Retag docker image
+        uses: docker tag stellar/stellar-etl:${{ github.sha }} stellar/stellar-etl-dev:${{ github.sha }}
+
+      - name: Push docker image
+        uses: docker push stellar/stellar-etl-dev:${{ github.sha }}
