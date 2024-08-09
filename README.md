@@ -87,6 +87,46 @@ Add following to docker run command to pass gcloud credentials to docker contain
 
 <br>
 
+## **Running Tests**
+
+### Unit tests
+
+```sh
+# Running all unit tests
+go test -v -cover ./internal/transform
+
+# Running an individual test
+go test -v -run ^TestTransformAsset$ ./internal/transform
+```
+
+### Integration tests
+
+```sh
+# Running all integration tests
+make int-test
+
+# Running all integration tests and update golden files
+make int-test-update
+
+# Above essentially runs following:
+docker-compose build
+docker-compose run \
+-v $(HOME)/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro \
+-v $(PWD)/testdata:/usr/src/etl/testdata \
+-e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
+integration-tests \
+go test -v ./cmd -timeout 30m -args -update=true
+
+# Running an individual test
+docker-compose build
+docker-compose run \
+-v $(HOME)/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro \
+-v $(PWD)/testdata:/usr/src/etl/testdata \
+-e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
+integration-tests \
+go test -v -run ^TestExportAssets$ ./cmd -timeout 30m -args -update=true
+```
+
 ---
 
 # **Command Reference**

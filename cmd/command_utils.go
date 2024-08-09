@@ -110,13 +110,14 @@ func exportParquetFilename(start, end uint32, dataType string) string {
 	return fmt.Sprintf("%d-%d-%s.parquet", start, end-1, dataType)
 }
 
-func deleteLocalFiles(path string) {
+func deleteLocalFiles(path string) error {
 	err := os.RemoveAll(path)
 	if err != nil {
 		cmdLogger.Errorf("Unable to remove %s: %s", path, err)
-		return
+		return err
 	}
 	cmdLogger.Infof("Successfully deleted %s", path)
+	return nil
 }
 
 func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path string) {
