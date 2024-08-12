@@ -4,7 +4,7 @@ SUDO := $(shell docker version >/dev/null 2>&1 || echo "sudo")
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 BUILD_DATE := $(shell date -u +%FT%TZ)
 
-ETLHASH=stellar/stellar-etl:$(shell git rev-parse --short HEAD)
+ETLHASH=stellar/stellar-etl:$(shell git rev-parse --short=9 HEAD)
 
 docker-build:
 	$(SUDO) docker build --platform linux/amd64 --pull --no-cache --label org.opencontainers.image.created="$(BUILD_DATE)" \
