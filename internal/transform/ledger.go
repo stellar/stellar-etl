@@ -58,12 +58,15 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
 	var outputSorobanFeeWrite1Kb int64
+	var outputTotalByteSizeOfBucketList uint64
 	lcmV1, ok := lcm.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
 		if ok {
 			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
 		}
+		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfBucketList
+		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
 	}
 
 	var outputNodeID string
@@ -98,6 +101,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		SorobanFeeWrite1Kb:         outputSorobanFeeWrite1Kb,
 		NodeID:                     outputNodeID,
 		Signature:                  outputSignature,
+		TotalByteSizeOfBucketList:  outputTotalByteSizeOfBucketList,
 	}
 	return transformedLedger, nil
 }
