@@ -49,6 +49,7 @@ func (lo LedgerOutput) ToParquet() interface{} {
 		SorobanFeeWrite1Kb:         lo.SorobanFeeWrite1Kb,
 		NodeID:                     lo.NodeID,
 		Signature:                  lo.Signature,
+		TotalByteSizeOfBucketList:  int64(lo.TotalByteSizeOfBucketList),
 	}
 }
 
