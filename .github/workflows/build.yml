@@ -1,0 +1,38 @@
+name: Build Docker Image
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Add SHORT_SHA env property with commit short sha
+        run: |
+          SHORT_SHA=$(git rev-parse --short=9 ${{ github.event.pull_request.head.sha }})
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "Short SHA: $SHORT_SHA"
+
+      - name: Make docker image
+        working-directory: .
+        run: make docker-build
+        env:
+          ETLHASH: stellar/stellar-etl-dev:${SHORT_SHA}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b
+        with:
+          username: stellardataeng
+          password: ${{ secrets.DOCKER_CREDS_DEV }}
+
+      - name: Push docker image
+        working-directory: .
+        run: docker push stellar/stellar-etl-dev:${SHORT_SHA}
