@@ -22,7 +22,7 @@ jobs:
 
       - name: Add SHORT_SHA env property with commit short sha
         run: |
-          SHORT_SHA=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
+          SHORT_SHA=$(git rev-parse --short=9 ${{ github.event.pull_request.head.sha }})
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
           echo "Short SHA: $SHORT_SHA"
 
