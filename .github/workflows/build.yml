@@ -32,6 +32,12 @@ jobs:
         env:
           ETLHASH: stellar/stellar-etl-dev:${SHORT_SHA}
 
+      - name: Login to DockerHub
+        uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b
+        with:
+          username: stellardataeng
+          password: ${{ secrets.DOCKER_CREDS_DEV }}
+
       - name: Push docker image
         working-directory: .
         run: docker push stellar/stellar-etl-dev:${SHORT_SHA}
