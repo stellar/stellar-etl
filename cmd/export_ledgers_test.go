@@ -89,6 +89,12 @@ func TestExportLedger(t *testing.T) {
 			golden:  "large_range_ledgers.golden",
 			wantErr: nil,
 		},
+		{
+			name:    "range from 2024",
+			args:    []string{"export_ledgers", "-s", "52929555", "-e", "52929960", "-o", gotTestDir(t, "2024_ledgers.txt")},
+			golden:  "2024_ledgers.golden",
+			wantErr: nil,
+		},
 	}
 
 	for _, test := range tests {

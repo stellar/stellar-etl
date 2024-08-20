@@ -4,7 +4,7 @@ SUDO := $(shell docker version >/dev/null 2>&1 || echo "sudo")
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 BUILD_DATE := $(shell date -u +%FT%TZ)
 
-DEFAULT_ETLHASH := stellar/stellar-etl:$(shell git rev-parse --short HEAD)
+DEFAULT_ETLHASH := stellar/stellar-etl:$(shell git rev-parse --short=9 HEAD)
 ETLHASH ?= $(DEFAULT_ETLHASH)
 
 docker-build:
