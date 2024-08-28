@@ -144,13 +144,17 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var outputTotalNonRefundableResourceFeeCharged int64
 	var outputTotalRefundableResourceFeeCharged int64
 	var outputRentFeeCharged int64
+	var feeAccountAddress string
 
 	// Soroban data can exist in V1 and FeeBump transactionEnvelopes
 	switch transaction.Envelope.Type {
 	case xdr.EnvelopeTypeEnvelopeTypeTx:
 		sorobanData, hasSorobanData = transaction.Envelope.V1.Tx.Ext.GetSorobanData()
+		feeAccountAddress = sourceAccount.Address()
 	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
 		sorobanData, hasSorobanData = transaction.Envelope.FeeBump.Tx.InnerTx.V1.Tx.Ext.GetSorobanData()
+		feeBumpAccount := transaction.Envelope.FeeBumpAccount()
+		feeAccountAddress = feeBumpAccount.Address()
 	}
 
 	if hasSorobanData {
@@ -160,13 +164,14 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
 		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
 
-		accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, sourceAccount.Address())
+		accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, feeAccountAddress)
 		initialFeeCharged := accountBalanceStart - accountBalanceEnd
 		outputInclusionFeeCharged = initialFeeCharged - outputResourceFee
 
 		meta, ok := transaction.UnsafeMeta.GetV3()
 		if ok {
-			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, sourceAccount.Address())
+			accountBalanceStart, _ := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesBefore, feeAccountAddress)
+			_, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, feeAccountAddress)
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
 			if meta.SorobanMeta != nil {
 				extV1, ok := meta.SorobanMeta.Ext.GetV1()
@@ -178,8 +183,12 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			}
 		}
 
-		// TODO: FeeCharged is calculated incorrectly in protocol 20. Remove when protocol is updated and the bug is fixed
-		outputFeeCharged = outputResourceFee - outputResourceFeeRefund + outputInclusionFeeCharged
+		// Protocol 20 contained a bug where the feeCharged was incorrectly calculated but was fixed for
+		// Protocol 21 with https://github.com/stellar/stellar-core/issues/4188
+		// Any Soroban Fee Bump transactions before P21 will need the below logic to calculate the correct feeCharged
+		if ledgerHeader.LedgerVersion < 21 && transaction.Envelope.Type == xdr.EnvelopeTypeEnvelopeTypeTxFeeBump {
+			outputFeeCharged = outputResourceFee - outputResourceFeeRefund + outputInclusionFeeCharged
+		}
 	}
 
 	outputCloseTime, err := utils.TimePointToUTCTimeStamp(ledgerHeader.ScpValue.CloseTime)
