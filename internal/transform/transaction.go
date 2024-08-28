@@ -170,8 +170,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 		meta, ok := transaction.UnsafeMeta.GetV3()
 		if ok {
-			accountBalanceStart, _ := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesBefore, feeAccountAddress)
-			_, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, feeAccountAddress)
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, feeAccountAddress)
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
 			if meta.SorobanMeta != nil {
 				extV1, ok := meta.SorobanMeta.Ext.GetV1()
