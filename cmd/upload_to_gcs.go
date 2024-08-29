@@ -58,6 +58,14 @@ func (g *GCS) UploadTo(credentialsPath, bucket, path string) error {
 		return err
 	}
 
+	// This is a possibly redundant check to make sure that the file is actually
+	// uploaded to GCS and is readable
+	pathObj := client.Bucket(bucket).Object(path)
+	_, err = pathObj.Attrs(ctx)
+	if err != nil {
+		return fmt.Errorf("uploaded file does not exist: %v", err)
+	}
+
 	cmdLogger.Infof("Successfully uploaded %d bytes to gs://%s/%s", written, bucket, path)
 
 	deleteLocalFiles(path)
