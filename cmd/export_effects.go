@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/stellar-etl/internal/input"
@@ -34,7 +36,7 @@ var effectsCmd = &cobra.Command{
 			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
 			if err != nil {
 				txIndex := transformInput.Transaction.Index
-				cmdLogger.Errorf("could not transform transaction %d in ledger %d: %v", txIndex, LedgerSeq, err)
+				cmdLogger.LogError(fmt.Errorf("could not transform transaction %d in ledger %d: %v", txIndex, LedgerSeq, err))
 				numFailures += 1
 				continue
 			}

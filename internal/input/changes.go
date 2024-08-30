@@ -128,7 +128,10 @@ func extractBatch(
 				if !ok {
 					// TODO: once LedgerEntryTypeData is tracked as well, all types should be addressed,
 					// so this info log should be a warning.
-					logger.Infof("change type: %v not tracked", change.Type)
+					// Skip LedgerEntryTypeData as we are intentionally not processing it
+					if change.Type != xdr.LedgerEntryTypeData {
+						logger.Infof("change type: %v not tracked", change.Type)
+					}
 				} else {
 					cache.AddChange(change)
 				}
