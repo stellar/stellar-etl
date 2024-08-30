@@ -58,7 +58,7 @@ var assetsCmd = &cobra.Command{
 			seenIDs[transformed.AssetID] = true
 			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
-				cmdLogger.Error(err)
+				cmdLogger.LogError(err)
 				numFailures += 1
 				continue
 			}

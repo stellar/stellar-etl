@@ -127,7 +127,7 @@ func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path strin
 	}
 
 	if len(cloudStorageBucket) == 0 {
-		cmdLogger.Error("No bucket specified")
+		cmdLogger.Fatal("No bucket specified")
 		return
 	}
 
@@ -137,11 +137,11 @@ func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path strin
 		cloudStorage = newGCS(cloudCredentials, cloudStorageBucket)
 		err := cloudStorage.UploadTo(cloudCredentials, cloudStorageBucket, path)
 		if err != nil {
-			cmdLogger.Errorf("Unable to upload output to GCS: %s", err)
+			cmdLogger.Fatalf("Unable to upload output to GCS: %s", err)
 			return
 		}
 	default:
-		cmdLogger.Error("Unknown cloud provider")
+		cmdLogger.Fatal("Unknown cloud provider")
 	}
 }
 

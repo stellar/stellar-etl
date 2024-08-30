@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
@@ -28,6 +29,7 @@ confirmed by the Stellar network.
 If no data type flags are set, then by default all of them are exported. If any are set, it is assumed that the others should not
 be exported.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
 		env := utils.GetEnvironmentDetails(commonArgs)
@@ -316,7 +318,7 @@ func exportTransformedData(
 				case transform.ClaimableBalanceOutput:
 					// Skipping ClaimableBalanceOutputParquet because it is not needed in the current scope of work
 					// Note that ClaimableBalanceOutputParquet uses nested structs that will need to be handled
-					// for parquet conversio
+					// for parquet conversion
 					skip = true
 				case transform.ConfigSettingOutput:
 					transformedResource = append(transformedResource, v)
