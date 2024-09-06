@@ -959,6 +959,27 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	return ledgerKeyHash
 }
 
+// CreateDatastore creates the datastore to interface with GCS
+// TODO: this can be updated to use different cloud storage services in the future.
+// For now only GCS works datastore.Datastore.
+func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, error) {
+	// These params are specific for GCS
+	params := make(map[string]string)
+	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath + "/" + env.Network
+	dataStoreConfig := datastore.DataStoreConfig{
+		Type:   "GCS",
+		Params: params,
+		// TODO: In the future these will come from a config file written by ledgerexporter
+		// Hard code DataStoreSchema values for now
+		Schema: datastore.DataStoreSchema{
+			LedgersPerFile:    1,
+			FilesPerPartition: 64000,
+		},
+	}
+
+	return datastore.NewDataStore(ctx, dataStoreConfig)
+}
+
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
 // Defaults to using datastore
 func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env EnvironmentDetails) (ledgerbackend.LedgerBackend, error) {
@@ -971,36 +992,19 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		return backend, nil
 	}
 
-	// Create ledger backend from datastore
-	params := make(map[string]string)
-	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath
-	dataStoreConfig := datastore.DataStoreConfig{
-		Type:   "GCS",
-		Params: params,
-	}
-
-	dataStore, err := datastore.NewDataStore(ctx, dataStoreConfig, env.Network)
+	dataStore, err := CreateDatastore(ctx, env)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: In the future these will come from a config file written by ledgerexporter
-	// Hard code ledger batch values for now
-	ledgerBatchConfig := datastore.LedgerBatchConfig{
-		LedgersPerFile:    1,
-		FilesPerPartition: 64000,
-	}
-
 	BSBackendConfig := ledgerbackend.BufferedStorageBackendConfig{
-		LedgerBatchConfig: ledgerBatchConfig,
-		DataStore:         dataStore,
-		BufferSize:        env.CommonFlagValues.BufferSize,
-		NumWorkers:        env.CommonFlagValues.NumWorkers,
-		RetryLimit:        env.CommonFlagValues.RetryLimit,
-		RetryWait:         time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
+		BufferSize: env.CommonFlagValues.BufferSize,
+		NumWorkers: env.CommonFlagValues.NumWorkers,
+		RetryLimit: env.CommonFlagValues.RetryLimit,
+		RetryWait:  time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
 	}
 
-	backend, err := ledgerbackend.NewBufferedStorageBackend(ctx, BSBackendConfig)
+	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore)
 	if err != nil {
 		return nil, err
 	}
