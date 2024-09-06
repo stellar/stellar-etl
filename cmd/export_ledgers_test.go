@@ -63,7 +63,7 @@ func TestExportLedger(t *testing.T) {
 			name:    "start is 0",
 			args:    []string{"export_ledgers", "-s", "0", "-e", "4294967295", "-l", "4294967295"},
 			golden:  "",
-			wantErr: fmt.Errorf("could not read ledgers: LedgerCloseMeta for sequence 0 not found"),
+			wantErr: fmt.Errorf("could not read ledgers: LedgerCloseMeta for sequence 0 not found in the batch"),
 		},
 		{
 			name:    "end is 0",
