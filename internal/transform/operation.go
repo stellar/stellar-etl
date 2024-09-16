@@ -1029,8 +1029,6 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvAddress, Address: &invokeArgs.ContractAddress})
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
 			args = append(args, invokeArgs.Args...)
-			params := make([]map[string]string, 0, len(args))
-			paramsDecoded := make([]map[string]string, 0, len(args))
 
 			details["type"] = "invoke_contract"
 
@@ -1044,28 +1042,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			for _, param := range args {
-				serializedParam := map[string]string{}
-				serializedParam["value"] = "n/a"
-				serializedParam["type"] = "n/a"
-
-				serializedParamDecoded := map[string]string{}
-				serializedParamDecoded["value"] = "n/a"
-				serializedParamDecoded["type"] = "n/a"
-
-				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-					serializedParam["type"] = scValTypeName
-					serializedParamDecoded["type"] = scValTypeName
-					if raw, err := param.MarshalBinary(); err == nil {
-						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-						serializedParamDecoded["value"] = param.String()
-					}
-				}
-				params = append(params, serializedParam)
-				paramsDecoded = append(paramsDecoded, serializedParamDecoded)
-			}
-			details["parameters"] = params
-			details["parameters_decoded"] = paramsDecoded
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction, network); err != nil {
 				return nil, err
@@ -1082,26 +1059,38 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			switch args.ContractIdPreimage.Type {
-			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
-				fromAddress := args.ContractIdPreimage.MustFromAddress()
-				address, err := fromAddress.Address.String()
-				if err != nil {
-					panic(fmt.Errorf("error obtaining address for: %s", args.ContractIdPreimage.Type))
+			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
+			for key, val := range preimageTypeMap {
+				if _, ok := preimageTypeMap[key]; ok {
+					details[key] = val
 				}
-				details["from"] = "address"
-				details["address"] = address
-			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
-				details["from"] = "asset"
-				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
-			default:
-				panic(fmt.Errorf("unknown contract id type: %s", args.ContractIdPreimage.Type))
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
 			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+		case xdr.HostFunctionTypeHostFunctionTypeCreateContractV2:
+			args := op.HostFunction.MustCreateContractV2()
+			details["type"] = "create_contract_v2"
+
+			transactionEnvelope := getTransactionV1Envelope(transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
+			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
+			// ConstructorArgs is a list of ScVals
+			// This will initially be handled the same as InvokeContractParams until a different
+			// model is found necessary.
+			constructorArgs := args.ConstructorArgs
+			details["parameters"], details["parameters_decoded"] = serializeParameters(constructorArgs)
+
+			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
+			for key, val := range preimageTypeMap {
+				if _, ok := preimageTypeMap[key]; ok {
+					details[key] = val
+				}
+			}
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
@@ -1637,8 +1626,6 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvAddress, Address: &invokeArgs.ContractAddress})
 			args = append(args, xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &invokeArgs.FunctionName})
 			args = append(args, invokeArgs.Args...)
-			params := make([]map[string]string, 0, len(args))
-			paramsDecoded := make([]map[string]string, 0, len(args))
 
 			details["type"] = "invoke_contract"
 
@@ -1652,28 +1639,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			for _, param := range args {
-				serializedParam := map[string]string{}
-				serializedParam["value"] = "n/a"
-				serializedParam["type"] = "n/a"
-
-				serializedParamDecoded := map[string]string{}
-				serializedParamDecoded["value"] = "n/a"
-				serializedParamDecoded["type"] = "n/a"
-
-				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-					serializedParam["type"] = scValTypeName
-					serializedParamDecoded["type"] = scValTypeName
-					if raw, err := param.MarshalBinary(); err == nil {
-						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-						serializedParamDecoded["value"] = param.String()
-					}
-				}
-				params = append(params, serializedParam)
-				paramsDecoded = append(paramsDecoded, serializedParamDecoded)
-			}
-			details["parameters"] = params
-			details["parameters_decoded"] = paramsDecoded
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
 
 			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
 				return nil, err
@@ -1690,26 +1656,38 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			switch args.ContractIdPreimage.Type {
-			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
-				fromAddress := args.ContractIdPreimage.MustFromAddress()
-				address, err := fromAddress.Address.String()
-				if err != nil {
-					panic(fmt.Errorf("error obtaining address for: %s", args.ContractIdPreimage.Type))
+			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
+			for key, val := range preimageTypeMap {
+				if _, ok := preimageTypeMap[key]; ok {
+					details[key] = val
 				}
-				details["from"] = "address"
-				details["address"] = address
-			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
-				details["from"] = "asset"
-				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
-			default:
-				panic(fmt.Errorf("unknown contract id type: %s", args.ContractIdPreimage.Type))
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
 			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+		case xdr.HostFunctionTypeHostFunctionTypeCreateContractV2:
+			args := op.HostFunction.MustCreateContractV2()
+			details["type"] = "create_contract_v2"
+
+			transactionEnvelope := getTransactionV1Envelope(operation.transaction.Envelope)
+			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
+			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
+			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
+
+			// ConstructorArgs is a list of ScVals
+			// This will initially be handled the same as InvokeContractParams until a different
+			// model is found necessary.
+			constructorArgs := args.ConstructorArgs
+			details["parameters"], details["parameters_decoded"] = serializeParameters(constructorArgs)
+
+			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
+			for key, val := range preimageTypeMap {
+				if _, ok := preimageTypeMap[key]; ok {
+					details[key] = val
+				}
+			}
 		default:
 			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
@@ -2174,4 +2152,54 @@ func dedupeParticipants(in []xdr.AccountId) (out []xdr.AccountId) {
 		out = append(out, id)
 	}
 	return
+}
+
+func serializeParameters(args []xdr.ScVal) ([]map[string]string, []map[string]string) {
+	params := make([]map[string]string, 0, len(args))
+	paramsDecoded := make([]map[string]string, 0, len(args))
+
+	for _, param := range args {
+		serializedParam := map[string]string{}
+		serializedParam["value"] = "n/a"
+		serializedParam["type"] = "n/a"
+
+		serializedParamDecoded := map[string]string{}
+		serializedParamDecoded["value"] = "n/a"
+		serializedParamDecoded["type"] = "n/a"
+
+		if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+			serializedParam["type"] = scValTypeName
+			serializedParamDecoded["type"] = scValTypeName
+			if raw, err := param.MarshalBinary(); err == nil {
+				serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+				serializedParamDecoded["value"] = param.String()
+			}
+		}
+		params = append(params, serializedParam)
+		paramsDecoded = append(paramsDecoded, serializedParamDecoded)
+	}
+
+	return params, paramsDecoded
+}
+
+func switchContractIdPreimageType(contractIdPreimage xdr.ContractIdPreimage) map[string]interface{} {
+	details := map[string]interface{}{}
+
+	switch contractIdPreimage.Type {
+	case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
+		fromAddress := contractIdPreimage.MustFromAddress()
+		address, err := fromAddress.Address.String()
+		if err != nil {
+			panic(fmt.Errorf("error obtaining address for: %s", contractIdPreimage.Type))
+		}
+		details["from"] = "address"
+		details["address"] = address
+	case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
+		details["from"] = "asset"
+		details["asset"] = contractIdPreimage.MustFromAsset().StringCanonical()
+	default:
+		panic(fmt.Errorf("unknown contract id type: %s", contractIdPreimage.Type))
+	}
+
+	return details
 }
