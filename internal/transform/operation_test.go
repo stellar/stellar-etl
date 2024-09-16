@@ -102,11 +102,11 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		return
 	}
 
-	//var wasm []byte
-	//var contractHash xdr.Hash
-	//var salt [32]byte
-	//var assetCode [12]byte
-	//var assetIssuer xdr.Uint256
+	var wasm []byte
+	var contractHash xdr.Hash
+	var salt [32]byte
+	var assetCode [12]byte
+	var assetIssuer xdr.Uint256
 
 	hardCodedClearFlags := xdr.Uint32(3)
 	hardCodedSetFlags := xdr.Uint32(4)
@@ -515,111 +515,111 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		//{
-		//	SourceAccount: nil,
-		//	Body: xdr.OperationBody{
-		//		Type: xdr.OperationTypeInvokeHostFunction,
-		//		InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
-		//			HostFunction: xdr.HostFunction{
-		//				Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
-		//				InvokeContract: &xdr.InvokeContractArgs{
-		//					ContractAddress: xdr.ScAddress{
-		//						Type:       xdr.ScAddressTypeScAddressTypeContract,
-		//						ContractId: &contractHash,
-		//					},
-		//					FunctionName: "test",
-		//					Args:         []xdr.ScVal{},
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
-		//{
-		//	SourceAccount: nil,
-		//	Body: xdr.OperationBody{
-		//		Type: xdr.OperationTypeInvokeHostFunction,
-		//		InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
-		//			HostFunction: xdr.HostFunction{
-		//				Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
-		//				CreateContract: &xdr.CreateContractArgs{
-		//					ContractIdPreimage: xdr.ContractIdPreimage{
-		//						Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
-		//						FromAddress: &xdr.ContractIdPreimageFromAddress{
-		//							Address: xdr.ScAddress{
-		//								Type:       xdr.ScAddressTypeScAddressTypeContract,
-		//								ContractId: &contractHash,
-		//							},
-		//							Salt: salt,
-		//						},
-		//					},
-		//					Executable: xdr.ContractExecutable{},
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
-		//{
-		//	SourceAccount: nil,
-		//	Body: xdr.OperationBody{
-		//		Type: xdr.OperationTypeInvokeHostFunction,
-		//		InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
-		//			HostFunction: xdr.HostFunction{
-		//				Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
-		//				CreateContract: &xdr.CreateContractArgs{
-		//					ContractIdPreimage: xdr.ContractIdPreimage{
-		//						Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAsset,
-		//						FromAsset: &xdr.Asset{
-		//							Type: xdr.AssetTypeAssetTypeCreditAlphanum12,
-		//							AlphaNum12: &xdr.AlphaNum12{
-		//								AssetCode: assetCode,
-		//								Issuer: xdr.AccountId{
-		//									Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
-		//									Ed25519: &assetIssuer,
-		//								},
-		//							},
-		//						},
-		//					},
-		//					Executable: xdr.ContractExecutable{},
-		//				},
-		//			},
-		//		},
-		//	},
-		//},
-		//{
-		//	SourceAccount: nil,
-		//	Body: xdr.OperationBody{
-		//		Type: xdr.OperationTypeInvokeHostFunction,
-		//		InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
-		//			HostFunction: xdr.HostFunction{
-		//				Type: xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm,
-		//				Wasm: &wasm,
-		//			},
-		//		},
-		//	},
-		//},
-		//{
-		//	SourceAccount: nil,
-		//	Body: xdr.OperationBody{
-		//		Type: xdr.OperationTypeBumpFootprintExpiration,
-		//		BumpFootprintExpirationOp: &xdr.BumpFootprintExpirationOp{
-		//			Ext: xdr.ExtensionPoint{
-		//				V: 0,
-		//			},
-		//			LedgersToExpire: 1234,
-		//		},
-		//	},
-		//},
-		//{
-		//	SourceAccount: nil,
-		//	Body: xdr.OperationBody{
-		//		Type: xdr.OperationTypeRestoreFootprint,
-		//		RestoreFootprintOp: &xdr.RestoreFootprintOp{
-		//			Ext: xdr.ExtensionPoint{
-		//				V: 0,
-		//			},
-		//		},
-		//	},
-		//},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
+					HostFunction: xdr.HostFunction{
+						Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
+						InvokeContract: &xdr.InvokeContractArgs{
+							ContractAddress: xdr.ScAddress{
+								Type:       xdr.ScAddressTypeScAddressTypeContract,
+								ContractId: &contractHash,
+							},
+							FunctionName: "test",
+							Args:         []xdr.ScVal{},
+						},
+					},
+				},
+			},
+		},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
+					HostFunction: xdr.HostFunction{
+						Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
+						CreateContract: &xdr.CreateContractArgs{
+							ContractIdPreimage: xdr.ContractIdPreimage{
+								Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
+								FromAddress: &xdr.ContractIdPreimageFromAddress{
+									Address: xdr.ScAddress{
+										Type:       xdr.ScAddressTypeScAddressTypeContract,
+										ContractId: &contractHash,
+									},
+									Salt: salt,
+								},
+							},
+							Executable: xdr.ContractExecutable{},
+						},
+					},
+				},
+			},
+		},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
+					HostFunction: xdr.HostFunction{
+						Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
+						CreateContract: &xdr.CreateContractArgs{
+							ContractIdPreimage: xdr.ContractIdPreimage{
+								Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAsset,
+								FromAsset: &xdr.Asset{
+									Type: xdr.AssetTypeAssetTypeCreditAlphanum12,
+									AlphaNum12: &xdr.AlphaNum12{
+										AssetCode: assetCode,
+										Issuer: xdr.AccountId{
+											Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
+											Ed25519: &assetIssuer,
+										},
+									},
+								},
+							},
+							Executable: xdr.ContractExecutable{},
+						},
+					},
+				},
+			},
+		},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
+					HostFunction: xdr.HostFunction{
+						Type: xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm,
+						Wasm: &wasm,
+					},
+				},
+			},
+		},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeExtendFootprintTtl,
+				ExtendFootprintTtlOp: &xdr.ExtendFootprintTtlOp{
+					Ext: xdr.ExtensionPoint{
+						V: 0,
+					},
+					ExtendTo: 1234,
+				},
+			},
+		},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeRestoreFootprint,
+				RestoreFootprintOp: &xdr.RestoreFootprintOp{
+					Ext: xdr.ExtensionPoint{
+						V: 0,
+					},
+				},
+			},
+		},
 	}
 	inputEnvelope.Tx.Operations = inputOperations
 	results := []xdr.OperationResult{
@@ -909,12 +909,12 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		//{},
-		//{},
-		//{},
-		//{},
-		//{},
-		//{},
+		{},
+		{},
+		{},
+		{},
+		{},
+		{},
 	}
 	inputTransaction.Result.Result.Result.Results = &results
 	inputTransaction.Envelope.V1 = &inputEnvelope
@@ -1737,93 +1737,93 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"shares":                    0.0000004,
 			},
 		},
-		//OperationOutput{
-		//	Type:          24,
-		//	TypeString:    "invoke_host_function",
-		//	SourceAccount: hardCodedSourceAccountAddress,
-		//	TransactionID: 4096,
-		//	OperationID:   4128,
-		//	OperationDetails: map[string]interface{}{
-		//		"function":              "HostFunctionTypeHostFunctionTypeInvokeContract",
-		//		"type":                  "invoke_contract",
-		//		"contract_id":           "",
-		//		"contract_code_hash":    "",
-		//		"asset_balance_changes": []map[string]interface{}{},
-		//	},
-		//	ClosedAt: hardCodedLedgerClose,
-		//},
-		//OperationOutput{
-		//	Type:          24,
-		//	TypeString:    "invoke_host_function",
-		//	SourceAccount: hardCodedSourceAccountAddress,
-		//	TransactionID: 4096,
-		//	OperationID:   4129,
-		//	OperationDetails: map[string]interface{}{
-		//		"function":           "HostFunctionTypeHostFunctionTypeCreateContract",
-		//		"type":               "create_contract",
-		//		"contract_id":        "",
-		//		"contract_code_hash": "",
-		//		"from":               "address",
-		//		"address":            "",
-		//	},
-		//	ClosedAt: hardCodedLedgerClose,
-		//},
-		//OperationOutput{
-		//	Type:          24,
-		//	TypeString:    "invoke_host_function",
-		//	SourceAccount: hardCodedSourceAccountAddress,
-		//	TransactionID: 4096,
-		//	OperationID:   4130,
-		//	OperationDetails: map[string]interface{}{
-		//		"function":           "HostFunctionTypeHostFunctionTypeCreateContract",
-		//		"type":               "create_contract",
-		//		"contract_id":        "",
-		//		"contract_code_hash": "",
-		//		"from":               "asset",
-		//		"asset":              "",
-		//	},
-		//	ClosedAt: hardCodedLedgerClose,
-		//},
-		//OperationOutput{
-		//	Type:          24,
-		//	TypeString:    "invoke_host_function",
-		//	SourceAccount: hardCodedSourceAccountAddress,
-		//	TransactionID: 4096,
-		//	OperationID:   4131,
-		//	OperationDetails: map[string]interface{}{
-		//		"function":           "HostFunctionTypeHostFunctionTypeUploadContractWasm",
-		//		"type":               "upload_wasm",
-		//		"contract_code_hash": "",
-		//	},
-		//	ClosedAt: hardCodedLedgerClose,
-		//},
-		//OperationOutput{
-		//	Type:          25,
-		//	TypeString:    "bump_footprint_expiration",
-		//	SourceAccount: hardCodedSourceAccountAddress,
-		//	TransactionID: 4096,
-		//	OperationID:   4132,
-		//	OperationDetails: map[string]interface{}{
-		//		"type":               "bump_footprint_expiration",
-		//		"ledgers_to_expire":  1234,
-		//		"contract_id":        "",
-		//		"contract_code_hash": "",
-		//	},
-		//	ClosedAt: hardCodedLedgerClose,
-		//},
-		//OperationOutput{
-		//	Type:          26,
-		//	TypeString:    "restore_footprint",
-		//	SourceAccount: hardCodedSourceAccountAddress,
-		//	TransactionID: 4096,
-		//	OperationID:   4133,
-		//	OperationDetails: map[string]interface{}{
-		//		"type":               "restore_footprint",
-		//		"contract_id":        "",
-		//		"contract_code_hash": "",
-		//	},
-		//	ClosedAt: hardCodedLedgerClose,
-		//},
+		OperationOutput{
+			Type:          24,
+			TypeString:    "invoke_host_function",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4128,
+			OperationDetails: map[string]interface{}{
+				"function":              "HostFunctionTypeHostFunctionTypeInvokeContract",
+				"type":                  "invoke_contract",
+				"contract_id":           "",
+				"contract_code_hash":    "",
+				"asset_balance_changes": []map[string]interface{}{},
+			},
+			ClosedAt: hardCodedLedgerClose,
+		},
+		OperationOutput{
+			Type:          24,
+			TypeString:    "invoke_host_function",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4129,
+			OperationDetails: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeCreateContract",
+				"type":               "create_contract",
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"from":               "address",
+				"address":            "",
+			},
+			ClosedAt: hardCodedLedgerClose,
+		},
+		OperationOutput{
+			Type:          24,
+			TypeString:    "invoke_host_function",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4130,
+			OperationDetails: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeCreateContract",
+				"type":               "create_contract",
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"from":               "asset",
+				"asset":              "",
+			},
+			ClosedAt: hardCodedLedgerClose,
+		},
+		OperationOutput{
+			Type:          24,
+			TypeString:    "invoke_host_function",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4131,
+			OperationDetails: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeUploadContractWasm",
+				"type":               "upload_wasm",
+				"contract_code_hash": "",
+			},
+			ClosedAt: hardCodedLedgerClose,
+		},
+		OperationOutput{
+			Type:          25,
+			TypeString:    "bump_footprint_expiration",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4132,
+			OperationDetails: map[string]interface{}{
+				"type":               "bump_footprint_expiration",
+				"ledgers_to_expire":  1234,
+				"contract_id":        "",
+				"contract_code_hash": "",
+			},
+			ClosedAt: hardCodedLedgerClose,
+		},
+		OperationOutput{
+			Type:          26,
+			TypeString:    "restore_footprint",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4133,
+			OperationDetails: map[string]interface{}{
+				"type":               "restore_footprint",
+				"contract_id":        "",
+				"contract_code_hash": "",
+			},
+			ClosedAt: hardCodedLedgerClose,
+		},
 	}
 	return
 }
