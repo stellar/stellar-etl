@@ -63,7 +63,7 @@ jobs:
           EXISTING_CHANGELOG=$(cat CHANGELOG.md)
           echo "     " > CHANGELOG.md
           echo "## ${{ steps.nextversion.outputs.NEXT_VERSION }}" >> CHANGELOG.md
-          echo "* ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }}) @${{ github.event.pull_request.user.login }}" >> CHANGELOG.md
+          echo "- ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }}) @${{ github.event.pull_request.user.login }}" >> CHANGELOG.md
           echo "     " >> CHANGELOG.md
           echo -e "$EXISTING_CHANGELOG" >> CHANGELOG.md
 
