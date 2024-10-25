@@ -2,7 +2,8 @@ name: Release Drafter and Publisher
 
 on:
   pull_request:
-    types: [closed]
+    branches:
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
@@ -13,7 +14,7 @@ permissions:
 
 jobs:
   new_release:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     permissions:
       # write permission is required to create a github release
       contents: write
@@ -57,16 +58,35 @@ jobs:
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
           echo ::set-output name=NEXT_VERSION::"$NEXT_VERSION"
 
-      - name: Create and publish new tag
+      - name: Update CHANGELOG.md
         run: |
-          git tag ${{ steps.nextversion.outputs.NEXT_VERSION }}
-          git push origin ${{ steps.nextversion.outputs.NEXT_VERSION }}
+          EXISTING_CHANGELOG=$(cat CHANGELOG.md)
+          echo "     " > CHANGELOG.md
+          echo "## ${{ steps.nextversion.outputs.NEXT_VERSION }}" >> CHANGELOG.md
+          echo "* ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }}) @${{ github.event.pull_request.user.login }}" >> CHANGELOG.md
+          echo "     " >> CHANGELOG.md
+          echo -e "$EXISTING_CHANGELOG" >> CHANGELOG.md
 
-      - uses: release-drafter/release-drafter@v5
-        with:
-          commitish: master
-          name: "stellar-etl ${{ steps.nextversion.outputs.NEXT_VERSION }}"
-          tag: ${{ steps.nextversion.outputs.NEXT_VERSION }}
-          publish: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for PR #${{ github.event.pull_request.number }}"
+
+      - name: Push changes
+        run: git push origin HEAD:patch/add-changelog
+
+      # - name: Create and publish new tag
+      #   run: |
+      #     git tag ${{ steps.nextversion.outputs.NEXT_VERSION }}
+      #     git push origin ${{ steps.nextversion.outputs.NEXT_VERSION }}
+
+      # - uses: release-drafter/release-drafter@v5
+      #   with:
+      #     commitish: master
+      #     name: "stellar-etl ${{ steps.nextversion.outputs.NEXT_VERSION }}"
+      #     tag: ${{ steps.nextversion.outputs.NEXT_VERSION }}
+      #     publish: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
