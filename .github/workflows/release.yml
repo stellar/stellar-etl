@@ -52,7 +52,7 @@ jobs:
           elif [[ $BRANCH_NAME =~ ^feature/ ]]; then
             VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
             VERSION_PARTS[2]=0
-          elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
+          else
             VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
           fi
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
