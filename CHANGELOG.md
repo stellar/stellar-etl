@@ -1,4 +1,4 @@
-## v2.0.0.md
+## v2.0.0
 
 - Release/CI enhancements (#247) @laysabit
 - Update readme (#245) @chowbao
