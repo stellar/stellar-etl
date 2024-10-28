@@ -58,25 +58,6 @@ jobs:
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
           echo ::set-output name=NEXT_VERSION::"$NEXT_VERSION"
 
-      - name: Update CHANGELOG.md
-        run: |
-          EXISTING_CHANGELOG=$(cat CHANGELOG.md)
-          echo "     " > CHANGELOG.md
-          echo "## ${{ steps.nextversion.outputs.NEXT_VERSION }}" >> CHANGELOG.md
-          echo "- ${{ github.event.pull_request.title }} (#${{ github.event.pull_request.number }}) @${{ github.event.pull_request.user.login }}" >> CHANGELOG.md
-          echo "     " >> CHANGELOG.md
-          echo -e "$EXISTING_CHANGELOG" >> CHANGELOG.md
-
-      - name: Commit changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md for PR #${{ github.event.pull_request.number }}"
-
-      - name: Push changes
-        run: git push origin HEAD:master
-
       - name: Create and publish new tag
         run: |
           git tag ${{ steps.nextversion.outputs.NEXT_VERSION }}
