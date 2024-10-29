@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/strkey"
@@ -71,6 +72,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 	if contractDataAsset != nil {
 		contractDataAssetType = contractDataAsset.Type.String()
 		contractDataAssetCode = contractDataAsset.GetCode()
+		contractDataAssetCode = strings.ReplaceAll(contractDataAssetCode, "\x00", "")
 		contractDataAssetIssuer = contractDataAsset.GetIssuer()
 	}
 
