@@ -2,7 +2,8 @@ name: Release Drafter and Publisher
 
 on:
   pull_request:
-    types: [closed]
+    types:
+      - closed
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
@@ -13,7 +14,7 @@ permissions:
 
 jobs:
   new_release:
-    if: github.event.pull_request.merged == true
+    if: github.ref == 'refs/heads/master' && github.event.pull_request.merged == true
     permissions:
       # write permission is required to create a github release
       contents: write
@@ -44,14 +45,14 @@ jobs:
           CURRENT_VERSION="${{ steps.gettag.outputs.TAG }}"
           CURRENT_VERSION="${CURRENT_VERSION#v}"  # Remove the 'v' from the start of the version
           IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-          if [[ $BRANCH_NAME =~ ^release/ ]]; then
+          if [[ $BRANCH_NAME =~ ^major/ ]]; then
             VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
             VERSION_PARTS[1]=0
             VERSION_PARTS[2]=0
-          elif [[ $BRANCH_NAME =~ ^feature/ ]]; then
+          elif [[ $BRANCH_NAME =~ ^minor/ ]]; then
             VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
             VERSION_PARTS[2]=0
-          elif [[ $BRANCH_NAME =~ ^patch/ ]]; then
+          else
             VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
           fi
           NEXT_VERSION="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"

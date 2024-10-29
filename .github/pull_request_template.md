@@ -20,7 +20,7 @@ change is, and why it is being made, with enough context for anyone to understan
 ### Release planning
 
 - [ ] I've decided if this PR requires a new major/minor/patch version accordingly to
-    [semver](https://semver.org/), and I've changed the name of the BRANCH to release/_ , feature/_ or patch/\* .
+    [semver](https://semver.org/), and I've changed the name of the BRANCH to major/_ , minor/_ or patch/\* .
 </details>
 
 ### What
