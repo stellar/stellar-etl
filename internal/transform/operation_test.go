@@ -102,11 +102,12 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		return
 	}
 
-	var wasm []byte
-	var contractHash xdr.Hash
-	var salt [32]byte
-	var assetCode [12]byte
-	var assetIssuer xdr.Uint256
+	contractHash := xdr.Hash{}
+	salt := [32]byte{}
+	assetCode := [12]byte{}
+	assetIssuer := xdr.Uint256{}
+	wasm := []byte{}
+	dummyBool := true
 
 	hardCodedClearFlags := xdr.Uint32(3)
 	hardCodedSetFlags := xdr.Uint32(4)
@@ -591,6 +592,39 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				Type: xdr.OperationTypeInvokeHostFunction,
 				InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
 					HostFunction: xdr.HostFunction{
+						Type: xdr.HostFunctionTypeHostFunctionTypeCreateContractV2,
+						CreateContractV2: &xdr.CreateContractArgsV2{
+							ContractIdPreimage: xdr.ContractIdPreimage{
+								Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAsset,
+								FromAsset: &xdr.Asset{
+									Type: xdr.AssetTypeAssetTypeCreditAlphanum12,
+									AlphaNum12: &xdr.AlphaNum12{
+										AssetCode: assetCode,
+										Issuer: xdr.AccountId{
+											Type:    xdr.PublicKeyTypePublicKeyTypeEd25519,
+											Ed25519: &assetIssuer,
+										},
+									},
+								},
+							},
+							Executable: xdr.ContractExecutable{},
+							ConstructorArgs: []xdr.ScVal{
+								{
+									Type: xdr.ScValTypeScvBool,
+									B:    &dummyBool,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			SourceAccount: nil,
+			Body: xdr.OperationBody{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
+					HostFunction: xdr.HostFunction{
 						Type: xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm,
 						Wasm: &wasm,
 					},
@@ -909,12 +943,69 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 				},
 			},
 		},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
+		{
+			Code: xdr.OperationResultCodeOpInner,
+			Tr: &xdr.OperationResultTr{
+				Type: xdr.OperationTypeInvokeHostFunction,
+				InvokeHostFunctionResult: &xdr.InvokeHostFunctionResult{
+					Code: xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess,
+				},
+			},
+		},
 	}
 	inputTransaction.Result.Result.Result.Results = &results
 	inputTransaction.Envelope.V1 = &inputEnvelope
@@ -925,6 +1016,8 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 	hardCodedSourceAccountAddress := testAccount3Address
 	hardCodedDestAccountAddress := testAccount4Address
 	hardCodedLedgerClose := genericCloseTime.UTC()
+	var nilStringArray []string
+
 	transformedOperations = []OperationOutput{
 		{
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1746,11 +1839,62 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationDetails: map[string]interface{}{
 				"function":              "HostFunctionTypeHostFunctionTypeInvokeContract",
 				"type":                  "invoke_contract",
-				"contract_id":           "",
+				"contract_id":           "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
 				"contract_code_hash":    "",
 				"asset_balance_changes": []map[string]interface{}{},
+				"ledger_key_hash":       nilStringArray,
+				"parameters": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					},
+					{
+						"type":  "Sym",
+						"value": "AAAADwAAAAR0ZXN0",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+					},
+					{
+						"type":  "Sym",
+						"value": "test",
+					},
+				},
 			},
-			ClosedAt: hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			ClosedAt:            hardCodedLedgerClose,
+			OperationDetailsJSON: map[string]interface{}{
+				"function":              "HostFunctionTypeHostFunctionTypeInvokeContract",
+				"type":                  "invoke_contract",
+				"contract_id":           "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+				"contract_code_hash":    "",
+				"asset_balance_changes": []map[string]interface{}{},
+				"ledger_key_hash":       nilStringArray,
+				"parameters": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					},
+					{
+						"type":  "Sym",
+						"value": "AAAADwAAAAR0ZXN0",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+					},
+					{
+						"type":  "Sym",
+						"value": "test",
+					},
+				},
+			},
 		},
 		OperationOutput{
 			Type:          24,
@@ -1764,9 +1908,21 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"contract_id":        "",
 				"contract_code_hash": "",
 				"from":               "address",
-				"address":            "",
+				"address":            "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+				"ledger_key_hash":    nilStringArray,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			OperationDetailsJSON: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeCreateContract",
+				"type":               "create_contract",
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"from":               "address",
+				"address":            "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+				"ledger_key_hash":    nilStringArray,
+			},
 		},
 		OperationOutput{
 			Type:          24,
@@ -1780,9 +1936,21 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"contract_id":        "",
 				"contract_code_hash": "",
 				"from":               "asset",
-				"asset":              "",
+				"asset":              ":GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				"ledger_key_hash":    nilStringArray,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			ClosedAt:            hardCodedLedgerClose,
+			OperationDetailsJSON: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeCreateContract",
+				"type":               "create_contract",
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"from":               "asset",
+				"asset":              ":GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				"ledger_key_hash":    nilStringArray,
+			},
 		},
 		OperationOutput{
 			Type:          24,
@@ -1791,38 +1959,118 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID: 4096,
 			OperationID:   4131,
 			OperationDetails: map[string]interface{}{
-				"function":           "HostFunctionTypeHostFunctionTypeUploadContractWasm",
-				"type":               "upload_wasm",
+				"function":           "HostFunctionTypeHostFunctionTypeCreateContractV2",
+				"type":               "create_contract_v2",
+				"contract_id":        "",
 				"contract_code_hash": "",
+				"from":               "asset",
+				"asset":              ":GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				"ledger_key_hash":    nilStringArray,
+				"parameters": []map[string]string{
+					{
+						"type":  "B",
+						"value": "AAAAAAAAAAE=",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "B",
+						"value": "true",
+					},
+				},
 			},
-			ClosedAt: hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			ClosedAt:            hardCodedLedgerClose,
+			OperationDetailsJSON: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeCreateContractV2",
+				"type":               "create_contract_v2",
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"from":               "asset",
+				"asset":              ":GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+				"ledger_key_hash":    nilStringArray,
+				"parameters": []map[string]string{
+					{
+						"type":  "B",
+						"value": "AAAAAAAAAAE=",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "B",
+						"value": "true",
+					},
+				},
+			},
 		},
 		OperationOutput{
-			Type:          25,
-			TypeString:    "bump_footprint_expiration",
+			Type:          24,
+			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
 			OperationID:   4132,
 			OperationDetails: map[string]interface{}{
-				"type":               "bump_footprint_expiration",
-				"ledgers_to_expire":  1234,
+				"function":           "HostFunctionTypeHostFunctionTypeUploadContractWasm",
+				"type":               "upload_wasm",
+				"contract_code_hash": "",
+				"ledger_key_hash":    nilStringArray,
+			},
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			OperationDetailsJSON: map[string]interface{}{
+				"function":           "HostFunctionTypeHostFunctionTypeUploadContractWasm",
+				"type":               "upload_wasm",
+				"contract_code_hash": "",
+				"ledger_key_hash":    nilStringArray,
+			},
+		},
+		OperationOutput{
+			Type:          25,
+			TypeString:    "extend_footprint_ttl",
+			SourceAccount: hardCodedSourceAccountAddress,
+			TransactionID: 4096,
+			OperationID:   4133,
+			OperationDetails: map[string]interface{}{
+				"type":               "extend_footprint_ttl",
+				"extend_to":          xdr.Uint32(1234),
 				"contract_id":        "",
 				"contract_code_hash": "",
+				"ledger_key_hash":    nilStringArray,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			OperationDetailsJSON: map[string]interface{}{
+				"type":               "extend_footprint_ttl",
+				"extend_to":          xdr.Uint32(1234),
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"ledger_key_hash":    nilStringArray,
+			},
 		},
 		OperationOutput{
 			Type:          26,
 			TypeString:    "restore_footprint",
 			SourceAccount: hardCodedSourceAccountAddress,
 			TransactionID: 4096,
-			OperationID:   4133,
+			OperationID:   4134,
 			OperationDetails: map[string]interface{}{
 				"type":               "restore_footprint",
 				"contract_id":        "",
 				"contract_code_hash": "",
+				"ledger_key_hash":    nilStringArray,
 			},
-			ClosedAt: hardCodedLedgerClose,
+			ClosedAt:            hardCodedLedgerClose,
+			OperationResultCode: "OperationResultCodeOpInner",
+			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
+			OperationDetailsJSON: map[string]interface{}{
+				"type":               "restore_footprint",
+				"contract_id":        "",
+				"contract_code_hash": "",
+				"ledger_key_hash":    nilStringArray,
+			},
 		},
 	}
 	return
