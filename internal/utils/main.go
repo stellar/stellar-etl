@@ -234,7 +234,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
-	flags.Bool("captive-core", false, "If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
+	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	flags.String("datastore-path", "sdf-ledger-close-meta/ledgers", "Datastore bucket path to read txmeta files from.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
@@ -343,6 +343,10 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 	useCaptiveCore, err := flags.GetBool("captive-core")
 	if err != nil {
 		logger.Fatal("could not get captive-core flag: ", err)
+	}
+	// Deprecation warning
+	if useCaptiveCore {
+		logger.Warn("warning: the option to run with captive-core will be deprecated in the Protocol 23 update")
 	}
 
 	datastorePath, err := flags.GetString("datastore-path")
@@ -479,6 +483,9 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 	useCaptiveCore, err := flags.GetBool("captive-core")
 	if err != nil {
 		logger.Fatal("could not get captive-core flag: ", err)
+	}
+	if useCaptiveCore {
+		logger.Warn("warning: the option to run with captive-core will be deprecated in the Protocol 23 update")
 	}
 
 	datastorePath, err := flags.GetString("datastore-path")
