@@ -33,6 +33,21 @@ var genericBumpOperationEnvelope = xdr.TransactionV1Envelope{
 		Operations: []xdr.Operation{
 			genericBumpOperation,
 		},
+		Ext: xdr.TransactionExt{
+			V: 0,
+			SorobanData: &xdr.SorobanTransactionData{
+				Ext: xdr.ExtensionPoint{
+					V: 0,
+				},
+				Resources: xdr.SorobanResources{
+					Footprint: xdr.LedgerFootprint{
+						ReadOnly:  []xdr.LedgerKey{},
+						ReadWrite: []xdr.LedgerKey{},
+					},
+				},
+				ResourceFee: 100,
+			},
+		},
 	},
 }
 var genericBumpOperationForTransaction = xdr.Operation{

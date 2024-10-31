@@ -15,7 +15,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.17.0
-	github.com/stellar/go v0.0.0-20240906064426-eb4b2ab750b8
+	github.com/stellar/go v0.0.0-20240905180041-acfaa0686213
 	github.com/stretchr/testify v1.9.0
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20240122235623-d6294584ab18
