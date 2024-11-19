@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -1100,4 +1101,12 @@ func AccountSignersChanged(c ingest.Change) bool {
 type HistoryArchiveLedgerAndLCM struct {
 	Ledger historyarchive.Ledger
 	LCM    xdr.LedgerCloseMeta
+}
+
+func MapToStruct(data map[string]interface{}, result interface{}) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(jsonData, result)
 }
