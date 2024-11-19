@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/stellar/go/utils/apiclient"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -12,11 +13,15 @@ import (
 const (
 	baseUrl  = "https://xrri-vvsg-obfa.n7c.xano.io/api:glgSAjxV"
 	authType = "api_key"
-	apiKey   = "test-api-key"
 )
+
+var apiKey = os.Getenv("API_KEY")
 
 func GetRetoolData(client *apiclient.APIClient) ([]utils.RetoolEntityDataTransformInput, error) {
 	if client == nil {
+		if apiKey == "" {
+			apiKey = "test-api-key"
+		}
 		client = &apiclient.APIClient{
 			BaseURL:     baseUrl,
 			AuthType:    authType,
