@@ -11,9 +11,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetRetoolData(t *testing.T) {
+func getMockClient(provider string, mockResponses []httptest.ResponseData) *apiclient.APIClient {
 	hmock := httptest.NewClient()
+	providerConfig := GetProviderConfig(provider)
 
+	hmock.On("GET", fmt.Sprintf("%s/%s", providerConfig.BaseURL, providerConfig.Endpoint)).
+		ReturnMultipleResults(mockResponses)
+
+	mockClient := &apiclient.APIClient{
+		BaseURL: providerConfig.BaseURL,
+		HTTP:    hmock,
+	}
+	return mockClient
+}
+
+func getEntityDataHelper[T any](t *testing.T, provider string, mockResponses []httptest.ResponseData, expected []T) {
+	mockClient := getMockClient(provider, mockResponses)
+	result, err := GetEntityData[T](mockClient, provider, "", "")
+	if err != nil {
+		t.Fatalf("Error calling GetEntityData: %v", err)
+	}
+
+	assert.Equal(t, expected, result)
+}
+
+func TestGetEntityDataForRetool(t *testing.T) {
 	mockResponses := []httptest.ResponseData{
 		{
 			Status: http.StatusOK,
@@ -87,20 +109,6 @@ func TestGetRetoolData(t *testing.T) {
 			Header: nil,
 		},
 	}
-
-	hmock.On("GET", fmt.Sprintf("%s/apps_details", baseUrl)).
-		ReturnMultipleResults(mockResponses)
-
-	mockClient := &apiclient.APIClient{
-		BaseURL: baseUrl,
-		HTTP:    hmock,
-	}
-
-	result, err := GetRetoolData(mockClient)
-	if err != nil {
-		t.Fatalf("Error calling GetRetoolData: %v", err)
-	}
-
 	expected := []utils.RetoolEntityDataTransformInput{
 		{
 			ID:             16,
@@ -167,6 +175,5 @@ func TestGetRetoolData(t *testing.T) {
 			},
 		},
 	}
-
-	assert.Equal(t, expected, result)
+	getEntityDataHelper[utils.RetoolEntityDataTransformInput](t, "retool", mockResponses, expected)
 }
