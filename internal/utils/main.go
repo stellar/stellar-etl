@@ -298,6 +298,10 @@ func AddProviderFlags(flags *pflag.FlagSet) {
 	flags.StringP("provider", "p", "", "Third party provider name. Example: retool, github")
 }
 
+func AddTestFlags(flags *pflag.FlagSet) {
+	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
+}
+
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
 // Some flags should be named better
 type FlagValues struct {

@@ -1,32 +1,14 @@
 package input
 
 import (
-	"fmt"
-	"net/http"
 	"testing"
 
-	"github.com/stellar/go/support/http/httptest"
-	"github.com/stellar/go/utils/apiclient"
 	"github.com/stellar/stellar-etl/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func getMockClient(provider string, mockResponses []httptest.ResponseData) *apiclient.APIClient {
-	hmock := httptest.NewClient()
-	providerConfig := GetProviderConfig(provider)
-
-	hmock.On("GET", fmt.Sprintf("%s/%s", providerConfig.BaseURL, providerConfig.Endpoint)).
-		ReturnMultipleResults(mockResponses)
-
-	mockClient := &apiclient.APIClient{
-		BaseURL: providerConfig.BaseURL,
-		HTTP:    hmock,
-	}
-	return mockClient
-}
-
-func getEntityDataHelper[T any](t *testing.T, provider string, mockResponses []httptest.ResponseData, expected []T) {
-	mockClient := getMockClient(provider, mockResponses)
+func getEntityDataHelper[T any](t *testing.T, provider string, expected []T) {
+	mockClient := GetMockClient(provider)
 	result, err := GetEntityData[T](mockClient, provider, "", "")
 	if err != nil {
 		t.Fatalf("Error calling GetEntityData: %v", err)
@@ -36,79 +18,6 @@ func getEntityDataHelper[T any](t *testing.T, provider string, mockResponses []h
 }
 
 func TestGetEntityDataForRetool(t *testing.T) {
-	mockResponses := []httptest.ResponseData{
-		{
-			Status: http.StatusOK,
-			Body: `[
-				{
-					"id": 16,
-					"created_at": 1706749912776,
-					"updated_at": null,
-					"custodial": true,
-					"non_custodial": true,
-					"home_domains_id": 240,
-					"name": "El Dorado",
-					"description": "",
-					"website_url": "",
-					"sdp_enabled": false,
-					"soroban_enabled": false,
-					"notes": "",
-					"verified": false,
-					"fee_sponsor": false,
-					"account_sponsor": false,
-					"live": true,
-					"status": "live",
-					"_home_domain": {
-						"id": 240,
-						"created_at": 1706749903897,
-						"home_domain": "eldorado.io",
-						"updated_at": 1706749903897
-					},
-					"_app_geographies_details": [
-						{
-							"id": 39,
-							"apps_id": 16,
-							"created_at": 1707887845605,
-							"geographies_id": [
-								{
-									"id": 176,
-									"created_at": 1691020699576,
-									"updated_at": 1706650713745,
-									"name": "Argentina",
-									"official_name": "The Argentine Republic"
-								},
-								{
-									"id": 273,
-									"created_at": 1691020699834,
-									"updated_at": 1706650708355,
-									"name": "Brazil",
-									"official_name": "The Federative Republic of Brazil"
-								}
-							],
-							"retail": false,
-							"enterprise": false
-						}
-					],
-					"_app_to_ramps_integrations": [
-						{
-							"id": 18,
-							"created_at": 1707617027154,
-							"anchors_id": 28,
-							"apps_id": 16,
-							"_anchor": {
-								"id": 28,
-								"created_at": 1705423531705,
-								"name": "MoneyGram",
-								"updated_at": 1706596979487,
-								"home_domains_id": 203
-							}
-						}
-					]
-				}
-			]`,
-			Header: nil,
-		},
-	}
 	expected := []utils.RetoolEntityDataTransformInput{
 		{
 			ID:             16,
@@ -175,5 +84,5 @@ func TestGetEntityDataForRetool(t *testing.T) {
 			},
 		},
 	}
-	getEntityDataHelper[utils.RetoolEntityDataTransformInput](t, "retool", mockResponses, expected)
+	getEntityDataHelper[utils.RetoolEntityDataTransformInput](t, "retool", expected)
 }

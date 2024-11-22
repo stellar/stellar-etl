@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stellar/go/utils/apiclient"
 	"github.com/stellar/stellar-etl/internal/input"
 	"github.com/stellar/stellar-etl/internal/transform"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -20,6 +21,10 @@ var externalDataCmd = &cobra.Command{
 		path := utils.MustBucketFlags(cmd.Flags(), cmdLogger)
 		provider := utils.MustProviderFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+		isTest, err := cmd.Flags().GetBool("testnet")
+		if err != nil {
+			cmdLogger.Fatal("could not get testnet boolean: ", err)
+		}
 
 		outFile := mustOutFile(path)
 		numFailures := 0
@@ -27,7 +32,13 @@ var externalDataCmd = &cobra.Command{
 
 		switch provider {
 		case "retool":
-			entities, err := input.GetEntityData[utils.RetoolEntityDataTransformInput](nil, provider, timestampArgs.StartTime, timestampArgs.EndTime)
+			var client *apiclient.APIClient
+			if isTest {
+				client = input.GetMockClient(provider)
+			} else {
+				client = nil
+			}
+			entities, err := input.GetEntityData[utils.RetoolEntityDataTransformInput](client, provider, timestampArgs.StartTime, timestampArgs.EndTime)
 			if err != nil {
 				cmdLogger.Fatal("could not read entity data: ", err)
 			}
@@ -66,6 +77,7 @@ func init() {
 	utils.AddCloudStorageFlags(externalDataCmd.Flags())
 	utils.AddTimestampRangeFlags(externalDataCmd.Flags())
 	utils.AddProviderFlags(externalDataCmd.Flags())
+	utils.AddTestFlags(externalDataCmd.Flags())
 	externalDataCmd.MarkFlagRequired("provider")
 	externalDataCmd.MarkFlagRequired("start-time")
 	externalDataCmd.MarkFlagRequired("end-time")
