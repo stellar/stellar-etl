@@ -3,9 +3,11 @@ package utils
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -287,6 +289,19 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
 }
 
+func AddTimestampRangeFlags(flags *pflag.FlagSet) {
+	flags.String("start-time", "", "Start timestamp of the range")
+	flags.String("end-time", "", "End timestamp of the range")
+}
+
+func AddProviderFlags(flags *pflag.FlagSet) {
+	flags.StringP("provider", "p", "", "Third party provider name. Example: retool, github")
+}
+
+func AddTestFlags(flags *pflag.FlagSet) {
+	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
+}
+
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
 // Some flags should be named better
 type FlagValues struct {
@@ -450,6 +465,11 @@ type CommonFlagValues struct {
 	RetryLimit     uint32
 	RetryWait      uint32
 	WriteParquet   bool
+}
+
+type TimestampRangeFlagValues struct {
+	StartTime string
+	EndTime   string
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
@@ -648,6 +668,31 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 	}
 
 	return exports
+}
+
+func MustTimestampRangeFlags(flags *pflag.FlagSet, logger *EtlLogger) TimestampRangeFlagValues {
+	startTime, err := flags.GetString("start-time")
+	if err != nil {
+		logger.Fatal("could not get start time of the range: ", err)
+	}
+
+	endTime, err := flags.GetString("end-time")
+	if err != nil {
+		logger.Fatal("could not get end time of the range: ", err)
+	}
+
+	return TimestampRangeFlagValues{
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+}
+
+func MustProviderFlags(flags *pflag.FlagSet, logger *EtlLogger) string {
+	provider, err := flags.GetString("provider")
+	if err != nil {
+		logger.Fatal("could not get provider: ", err)
+	}
+	return provider
 }
 
 type historyArchiveBackend struct {
@@ -1100,4 +1145,19 @@ func AccountSignersChanged(c ingest.Change) bool {
 type HistoryArchiveLedgerAndLCM struct {
 	Ledger historyarchive.Ledger
 	LCM    xdr.LedgerCloseMeta
+}
+
+func MapToStruct(data map[string]interface{}, result interface{}) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(jsonData, result)
+}
+
+func GetEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

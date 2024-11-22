@@ -629,3 +629,26 @@ type ContractEventOutput struct {
 	DataDecoded              map[string]string              `json:"data_decoded"`
 	ContractEventXDR         string                         `json:"contract_event_xdr"`
 }
+
+type EntityDataTransformOutput struct {
+	ID             int      `json:"id"`
+	Name           string   `json:"name"`
+	HomeDomain     string   `json:"home_domain"`
+	Status         string   `json:"status"`
+	CreatedAt      int64    `json:"created_at"`
+	UpdatedAt      *int64   `json:"updated_at"`
+	Custodial      bool     `json:"custodial"`
+	NonCustodial   bool     `json:"non_custodial"`
+	HomeDomainsID  int      `json:"home_domains_id"`
+	Description    string   `json:"description"`
+	WebsiteURL     string   `json:"website_url"`
+	SdpEnabled     bool     `json:"sdp_enabled"`
+	SorobanEnabled bool     `json:"soroban_enabled"`
+	Notes          string   `json:"notes"`
+	Verified       bool     `json:"verified"`
+	FeeSponsor     bool     `json:"fee_sponsor"`
+	AccountSponsor bool     `json:"account_sponsor"`
+	Live           bool     `json:"live"`
+	AppGeographies []string `json:"app_geographies"`
+	Ramps          []string `json:"ramps"`
+}
