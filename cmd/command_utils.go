@@ -40,7 +40,7 @@ func createOutputFile(filepath string) error {
 	return nil
 }
 
-func mustOutFile(path string) *os.File {
+func MustOutFile(path string) *os.File {
 	absolutePath, err := filepath.Abs(path)
 	if err != nil {
 		cmdLogger.Fatal("could not get absolute filepath: ", err)
@@ -64,7 +64,7 @@ func mustOutFile(path string) *os.File {
 	return outFile
 }
 
-func exportEntry(entry interface{}, outFile *os.File, extra map[string]string) (int, error) {
+func ExportEntry(entry interface{}, outFile *os.File, extra map[string]string) (int, error) {
 	// This extra marshalling/unmarshalling is silly, but it's required to properly handle the null.[String|Int*] types, and add the extra fields.
 	m, err := json.Marshal(entry)
 	if err != nil {
@@ -99,7 +99,7 @@ func exportEntry(entry interface{}, outFile *os.File, extra map[string]string) (
 }
 
 // Prints the number of attempted, failed, and successful transformations as a JSON object
-func printTransformStats(attempts, failures int) {
+func PrintTransformStats(attempts, failures int) {
 	resultsMap := map[string]int{
 		"attempted_transforms":  attempts,
 		"failed_transforms":     failures,
@@ -132,7 +132,7 @@ func deleteLocalFiles(path string) error {
 	return nil
 }
 
-func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path string) {
+func MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path string) {
 	if cloudProvider == "" {
 		cmdLogger.Info("No cloud provider specified for upload. Skipping upload.")
 		return
@@ -157,7 +157,7 @@ func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path strin
 	}
 }
 
-// writeParquet creates the parquet file and writes the exported data into it.
+// WriteParquet creates the parquet file and writes the exported data into it.
 //
 // Parameters:
 //
@@ -171,7 +171,7 @@ func maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path strin
 //	Errors:
 //
 //	stellar-etl will log a Fatal error and stop in the case it cannot create or write to the parquet file
-func writeParquet(data []transform.SchemaParquet, path string, schema interface{}) {
+func WriteParquet(data []transform.SchemaParquet, path string, schema interface{}) {
 	parquetFile, err := local.NewLocalFileWriter(path)
 	if err != nil {
 		cmdLogger.Fatal("could not create parquet file: ", err)

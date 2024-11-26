@@ -30,7 +30,7 @@ var tradesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read trades ", err)
 		}
 
-		outFile := mustOutFile(path)
+		outFile := MustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		var transformedTrades []transform.SchemaParquet
@@ -44,7 +44,7 @@ var tradesCmd = &cobra.Command{
 			}
 
 			for _, transformed := range trades {
-				numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
+				numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
 				if err != nil {
 					cmdLogger.LogError(err)
 					numFailures += 1
@@ -61,13 +61,13 @@ var tradesCmd = &cobra.Command{
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(trades), numFailures)
+		PrintTransformStats(len(trades), numFailures)
 
-		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 		if commonArgs.WriteParquet {
-			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-			writeParquet(transformedTrades, parquetPath, new(transform.TradeOutputParquet))
+			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			WriteParquet(transformedTrades, parquetPath, new(transform.TradeOutputParquet))
 		}
 	},
 }

@@ -27,7 +27,7 @@ var contractEventsCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}
 
-		outFile := mustOutFile(cmdArgs.Path)
+		outFile := MustOutFile(cmdArgs.Path)
 		numFailures := 0
 		var transformedEvents []transform.SchemaParquet
 		for _, transformInput := range transactions {
@@ -40,7 +40,7 @@ var contractEventsCmd = &cobra.Command{
 			}
 
 			for _, contractEvent := range transformed {
-				_, err := exportEntry(contractEvent, outFile, cmdArgs.Extra)
+				_, err := ExportEntry(contractEvent, outFile, cmdArgs.Extra)
 				if err != nil {
 					cmdLogger.LogError(fmt.Errorf("could not export contract event: %v", err))
 					numFailures += 1
@@ -56,13 +56,13 @@ var contractEventsCmd = &cobra.Command{
 
 		outFile.Close()
 
-		printTransformStats(len(transactions), numFailures)
+		PrintTransformStats(len(transactions), numFailures)
 
-		maybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.Path)
+		MaybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.Path)
 
 		if commonArgs.WriteParquet {
-			writeParquet(transformedEvents, cmdArgs.ParquetPath, new(transform.ContractEventOutputParquet))
-			maybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.ParquetPath)
+			WriteParquet(transformedEvents, cmdArgs.ParquetPath, new(transform.ContractEventOutputParquet))
+			MaybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.ParquetPath)
 		}
 
 	},

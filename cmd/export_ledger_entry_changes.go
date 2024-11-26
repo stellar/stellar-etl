@@ -295,12 +295,12 @@ func exportTransformedData(
 		// is included in this filename.
 		path := filepath.Join(folderPath, exportFilename(start, end+1, resource))
 		parquetPath := filepath.Join(parquetFolderPath, exportParquetFilename(start, end+1, resource))
-		outFile := mustOutFile(path)
+		outFile := MustOutFile(path)
 		var transformedResource []transform.SchemaParquet
 		var parquetSchema interface{}
 		var skip bool
 		for _, o := range output {
-			_, err := exportEntry(o, outFile, extra)
+			_, err := ExportEntry(o, outFile, extra)
 			if err != nil {
 				return err
 			}
@@ -352,11 +352,11 @@ func exportTransformedData(
 			}
 		}
 
-		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 		if !skip && WriteParquet {
-			writeParquet(transformedResource, parquetPath, parquetSchema)
-			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			WriteParquet(transformedResource, parquetPath, parquetSchema)
+			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
 		}
 	}
 

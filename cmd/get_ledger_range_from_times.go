@@ -72,7 +72,7 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 		}
 
 		if path != "" {
-			outFile := mustOutFile(path)
+			outFile := MustOutFile(path)
 			outFile.Write(marshalled)
 			outFile.WriteString("\n")
 			outFile.Close()

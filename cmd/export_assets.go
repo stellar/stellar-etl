@@ -22,7 +22,7 @@ var assetsCmd = &cobra.Command{
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
-		outFile := mustOutFile(path)
+		outFile := MustOutFile(path)
 
 		var paymentOps []input.AssetTransformInput
 		var err error
@@ -56,7 +56,7 @@ var assetsCmd = &cobra.Command{
 			}
 
 			seenIDs[transformed.AssetID] = true
-			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
+			numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(err)
 				numFailures += 1
@@ -72,13 +72,13 @@ var assetsCmd = &cobra.Command{
 		outFile.Close()
 		cmdLogger.Infof("%d bytes written to %s", totalNumBytes, outFile.Name())
 
-		printTransformStats(len(paymentOps), numFailures)
+		PrintTransformStats(len(paymentOps), numFailures)
 
-		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 		if commonArgs.WriteParquet {
-			writeParquet(transformedAssets, parquetPath, new(transform.AssetOutputParquet))
-			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			WriteParquet(transformedAssets, parquetPath, new(transform.AssetOutputParquet))
+			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
 		}
 	},
 }

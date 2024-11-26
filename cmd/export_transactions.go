@@ -27,7 +27,7 @@ var transactionsCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read transactions: ", err)
 		}
 
-		outFile := mustOutFile(path)
+		outFile := MustOutFile(path)
 		numFailures := 0
 		totalNumBytes := 0
 		var transformedTransaction []transform.SchemaParquet
@@ -40,7 +40,7 @@ var transactionsCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
+			numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export transaction: %v", err))
 				numFailures += 1
@@ -56,13 +56,13 @@ var transactionsCmd = &cobra.Command{
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(transactions), numFailures)
+		PrintTransformStats(len(transactions), numFailures)
 
-		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 		if commonArgs.WriteParquet {
-			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-			writeParquet(transformedTransaction, parquetPath, new(transform.TransactionOutputParquet))
+			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			WriteParquet(transformedTransaction, parquetPath, new(transform.TransactionOutputParquet))
 		}
 	},
 }
