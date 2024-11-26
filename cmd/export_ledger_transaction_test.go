@@ -15,6 +15,6 @@ func TestExportLedgerTransaction(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		RunCLITest(t, test, "testdata/ledger_transactions/", "")
+		RunCLITest(t, test, "testdata/ledger_transactions/", "", false)
 	}
 }

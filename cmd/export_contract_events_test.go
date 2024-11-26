@@ -15,6 +15,6 @@ func TestExportContractEvents(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		RunCLITest(t, test, "testdata/contract_events/", "")
+		RunCLITest(t, test, "testdata/contract_events/", "", false)
 	}
 }

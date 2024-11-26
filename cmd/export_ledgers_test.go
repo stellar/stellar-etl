@@ -73,6 +73,6 @@ func TestExportLedger(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		RunCLITest(t, test, "testdata/ledgers/", "")
+		RunCLITest(t, test, "testdata/ledgers/", "", false)
 	}
 }

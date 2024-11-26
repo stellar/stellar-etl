@@ -208,7 +208,7 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName string) {
+func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName string, useParentDir bool) {
 	if executableName == "" {
 		executableName = "stellar-etl"
 	}
@@ -216,6 +216,10 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 	t.Run(test.Name, func(t *testing.T) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
+
+		if useParentDir {
+			dir = filepath.Dir(dir)
+		}
 
 		idxOfOutputArg := indexOf(test.Args, "-o")
 		var testOutput []byte
