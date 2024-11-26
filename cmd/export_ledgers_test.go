@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 )
-
-var gotFolder = "testdata/got/"
 
 func TestMain(m *testing.M) {
 	if err := os.Chdir(".."); err != nil {
@@ -27,10 +24,6 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	exitCode := m.Run()
 	os.Exit(exitCode)
-}
-
-func gotTestDir(t *testing.T, filename string) string {
-	return filepath.Join(gotFolder, t.Name(), filename)
 }
 
 func TestExportLedger(t *testing.T) {
@@ -55,25 +48,25 @@ func TestExportLedger(t *testing.T) {
 		},
 		{
 			name:    "single ledger",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "-o", gotTestDir(t, "single_ledger.txt")},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822015", "-o", GotTestDir(t, "single_ledger.txt")},
 			golden:  "single_ledger.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "10 ledgers",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-o", gotTestDir(t, "10_ledgers.txt")},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-o", GotTestDir(t, "10_ledgers.txt")},
 			golden:  "10_ledgers.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range too large",
-			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", gotTestDir(t, "large_range_ledgers.txt")},
+			args:    []string{"export_ledgers", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", GotTestDir(t, "large_range_ledgers.txt")},
 			golden:  "large_range_ledgers.golden",
 			wantErr: nil,
 		},
 		{
 			name:    "range from 2024",
-			args:    []string{"export_ledgers", "-s", "52929555", "-e", "52929960", "-o", gotTestDir(t, "2024_ledgers.txt")},
+			args:    []string{"export_ledgers", "-s", "52929555", "-e", "52929960", "-o", GotTestDir(t, "2024_ledgers.txt")},
 			golden:  "2024_ledgers.golden",
 			wantErr: nil,
 		},

@@ -23,6 +23,7 @@ import (
 
 var executableName = "stellar-etl"
 var update = flag.Bool("update", false, "update the golden files of this test")
+var gotFolder = "testdata/got/"
 
 type CloudStorage interface {
 	UploadTo(credentialsPath, bucket, path string) error
@@ -330,4 +331,8 @@ func sortByName(files []os.DirEntry) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Name() < files[j].Name()
 	})
+}
+
+func GotTestDir(t *testing.T, filename string) string {
+	return filepath.Join(gotFolder, t.Name(), filename)
 }
