@@ -10,7 +10,7 @@ const coreConfigPath = "/etl/docker/stellar-core.cfg"
 
 func TestExportChanges(t *testing.T) {
 
-	tests := []cliTest{
+	tests := []CliTest{
 		{
 			name:    "unbounded range with no config",
 			args:    []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-s", "100000"},
@@ -96,6 +96,6 @@ func TestExportChanges(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		runCLITest(t, test, "testdata/changes/")
+		RunCLITest(t, test, "testdata/changes/")
 	}
 }

@@ -6,7 +6,7 @@ import (
 )
 
 func TestConvertTimes(t *testing.T) {
-	tests := []cliTest{
+	tests := []CliTest{
 		{
 			name:    "wrong date format",
 			args:    []string{"get_ledger_range_from_times", "-s", "2016 01 01 4:33", "-e", "2020 03 04 12:32"},
@@ -83,6 +83,6 @@ func TestConvertTimes(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		runCLITest(t, test, "testdata/ranges/")
+		RunCLITest(t, test, "testdata/ranges/")
 	}
 }

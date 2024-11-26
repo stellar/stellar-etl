@@ -21,7 +21,7 @@ var executableName = "stellar-etl"
 var update = flag.Bool("update", false, "update the golden files of this test")
 var gotFolder = "testdata/got/"
 
-type cliTest struct {
+type CliTest struct {
 	name              string
 	args              []string
 	golden            string
@@ -52,7 +52,7 @@ func gotTestDir(t *testing.T, filename string) string {
 }
 
 func TestExportLedger(t *testing.T) {
-	tests := []cliTest{
+	tests := []CliTest{
 		{
 			name:    "end before start",
 			args:    []string{"export_ledgers", "-s", "100", "-e", "50"},
@@ -98,7 +98,7 @@ func TestExportLedger(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		runCLITest(t, test, "testdata/ledgers/")
+		RunCLITest(t, test, "testdata/ledgers/")
 	}
 }
 
@@ -117,7 +117,7 @@ func sortByName(files []os.DirEntry) {
 	})
 }
 
-func runCLITest(t *testing.T, test cliTest, goldenFolder string) {
+func RunCLITest(t *testing.T, test CliTest, goldenFolder string) {
 	flag.Parse()
 	t.Run(test.name, func(t *testing.T) {
 		dir, err := os.Getwd()

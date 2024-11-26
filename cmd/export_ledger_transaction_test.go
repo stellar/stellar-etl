@@ -5,7 +5,7 @@ import (
 )
 
 func TestExportLedgerTransaction(t *testing.T) {
-	tests := []cliTest{
+	tests := []CliTest{
 		{
 			name:    "Transactions from one ledger",
 			args:    []string{"export_ledger_transaction", "-s", "30820015", "-e", "30820015", "-o", gotTestDir(t, "ledger_transactions.txt")},
@@ -15,6 +15,6 @@ func TestExportLedgerTransaction(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		runCLITest(t, test, "testdata/ledger_transactions/")
+		RunCLITest(t, test, "testdata/ledger_transactions/")
 	}
 }
