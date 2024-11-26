@@ -287,7 +287,7 @@ func exportTransformedData(
 	transformedOutput map[string][]interface{},
 	cloudCredentials, cloudStorageBucket, cloudProvider string,
 	extra map[string]string,
-	WriteParquet bool) error {
+	writeParquet bool) error {
 
 	for resource, output := range transformedOutput {
 		// Filenames are typically exclusive of end point. This processor
@@ -305,7 +305,7 @@ func exportTransformedData(
 				return err
 			}
 
-			if WriteParquet {
+			if writeParquet {
 				switch v := o.(type) {
 				case transform.AccountOutput:
 					transformedResource = append(transformedResource, v)
@@ -354,7 +354,7 @@ func exportTransformedData(
 
 		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
-		if !skip && WriteParquet {
+		if !skip && writeParquet {
 			WriteParquet(transformedResource, parquetPath, parquetSchema)
 			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
 		}
