@@ -22,7 +22,7 @@ import (
 )
 
 var executableName = "stellar-etl"
-var update = flag.Bool("update", false, "update the golden files of this test")
+var update = flag.Bool("update", false, "update the Golden files of this test")
 var gotFolder = "testdata/got/"
 
 type CloudStorage interface {
@@ -193,11 +193,11 @@ func WriteParquet(data []transform.SchemaParquet, path string, schema interface{
 }
 
 type CliTest struct {
-	name              string
-	args              []string
-	golden            string
-	wantErr           error
-	sortForComparison bool
+	Name              string
+	Args              []string
+	Golden            string
+	WantErr           error
+	SortForComparison bool
 }
 
 func indexOf(l []string, s string) int {
@@ -209,18 +209,18 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func RunCLITest(t *testing.T, test CliTest, goldenFolder string) {
+func RunCLITest(t *testing.T, test CliTest, GoldenFolder string) {
 	flag.Parse()
-	t.Run(test.name, func(t *testing.T) {
+	t.Run(test.Name, func(t *testing.T) {
 		dir, err := os.Getwd()
 		assert.NoError(t, err)
 
-		idxOfOutputArg := indexOf(test.args, "-o")
+		idxOfOutputArg := indexOf(test.Args, "-o")
 		var testOutput []byte
 		var outLocation string
 		var stat os.FileInfo
 		if idxOfOutputArg > -1 {
-			outLocation = test.args[idxOfOutputArg+1]
+			outLocation = test.Args[idxOfOutputArg+1]
 			_, err = os.Stat(outLocation)
 			if err != nil {
 				// Check if the error is due to the file not existing
@@ -235,7 +235,7 @@ func RunCLITest(t *testing.T, test CliTest, goldenFolder string) {
 			}
 		}
 
-		cmd := exec.Command(path.Join(dir, executableName), test.args...)
+		cmd := exec.Command(path.Join(dir, executableName), test.Args...)
 		errOut, actualError := cmd.CombinedOutput()
 		if idxOfOutputArg > -1 {
 			stat, err = os.Stat(outLocation)
@@ -268,15 +268,15 @@ func RunCLITest(t *testing.T, test CliTest, goldenFolder string) {
 		// Since the CLI uses a logger to report errors, the final error message isn't the same as the errors thrown in code.
 		// Instead, it's wrapped in other os/system errors
 		// By reading the error text from the logger, we can extract the lower level error that the user would see
-		if test.golden == "" {
+		if test.Golden == "" {
 			errorMsg := fmt.Errorf(extractErrorMsg(string(errOut)))
-			assert.Equal(t, test.wantErr, errorMsg)
+			assert.Equal(t, test.WantErr, errorMsg)
 			return
 		}
 
-		assert.Equal(t, test.wantErr, actualError)
+		assert.Equal(t, test.WantErr, actualError)
 		actualString := string(testOutput)
-		if test.sortForComparison {
+		if test.SortForComparison {
 			trimmed := strings.Trim(actualString, "\n")
 			lines := strings.Split(trimmed, "\n")
 			sort.Strings(lines)
@@ -284,7 +284,7 @@ func RunCLITest(t *testing.T, test CliTest, goldenFolder string) {
 			actualString = fmt.Sprintf("%s\n", actualString)
 		}
 
-		wantString, err := getGolden(t, goldenFolder+test.golden, actualString, *update)
+		wantString, err := getGolden(t, GoldenFolder+test.Golden, actualString, *update)
 		assert.NoError(t, err)
 		assert.Equal(t, wantString, actualString)
 	})
@@ -296,18 +296,18 @@ func extractErrorMsg(loggerOutput string) string {
 	return loggerOutput[errIndex : errIndex+endIndex]
 }
 
-func getGolden(t *testing.T, goldenFile string, actual string, update bool) (string, error) {
+func getGolden(t *testing.T, GoldenFile string, actual string, update bool) (string, error) {
 	t.Helper()
-	f, err := os.OpenFile(goldenFile, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(GoldenFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
 
-	// If the update flag is true, clear the current contents of the golden file and write the actual output
+	// If the update flag is true, clear the current contents of the Golden file and write the actual output
 	// This is useful for when new tests or added or functionality changes that breaks current tests
 	if update {
-		err := os.Truncate(goldenFile, 0)
+		err := os.Truncate(GoldenFile, 0)
 		if err != nil {
 			return "", err
 		}

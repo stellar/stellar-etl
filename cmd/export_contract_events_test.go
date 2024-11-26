@@ -7,10 +7,10 @@ import (
 func TestExportContractEvents(t *testing.T) {
 	tests := []CliTest{
 		{
-			name:    "contract events from multiple ledger",
-			args:    []string{"export_contract_events", "-s", "52271338", "-e", "52271350", "-o", GotTestDir(t, "large_range_ledger_txs.txt")},
-			golden:  "large_range_ledger_txs.golden",
-			wantErr: nil,
+			Name:    "contract events from multiple ledger",
+			Args:    []string{"export_contract_events", "-s", "52271338", "-e", "52271350", "-o", GotTestDir(t, "large_range_ledger_txs.txt")},
+			Golden:  "large_range_ledger_txs.golden",
+			WantErr: nil,
 		},
 	}
 
