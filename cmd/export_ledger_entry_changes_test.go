@@ -96,6 +96,6 @@ func TestExportChanges(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		RunCLITest(t, test, "testdata/changes/")
+		RunCLITest(t, test, "testdata/changes/", "")
 	}
 }

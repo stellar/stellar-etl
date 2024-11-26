@@ -15,7 +15,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// This does the setup for further tests. It generates an executeable that can be run on the command line by other tests
-	buildCmd := exec.Command("go", "build", "-o", executableName)
+	buildCmd := exec.Command("go", "build", "-o", "stellar-etl")
 	if err := buildCmd.Run(); err != nil {
 		cmdLogger.Error("could not build executable", err)
 		os.Exit(1)
@@ -73,6 +73,6 @@ func TestExportLedger(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		RunCLITest(t, test, "testdata/ledgers/")
+		RunCLITest(t, test, "testdata/ledgers/", "")
 	}
 }

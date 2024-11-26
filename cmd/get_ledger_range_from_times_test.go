@@ -83,6 +83,6 @@ func TestConvertTimes(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		RunCLITest(t, test, "testdata/ranges/")
+		RunCLITest(t, test, "testdata/ranges/", "")
 	}
 }

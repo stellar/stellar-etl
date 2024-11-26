@@ -21,7 +21,6 @@ import (
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-var executableName = "stellar-etl"
 var update = flag.Bool("update", false, "update the Golden files of this test")
 var gotFolder = "testdata/got/"
 
@@ -209,7 +208,10 @@ func indexOf(l []string, s string) int {
 	return -1
 }
 
-func RunCLITest(t *testing.T, test CliTest, GoldenFolder string) {
+func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName string) {
+	if executableName == "" {
+		executableName = "stellar-etl"
+	}
 	flag.Parse()
 	t.Run(test.Name, func(t *testing.T) {
 		dir, err := os.Getwd()
@@ -236,7 +238,9 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string) {
 		}
 
 		cmd := exec.Command(path.Join(dir, executableName), test.Args...)
+		fmt.Printf("Command: %s %v\n", path.Join(dir, executableName), test.Args)
 		errOut, actualError := cmd.CombinedOutput()
+		fmt.Println(actualError)
 		if idxOfOutputArg > -1 {
 			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
