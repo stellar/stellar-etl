@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -244,10 +243,11 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 			}
 		}
 
-		cmd := exec.Command(path.Join(dir, executableName), test.Args...)
-		fmt.Printf("Command: %s %v\n", path.Join(dir, executableName), test.Args)
+		cmd := exec.Command(executableName, test.Args...)
+		fmt.Printf("Command: %s %v\n", executableName, test.Args)
 		errOut, actualError := cmd.CombinedOutput()
 		fmt.Println(actualError)
+		fmt.Println(errOut)
 		if idxOfOutputArg > -1 {
 			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
