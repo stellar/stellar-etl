@@ -227,16 +227,13 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 		if idxOfOutputArg > -1 {
 			outLocation = test.Args[idxOfOutputArg+1]
 			_, err = os.Stat(outLocation)
-			fmt.Println(outLocation)
 			if err != nil {
 				// Check if the error is due to the file not existing
 				if !os.IsNotExist(err) {
 					assert.NoError(t, err)
 				}
-				fmt.Println("here")
 			} else {
 				err = deleteLocalFiles(outLocation)
-				fmt.Println("deleting files")
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -246,8 +243,6 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 		cmd := exec.Command(executableName, test.Args...)
 		fmt.Printf("Command: %s %v\n", executableName, test.Args)
 		errOut, actualError := cmd.CombinedOutput()
-		fmt.Println(actualError)
-		fmt.Println(errOut)
 		if idxOfOutputArg > -1 {
 			stat, err = os.Stat(outLocation)
 			assert.NoError(t, err)
