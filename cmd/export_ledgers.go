@@ -34,7 +34,7 @@ var ledgersCmd = &cobra.Command{
 			cmdLogger.Fatal("could not read ledgers: ", err)
 		}
 
-		outFile := mustOutFile(path)
+		outFile := MustOutFile(path)
 
 		numFailures := 0
 		totalNumBytes := 0
@@ -47,7 +47,7 @@ var ledgersCmd = &cobra.Command{
 				continue
 			}
 
-			numBytes, err := exportEntry(transformed, outFile, commonArgs.Extra)
+			numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %s", startNum+uint32(i), err))
 				numFailures += 1
@@ -63,13 +63,13 @@ var ledgersCmd = &cobra.Command{
 		outFile.Close()
 		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
 
-		printTransformStats(len(ledgers), numFailures)
+		PrintTransformStats(len(ledgers), numFailures)
 
-		maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
 
 		if commonArgs.WriteParquet {
-			maybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-			writeParquet(transformedLedgers, parquetPath, new(transform.LedgerOutputParquet))
+			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+			WriteParquet(transformedLedgers, parquetPath, new(transform.LedgerOutputParquet))
 		}
 	},
 }

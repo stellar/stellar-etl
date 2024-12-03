@@ -409,7 +409,7 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 		logger.Fatal("could not get cloud provider: ", err)
 	}
 
-	writeParquet, err := flags.GetBool("write-parquet")
+	WriteParquet, err := flags.GetBool("write-parquet")
 	if err != nil {
 		logger.Fatal("could not get write-parquet flag: ", err)
 	}
@@ -433,7 +433,7 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 		Bucket:         bucket,
 		Credentials:    credentials,
 		Provider:       provider,
-		WriteParquet:   writeParquet,
+		WriteParquet:   WriteParquet,
 	}
 }
 
@@ -513,7 +513,7 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		logger.Fatal("could not get retry-wait uint32: ", err)
 	}
 
-	writeParquet, err := flags.GetBool("write-parquet")
+	WriteParquet, err := flags.GetBool("write-parquet")
 	if err != nil {
 		logger.Fatal("could not get write-parquet flag: ", err)
 	}
@@ -530,7 +530,7 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		NumWorkers:     numWorkers,
 		RetryLimit:     retryLimit,
 		RetryWait:      retryWait,
-		WriteParquet:   writeParquet,
+		WriteParquet:   WriteParquet,
 	}
 }
 

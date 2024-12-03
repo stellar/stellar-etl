@@ -5,34 +5,34 @@ import (
 )
 
 func TestExportTransactions(t *testing.T) {
-	tests := []cliTest{
+	tests := []CliTest{
 		{
-			name:    "transactions from one ledger",
-			args:    []string{"export_transactions", "-s", "30820015", "-e", "30820015", "-o", gotTestDir(t, "one_ledger_txs.txt")},
-			golden:  "one_ledger_txs.golden",
-			wantErr: nil,
+			Name:    "transactions from one ledger",
+			Args:    []string{"export_transactions", "-s", "30820015", "-e", "30820015", "-o", GotTestDir(t, "one_ledger_txs.txt")},
+			Golden:  "one_ledger_txs.golden",
+			WantErr: nil,
 		},
 		{
-			name:    "transactions from 10 ledgers",
-			args:    []string{"export_transactions", "-s", "30822015", "-e", "30822025", "-o", gotTestDir(t, "10_ledgers_txs.txt")},
-			golden:  "10_ledgers_txs.golden",
-			wantErr: nil,
+			Name:    "transactions from 10 ledgers",
+			Args:    []string{"export_transactions", "-s", "30822015", "-e", "30822025", "-o", GotTestDir(t, "10_ledgers_txs.txt")},
+			Golden:  "10_ledgers_txs.golden",
+			WantErr: nil,
 		},
 		{
-			name:    "range too large",
-			args:    []string{"export_transactions", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", gotTestDir(t, "large_range_txs.txt")},
-			golden:  "large_range_txs.golden",
-			wantErr: nil,
+			Name:    "range too large",
+			Args:    []string{"export_transactions", "-s", "30822015", "-e", "30822025", "-l", "5", "-o", GotTestDir(t, "large_range_txs.txt")},
+			Golden:  "large_range_txs.golden",
+			WantErr: nil,
 		},
 		{
-			name:    "ledger with no transactions",
-			args:    []string{"export_transactions", "-s", "10363513", "-e", "10363513", "-o", gotTestDir(t, "ledger_no_txs.txt")},
-			golden:  "ledger_no_txs.golden",
-			wantErr: nil,
+			Name:    "ledger with no transactions",
+			Args:    []string{"export_transactions", "-s", "10363513", "-e", "10363513", "-o", GotTestDir(t, "ledger_no_txs.txt")},
+			Golden:  "ledger_no_txs.golden",
+			WantErr: nil,
 		},
 	}
 
 	for _, test := range tests {
-		runCLITest(t, test, "testdata/transactions/")
+		RunCLITest(t, test, "testdata/transactions/", "", false)
 	}
 }
