@@ -134,7 +134,7 @@ be exported.`,
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
 							if utils.AccountSignersChanged(change) {
-								signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
+								signers, err := transform.TransformSigners(change)
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))

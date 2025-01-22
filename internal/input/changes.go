@@ -101,9 +101,9 @@ func extractBatch(
 	ledgerChanges := map[xdr.LedgerEntryType]LedgerChanges{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
-		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
+		changeCompactors := map[xdr.LedgerEntryType]*ChangeCompactor{}
 		for _, dt := range dataTypes {
-			changeCompactors[dt] = ingest.NewChangeCompactor()
+			changeCompactors[dt] = NewChangeCompactor()
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.

@@ -126,6 +126,8 @@ type AccountSignerOutput struct {
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
+	TransactionID      int64       `json:"transaction_id"`
+	OperationID        int64       `json:"id"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations

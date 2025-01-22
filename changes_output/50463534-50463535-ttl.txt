@@ -1,0 +1,1 @@
+{"closed_at":"2024-02-21T02:42:25Z","deleted":false,"key_hash":"0972a91aeaf689293f7e088dbec58f1dac65e2ec372ea70b6de16a5575a59b17","last_modified_ledger":50463534,"ledger_entry_change":0,"ledger_sequence":50463534,"live_until_ledger_seq":50467629}
