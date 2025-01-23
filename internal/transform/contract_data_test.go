@@ -135,7 +135,7 @@ func makeContractDataTestOutput() []ContractDataOutput {
 
 	keyDecoded := map[string]string{
 		"type":  "Instance",
-		"value": "0000000000000000000000000000000000000000000000000000000000000000: [{a a}]",
+		"value": "{\"Instance\":{\"Executable\":{\"Type\":0,\"WasmHash\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},\"Storage\":[{\"Key\":{\"Str\":\"a\",\"Type\":14},\"Val\":{\"Str\":\"a\",\"Type\":14}}]},\"Type\":19}",
 	}
 
 	val := map[string]string{
@@ -145,7 +145,7 @@ func makeContractDataTestOutput() []ContractDataOutput {
 
 	valDecoded := map[string]string{
 		"type":  "B",
-		"value": "true",
+		"value": "{\"B\":true,\"Type\":0}",
 	}
 
 	return []ContractDataOutput{

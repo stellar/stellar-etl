@@ -57,7 +57,7 @@ func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
 	topicsDecoded["topics_decoded"] = []map[string]string{
 		{
 			"type":  "B",
-			"value": "true",
+			"value": "{\"B\":true,\"Type\":0}",
 		},
 	}
 
@@ -68,7 +68,7 @@ func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
 
 	dataDecoded := map[string]string{
 		"type":  "B",
-		"value": "true",
+		"value": "{\"B\":true,\"Type\":0}",
 	}
 
 	output = [][]ContractEventOutput{{
