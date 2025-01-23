@@ -149,8 +149,22 @@ func makeSignersTestInput() ingest.Change {
 		},
 		Transaction: &ingest.LedgerTransaction{
 			Index: 1,
+			Envelope: xdr.TransactionEnvelope{
+				Type: 2,
+				V1: &xdr.TransactionV1Envelope{
+					Tx: xdr.Transaction{
+						Operations: []xdr.Operation{
+							{
+								Body: xdr.OperationBody{
+									Type: 1,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
-		OperationIndex: 1,
+		OperationIndex: 0,
 	}
 }
 
@@ -166,8 +180,9 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			Deleted:            true,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-			TransactionID:      42949677056,
-			OperationID:        42949677058,
+			TransactionID:      null.NewInt(42949677056, true),
+			OperationID:        null.NewInt(42949677057, true),
+			OperationType:      null.NewInt(1, true),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
@@ -178,8 +193,9 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			Deleted:            true,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-			TransactionID:      42949677056,
-			OperationID:        42949677058,
+			TransactionID:      null.NewInt(42949677056, true),
+			OperationID:        null.NewInt(42949677057, true),
+			OperationType:      null.NewInt(1, true),
 		}, {
 			AccountID:          testAccount1ID.Address(),
 			Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
@@ -190,8 +206,9 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			Deleted:            true,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-			TransactionID:      42949677056,
-			OperationID:        42949677058,
+			TransactionID:      null.NewInt(42949677056, true),
+			OperationID:        null.NewInt(42949677057, true),
+			OperationType:      null.NewInt(1, true),
 		},
 	}
 }

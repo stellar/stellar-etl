@@ -109,6 +109,8 @@ func (c *ChangeCompactor) addCreatedChange(change ingest.Change) error {
 		return nil
 	}
 
+	operationIndex, transaction, ledger, ledgerUpgrade := c.getChangeDetails(existingChange, change)
+
 	switch existingChange.LedgerEntryChangeType() {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
 		return ingest.NewStateError(errors.Errorf(
@@ -128,10 +130,10 @@ func (c *ChangeCompactor) addCreatedChange(change ingest.Change) error {
 			Pre:            existingChange.Pre,
 			Post:           change.Post,
 			Reason:         change.Reason,
-			OperationIndex: change.OperationIndex,
-			Transaction:    change.Transaction,
-			Ledger:         change.Ledger,
-			LedgerUpgrade:  change.LedgerUpgrade,
+			OperationIndex: operationIndex,
+			Transaction:    transaction,
+			Ledger:         ledger,
+			LedgerUpgrade:  ledgerUpgrade,
 		}
 	default:
 		return errors.Errorf("Unknown LedgerEntryChangeType: %d", existingChange.LedgerEntryChangeType())
@@ -161,6 +163,8 @@ func (c *ChangeCompactor) addUpdatedChange(change ingest.Change) error {
 		return nil
 	}
 
+	operationIndex, transaction, ledger, ledgerUpgrade := c.getChangeDetails(existingChange, change)
+
 	switch existingChange.LedgerEntryChangeType() {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
 		// If existing type is created it means that this entry does not
@@ -170,10 +174,10 @@ func (c *ChangeCompactor) addUpdatedChange(change ingest.Change) error {
 			Pre:            existingChange.Pre, // = nil
 			Post:           change.Post,
 			Reason:         change.Reason,
-			OperationIndex: change.OperationIndex,
-			Transaction:    change.Transaction,
-			Ledger:         change.Ledger,
-			LedgerUpgrade:  change.LedgerUpgrade,
+			OperationIndex: operationIndex,
+			Transaction:    transaction,
+			Ledger:         ledger,
+			LedgerUpgrade:  ledgerUpgrade,
 		}
 	case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 		c.cache[ledgerKeyString] = ingest.Change{
@@ -181,10 +185,10 @@ func (c *ChangeCompactor) addUpdatedChange(change ingest.Change) error {
 			Pre:            existingChange.Pre,
 			Post:           change.Post,
 			Reason:         change.Reason,
-			OperationIndex: change.OperationIndex,
-			Transaction:    change.Transaction,
-			Ledger:         change.Ledger,
-			LedgerUpgrade:  change.LedgerUpgrade,
+			OperationIndex: operationIndex,
+			Transaction:    transaction,
+			Ledger:         ledger,
+			LedgerUpgrade:  ledgerUpgrade,
 		}
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 		return ingest.NewStateError(errors.Errorf(
@@ -219,6 +223,8 @@ func (c *ChangeCompactor) addRemovedChange(change ingest.Change) error {
 		return nil
 	}
 
+	operationIndex, transaction, ledger, ledgerUpgrade := c.getChangeDetails(existingChange, change)
+
 	switch existingChange.LedgerEntryChangeType() {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
 		// If existing type is created it means that this will be no op.
@@ -230,10 +236,10 @@ func (c *ChangeCompactor) addRemovedChange(change ingest.Change) error {
 			Pre:            existingChange.Pre,
 			Post:           nil,
 			Reason:         change.Reason,
-			OperationIndex: change.OperationIndex,
-			Transaction:    change.Transaction,
-			Ledger:         change.Ledger,
-			LedgerUpgrade:  change.LedgerUpgrade,
+			OperationIndex: operationIndex,
+			Transaction:    transaction,
+			Ledger:         ledger,
+			LedgerUpgrade:  ledgerUpgrade,
 		}
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 		return ingest.NewStateError(errors.Errorf(
@@ -262,4 +268,26 @@ func (c *ChangeCompactor) GetChanges() []ingest.Change {
 // Size returns number of ledger entries in the cache.
 func (c *ChangeCompactor) Size() int {
 	return len(c.cache)
+}
+
+func (c *ChangeCompactor) getChangeDetails(existingChange, change ingest.Change) (uint32, *ingest.LedgerTransaction, *xdr.LedgerCloseMeta, *xdr.LedgerUpgrade) {
+	operationIndex := change.OperationIndex
+	transaction := change.Transaction
+	ledger := change.Ledger
+	ledgerUpgrade := change.LedgerUpgrade
+
+	if operationIndex == 0 {
+		operationIndex = existingChange.OperationIndex
+	}
+	if transaction == nil {
+		transaction = existingChange.Transaction
+	}
+	if ledger == nil {
+		ledger = existingChange.Ledger
+	}
+	if ledgerUpgrade == nil {
+		ledgerUpgrade = existingChange.LedgerUpgrade
+	}
+
+	return operationIndex, transaction, ledger, ledgerUpgrade
 }

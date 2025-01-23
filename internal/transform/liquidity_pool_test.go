@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/go/ingest"
@@ -34,6 +35,23 @@ func TestTransformPool(t *testing.T) {
 							Type: xdr.LedgerEntryTypeOffer,
 						},
 					},
+					Ledger: &xdr.LedgerCloseMeta{
+						V: 1,
+						V1: &xdr.LedgerCloseMetaV1{
+							LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+								Header: xdr.LedgerHeader{
+									ScpValue: xdr.StellarValue{
+										CloseTime: 1000,
+									},
+									LedgerSeq: 10,
+								},
+							},
+						},
+					},
+					Transaction: &ingest.LedgerTransaction{
+						Index: 1,
+					},
+					OperationIndex: 1,
 				},
 			},
 			PoolOutput{}, nil,
@@ -47,15 +65,7 @@ func TestTransformPool(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		header := xdr.LedgerHeaderHistoryEntry{
-			Header: xdr.LedgerHeader{
-				ScpValue: xdr.StellarValue{
-					CloseTime: 1000,
-				},
-				LedgerSeq: 10,
-			},
-		}
-		actualOutput, actualError := TransformPool(test.input.ingest, header)
+		actualOutput, actualError := TransformPool(test.input.ingest)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -89,6 +99,37 @@ func makePoolTestInput() ingest.Change {
 		Type: xdr.LedgerEntryTypeLiquidityPool,
 		Pre:  &ledgerEntry,
 		Post: nil,
+		Ledger: &xdr.LedgerCloseMeta{
+			V: 1,
+			V1: &xdr.LedgerCloseMetaV1{
+				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						ScpValue: xdr.StellarValue{
+							CloseTime: 1000,
+						},
+						LedgerSeq: 10,
+					},
+				},
+			},
+		},
+		Transaction: &ingest.LedgerTransaction{
+			Index: 1,
+			Envelope: xdr.TransactionEnvelope{
+				Type: 2,
+				V1: &xdr.TransactionV1Envelope{
+					Tx: xdr.Transaction{
+						Operations: []xdr.Operation{
+							{
+								Body: xdr.OperationBody{
+									Type: 1,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		OperationIndex: 0,
 	}
 }
 
@@ -114,5 +155,8 @@ func makePoolTestOutput() PoolOutput {
 		Deleted:            true,
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+		TransactionID:      null.NewInt(42949677056, true),
+		OperationID:        null.NewInt(42949677057, true),
+		OperationType:      null.NewInt(1, true),
 	}
 }

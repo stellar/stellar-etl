@@ -9,7 +9,7 @@ import (
 )
 
 // TransformContractCode converts a contract code ledger change entry into a form suitable for BigQuery
-func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (ContractCodeOutput, error) {
+func TransformContractCode(ledgerChange ingest.Change) (ContractCodeOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractCodeOutput{}, err
@@ -31,12 +31,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 
 	contractCodeHash := contractCode.Hash.HexString()
 
-	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return ContractCodeOutput{}, err
-	}
-
-	ledgerSequence := header.Header.LedgerSeq
+	changeDetails := utils.GetChangesDetails(ledgerChange)
 
 	var outputNInstructions uint32
 	var outputNFunctions uint32
@@ -69,8 +64,8 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
-		ClosedAt:           closedAt,
-		LedgerSequence:     uint32(ledgerSequence),
+		ClosedAt:           changeDetails.ClosedAt,
+		LedgerSequence:     changeDetails.LedgerSequence,
 		LedgerKeyHash:      ledgerKeyHash,
 		NInstructions:      outputNInstructions,
 		NFunctions:         outputNFunctions,
@@ -82,6 +77,9 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		NImports:           outputNImports,
 		NExports:           outputNExports,
 		NDataSegmentBytes:  outputNDataSegmentBytes,
+		TransactionID:      changeDetails.TransactionID,
+		OperationID:        changeDetails.OperationID,
+		OperationType:      changeDetails.OperationType,
 	}
 	return transformedCode, nil
 }

@@ -6,8 +6,6 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledger"
-	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
@@ -25,10 +23,7 @@ func TransformSigners(ledgerChange ingest.Change) ([]AccountSignerOutput, error)
 		return signers, fmt.Errorf("could not extract signer data from ledger entry of type: %+v", ledgerEntry.Data.Type)
 	}
 
-	closedAt := ledger.ClosedAt(*ledgerChange.Ledger)
-	ledgerSequence := ledger.Sequence(*ledgerChange.Ledger)
-	outputTransactionID := toid.New(int32(ledgerSequence), int32(ledgerChange.Transaction.Index), 0).ToInt64()
-	outputOperationID := toid.New(int32(ledgerSequence), int32(ledgerChange.Transaction.Index), int32(ledgerChange.OperationIndex+1)).ToInt64()
+	changeDetails := utils.GetChangesDetails(ledgerChange)
 
 	sponsors := accountEntry.SponsorPerSigner()
 	for signer, weight := range accountEntry.SignerSummary() {
@@ -45,10 +40,11 @@ func TransformSigners(ledgerChange ingest.Change) ([]AccountSignerOutput, error)
 			LastModifiedLedger: outputLastModifiedLedger,
 			LedgerEntryChange:  uint32(changeType),
 			Deleted:            outputDeleted,
-			ClosedAt:           closedAt,
-			LedgerSequence:     ledgerSequence,
-			TransactionID:      outputTransactionID,
-			OperationID:        outputOperationID,
+			ClosedAt:           changeDetails.ClosedAt,
+			LedgerSequence:     changeDetails.LedgerSequence,
+			TransactionID:      changeDetails.TransactionID,
+			OperationID:        changeDetails.OperationID,
+			OperationType:      changeDetails.OperationType,
 		})
 	}
 	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })

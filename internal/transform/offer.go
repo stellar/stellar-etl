@@ -6,11 +6,10 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
 )
 
 // TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (OfferOutput, error) {
+func TransformOffer(ledgerChange ingest.Change) (OfferOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return OfferOutput{}, err
@@ -69,12 +68,7 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
-	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return OfferOutput{}, err
-	}
-
-	ledgerSequence := header.Header.LedgerSeq
+	changeDetails := utils.GetChangesDetails(ledgerChange)
 
 	transformedOffer := OfferOutput{
 		SellerID:           outputSellerID,
@@ -96,8 +90,11 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
-		ClosedAt:           closedAt,
-		LedgerSequence:     uint32(ledgerSequence),
+		ClosedAt:           changeDetails.ClosedAt,
+		LedgerSequence:     changeDetails.LedgerSequence,
+		TransactionID:      changeDetails.TransactionID,
+		OperationID:        changeDetails.OperationID,
+		OperationType:      changeDetails.OperationType,
 	}
 	return transformedOffer, nil
 }
