@@ -58,8 +58,22 @@ func TestTransformOfferNormalized(t *testing.T) {
 				},
 				Transaction: &ingest.LedgerTransaction{
 					Index: 1,
+					Envelope: xdr.TransactionEnvelope{
+						Type: 2,
+						V1: &xdr.TransactionV1Envelope{
+							Tx: xdr.Transaction{
+								Operations: []xdr.Operation{
+									{
+										Body: xdr.OperationBody{
+											Type: 1,
+										},
+									},
+								},
+							},
+						},
+					},
 				},
-				OperationIndex: 1,
+				OperationIndex: 0,
 			}, 100},
 			wantOutput: NormalizedOfferOutput{},
 			wantErr:    fmt.Errorf("offer 0 is deleted"),
@@ -115,8 +129,22 @@ func makeOfferNormalizedTestInput() (ledgerChange ingest.Change, err error) {
 		},
 		Transaction: &ingest.LedgerTransaction{
 			Index: 1,
+			Envelope: xdr.TransactionEnvelope{
+				Type: 2,
+				V1: &xdr.TransactionV1Envelope{
+					Tx: xdr.Transaction{
+						Operations: []xdr.Operation{
+							{
+								Body: xdr.OperationBody{
+									Type: 1,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
-		OperationIndex: 1,
+		OperationIndex: 0,
 	}
 	return
 }
