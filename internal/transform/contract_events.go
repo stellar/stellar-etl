@@ -2,6 +2,7 @@ package transform
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
 	"github.com/stellar/stellar-etl/internal/toid"
@@ -48,12 +49,18 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 		outputTypeString := event.Type.String()
 
 		eventTopics := getEventTopics(event.Body)
-		outputTopics, outputTopicsDecoded := serializeScValArray(eventTopics)
+		outputTopics, outputTopicsDecoded, err := serializeScValArray(eventTopics)
+		if err != nil {
+			return []ContractEventOutput{}, err
+		}
 		outputTopicsJson["topics"] = outputTopics
 		outputTopicsDecodedJson["topics_decoded"] = outputTopicsDecoded
 
 		eventData := getEventData(event.Body)
-		outputData, outputDataDecoded := serializeScVal(eventData)
+		outputData, outputDataDecoded, err := serializeScVal(eventData)
+		if err != nil {
+			return []ContractEventOutput{}, err
+		}
 
 		// Convert the xdrContactId to string
 		// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 this should be a stellar/go/xdr function
@@ -117,7 +124,7 @@ func getEventData(eventBody xdr.ContractEventBody) xdr.ScVal {
 }
 
 // TODO this should also be used in the operations processor
-func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string) {
+func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string, error) {
 	serializedData := map[string]string{}
 	serializedData["value"] = "n/a"
 	serializedData["type"] = "n/a"
@@ -129,25 +136,99 @@ func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string) {
 	if scValTypeName, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
 		serializedData["type"] = scValTypeName
 		serializedDataDecoded["type"] = scValTypeName
-		if raw, err := scVal.MarshalBinary(); err == nil {
-			serializedData["value"] = base64.StdEncoding.EncodeToString(raw)
-			serializedDataDecoded["value"] = scVal.String()
+		raw, err := scVal.MarshalBinary()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		serializedData["value"] = base64.StdEncoding.EncodeToString(raw)
+		serializedDataDecoded["value"], err = printScValJSON(scVal)
+		if err != nil {
+			return nil, nil, err
 		}
 	}
 
-	return serializedData, serializedDataDecoded
+	return serializedData, serializedDataDecoded, nil
 }
 
 // TODO this should also be used in the operations processor
-func serializeScValArray(scVals []xdr.ScVal) ([]map[string]string, []map[string]string) {
+func serializeScValArray(scVals []xdr.ScVal) ([]map[string]string, []map[string]string, error) {
 	data := make([]map[string]string, 0, len(scVals))
 	dataDecoded := make([]map[string]string, 0, len(scVals))
 
 	for _, scVal := range scVals {
-		serializedData, serializedDataDecoded := serializeScVal(scVal)
+		serializedData, serializedDataDecoded, err := serializeScVal(scVal)
+		if err != nil {
+			return nil, nil, err
+		}
 		data = append(data, serializedData)
 		dataDecoded = append(dataDecoded, serializedDataDecoded)
 	}
 
-	return data, dataDecoded
+	return data, dataDecoded, nil
+}
+
+// printScValJSON is used to print json parsable ScVal output instead of
+// the ScVal.String() output which prints out %v values that aren't parsable
+// Example: {"type":"Map","value":"[{collateral [{1 2386457777}]} {liabilities []} {supply []}]"}
+//
+// This function traverses through the ScVal structure by calling removeNulls which recursively removes
+// the null pointers from the given ScVal.
+//
+// The output is then: {"type":"Map","value":"[{\"collateral\": \"[{\"1\": \"2386457777\"}]\"} {\"liabilities\": \"[]\"} {\"supply\": \"[]\"}]\"}
+// where "value" is a valid JSON string
+func printScValJSON(scVal xdr.ScVal) (string, error) {
+	var data map[string]interface{}
+
+	rawData, err := json.Marshal(scVal)
+	if err != nil {
+		return "", err
+	}
+
+	json.Unmarshal(rawData, &data)
+	cleaned := removeNulls(data)
+	cleanedData, err := json.Marshal(cleaned)
+	if err != nil {
+		return "", err
+	}
+
+	return string(cleanedData), nil
+}
+
+// removeNulls will recursively traverse through the data map and remove any null values
+// In theory ScVals can be nested infinitely but the depth of recursion is unlikely to be very high
+// given the resource limits of smart contracts
+func removeNulls(data map[string]interface{}) map[string]interface{} {
+	cleaned := make(map[string]interface{})
+
+	for k, v := range data {
+		switch value := v.(type) {
+		// There don't seem to be other data types that need traversing aside from maps and arrays
+		case map[string]interface{}: // recurse through maps
+			nested := removeNulls(value)
+			if len(nested) > 0 {
+				cleaned[k] = nested
+			}
+		case []interface{}: // recurse through arrays
+			var newArr []interface{}
+			for _, item := range value {
+				if itemMap, ok := item.(map[string]interface{}); ok {
+					filteredItem := removeNulls(itemMap)
+					if len(filteredItem) > 0 {
+						newArr = append(newArr, filteredItem)
+					}
+				} else if item != nil {
+					newArr = append(newArr, item)
+				}
+			}
+			if len(newArr) > 0 {
+				cleaned[k] = newArr
+			}
+		default:
+			if v != nil {
+				cleaned[k] = v
+			}
+		}
+	}
+	return cleaned
 }
