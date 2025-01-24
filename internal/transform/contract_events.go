@@ -1,9 +1,10 @@
 package transform
 
 import (
+	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"os/exec"
 
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -142,7 +143,7 @@ func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string, erro
 		}
 
 		serializedData["value"] = base64.StdEncoding.EncodeToString(raw)
-		serializedDataDecoded["value"], err = printScValJSON(scVal)
+		serializedDataDecoded["value"], err = runStellarXdrDecode(serializedData["value"])
 		if err != nil {
 			return nil, nil, err
 		}
@@ -168,67 +169,16 @@ func serializeScValArray(scVals []xdr.ScVal) ([]map[string]string, []map[string]
 	return data, dataDecoded, nil
 }
 
-// printScValJSON is used to print json parsable ScVal output instead of
-// the ScVal.String() output which prints out %v values that aren't parsable
-// Example: {"type":"Map","value":"[{collateral [{1 2386457777}]} {liabilities []} {supply []}]"}
-//
-// This function traverses through the ScVal structure by calling removeNulls which recursively removes
-// the null pointers from the given ScVal.
-//
-// The output is then: {"type":"Map","value":"[{\"collateral\": \"[{\"1\": \"2386457777\"}]\"} {\"liabilities\": \"[]\"} {\"supply\": \"[]\"}]\"}
-// where "value" is a valid JSON string
-func printScValJSON(scVal xdr.ScVal) (string, error) {
-	var data map[string]interface{}
+func runStellarXdrDecode(input string) (string, error) {
+	cmd := exec.Command("stellar", "xdr", "decode", "--type", "ScVal")
+	cmd.Stdin = bytes.NewBufferString(input)
 
-	rawData, err := json.Marshal(scVal)
+	var result bytes.Buffer
+	cmd.Stdout = &result
+	err := cmd.Run()
 	if err != nil {
 		return "", err
 	}
 
-	json.Unmarshal(rawData, &data)
-	cleaned := removeNulls(data)
-	cleanedData, err := json.Marshal(cleaned)
-	if err != nil {
-		return "", err
-	}
-
-	return string(cleanedData), nil
-}
-
-// removeNulls will recursively traverse through the data map and remove any null values
-// In theory ScVals can be nested infinitely but the depth of recursion is unlikely to be very high
-// given the resource limits of smart contracts
-func removeNulls(data map[string]interface{}) map[string]interface{} {
-	cleaned := make(map[string]interface{})
-
-	for k, v := range data {
-		switch value := v.(type) {
-		// There don't seem to be other data types that need traversing aside from maps and arrays
-		case map[string]interface{}: // recurse through maps
-			nested := removeNulls(value)
-			if len(nested) > 0 {
-				cleaned[k] = nested
-			}
-		case []interface{}: // recurse through arrays
-			var newArr []interface{}
-			for _, item := range value {
-				if itemMap, ok := item.(map[string]interface{}); ok {
-					filteredItem := removeNulls(itemMap)
-					if len(filteredItem) > 0 {
-						newArr = append(newArr, filteredItem)
-					}
-				} else if item != nil {
-					newArr = append(newArr, item)
-				}
-			}
-			if len(newArr) > 0 {
-				cleaned[k] = newArr
-			}
-		default:
-			if v != nil {
-				cleaned[k] = v
-			}
-		}
-	}
-	return cleaned
+	return result.String(), nil
 }
