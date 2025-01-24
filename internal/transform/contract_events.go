@@ -1,13 +1,13 @@
 package transform
 
 import (
-	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"os/exec"
 
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/internal/xdr2json"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/strkey"
@@ -135,18 +135,23 @@ func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string, erro
 	serializedDataDecoded["type"] = "n/a"
 
 	if scValTypeName, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
+		var err error
+		var raw []byte
+		var jsonMessage json.RawMessage
 		serializedData["type"] = scValTypeName
 		serializedDataDecoded["type"] = scValTypeName
-		raw, err := scVal.MarshalBinary()
+		raw, err = scVal.MarshalBinary()
 		if err != nil {
 			return nil, nil, err
 		}
 
 		serializedData["value"] = base64.StdEncoding.EncodeToString(raw)
-		serializedDataDecoded["value"], err = runStellarXdrDecode(serializedData["value"])
+		jsonMessage, err = xdr2json.ConvertBytes(xdr.ScVal{}, raw)
 		if err != nil {
 			return nil, nil, err
 		}
+
+		serializedDataDecoded["value"] = string(jsonMessage)
 	}
 
 	return serializedData, serializedDataDecoded, nil
@@ -167,18 +172,4 @@ func serializeScValArray(scVals []xdr.ScVal) ([]map[string]string, []map[string]
 	}
 
 	return data, dataDecoded, nil
-}
-
-func runStellarXdrDecode(input string) (string, error) {
-	cmd := exec.Command("stellar", "xdr", "decode", "--type", "ScVal")
-	cmd.Stdin = bytes.NewBufferString(input)
-
-	var result bytes.Buffer
-	cmd.Stdout = &result
-	err := cmd.Run()
-	if err != nil {
-		return "", err
-	}
-
-	return result.String(), nil
 }
