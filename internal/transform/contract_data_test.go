@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"testing"
@@ -128,25 +129,13 @@ func makeContractDataTestInput() []ingest.Change {
 }
 
 func makeContractDataTestOutput() []ContractDataOutput {
-	key := map[string]string{
-		"type":  "Instance",
-		"value": "AAAAEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAADgAAAAFhAAAAAAAADgAAAAFhAAAA",
-	}
+	var key, keyDecoded interface{}
+	key = "AAAAEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAADgAAAAFhAAAAAAAADgAAAAFhAAAA"
+	keyDecoded = json.RawMessage("{\"contract_instance\":{\"executable\":{\"wasm\":\"0000000000000000000000000000000000000000000000000000000000000000\"},\"storage\":[{\"key\":{\"string\":\"a\"},\"val\":{\"string\":\"a\"}}]}}")
 
-	keyDecoded := map[string]string{
-		"type":  "Instance",
-		"value": "{\"Instance\":{\"Executable\":{\"Type\":0,\"WasmHash\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},\"Storage\":[{\"Key\":{\"Str\":\"a\",\"Type\":14},\"Val\":{\"Str\":\"a\",\"Type\":14}}]},\"Type\":19}",
-	}
-
-	val := map[string]string{
-		"type":  "B",
-		"value": "AAAAAAAAAAE=",
-	}
-
-	valDecoded := map[string]string{
-		"type":  "B",
-		"value": "{\"B\":true,\"Type\":0}",
-	}
+	var val, valDecoded interface{}
+	val = "AAAAAAAAAAE="
+	valDecoded = json.RawMessage("{\"bool\":true}")
 
 	return []ContractDataOutput{
 		{

@@ -41,8 +41,8 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 
 	for _, contractEvent := range contractEvents {
 		var outputContractId string
-		outputTopicsJson := make(map[string][]map[string]string, 1)
-		outputTopicsDecodedJson := make(map[string][]map[string]string, 1)
+		var outputTopicsJson []interface{}
+		var outputTopicsDecodedJson []interface{}
 
 		outputInSuccessfulContractCall := contractEvent.InSuccessfulContractCall
 		event := contractEvent.Event
@@ -54,8 +54,8 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 		if err != nil {
 			return []ContractEventOutput{}, err
 		}
-		outputTopicsJson["topics"] = outputTopics
-		outputTopicsDecodedJson["topics_decoded"] = outputTopicsDecoded
+		outputTopicsJson = outputTopics
+		outputTopicsDecodedJson = outputTopicsDecoded
 
 		eventData := getEventData(event.Body)
 		outputData, outputDataDecoded, err := serializeScVal(eventData)
@@ -125,42 +125,38 @@ func getEventData(eventBody xdr.ContractEventBody) xdr.ScVal {
 }
 
 // TODO this should also be used in the operations processor
-func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string, error) {
-	serializedData := map[string]string{}
-	serializedData["value"] = "n/a"
-	serializedData["type"] = "n/a"
+func serializeScVal(scVal xdr.ScVal) (interface{}, interface{}, error) {
+	var serializedData interface{}
+	serializedData = "n/a"
 
-	serializedDataDecoded := map[string]string{}
-	serializedDataDecoded["value"] = "n/a"
-	serializedDataDecoded["type"] = "n/a"
+	var serializedDataDecoded interface{}
+	serializedDataDecoded = "n/a"
 
-	if scValTypeName, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
+	if _, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
 		var err error
 		var raw []byte
 		var jsonMessage json.RawMessage
-		serializedData["type"] = scValTypeName
-		serializedDataDecoded["type"] = scValTypeName
 		raw, err = scVal.MarshalBinary()
 		if err != nil {
 			return nil, nil, err
 		}
 
-		serializedData["value"] = base64.StdEncoding.EncodeToString(raw)
+		serializedData = base64.StdEncoding.EncodeToString(raw)
 		jsonMessage, err = xdr2json.ConvertBytes(xdr.ScVal{}, raw)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		serializedDataDecoded["value"] = string(jsonMessage)
+		serializedDataDecoded = jsonMessage
 	}
 
 	return serializedData, serializedDataDecoded, nil
 }
 
 // TODO this should also be used in the operations processor
-func serializeScValArray(scVals []xdr.ScVal) ([]map[string]string, []map[string]string, error) {
-	data := make([]map[string]string, 0, len(scVals))
-	dataDecoded := make([]map[string]string, 0, len(scVals))
+func serializeScValArray(scVals []xdr.ScVal) ([]interface{}, []interface{}, error) {
+	data := make([]interface{}, 0, len(scVals))
+	dataDecoded := make([]interface{}, 0, len(scVals))
 
 	for _, scVal := range scVals {
 		serializedData, serializedDataDecoded, err := serializeScVal(scVal)
