@@ -104,8 +104,14 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	ledgerSequence := header.Header.LedgerSeq
 
-	outputKey, outputKeyDecoded := serializeScVal(contractData.Key)
-	outputVal, outputValDecoded := serializeScVal(contractData.Val)
+	outputKey, outputKeyDecoded, err := serializeScVal(contractData.Key)
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
+	outputVal, outputValDecoded, err := serializeScVal(contractData.Val)
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
 
 	outputContractDataXDR, err := xdr.MarshalBase64(contractData)
 	if err != nil {
