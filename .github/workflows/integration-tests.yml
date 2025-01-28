@@ -46,7 +46,7 @@ jobs:
             -v ${{ runner.workspace }}/coverage/:/usr/coverage/ \
             -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
             integration-tests \
-            go test -v -coverprofile=/usr/coverage/coverage.out ./cmd ./internal/transform -timeout 30m
+            go test -v -coverprofile=/usr/coverage/coverage.out ../cmd ../internal/transform -timeout 30m
 
       - name: Generate Coverage Report
         run: |

@@ -126,10 +126,8 @@ func getEventData(eventBody xdr.ContractEventBody) xdr.ScVal {
 
 // TODO this should also be used in the operations processor
 func serializeScVal(scVal xdr.ScVal) (interface{}, interface{}, error) {
-	var serializedData interface{}
+	var serializedData, serializedDataDecoded interface{}
 	serializedData = "n/a"
-
-	var serializedDataDecoded interface{}
 	serializedDataDecoded = "n/a"
 
 	if _, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
