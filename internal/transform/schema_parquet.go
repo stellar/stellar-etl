@@ -254,25 +254,25 @@ type EffectOutputParquet struct {
 
 // ContractDataOutputParquet is a representation of contract data that aligns with the Bigquery table soroban_contract_data
 type ContractDataOutputParquet struct {
-	ContractId                string            `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractKeyType           string            `parquet:"name=contract_key_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDurability        string            `parquet:"name=contract_durability, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDataAssetCode     string            `parquet:"name=asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDataAssetIssuer   string            `parquet:"name=asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDataAssetType     string            `parquet:"name=asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDataBalanceHolder string            `parquet:"name=balance_holder, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDataBalance       string            `parquet:"name=balance, type=BYTE_ARRAY, convertedtype=UTF8"`
-	LastModifiedLedger        int64             `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
-	LedgerEntryChange         int64             `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
-	Deleted                   bool              `parquet:"name=deleted, type=BOOLEAN"`
-	ClosedAt                  int64             `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
-	LedgerSequence            int64             `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
-	LedgerKeyHash             string            `parquet:"name=ledger_key_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Key                       map[string]string `parquet:"name=key, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
-	KeyDecoded                map[string]string `parquet:"name=key_decoded, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
-	Val                       map[string]string `parquet:"name=val, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
-	ValDecoded                map[string]string `parquet:"name=val_decoded, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
-	ContractDataXDR           string            `parquet:"name=contract_data_xdr, type=BYTE_ARRAY, convertedtype=UTF8"`
+	ContractId                string      `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractKeyType           string      `parquet:"name=contract_key_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDurability        string      `parquet:"name=contract_durability, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDataAssetCode     string      `parquet:"name=asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDataAssetIssuer   string      `parquet:"name=asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDataAssetType     string      `parquet:"name=asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDataBalanceHolder string      `parquet:"name=balance_holder, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDataBalance       string      `parquet:"name=balance, type=BYTE_ARRAY, convertedtype=UTF8"`
+	LastModifiedLedger        int64       `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
+	LedgerEntryChange         int64       `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
+	Deleted                   bool        `parquet:"name=deleted, type=BOOLEAN"`
+	ClosedAt                  int64       `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	LedgerSequence            int64       `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	LedgerKeyHash             string      `parquet:"name=ledger_key_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Key                       interface{} `parquet:"name=key, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
+	KeyDecoded                interface{} `parquet:"name=key_decoded, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
+	Val                       interface{} `parquet:"name=val, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
+	ValDecoded                interface{} `parquet:"name=val_decoded, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
+	ContractDataXDR           string      `parquet:"name=contract_data_xdr, type=BYTE_ARRAY, convertedtype=UTF8"`
 }
 
 // ContractCodeOutputParquet is a representation of contract code that aligns with the Bigquery table soroban_contract_code

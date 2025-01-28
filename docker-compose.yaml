@@ -2,6 +2,6 @@ services:
   integration-tests:
     build:
       context: ./
-      dockerfile: docker/Dockerfile.test
+      dockerfile: docker/Dockerfile
     container_name: stellar-etl-integration-tests
     restart: always
