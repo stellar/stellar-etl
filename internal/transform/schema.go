@@ -623,9 +623,6 @@ type ConfigSettingOutput struct {
 	Deleted                         bool                `json:"deleted"`
 	ClosedAt                        time.Time           `json:"closed_at"`
 	LedgerSequence                  uint32              `json:"ledger_sequence"`
-	TransactionID                   null.Int            `json:"transaction_id"`
-	OperationID                     null.Int            `json:"operation_id"`
-	OperationType                   null.Int            `json:"operation_type"`
 }
 
 // TtlOutput is a representation of soroban ttl that aligns with the Bigquery table ttls

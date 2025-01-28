@@ -140,9 +140,6 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		Deleted:                         outputDeleted,
 		ClosedAt:                        changeDetails.ClosedAt,
 		LedgerSequence:                  changeDetails.LedgerSequence,
-		TransactionID:                   changeDetails.TransactionID,
-		OperationID:                     changeDetails.OperationID,
-		OperationType:                   changeDetails.OperationType,
 	}
 	return transformedConfigSetting, nil
 }
