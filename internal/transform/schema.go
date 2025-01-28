@@ -542,9 +542,9 @@ type ContractDataOutput struct {
 	Val                       interface{} `json:"val"`
 	ValDecoded                interface{} `json:"val_decoded"`
 	ContractDataXDR           string      `json:"contract_data_xdr"`
-	TransactionID             null.Int          `json:"transaction_id"`
-	OperationID               null.Int          `json:"operation_id"`
-	OperationType             null.Int          `json:"operation_type"`
+	TransactionID             null.Int    `json:"transaction_id"`
+	OperationID               null.Int    `json:"operation_id"`
+	OperationType             null.Int    `json:"operation_type"`
 }
 
 // ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
