@@ -4,9 +4,10 @@ FROM rust:1.84.0-bullseye AS rust-build
 WORKDIR /usr/src/etl
 
 COPY . .
-RUN cargo update --workspace
-RUN rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
-RUN cd lib/xdr2json && cargo build --target x86_64-unknown-linux-gnu --profile release-with-panic-unwind
+RUN export CARGO_BUILD_TARGET=$(rustc -vV | sed -n 's|host: ||p') \
+  && rustup target add $CARGO_BUILD_TARGET \
+  && cd lib/xdr2json \
+  && cargo build --target $CARGO_BUILD_TARGET --profile release-with-panic-unwind
 
 # stage 2: build stellar-etl app
 FROM golang:1.22.1-bullseye AS go-build
