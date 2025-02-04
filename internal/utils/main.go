@@ -839,6 +839,8 @@ func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEn
 		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 		return *change.Pre, changeType, true, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
+		return *change.Post, changeType, false, nil
 	default:
 		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}
