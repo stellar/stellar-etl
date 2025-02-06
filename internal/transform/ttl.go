@@ -9,7 +9,7 @@ import (
 )
 
 // TransformTtl converts an ttl ledger change entry into a form suitable for BigQuery
-func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (TtlOutput, error) {
+func TransformTtl(ledgerChange ingest.Change) (TtlOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return TtlOutput{}, err
@@ -28,12 +28,7 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 	keyHash := ttl.KeyHash.HexString()
 	liveUntilLedgerSeq := ttl.LiveUntilLedgerSeq
 
-	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return TtlOutput{}, err
-	}
-
-	ledgerSequence := header.Header.LedgerSeq
+	changeDetails := utils.GetChangesDetails(ledgerChange)
 
 	transformedPool := TtlOutput{
 		KeyHash:            keyHash,
@@ -41,8 +36,11 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
-		ClosedAt:           closedAt,
-		LedgerSequence:     uint32(ledgerSequence),
+		ClosedAt:           changeDetails.ClosedAt,
+		LedgerSequence:     changeDetails.LedgerSequence,
+		TransactionID:      changeDetails.TransactionID,
+		OperationID:        changeDetails.OperationID,
+		OperationType:      changeDetails.OperationType,
 	}
 
 	return transformedPool, nil

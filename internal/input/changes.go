@@ -17,14 +17,9 @@ var (
 	ExtractBatch = extractBatch
 )
 
-type LedgerChanges struct {
-	Changes       []ingest.Change
-	LedgerHeaders []xdr.LedgerHeaderHistoryEntry
-}
-
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
-	Changes    map[xdr.LedgerEntryType]LedgerChanges
+	Changes    map[xdr.LedgerEntryType][]ingest.Change
 	BatchStart uint32
 	BatchEnd   uint32
 }
@@ -98,23 +93,21 @@ func extractBatch(
 		xdr.LedgerEntryTypeConfigSetting,
 		xdr.LedgerEntryTypeTtl}
 
-	ledgerChanges := map[xdr.LedgerEntryType]LedgerChanges{}
+	ledgerChanges := map[xdr.LedgerEntryType][]ingest.Change{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
-		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
+		changeCompactors := map[xdr.LedgerEntryType]*ChangeCompactor{}
 		for _, dt := range dataTypes {
-			changeCompactors[dt] = ingest.NewChangeCompactor()
+			changeCompactors[dt] = NewChangeCompactor()
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
-		var header xdr.LedgerHeaderHistoryEntry
 		if seq <= batchEnd {
 			changeReader, err := ingest.NewLedgerChangeReader(ctx, *backend, env.NetworkPassphrase, seq)
 			if err != nil {
 				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
 			}
-			header = changeReader.LedgerTransactionReader.GetHeader()
 
 			for {
 				change, err := changeReader.Read()
@@ -144,8 +137,7 @@ func extractBatch(
 		for dataType, compactor := range changeCompactors {
 			for _, change := range compactor.GetChanges() {
 				dataTypeChanges := ledgerChanges[dataType]
-				dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
-				dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
+				dataTypeChanges = append(dataTypeChanges, change)
 				ledgerChanges[dataType] = dataTypeChanges
 			}
 		}

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/go/ingest"
@@ -33,6 +34,23 @@ func TestTransformContractData(t *testing.T) {
 						Type: xdr.LedgerEntryTypeOffer,
 					},
 				},
+				Ledger: &xdr.LedgerCloseMeta{
+					V: 1,
+					V1: &xdr.LedgerCloseMetaV1{
+						LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+							Header: xdr.LedgerHeader{
+								ScpValue: xdr.StellarValue{
+									CloseTime: 1000,
+								},
+								LedgerSeq: 10,
+							},
+						},
+					},
+				},
+				Transaction: &ingest.LedgerTransaction{
+					Index: 1,
+				},
+				OperationIndex: 1,
 			},
 			"unit test",
 			ContractDataOutput{}, fmt.Errorf("could not extract contract data from ledger entry; actual type is LedgerEntryTypeOffer"),
@@ -49,16 +67,8 @@ func TestTransformContractData(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		header := xdr.LedgerHeaderHistoryEntry{
-			Header: xdr.LedgerHeader{
-				ScpValue: xdr.StellarValue{
-					CloseTime: 1000,
-				},
-				LedgerSeq: 10,
-			},
-		}
 		TransformContractData := NewTransformContractDataStruct(MockAssetFromContractData, MockContractBalanceFromContractData)
-		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase, header)
+		actualOutput, actualError, _ := TransformContractData.TransformContractData(test.input, test.passphrase)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -124,6 +134,37 @@ func makeContractDataTestInput() []ingest.Change {
 			Type: xdr.LedgerEntryTypeContractData,
 			Pre:  &xdr.LedgerEntry{},
 			Post: &contractDataLedgerEntry,
+			Ledger: &xdr.LedgerCloseMeta{
+				V: 1,
+				V1: &xdr.LedgerCloseMetaV1{
+					LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+						Header: xdr.LedgerHeader{
+							ScpValue: xdr.StellarValue{
+								CloseTime: 1000,
+							},
+							LedgerSeq: 10,
+						},
+					},
+				},
+			},
+			Transaction: &ingest.LedgerTransaction{
+				Index: 1,
+				Envelope: xdr.TransactionEnvelope{
+					Type: 2,
+					V1: &xdr.TransactionV1Envelope{
+						Tx: xdr.Transaction{
+							Operations: []xdr.Operation{
+								{
+									Body: xdr.OperationBody{
+										Type: 1,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			OperationIndex: 0,
 		},
 	}
 }
@@ -158,6 +199,9 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			Val:                       val,
 			ValDecoded:                valDecoded,
 			ContractDataXDR:           "AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAA4AAAABYQAAAAAAAA4AAAABYQAAAAAAAAEAAAAAAAAAAQ==",
+			TransactionID:             null.NewInt(42949677056, true),
+			OperationID:               null.NewInt(42949677057, true),
+			OperationType:             null.NewInt(1, true),
 		},
 	}
 }

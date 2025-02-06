@@ -10,7 +10,7 @@ RUN export CARGO_BUILD_TARGET=$(rustc -vV | sed -n 's|host: ||p') \
   && cargo build --target $CARGO_BUILD_TARGET --profile release-with-panic-unwind
 
 # stage 2: build stellar-etl app
-FROM golang:1.22.1-bullseye AS go-build
+FROM golang:1.23.4-bullseye AS go-build
 
 WORKDIR /etl
 
