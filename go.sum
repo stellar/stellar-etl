@@ -646,6 +646,8 @@ github.com/stellar/go v0.0.0-20240924182550-69667b25baf4 h1:Kd4ivg3hCG8AfFQpxjUj
 github.com/stellar/go v0.0.0-20240924182550-69667b25baf4/go.mod h1:rrFK7a8i2h9xad9HTfnSN/dTNEqXVHKAbkFeR7UxAgs=
 github.com/stellar/go v0.0.0-20250129173144-fb9f26ffa78b h1:kmW38ALrrA5VBMgBC0uJ9cfbZYJ+ipU5wFRVXlMmpxM=
 github.com/stellar/go v0.0.0-20250129173144-fb9f26ffa78b/go.mod h1:ewcAL4pit/jqFszQws9C2U6pwGSy4ZKZD3J/vvjCtgQ=
+github.com/stellar/go v0.0.0-20250219002427-fe9b5ecd408e h1:XFebpF63aWMSircpFUSBq8dcm9qSLCAEf65YPGk2Pc4=
+github.com/stellar/go v0.0.0-20250219002427-fe9b5ecd408e/go.mod h1:pIh0xYFVnaMP9fLnjFT7URY9Zhwy5wuc6tQkYybKkUY=
 github.com/stellar/go-xdr v0.0.0-20231122183749-b53fb00bcac2 h1:OzCVd0SV5qE3ZcDeSFCmOWLZfEWZ3Oe8KtmSOYKEVWE=
 github.com/stellar/go-xdr v0.0.0-20231122183749-b53fb00bcac2/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
