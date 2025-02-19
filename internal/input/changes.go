@@ -103,7 +103,7 @@ func extractBatch(
 	for seq := batchStart; seq <= batchEnd; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
 		for _, dt := range dataTypes {
-			changeCompactors[dt] = ingest.NewChangeCompactor()
+			changeCompactors[dt] = ingest.NewChangeCompactor(ingest.ChangeCompactorConfig{SuppressRemoveAfterRestoreChange: false})
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
