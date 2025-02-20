@@ -54,12 +54,12 @@ func GetLedgerRange(startTime, endTime time.Time, isTest bool, isFuture bool) (i
 
 	// Ledger sequence 2 is the start ledger because the genesis ledger (ledger 1), has a close time of 0 in Unix time.
 	// The second ledger has a valid close time that matches with the network start time.
-	startLedger, err := graph.findLedgerForDate(2, startTime, map[int64]struct{}{})
+	startLedger, err := graph.findLedgerForDate(6208000, startTime, map[int64]struct{}{})
 	if err != nil {
 		return 0, 0, err
 	}
 
-	endLedger, err := graph.findLedgerForDate(2, endTime, map[int64]struct{}{})
+	endLedger, err := graph.findLedgerForDate(6208000, endTime, map[int64]struct{}{})
 	if err != nil {
 		return 0, 0, err
 	}
