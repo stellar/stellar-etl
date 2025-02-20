@@ -778,7 +778,9 @@ var testArchiveURLs = []string{
 
 // futrenet is used for testing new Protocol features
 var futureArchiveURLs = []string{
-	"http://history.stellar.org/",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_001",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_002",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_003",
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
