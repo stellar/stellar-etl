@@ -77,7 +77,7 @@ func createNewGraph(archiveURLs []string) (graph, error) {
 
 	graph.Client = archive
 
-	secondLedgerPoint, err := graph.getGraphPoint(2) // the second ledger has a real close time, unlike the 1970s close time of the genesis ledger
+	secondLedgerPoint, err := graph.getGraphPoint(6208000) // the second ledger has a real close time, unlike the 1970s close time of the genesis ledger
 	if err != nil {
 		return graph, err
 	}
