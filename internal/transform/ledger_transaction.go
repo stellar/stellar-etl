@@ -9,7 +9,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-// TransformTransaction converts a transaction from the history archive ingestion system into a form suitable for BigQuery
+// TransformLedgerTransaction converts a transaction from the history archive ingestion system into a form suitable for BigQuery
 func TransformLedgerTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHeaderHistoryEntry) (LedgerTransactionOutput, error) {
 	ledgerHeader := lhe.Header
 	outputLedgerSequence := uint32(ledgerHeader.LedgerSeq)
