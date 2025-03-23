@@ -6,7 +6,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-// GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
+// GetLedgersHistoryArchive returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetLedgersHistoryArchive(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]utils.HistoryArchiveLedgerAndLCM, error) {
 	backend, err := utils.CreateBackend(start, end, env.ArchiveURLs)
 	if err != nil {
