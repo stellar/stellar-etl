@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -46,13 +45,31 @@ func TestTransformContractEvent(t *testing.T) {
 
 func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
 
-	var topics, topicsDecoded []interface{}
-	topics = append(topics, "AAAAAAAAAAE=")
-	topicsDecoded = append(topicsDecoded, json.RawMessage("{\"bool\":true}"))
+	topics := make(map[string][]map[string]string, 1)
+	topics["topics"] = []map[string]string{
+		{
+			"type":  "B",
+			"value": "AAAAAAAAAAE=",
+		},
+	}
 
-	var data, dataDecoded interface{}
-	data = "AAAAAAAAAAE="
-	dataDecoded = json.RawMessage("{\"bool\":true}")
+	topicsDecoded := make(map[string][]map[string]string, 1)
+	topicsDecoded["topics_decoded"] = []map[string]string{
+		{
+			"type":  "B",
+			"value": "true",
+		},
+	}
+
+	data := map[string]string{
+		"type":  "B",
+		"value": "AAAAAAAAAAE=",
+	}
+
+	dataDecoded := map[string]string{
+		"type":  "B",
+		"value": "true",
+	}
 
 	output = [][]ContractEventOutput{{
 		ContractEventOutput{
