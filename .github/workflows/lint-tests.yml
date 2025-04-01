@@ -33,4 +33,4 @@ jobs:
 
       - uses: pre-commit/action@v3.0.0
         env:
-          extra_args: --color=always --files ${{ steps.file_changes.outputs.files}} --timeout 10m
+          extra_args: --color=always --files ${{ steps.file_changes.outputs.files}}
