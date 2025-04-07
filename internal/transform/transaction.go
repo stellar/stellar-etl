@@ -186,7 +186,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		// Protocol 21 with https://github.com/stellar/stellar-core/issues/4188
 		// Any Soroban Fee Bump transactions before P21 will need the below logic to calculate the correct feeCharged
 		if ledgerHeader.LedgerVersion < 21 && transaction.Envelope.Type == xdr.EnvelopeTypeEnvelopeTypeTxFeeBump {
-			outputFeeCharged = outputResourceFee - outputResourceFeeRefund + outputInclusionFeeCharged
+			outputFeeCharged = outputResourceFee - outputResourceFeeRefund
 		}
 	}
 
