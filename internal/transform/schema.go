@@ -629,3 +629,23 @@ type ContractEventOutput struct {
 	DataDecoded              map[string]string              `json:"data_decoded"`
 	ContractEventXDR         string                         `json:"contract_event_xdr"`
 }
+
+type TokenTransferOutput struct {
+	TransactionHash string      `json:"transaction_hash"`
+	TransactionID   int64       `json:"transaction_id"`
+	OperationID     int64       `json:"operation_id"`
+	EventTopic      string      `json:"event_topic"`
+	From            null.String `json:"from"`
+	To              null.String `json:"to"`
+	Asset           string      `json:"asset"`
+	AssetType       string      `json:"asset_type"`
+	AssetCode       null.String `json:"asset_code"`
+	AssetIssuer     null.String `json:"asset_issuer"`
+	Amount          float64     `json:"amount"`
+	AmountRaw       string      `json:"amount_raw"`
+	ContractID      string      `json:"contract_id"`
+	LedgerSequence  uint32      `json:"ledger_sequence"`
+	ClosedAt        time.Time   `json:"closed_at"`
+	ToMuxed         null.String `json:"to_muxed"`
+	ToMuxedID       null.String `json:"to_muxed_id"`
+}
