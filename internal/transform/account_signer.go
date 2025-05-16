@@ -6,12 +6,11 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
 // TransformSigners converts account signers from the history archive ingestion system into a form suitable for BigQuery
-func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) ([]AccountSignerOutput, error) {
+func TransformSigners(ledgerChange ingest.Change) ([]AccountSignerOutput, error) {
 	var signers []AccountSignerOutput
 
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
@@ -24,12 +23,7 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		return signers, fmt.Errorf("could not extract signer data from ledger entry of type: %+v", ledgerEntry.Data.Type)
 	}
 
-	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return signers, err
-	}
-
-	ledgerSequence := header.Header.LedgerSeq
+	changeDetails := utils.GetChangesDetails(ledgerChange)
 
 	sponsors := accountEntry.SponsorPerSigner()
 	for signer, weight := range accountEntry.SignerSummary() {
@@ -46,8 +40,11 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 			LastModifiedLedger: outputLastModifiedLedger,
 			LedgerEntryChange:  uint32(changeType),
 			Deleted:            outputDeleted,
-			ClosedAt:           closedAt,
-			LedgerSequence:     uint32(ledgerSequence),
+			ClosedAt:           changeDetails.ClosedAt,
+			LedgerSequence:     changeDetails.LedgerSequence,
+			TransactionID:      changeDetails.TransactionID,
+			OperationID:        changeDetails.OperationID,
+			OperationType:      changeDetails.OperationType,
 		})
 	}
 	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })

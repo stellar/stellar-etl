@@ -672,7 +672,7 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 												Fee:    xdr.LiquidityPoolFeeV18,
 											},
 											ReserveA:                 100000,
-											ReserveB:                 10000,
+											ReserveB:                 999999,
 											TotalPoolShares:          40,
 											PoolSharesTrustLineCount: 50,
 										},
@@ -809,7 +809,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 		LiquidityPoolFee:       null.IntFrom(30),
 		HistoryOperationID:     101,
 		TradeType:              2,
-		RoundingSlippage:       null.IntFrom(100),
+		RoundingSlippage:       null.IntFrom(9),
 		SellerIsExact:          null.BoolFrom(true),
 	}
 

@@ -30,6 +30,23 @@ func TestTransformConfigSetting(t *testing.T) {
 						Type: xdr.LedgerEntryTypeOffer,
 					},
 				},
+				Ledger: &xdr.LedgerCloseMeta{
+					V: 1,
+					V1: &xdr.LedgerCloseMetaV1{
+						LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+							Header: xdr.LedgerHeader{
+								ScpValue: xdr.StellarValue{
+									CloseTime: 1000,
+								},
+								LedgerSeq: 10,
+							},
+						},
+					},
+				},
+				Transaction: &ingest.LedgerTransaction{
+					Index: 1,
+				},
+				OperationIndex: 1,
 			},
 			ConfigSettingOutput{}, fmt.Errorf("could not extract config setting from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
@@ -44,15 +61,7 @@ func TestTransformConfigSetting(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		header := xdr.LedgerHeaderHistoryEntry{
-			Header: xdr.LedgerHeader{
-				ScpValue: xdr.StellarValue{
-					CloseTime: 1000,
-				},
-				LedgerSeq: 10,
-			},
-		}
-		actualOutput, actualError := TransformConfigSetting(test.input, header)
+		actualOutput, actualError := TransformConfigSetting(test.input)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -77,6 +86,37 @@ func makeConfigSettingTestInput() []ingest.Change {
 			Type: xdr.LedgerEntryTypeConfigSetting,
 			Pre:  &xdr.LedgerEntry{},
 			Post: &contractDataLedgerEntry,
+			Ledger: &xdr.LedgerCloseMeta{
+				V: 1,
+				V1: &xdr.LedgerCloseMetaV1{
+					LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+						Header: xdr.LedgerHeader{
+							ScpValue: xdr.StellarValue{
+								CloseTime: 1000,
+							},
+							LedgerSeq: 10,
+						},
+					},
+				},
+			},
+			Transaction: &ingest.LedgerTransaction{
+				Index: 1,
+				Envelope: xdr.TransactionEnvelope{
+					Type: 2,
+					V1: &xdr.TransactionV1Envelope{
+						Tx: xdr.Transaction{
+							Operations: []xdr.Operation{
+								{
+									Body: xdr.OperationBody{
+										Type: 1,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			OperationIndex: 0,
 		},
 	}
 }

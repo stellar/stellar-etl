@@ -10,7 +10,7 @@ import (
 )
 
 // TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (AccountOutput, error) {
+func TransformAccount(ledgerChange ingest.Change) (AccountOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return AccountOutput{}, err
@@ -76,12 +76,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 
 	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
-	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
-	if err != nil {
-		return AccountOutput{}, err
-	}
-
-	ledgerSequence := header.Header.LedgerSeq
+	changeDetails := utils.GetChangesDetails(ledgerChange)
 
 	transformedAccount := AccountOutput{
 		AccountID:            outputID,
@@ -105,8 +100,11 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		NumSponsoring:        uint32(accountEntry.NumSponsoring()),
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
-		ClosedAt:             closedAt,
-		LedgerSequence:       uint32(ledgerSequence),
+		ClosedAt:             changeDetails.ClosedAt,
+		LedgerSequence:       changeDetails.LedgerSequence,
+		TransactionID:        changeDetails.TransactionID,
+		OperationID:          changeDetails.OperationID,
+		OperationType:        changeDetails.OperationType,
 	}
 	return transformedAccount, nil
 }

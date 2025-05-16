@@ -119,13 +119,13 @@ be exported.`,
 						if !exports["export-accounts"] {
 							continue
 						}
-						for i, change := range changes.Changes {
+						for _, change := range changes {
 							if changed, err := change.AccountChangedExceptSigners(); err != nil {
 								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
 								continue
 							} else if changed {
 
-								acc, err := transform.TransformAccount(change, changes.LedgerHeaders[i])
+								acc, err := transform.TransformAccount(change)
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -134,7 +134,7 @@ be exported.`,
 								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
 							}
 							if utils.AccountSignersChanged(change) {
-								signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
+								signers, err := transform.TransformSigners(change)
 								if err != nil {
 									entry, _, _, _ := utils.ExtractEntryFromChange(change)
 									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
@@ -149,8 +149,8 @@ be exported.`,
 						if !exports["export-balances"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							balance, err := transform.TransformClaimableBalance(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							balance, err := transform.TransformClaimableBalance(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -162,8 +162,8 @@ be exported.`,
 						if !exports["export-offers"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							offer, err := transform.TransformOffer(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							offer, err := transform.TransformOffer(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -175,8 +175,8 @@ be exported.`,
 						if !exports["export-trustlines"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							trust, err := transform.TransformTrustline(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							trust, err := transform.TransformTrustline(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -188,8 +188,8 @@ be exported.`,
 						if !exports["export-pools"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							pool, err := transform.TransformPool(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							pool, err := transform.TransformPool(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -201,9 +201,9 @@ be exported.`,
 						if !exports["export-contract-data"] {
 							continue
 						}
-						for i, change := range changes.Changes {
+						for _, change := range changes {
 							TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
-							contractData, err, _ := TransformContractData.TransformContractData(change, env.NetworkPassphrase, changes.LedgerHeaders[i])
+							contractData, err, _ := TransformContractData.TransformContractData(change, env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -221,8 +221,8 @@ be exported.`,
 						if !exports["export-contract-code"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							contractCode, err := transform.TransformContractCode(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							contractCode, err := transform.TransformContractCode(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming contract code entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -234,8 +234,8 @@ be exported.`,
 						if !exports["export-config-settings"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							configSettings, err := transform.TransformConfigSetting(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							configSettings, err := transform.TransformConfigSetting(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming config settings entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -247,8 +247,8 @@ be exported.`,
 						if !exports["export-ttl"] {
 							continue
 						}
-						for i, change := range changes.Changes {
-							ttl, err := transform.TransformTtl(change, changes.LedgerHeaders[i])
+						for _, change := range changes {
+							ttl, err := transform.TransformTtl(change)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming ttl entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
