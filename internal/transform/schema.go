@@ -660,7 +660,7 @@ type ContractEventOutput struct {
 type TokenTransferOutput struct {
 	TransactionHash string      `json:"transaction_hash"`
 	TransactionID   int64       `json:"transaction_id"`
-	OperationID     int64       `json:"operation_id"`
+	OperationID     null.Int    `json:"operation_id"`
 	EventTopic      string      `json:"event_topic"`
 	From            null.String `json:"from"`
 	To              null.String `json:"to"`

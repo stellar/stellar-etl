@@ -10,7 +10,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-var tokenTransferCmd = &cobra.Command{
+var tokenTransfersCmd = &cobra.Command{
 	Use:   "export_token_transfer",
 	Short: "Exports the token transfer event data.",
 	Long:  `Exports token transfer data within the specified range to an output file. Encodes ledgers as JSON objects and exports them to the output file.`,
@@ -64,11 +64,11 @@ var tokenTransferCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(tokenTransferCmd)
-	utils.AddCommonFlags(tokenTransferCmd.Flags())
-	utils.AddArchiveFlags("ttp", tokenTransferCmd.Flags())
-	utils.AddCloudStorageFlags(tokenTransferCmd.Flags())
-	tokenTransferCmd.MarkFlagRequired("end-ledger")
+	rootCmd.AddCommand(tokenTransfersCmd)
+	utils.AddCommonFlags(tokenTransfersCmd.Flags())
+	utils.AddArchiveFlags("token_transfer", tokenTransfersCmd.Flags())
+	utils.AddCloudStorageFlags(tokenTransfersCmd.Flags())
+	tokenTransfersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period

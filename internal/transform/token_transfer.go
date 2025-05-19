@@ -65,8 +65,9 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 			return []TokenTransferOutput{}, fmt.Errorf("unknown event type in ledger sequence: %d", event.Meta.LedgerSequence)
 		}
 
-		var operationID int64
+		var opID int64
 		var opIndex int32
+		var operationID null.Int
 
 		eventMeta := event.GetMeta()
 		ledgerSequence := eventMeta.LedgerSequence
@@ -75,7 +76,8 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 		operationIndex := eventMeta.OperationIndex
 		if operationIndex != nil {
 			opIndex = int32(*operationIndex)
-			operationID = toid.New(int32(ledgerSequence), int32(transactionIndex), opIndex).ToInt64()
+			opID = toid.New(int32(ledgerSequence), int32(transactionIndex), opIndex).ToInt64()
+			operationID = null.IntFrom(opID)
 		}
 
 		asset, assetType, assetCode, assetIssuer = getAssetFromEvent(event)
