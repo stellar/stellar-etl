@@ -26,12 +26,22 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 
 	var transformedTTP []TokenTransferOutput
 
+	transformedTTP, err = transformEvents(events, ledgerCloseMeta)
+	if err != nil {
+		return []TokenTransferOutput{}, err
+	}
+
+	return transformedTTP, nil
+}
+
+func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMeta xdr.LedgerCloseMeta) ([]TokenTransferOutput, error) {
+	var transformedTTP []TokenTransferOutput
+
 	for _, event := range events {
 		var assetType, asset string
 		var assetCode, assetIssuer null.String
 		var from, to null.String
 		var amount string
-		var amountInt int64
 		var amountFloat float64
 
 		switch evt := event.Event.(type) {
@@ -39,28 +49,28 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 			from = null.StringFrom(evt.Transfer.From)
 			to = null.StringFrom(evt.Transfer.To)
 			amount = evt.Transfer.Amount
-			amountInt, _ = strconv.ParseInt(amount, 10, 64)
-			amountFloat = float64(amountInt) * 0.0000001
+			amountFloat, _ = strconv.ParseFloat(amount, 64)
+			amountFloat = amountFloat * 0.0000001
 		case *token_transfer.TokenTransferEvent_Mint:
 			to = null.StringFrom(evt.Mint.To)
 			amount = evt.Mint.Amount
-			amountInt, _ = strconv.ParseInt(amount, 10, 64)
-			amountFloat = float64(amountInt) * 0.0000001
+			amountFloat, _ = strconv.ParseFloat(amount, 64)
+			amountFloat = amountFloat * 0.0000001
 		case *token_transfer.TokenTransferEvent_Burn:
 			from = null.StringFrom(evt.Burn.From)
 			amount = evt.Burn.Amount
-			amountInt, _ = strconv.ParseInt(amount, 10, 64)
-			amountFloat = float64(amountInt) * 0.0000001
+			amountFloat, _ = strconv.ParseFloat(amount, 64)
+			amountFloat = amountFloat * 0.0000001
 		case *token_transfer.TokenTransferEvent_Clawback:
 			from = null.StringFrom(evt.Clawback.From)
 			amount = evt.Clawback.Amount
-			amountInt, _ = strconv.ParseInt(amount, 10, 64)
-			amountFloat = float64(amountInt) * 0.0000001
+			amountFloat, _ = strconv.ParseFloat(amount, 64)
+			amountFloat = amountFloat * 0.0000001
 		case *token_transfer.TokenTransferEvent_Fee:
 			from = null.StringFrom(evt.Fee.From)
 			amount = evt.Fee.Amount
-			amountInt, _ = strconv.ParseInt(amount, 10, 64)
-			amountFloat = float64(amountInt) * 0.0000001
+			amountFloat, _ = strconv.ParseFloat(amount, 64)
+			amountFloat = amountFloat * 0.0000001
 		default:
 			return []TokenTransferOutput{}, fmt.Errorf("unknown event type in ledger sequence: %d", event.Meta.LedgerSequence)
 		}
