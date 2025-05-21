@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stellar/go/ingest"
@@ -31,23 +30,6 @@ func TestTransformContractCode(t *testing.T) {
 						Type: xdr.LedgerEntryTypeOffer,
 					},
 				},
-				Ledger: &xdr.LedgerCloseMeta{
-					V: 1,
-					V1: &xdr.LedgerCloseMetaV1{
-						LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-							Header: xdr.LedgerHeader{
-								ScpValue: xdr.StellarValue{
-									CloseTime: 1000,
-								},
-								LedgerSeq: 10,
-							},
-						},
-					},
-				},
-				Transaction: &ingest.LedgerTransaction{
-					Index: 1,
-				},
-				OperationIndex: 1,
 			},
 			ContractCodeOutput{}, fmt.Errorf("could not extract contract code from ledger entry; actual type is LedgerEntryTypeOffer"),
 		},
@@ -62,7 +44,15 @@ func TestTransformContractCode(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformContractCode(test.input)
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
+		actualOutput, actualError := TransformContractCode(test.input, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -103,37 +93,6 @@ func makeContractCodeTestInput() []ingest.Change {
 			Type: xdr.LedgerEntryTypeContractCode,
 			Pre:  &xdr.LedgerEntry{},
 			Post: &contractCodeLedgerEntry,
-			Ledger: &xdr.LedgerCloseMeta{
-				V: 1,
-				V1: &xdr.LedgerCloseMetaV1{
-					LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-						Header: xdr.LedgerHeader{
-							ScpValue: xdr.StellarValue{
-								CloseTime: 1000,
-							},
-							LedgerSeq: 10,
-						},
-					},
-				},
-			},
-			Transaction: &ingest.LedgerTransaction{
-				Index: 1,
-				Envelope: xdr.TransactionEnvelope{
-					Type: 2,
-					V1: &xdr.TransactionV1Envelope{
-						Tx: xdr.Transaction{
-							Operations: []xdr.Operation{
-								{
-									Body: xdr.OperationBody{
-										Type: 1,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			OperationIndex: 0,
 		},
 	}
 }
@@ -159,9 +118,6 @@ func makeContractCodeTestOutput() []ContractCodeOutput {
 			NImports:           8,
 			NExports:           9,
 			NDataSegmentBytes:  10,
-			TransactionID:      null.NewInt(42949677056, true),
-			OperationID:        null.NewInt(42949677057, true),
-			OperationType:      null.NewInt(1, true),
 		},
 	}
 }

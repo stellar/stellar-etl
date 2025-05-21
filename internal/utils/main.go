@@ -8,13 +8,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/guregu/null"
 	"github.com/spf13/pflag"
 
 	"github.com/stellar/go/hash"
 	"github.com/stellar/go/historyarchive"
 	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledger"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
@@ -22,7 +20,6 @@ import (
 	"github.com/stellar/go/support/storage"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/toid"
 )
 
 // PanicOnError is a function that panics if the provided error is not nil
@@ -1103,46 +1100,4 @@ func AccountSignersChanged(c ingest.Change) bool {
 type HistoryArchiveLedgerAndLCM struct {
 	Ledger historyarchive.Ledger
 	LCM    xdr.LedgerCloseMeta
-}
-
-type ChangeDetails struct {
-	ClosedAt       time.Time
-	LedgerSequence uint32
-	OperationType  null.Int
-	TransactionID  null.Int
-	OperationID    null.Int
-}
-
-func GetChangesDetails(ledgerChange ingest.Change) ChangeDetails {
-	var outputOperationType null.Int
-	var outputTransactionID null.Int
-	var outputOperationID null.Int
-	var lcm *xdr.LedgerCloseMeta
-
-	if ledgerChange.Ledger == nil {
-		lcm = &ledgerChange.Transaction.Ledger
-	} else {
-		lcm = ledgerChange.Ledger
-	}
-	closedAt := ledger.ClosedAt(*lcm)
-	ledgerSequence := ledger.Sequence(*lcm)
-	if ledgerChange.Transaction != nil {
-		outputTransactionID = null.NewInt(toid.New(int32(ledgerSequence), int32(ledgerChange.Transaction.Index), 0).ToInt64(), true)
-		// outputOperationID may point to the incorrect operation because the change compactor takes the latest OperationIndex if it exists
-		// It is possible that OperationIndex is 0 and invalid but will be used to populate outputOperationID anyways
-		// TODO: This should be fixed when the LedgerEntryChange transforms/processors use the actual changes instead of compacted changes
-		outputOperationID = null.NewInt(toid.New(int32(ledgerSequence), int32(ledgerChange.Transaction.Index), int32(ledgerChange.OperationIndex+1)).ToInt64(), true)
-		operation, ok := ledgerChange.Transaction.GetOperation(ledgerChange.OperationIndex)
-		if ok {
-			outputOperationType = null.NewInt(int64(operation.Body.Type), true)
-		}
-	}
-
-	return ChangeDetails{
-		ClosedAt:       closedAt,
-		LedgerSequence: ledgerSequence,
-		OperationType:  outputOperationType,
-		TransactionID:  outputTransactionID,
-		OperationID:    outputOperationID,
-	}
 }

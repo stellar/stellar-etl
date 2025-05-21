@@ -36,22 +36,6 @@ func TestTransformAccount(t *testing.T) {
 						Type: xdr.LedgerEntryTypeOffer,
 					},
 				},
-				Ledger: &xdr.LedgerCloseMeta{
-					V: 1,
-					V1: &xdr.LedgerCloseMetaV1{
-						LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-							Header: xdr.LedgerHeader{
-								ScpValue: xdr.StellarValue{
-									CloseTime: 1000,
-								},
-								LedgerSeq: 10,
-							},
-						},
-					},
-				},
-				Transaction: &ingest.LedgerTransaction{
-					Index: 1,
-				},
 			},
 			},
 			AccountOutput{}, fmt.Errorf("could not extract account data from ledger entry; actual type is LedgerEntryTypeOffer"),
@@ -111,7 +95,15 @@ func TestTransformAccount(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformAccount(test.input.ledgerChange)
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
+		actualOutput, actualError := TransformAccount(test.input.ledgerChange, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -126,22 +118,6 @@ func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingest.Ch
 				Type:    xdr.LedgerEntryTypeAccount,
 				Account: &accountEntry,
 			},
-		},
-		Ledger: &xdr.LedgerCloseMeta{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
-				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						ScpValue: xdr.StellarValue{
-							CloseTime: 1000,
-						},
-						LedgerSeq: 10,
-					},
-				},
-			},
-		},
-		Transaction: &ingest.LedgerTransaction{
-			Index: 1,
 		},
 	}
 }
@@ -190,37 +166,6 @@ func makeAccountTestInput() ingest.Change {
 		Type: xdr.LedgerEntryTypeAccount,
 		Pre:  &ledgerEntry,
 		Post: nil,
-		Ledger: &xdr.LedgerCloseMeta{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
-				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						ScpValue: xdr.StellarValue{
-							CloseTime: 1000,
-						},
-						LedgerSeq: 10,
-					},
-				},
-			},
-		},
-		Transaction: &ingest.LedgerTransaction{
-			Index: 1,
-			Envelope: xdr.TransactionEnvelope{
-				Type: 2,
-				V1: &xdr.TransactionV1Envelope{
-					Tx: xdr.Transaction{
-						Operations: []xdr.Operation{
-							{
-								Body: xdr.OperationBody{
-									Type: 1,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		OperationIndex: 0,
 	}
 }
 
@@ -247,8 +192,5 @@ func makeAccountTestOutput() AccountOutput {
 		Deleted:              true,
 		LedgerSequence:       10,
 		ClosedAt:             time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-		TransactionID:        null.NewInt(42949677056, true),
-		OperationID:          null.NewInt(42949677057, true),
-		OperationType:        null.NewInt(1, true),
 	}
 }

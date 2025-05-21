@@ -35,23 +35,6 @@ func TestTransformOffer(t *testing.T) {
 						Type: xdr.LedgerEntryTypeAccount,
 					},
 				},
-				Ledger: &xdr.LedgerCloseMeta{
-					V: 1,
-					V1: &xdr.LedgerCloseMetaV1{
-						LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-							Header: xdr.LedgerHeader{
-								ScpValue: xdr.StellarValue{
-									CloseTime: 1000,
-								},
-								LedgerSeq: 10,
-							},
-						},
-					},
-				},
-				Transaction: &ingest.LedgerTransaction{
-					Index: 1,
-				},
-				OperationIndex: 1,
 			},
 			},
 			OfferOutput{}, fmt.Errorf("could not extract offer data from ledger entry; actual type is LedgerEntryTypeAccount"),
@@ -114,7 +97,15 @@ func TestTransformOffer(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOffer(test.input.ingest)
+		header := xdr.LedgerHeaderHistoryEntry{
+			Header: xdr.LedgerHeader{
+				ScpValue: xdr.StellarValue{
+					CloseTime: 1000,
+				},
+				LedgerSeq: 10,
+			},
+		}
+		actualOutput, actualError := TransformOffer(test.input.ingest, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -131,23 +122,6 @@ func wrapOfferEntry(offerEntry xdr.OfferEntry, lastModified int) ingest.Change {
 				Offer: &offerEntry,
 			},
 		},
-		Ledger: &xdr.LedgerCloseMeta{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
-				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						ScpValue: xdr.StellarValue{
-							CloseTime: 1000,
-						},
-						LedgerSeq: 10,
-					},
-				},
-			},
-		},
-		Transaction: &ingest.LedgerTransaction{
-			Index: 1,
-		},
-		OperationIndex: 1,
 	}
 }
 
@@ -179,37 +153,6 @@ func makeOfferTestInput() (ledgerChange ingest.Change, err error) {
 			},
 		},
 		Post: nil,
-		Ledger: &xdr.LedgerCloseMeta{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
-				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						ScpValue: xdr.StellarValue{
-							CloseTime: 1000,
-						},
-						LedgerSeq: 10,
-					},
-				},
-			},
-		},
-		Transaction: &ingest.LedgerTransaction{
-			Index: 1,
-			Envelope: xdr.TransactionEnvelope{
-				Type: 2,
-				V1: &xdr.TransactionV1Envelope{
-					Tx: xdr.Transaction{
-						Operations: []xdr.Operation{
-							{
-								Body: xdr.OperationBody{
-									Type: 1,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		OperationIndex: 0,
 	}
 	return
 }
@@ -237,8 +180,5 @@ func makeOfferTestOutput() OfferOutput {
 		Sponsor:            null.StringFrom(testAccount3Address),
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-		TransactionID:      null.NewInt(42949677056, true),
-		OperationID:        null.NewInt(42949677057, true),
-		OperationType:      null.NewInt(1, true),
 	}
 }
