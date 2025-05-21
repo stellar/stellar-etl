@@ -113,9 +113,6 @@ type AccountOutput struct {
 	Deleted              bool        `json:"deleted"`
 	ClosedAt             time.Time   `json:"closed_at"`
 	LedgerSequence       uint32      `json:"ledger_sequence"`
-	TransactionID        null.Int    `json:"transaction_id"`
-	OperationID          null.Int    `json:"operation_id"`
-	OperationType        null.Int    `json:"operation_type"`
 }
 
 // AccountSignerOutput is a representation of an account signer that aligns with the BigQuery table account_signers
@@ -129,9 +126,6 @@ type AccountSignerOutput struct {
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
-	TransactionID      null.Int    `json:"transaction_id"`
-	OperationID        null.Int    `json:"operation_id"`
-	OperationType      null.Int    `json:"operation_type"`
 }
 
 // OperationOutput is a representation of an operation that aligns with the BigQuery table history_operations
@@ -166,9 +160,6 @@ type ClaimableBalanceOutput struct {
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
-	TransactionID      null.Int    `json:"transaction_id"`
-	OperationID        null.Int    `json:"operation_id"`
-	OperationType      null.Int    `json:"operation_type"`
 }
 
 // Claimants
@@ -224,9 +215,6 @@ type PoolOutput struct {
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
-	TransactionID      null.Int  `json:"transaction_id"`
-	OperationID        null.Int  `json:"operation_id"`
-	OperationType      null.Int  `json:"operation_type"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
@@ -259,9 +247,6 @@ type TrustlineOutput struct {
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
-	TransactionID      null.Int    `json:"transaction_id"`
-	OperationID        null.Int    `json:"operation_id"`
-	OperationType      null.Int    `json:"operation_type"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
@@ -287,9 +272,6 @@ type OfferOutput struct {
 	Sponsor            null.String `json:"sponsor"`
 	ClosedAt           time.Time   `json:"closed_at"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
-	TransactionID      null.Int    `json:"transaction_id"`
-	OperationID        null.Int    `json:"operation_id"`
-	OperationType      null.Int    `json:"operation_type"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
@@ -542,9 +524,6 @@ type ContractDataOutput struct {
 	Val                       map[string]string `json:"val"`
 	ValDecoded                map[string]string `json:"val_decoded"`
 	ContractDataXDR           string            `json:"contract_data_xdr"`
-	TransactionID             null.Int          `json:"transaction_id"`
-	OperationID               null.Int          `json:"operation_id"`
-	OperationType             null.Int          `json:"operation_type"`
 }
 
 // ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
@@ -558,19 +537,16 @@ type ContractCodeOutput struct {
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 	LedgerKeyHash      string    `json:"ledger_key_hash"`
 	//ContractCodeCode                string `json:"contract_code"`
-	NInstructions     uint32   `json:"n_instructions"`
-	NFunctions        uint32   `json:"n_functions"`
-	NGlobals          uint32   `json:"n_globals"`
-	NTableEntries     uint32   `json:"n_table_entries"`
-	NTypes            uint32   `json:"n_types"`
-	NDataSegments     uint32   `json:"n_data_segments"`
-	NElemSegments     uint32   `json:"n_elem_segments"`
-	NImports          uint32   `json:"n_imports"`
-	NExports          uint32   `json:"n_exports"`
-	NDataSegmentBytes uint32   `json:"n_data_segment_bytes"`
-	TransactionID     null.Int `json:"transaction_id"`
-	OperationID       null.Int `json:"operation_id"`
-	OperationType     null.Int `json:"operation_type"`
+	NInstructions     uint32 `json:"n_instructions"`
+	NFunctions        uint32 `json:"n_functions"`
+	NGlobals          uint32 `json:"n_globals"`
+	NTableEntries     uint32 `json:"n_table_entries"`
+	NTypes            uint32 `json:"n_types"`
+	NDataSegments     uint32 `json:"n_data_segments"`
+	NElemSegments     uint32 `json:"n_elem_segments"`
+	NImports          uint32 `json:"n_imports"`
+	NExports          uint32 `json:"n_exports"`
+	NDataSegmentBytes uint32 `json:"n_data_segment_bytes"`
 }
 
 // ConfigSettingOutput is a representation of soroban config settings that aligns with the Bigquery table config_settings
@@ -634,9 +610,6 @@ type TtlOutput struct {
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
-	TransactionID      null.Int  `json:"transaction_id"`
-	OperationID        null.Int  `json:"operation_id"`
-	OperationType      null.Int  `json:"operation_type"`
 }
 
 // ContractEventOutput is a representation of soroban contract events and diagnostic events
@@ -655,4 +628,24 @@ type ContractEventOutput struct {
 	Data                     map[string]string              `json:"data"`
 	DataDecoded              map[string]string              `json:"data_decoded"`
 	ContractEventXDR         string                         `json:"contract_event_xdr"`
+}
+
+type TokenTransferOutput struct {
+	TransactionHash string      `json:"transaction_hash"`
+	TransactionID   int64       `json:"transaction_id"`
+	OperationID     null.Int    `json:"operation_id"`
+	EventTopic      string      `json:"event_topic"`
+	From            null.String `json:"from"`
+	To              null.String `json:"to"`
+	Asset           string      `json:"asset"`
+	AssetType       string      `json:"asset_type"`
+	AssetCode       null.String `json:"asset_code"`
+	AssetIssuer     null.String `json:"asset_issuer"`
+	Amount          float64     `json:"amount"`
+	AmountRaw       string      `json:"amount_raw"`
+	ContractID      string      `json:"contract_id"`
+	LedgerSequence  uint32      `json:"ledger_sequence"`
+	ClosedAt        time.Time   `json:"closed_at"`
+	ToMuxed         null.String `json:"to_muxed"`
+	ToMuxedID       null.String `json:"to_muxed_id"`
 }

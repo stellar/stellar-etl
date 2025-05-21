@@ -114,15 +114,14 @@ func TestSendBatchToChannel(t *testing.T) {
 }
 
 func wrapLedgerEntry(entryType xdr.LedgerEntryType, entry xdr.LedgerEntry) ChangeBatch {
-	changes := map[xdr.LedgerEntryType][]ingest.Change{
+	changes := map[xdr.LedgerEntryType]LedgerChanges{
 		entryType: {
-			{
-				Type: entry.Data.Type,
-				Post: &entry,
+			Changes: []ingest.Change{
+				{Type: entry.Data.Type, Post: &entry},
 			},
+			LedgerHeaders: []xdr.LedgerHeaderHistoryEntry{},
 		},
 	}
-
 	return ChangeBatch{
 		Changes: changes,
 	}
@@ -134,7 +133,7 @@ func mockExtractBatch(
 	env utils.EnvironmentDetails, logger *utils.EtlLogger) ChangeBatch {
 	log.Errorf("mock called")
 	return ChangeBatch{
-		Changes:    map[xdr.LedgerEntryType][]ingest.Change{},
+		Changes:    map[xdr.LedgerEntryType]LedgerChanges{},
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,
 	}
@@ -162,7 +161,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 65},
 			out: output{
 				batchRanges: []batchRange{
-					{
+					batchRange{
 						batchStart: 1, batchEnd: 65,
 					},
 				},
@@ -172,9 +171,9 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 66},
 			out: output{
 				batchRanges: []batchRange{
-					{
+					batchRange{
 						batchStart: 1, batchEnd: 64,
-					}, {
+					}, batchRange{
 						batchStart: 65, batchEnd: 66,
 					},
 				},
@@ -184,10 +183,10 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 128},
 			out: output{
 				batchRanges: []batchRange{
-					{
+					batchRange{
 						batchStart: 1, batchEnd: 64,
 					},
-					{
+					batchRange{
 						batchStart: 65, batchEnd: 128,
 					},
 				},
@@ -197,7 +196,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 32},
 			out: output{
 				batchRanges: []batchRange{
-					{
+					batchRange{
 						batchStart: 1, batchEnd: 32,
 					},
 				},

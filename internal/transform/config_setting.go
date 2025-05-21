@@ -10,7 +10,7 @@ import (
 )
 
 // TransformConfigSetting converts an config setting ledger change entry into a form suitable for BigQuery
-func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, error) {
+func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (ConfigSettingOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ConfigSettingOutput{}, err
@@ -90,7 +90,12 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))
 	}
 
-	changeDetails := utils.GetChangesDetails(ledgerChange)
+	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return ConfigSettingOutput{}, err
+	}
+
+	ledgerSequence := header.Header.LedgerSeq
 
 	transformedConfigSetting := ConfigSettingOutput{
 		ConfigSettingId:                 int32(configSettingId),
@@ -138,8 +143,8 @@ func TransformConfigSetting(ledgerChange ingest.Change) (ConfigSettingOutput, er
 		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:               uint32(changeType),
 		Deleted:                         outputDeleted,
-		ClosedAt:                        changeDetails.ClosedAt,
-		LedgerSequence:                  changeDetails.LedgerSequence,
+		ClosedAt:                        closedAt,
+		LedgerSequence:                  uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil
 }

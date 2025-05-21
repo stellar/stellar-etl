@@ -46,7 +46,7 @@ func NewTransformContractDataStruct(assetFrom AssetFromContractDataFunc, contrac
 }
 
 // TransformContractData converts a contract data ledger change entry into a form suitable for BigQuery
-func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string) (ContractDataOutput, error, bool) {
+func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.Change, passphrase string, header xdr.LedgerHeaderHistoryEntry) (ContractDataOutput, error, bool) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return ContractDataOutput{}, err, false
@@ -97,7 +97,12 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataDurability := contractData.Durability.String()
 
-	changeDetails := utils.GetChangesDetails(ledgerChange)
+	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
+
+	ledgerSequence := header.Header.LedgerSeq
 
 	outputKey, outputKeyDecoded := serializeScVal(contractData.Key)
 	outputVal, outputValDecoded := serializeScVal(contractData.Val)
@@ -119,17 +124,14 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LastModifiedLedger:        uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
-		ClosedAt:                  changeDetails.ClosedAt,
-		LedgerSequence:            changeDetails.LedgerSequence,
+		ClosedAt:                  closedAt,
+		LedgerSequence:            uint32(ledgerSequence),
 		LedgerKeyHash:             ledgerKeyHash,
 		Key:                       outputKey,
 		KeyDecoded:                outputKeyDecoded,
 		Val:                       outputVal,
 		ValDecoded:                outputValDecoded,
 		ContractDataXDR:           outputContractDataXDR,
-		TransactionID:             changeDetails.TransactionID,
-		OperationID:               changeDetails.OperationID,
-		OperationType:             changeDetails.OperationType,
 	}
 	return transformedData, nil, true
 }

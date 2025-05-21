@@ -43,37 +43,6 @@ func TestTransformOfferNormalized(t *testing.T) {
 					},
 				},
 				Post: nil,
-				Ledger: &xdr.LedgerCloseMeta{
-					V: 1,
-					V1: &xdr.LedgerCloseMetaV1{
-						LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-							Header: xdr.LedgerHeader{
-								ScpValue: xdr.StellarValue{
-									CloseTime: 1000,
-								},
-								LedgerSeq: 10,
-							},
-						},
-					},
-				},
-				Transaction: &ingest.LedgerTransaction{
-					Index: 1,
-					Envelope: xdr.TransactionEnvelope{
-						Type: 2,
-						V1: &xdr.TransactionV1Envelope{
-							Tx: xdr.Transaction{
-								Operations: []xdr.Operation{
-									{
-										Body: xdr.OperationBody{
-											Type: 1,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				OperationIndex: 0,
 			}, 100},
 			wantOutput: NormalizedOfferOutput{},
 			wantErr:    fmt.Errorf("offer 0 is deleted"),
@@ -114,37 +83,6 @@ func makeOfferNormalizedTestInput() (ledgerChange ingest.Change, err error) {
 				},
 			},
 		},
-		Ledger: &xdr.LedgerCloseMeta{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
-				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
-					Header: xdr.LedgerHeader{
-						ScpValue: xdr.StellarValue{
-							CloseTime: 1000,
-						},
-						LedgerSeq: 10,
-					},
-				},
-			},
-		},
-		Transaction: &ingest.LedgerTransaction{
-			Index: 1,
-			Envelope: xdr.TransactionEnvelope{
-				Type: 2,
-				V1: &xdr.TransactionV1Envelope{
-					Tx: xdr.Transaction{
-						Operations: []xdr.Operation{
-							{
-								Body: xdr.OperationBody{
-									Type: 1,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		OperationIndex: 0,
 	}
 	return
 }
