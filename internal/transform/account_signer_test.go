@@ -15,7 +15,7 @@ import (
 
 func TestTransformAccountSigner(t *testing.T) {
 	type inputStruct struct {
-		injest ingest.Change
+		ingest ingest.Change
 	}
 
 	type transformTest struct {
@@ -59,7 +59,7 @@ func TestTransformAccountSigner(t *testing.T) {
 				LedgerSeq: 10,
 			},
 		}
-		actualOutput, actualError := TransformSigners(test.input.injest, header)
+		actualOutput, actualError := TransformSigners(test.input.ingest, header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
