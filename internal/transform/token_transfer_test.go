@@ -71,6 +71,82 @@ func makeTokenTransferTestOutput() (output [][]TokenTransferOutput, err error) {
 				ToMuxed:         null.NewString("", false),
 				ToMuxedID:       null.NewString("", false),
 			},
+			{
+				TransactionHash: "txhash",
+				TransactionID:   42949677056,
+				OperationID:     null.IntFrom(42949677057),
+				EventTopic:      "mint",
+				From:            null.NewString("", false),
+				To:              null.StringFrom("to"),
+				Asset:           "credit_alphanum4:abc:def",
+				AssetType:       "credit_alphanum4",
+				AssetCode:       null.StringFrom("abc"),
+				AssetIssuer:     null.StringFrom("def"),
+				Amount:          9.999999999999999e-06,
+				AmountRaw:       "100",
+				ContractID:      "contractaddress",
+				LedgerSequence:  uint32(10),
+				ClosedAt:        time.Unix(1000, 0).UTC(),
+				ToMuxed:         null.NewString("", false),
+				ToMuxedID:       null.NewString("", false),
+			},
+			{
+				TransactionHash: "txhash",
+				TransactionID:   42949677056,
+				OperationID:     null.IntFrom(42949677057),
+				EventTopic:      "burn",
+				From:            null.StringFrom("from"),
+				To:              null.NewString("", false),
+				Asset:           "credit_alphanum4:abc:def",
+				AssetType:       "credit_alphanum4",
+				AssetCode:       null.StringFrom("abc"),
+				AssetIssuer:     null.StringFrom("def"),
+				Amount:          9.999999999999999e-06,
+				AmountRaw:       "100",
+				ContractID:      "contractaddress",
+				LedgerSequence:  uint32(10),
+				ClosedAt:        time.Unix(1000, 0).UTC(),
+				ToMuxed:         null.NewString("", false),
+				ToMuxedID:       null.NewString("", false),
+			},
+			{
+				TransactionHash: "txhash",
+				TransactionID:   42949677056,
+				OperationID:     null.IntFrom(42949677057),
+				EventTopic:      "clawback",
+				From:            null.StringFrom("from"),
+				To:              null.NewString("", false),
+				Asset:           "credit_alphanum4:abc:def",
+				AssetType:       "credit_alphanum4",
+				AssetCode:       null.StringFrom("abc"),
+				AssetIssuer:     null.StringFrom("def"),
+				Amount:          9.999999999999999e-06,
+				AmountRaw:       "100",
+				ContractID:      "contractaddress",
+				LedgerSequence:  uint32(10),
+				ClosedAt:        time.Unix(1000, 0).UTC(),
+				ToMuxed:         null.NewString("", false),
+				ToMuxedID:       null.NewString("", false),
+			},
+			{
+				TransactionHash: "txhash",
+				TransactionID:   42949677056,
+				OperationID:     null.IntFrom(42949677057),
+				EventTopic:      "fee",
+				From:            null.StringFrom("from"),
+				To:              null.NewString("", false),
+				Asset:           "credit_alphanum4:abc:def",
+				AssetType:       "credit_alphanum4",
+				AssetCode:       null.StringFrom("abc"),
+				AssetIssuer:     null.StringFrom("def"),
+				Amount:          9.999999999999999e-06,
+				AmountRaw:       "100",
+				ContractID:      "contractaddress",
+				LedgerSequence:  uint32(10),
+				ClosedAt:        time.Unix(1000, 0).UTC(),
+				ToMuxed:         null.NewString("", false),
+				ToMuxedID:       null.NewString("", false),
+			},
 		},
 	}
 
@@ -106,10 +182,154 @@ func makeTokenTransferTestInput() (events [][]*token_transfer.TokenTransferEvent
 					},
 				},
 			},
+			{
+				Meta: &token_transfer.EventMeta{
+					LedgerSequence:   10,
+					TxHash:           "txhash",
+					TransactionIndex: 1,
+					OperationIndex:   &operationIndex,
+					ContractAddress:  "contractaddress",
+				},
+				Event: &token_transfer.TokenTransferEvent_Mint{
+					Mint: &token_transfer.Mint{
+						To: "to",
+						Asset: &asset.Asset{
+							AssetType: &asset.Asset_IssuedAsset{
+								IssuedAsset: &asset.IssuedAsset{
+									AssetCode: "abc",
+									Issuer:    "def",
+								},
+							},
+						},
+						Amount: "100",
+					},
+				},
+			},
+			{
+				Meta: &token_transfer.EventMeta{
+					LedgerSequence:   10,
+					TxHash:           "txhash",
+					TransactionIndex: 1,
+					OperationIndex:   &operationIndex,
+					ContractAddress:  "contractaddress",
+				},
+				Event: &token_transfer.TokenTransferEvent_Burn{
+					Burn: &token_transfer.Burn{
+						From: "from",
+						Asset: &asset.Asset{
+							AssetType: &asset.Asset_IssuedAsset{
+								IssuedAsset: &asset.IssuedAsset{
+									AssetCode: "abc",
+									Issuer:    "def",
+								},
+							},
+						},
+						Amount: "100",
+					},
+				},
+			},
+			{
+				Meta: &token_transfer.EventMeta{
+					LedgerSequence:   10,
+					TxHash:           "txhash",
+					TransactionIndex: 1,
+					OperationIndex:   &operationIndex,
+					ContractAddress:  "contractaddress",
+				},
+				Event: &token_transfer.TokenTransferEvent_Clawback{
+					Clawback: &token_transfer.Clawback{
+						From: "from",
+						Asset: &asset.Asset{
+							AssetType: &asset.Asset_IssuedAsset{
+								IssuedAsset: &asset.IssuedAsset{
+									AssetCode: "abc",
+									Issuer:    "def",
+								},
+							},
+						},
+						Amount: "100",
+					},
+				},
+			},
+			{
+				Meta: &token_transfer.EventMeta{
+					LedgerSequence:   10,
+					TxHash:           "txhash",
+					TransactionIndex: 1,
+					OperationIndex:   &operationIndex,
+					ContractAddress:  "contractaddress",
+				},
+				Event: &token_transfer.TokenTransferEvent_Fee{
+					Fee: &token_transfer.Fee{
+						From: "from",
+						Asset: &asset.Asset{
+							AssetType: &asset.Asset_IssuedAsset{
+								IssuedAsset: &asset.IssuedAsset{
+									AssetCode: "abc",
+									Issuer:    "def",
+								},
+							},
+						},
+						Amount: "100",
+					},
+				},
+			},
 		},
 	}
 
 	ledgers = []xdr.LedgerCloseMeta{
+		{
+			V: 1,
+			V1: &xdr.LedgerCloseMetaV1{
+				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						ScpValue: xdr.StellarValue{
+							CloseTime: 1000,
+						},
+						LedgerSeq: 10,
+					},
+				},
+			},
+		},
+		{
+			V: 1,
+			V1: &xdr.LedgerCloseMetaV1{
+				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						ScpValue: xdr.StellarValue{
+							CloseTime: 1000,
+						},
+						LedgerSeq: 10,
+					},
+				},
+			},
+		},
+		{
+			V: 1,
+			V1: &xdr.LedgerCloseMetaV1{
+				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						ScpValue: xdr.StellarValue{
+							CloseTime: 1000,
+						},
+						LedgerSeq: 10,
+					},
+				},
+			},
+		},
+		{
+			V: 1,
+			V1: &xdr.LedgerCloseMetaV1{
+				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
+					Header: xdr.LedgerHeader{
+						ScpValue: xdr.StellarValue{
+							CloseTime: 1000,
+						},
+						LedgerSeq: 10,
+					},
+				},
+			},
+		},
 		{
 			V: 1,
 			V1: &xdr.LedgerCloseMetaV1{
