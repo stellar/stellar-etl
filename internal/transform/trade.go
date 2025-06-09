@@ -10,6 +10,7 @@ import (
 
 	"github.com/stellar/go/exp/orderbook"
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
@@ -76,14 +77,18 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			return []TradeOutput{}, err
 		}
 
-		var outputSellingAccountAddress string
+		var outputSellingAccountAddress, liquidityPoolIDString string
 		var liquidityPoolID null.String
 		var outputPoolFee, roundingSlippageBips null.Int
 		var outputSellingOfferID, outputBuyingOfferID null.Int
 		var tradeType int32
 		if claimOffer.Type == xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
 			id := claimOffer.MustLiquidityPool().LiquidityPoolId
-			liquidityPoolID = null.StringFrom(PoolIDToString(id))
+			liquidityPoolIDString, err = strkey.Encode(strkey.VersionByteLiquidityPool, id[:])
+			if err != nil {
+				return []TradeOutput{}, err
+			}
+			liquidityPoolID = null.StringFrom(liquidityPoolIDString)
 			tradeType = int32(2)
 			var fee uint32
 			if fee, err = findPoolFee(transaction, operationIndex, id); err != nil {

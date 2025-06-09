@@ -10,6 +10,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
@@ -40,7 +41,11 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 	}
 
 	if asset.Type == xdr.AssetTypeAssetTypePoolShare {
-		poolID = PoolIDToString(trustEntry.Asset.MustLiquidityPoolId())
+		xdrPoolID := trustEntry.Asset.MustLiquidityPoolId()
+		poolID, err = strkey.Encode(strkey.VersionByteLiquidityPool, xdrPoolID[:])
+		if err != nil {
+			return TrustlineOutput{}, err
+		}
 		assetType = "pool_share"
 	} else {
 		if err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer); err != nil {

@@ -150,7 +150,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			AssetID:            -1967220342708457407,
 			Balance:            0.5,
 			TrustlineLimit:     1111111111111111111,
-			LiquidityPoolID:    "0103040507090000000000000000000000000000000000000000000000000000",
+			LiquidityPoolID:    "LAAQGBAFA4EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2VM",
 			Flags:              1,
 			BuyingLiabilities:  0.0015,
 			SellingLiabilities: 0.0005,

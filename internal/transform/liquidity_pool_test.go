@@ -94,7 +94,7 @@ func makePoolTestInput() ingest.Change {
 
 func makePoolTestOutput() PoolOutput {
 	return PoolOutput{
-		PoolID:             "172d430000000000000000000000000000000000000000000000000000000000",
+		PoolID:             "LALS2QYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2X",
 		PoolType:           "constant_product",
 		PoolFee:            30,
 		TrustlineCount:     5,
