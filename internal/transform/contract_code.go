@@ -25,7 +25,20 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		return ContractCodeOutput{}, nil
 	}
 
+	var ledgerKey xdr.LedgerKey
+	var ledgerKeyHashBase64 string
+
 	ledgerKeyHash := utils.LedgerEntryToLedgerKeyHash(ledgerEntry)
+
+	ledgerKey, err = ledgerEntry.LedgerKey()
+	if err != nil {
+		return ContractCodeOutput{}, err
+	}
+
+	ledgerKeyHashBase64, err = xdr.MarshalBase64(ledgerKey)
+	if err != nil {
+		return ContractCodeOutput{}, err
+	}
 
 	contractCodeExtV := contractCode.Ext.V
 
@@ -64,24 +77,25 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 	}
 
 	transformedCode := ContractCodeOutput{
-		ContractCodeHash:   contractCodeHash,
-		ContractCodeExtV:   int32(contractCodeExtV),
-		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:  uint32(changeType),
-		Deleted:            outputDeleted,
-		ClosedAt:           closedAt,
-		LedgerSequence:     uint32(ledgerSequence),
-		LedgerKeyHash:      ledgerKeyHash,
-		NInstructions:      outputNInstructions,
-		NFunctions:         outputNFunctions,
-		NGlobals:           outputNGlobals,
-		NTableEntries:      outputNTableEntries,
-		NTypes:             outputNTypes,
-		NDataSegments:      outputNDataSegments,
-		NElemSegments:      outputNElemSegments,
-		NImports:           outputNImports,
-		NExports:           outputNExports,
-		NDataSegmentBytes:  outputNDataSegmentBytes,
+		ContractCodeHash:    contractCodeHash,
+		ContractCodeExtV:    int32(contractCodeExtV),
+		LastModifiedLedger:  uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:   uint32(changeType),
+		Deleted:             outputDeleted,
+		ClosedAt:            closedAt,
+		LedgerSequence:      uint32(ledgerSequence),
+		LedgerKeyHash:       ledgerKeyHash,
+		NInstructions:       outputNInstructions,
+		NFunctions:          outputNFunctions,
+		NGlobals:            outputNGlobals,
+		NTableEntries:       outputNTableEntries,
+		NTypes:              outputNTypes,
+		NDataSegments:       outputNDataSegments,
+		NElemSegments:       outputNElemSegments,
+		NImports:            outputNImports,
+		NExports:            outputNExports,
+		NDataSegmentBytes:   outputNDataSegmentBytes,
+		LedgerKeyHashBase64: ledgerKeyHashBase64,
 	}
 	return transformedCode, nil
 }

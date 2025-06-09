@@ -155,7 +155,7 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			ContractDurability:        "ContractDataDurabilityPersistent",
 			ContractDataAssetCode:     "",
 			ContractDataAssetIssuer:   "",
-			ContractDataAssetType:     "AssetTypeAssetTypeNative",
+			ContractDataAssetType:     "native",
 			ContractDataBalanceHolder: "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
 			ContractDataBalance:       "0",
 			LastModifiedLedger:        24229503,
@@ -169,6 +169,7 @@ func makeContractDataTestOutput() []ContractDataOutput {
 			Val:                       val,
 			ValDecoded:                valDecoded,
 			ContractDataXDR:           "AAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAA4AAAABYQAAAAAAAA4AAAABYQAAAAAAAAEAAAAAAAAAAQ==",
+			LedgerKeyHashBase64:       "AAAABgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAA4AAAABYQAAAAAAAA4AAAABYQAAAAAAAAE=",
 		},
 	}
 }
