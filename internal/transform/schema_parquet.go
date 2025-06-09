@@ -362,18 +362,18 @@ type TtlOutputParquet struct {
 
 // ContractEventOutputParquet is a representation of soroban contract events and diagnostic events
 type ContractEventOutputParquet struct {
-	TransactionHash          string `parquet:"name=transaction_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	TransactionID            int64  `parquet:"name=transaction_id, type=INT64"`
-	Successful               bool   `parquet:"name=successful, type=BOOLEAN"`
-	LedgerSequence           int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
-	ClosedAt                 int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
-	InSuccessfulContractCall bool   `parquet:"name=in_successful_contract_call, type=BOOLEAN"`
-	ContractId               string `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Type                     int32  `parquet:"name=type, type=INT32"`
-	TypeString               string `parquet:"name=type_string, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Topics                   string `parquet:"name=topics, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	TopicsDecoded            string `parquet:"name=topics_decoded, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Data                     string `parquet:"name=data, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	DataDecoded              string `parquet:"name=data_decoded, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractEventXDR         string `parquet:"name=contract_event_xdr, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TransactionHash          string        `parquet:"name=transaction_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TransactionID            int64         `parquet:"name=transaction_id, type=INT64"`
+	Successful               bool          `parquet:"name=successful, type=BOOLEAN"`
+	LedgerSequence           int64         `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	ClosedAt                 int64         `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	InSuccessfulContractCall bool          `parquet:"name=in_successful_contract_call, type=BOOLEAN"`
+	ContractId               string        `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Type                     int32         `parquet:"name=type, type=INT32"`
+	TypeString               string        `parquet:"name=type_string, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Topics                   []interface{} `parquet:"name=topics, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TopicsDecoded            []interface{} `parquet:"name=topics_decoded, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Data                     interface{}   `parquet:"name=data, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	DataDecoded              interface{}   `parquet:"name=data_decoded, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractEventXDR         string        `parquet:"name=contract_event_xdr, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
