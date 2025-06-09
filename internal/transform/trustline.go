@@ -31,7 +31,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 		return TrustlineOutput{}, err
 	}
 
-	var assetType, outputAssetCode, outputAssetIssuer, poolID string
+	var assetType, outputAssetCode, outputAssetIssuer, poolID, poolIDStrkey string
 
 	asset := trustEntry.Asset
 
@@ -42,10 +42,11 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 
 	if asset.Type == xdr.AssetTypeAssetTypePoolShare {
 		xdrPoolID := trustEntry.Asset.MustLiquidityPoolId()
-		poolID, err = strkey.Encode(strkey.VersionByteLiquidityPool, xdrPoolID[:])
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, xdrPoolID[:])
 		if err != nil {
 			return TrustlineOutput{}, err
 		}
+		poolID = PoolIDToString(trustEntry.Asset.MustLiquidityPoolId())
 		assetType = "pool_share"
 	} else {
 		if err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer); err != nil {
@@ -65,24 +66,25 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedTrustline := TrustlineOutput{
-		LedgerKey:          outputLedgerKey,
-		AccountID:          outputAccountID,
-		AssetType:          assetType,
-		AssetCode:          outputAssetCode,
-		AssetIssuer:        outputAssetIssuer,
-		AssetID:            outputAssetID,
-		Balance:            utils.ConvertStroopValueToReal(trustEntry.Balance),
-		TrustlineLimit:     int64(trustEntry.Limit),
-		LiquidityPoolID:    poolID,
-		BuyingLiabilities:  utils.ConvertStroopValueToReal(liabilities.Buying),
-		SellingLiabilities: utils.ConvertStroopValueToReal(liabilities.Selling),
-		Flags:              uint32(trustEntry.Flags),
-		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:  uint32(changeType),
-		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
-		Deleted:            outputDeleted,
-		ClosedAt:           closedAt,
-		LedgerSequence:     uint32(ledgerSequence),
+		LedgerKey:             outputLedgerKey,
+		AccountID:             outputAccountID,
+		AssetType:             assetType,
+		AssetCode:             outputAssetCode,
+		AssetIssuer:           outputAssetIssuer,
+		AssetID:               outputAssetID,
+		Balance:               utils.ConvertStroopValueToReal(trustEntry.Balance),
+		TrustlineLimit:        int64(trustEntry.Limit),
+		LiquidityPoolID:       poolID,
+		BuyingLiabilities:     utils.ConvertStroopValueToReal(liabilities.Buying),
+		SellingLiabilities:    utils.ConvertStroopValueToReal(liabilities.Selling),
+		Flags:                 uint32(trustEntry.Flags),
+		LastModifiedLedger:    uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:     uint32(changeType),
+		Sponsor:               ledgerEntrySponsorToNullString(ledgerEntry),
+		Deleted:               outputDeleted,
+		ClosedAt:              closedAt,
+		LedgerSequence:        uint32(ledgerSequence),
+		LiquidityPoolIDStrkey: poolIDStrkey,
 	}
 
 	return transformedTrustline, nil

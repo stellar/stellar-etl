@@ -57,14 +57,14 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 
 	ledgerSequence := header.Header.LedgerSeq
 
-	var poolID string
-	poolID, err = strkey.Encode(strkey.VersionByteLiquidityPool, lp.LiquidityPoolId[:])
+	var poolIDStrkey string
+	poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, lp.LiquidityPoolId[:])
 	if err != nil {
 		return PoolOutput{}, err
 	}
 
 	transformedPool := PoolOutput{
-		PoolID:             poolID,
+		PoolID:             PoolIDToString(lp.LiquidityPoolId),
 		PoolType:           poolType,
 		PoolFee:            uint32(cp.Params.Fee),
 		TrustlineCount:     uint64(cp.PoolSharesTrustLineCount),
@@ -84,6 +84,7 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
+		PoolIDStrkey:       poolIDStrkey,
 	}
 	return transformedPool, nil
 }

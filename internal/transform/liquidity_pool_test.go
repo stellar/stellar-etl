@@ -94,7 +94,7 @@ func makePoolTestInput() ingest.Change {
 
 func makePoolTestOutput() PoolOutput {
 	return PoolOutput{
-		PoolID:             "LALS2QYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2X",
+		PoolID:             "172d430000000000000000000000000000000000000000000000000000000000",
 		PoolType:           "constant_product",
 		PoolFee:            30,
 		TrustlineCount:     5,
@@ -114,5 +114,6 @@ func makePoolTestOutput() PoolOutput {
 		Deleted:            true,
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+		PoolIDStrkey:       "LALS2QYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2X",
 	}
 }

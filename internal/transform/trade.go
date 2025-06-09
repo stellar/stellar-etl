@@ -78,7 +78,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		}
 
 		var outputSellingAccountAddress, liquidityPoolIDString string
-		var liquidityPoolID null.String
+		var liquidityPoolID, liquidityPoolIDStrkey null.String
 		var outputPoolFee, roundingSlippageBips null.Int
 		var outputSellingOfferID, outputBuyingOfferID null.Int
 		var tradeType int32
@@ -88,7 +88,8 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			if err != nil {
 				return []TradeOutput{}, err
 			}
-			liquidityPoolID = null.StringFrom(liquidityPoolIDString)
+			liquidityPoolIDStrkey = null.StringFrom(liquidityPoolIDString)
+			liquidityPoolID = null.StringFrom(PoolIDToString(id))
 			tradeType = int32(2)
 			var fee uint32
 			if fee, err = findPoolFee(transaction, operationIndex, id); err != nil {
@@ -128,30 +129,31 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		}
 
 		trade := TradeOutput{
-			Order:                  outputOrder,
-			LedgerClosedAt:         outputLedgerClosedAt,
-			SellingAccountAddress:  outputSellingAccountAddress,
-			SellingAssetType:       outputSellingAssetType,
-			SellingAssetCode:       outputSellingAssetCode,
-			SellingAssetIssuer:     outputSellingAssetIssuer,
-			SellingAssetID:         outputSellingAssetID,
-			SellingAmount:          utils.ConvertStroopValueToReal(outputSellingAmount),
-			BuyingAccountAddress:   outputBuyingAccountAddress,
-			BuyingAssetType:        outputBuyingAssetType,
-			BuyingAssetCode:        outputBuyingAssetCode,
-			BuyingAssetIssuer:      outputBuyingAssetIssuer,
-			BuyingAssetID:          outputBuyingAssetID,
-			BuyingAmount:           utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
-			PriceN:                 outputPriceN,
-			PriceD:                 outputPriceD,
-			SellingOfferID:         outputSellingOfferID,
-			BuyingOfferID:          outputBuyingOfferID,
-			SellingLiquidityPoolID: liquidityPoolID,
-			LiquidityPoolFee:       outputPoolFee,
-			HistoryOperationID:     outputOperationID,
-			TradeType:              tradeType,
-			RoundingSlippage:       roundingSlippageBips,
-			SellerIsExact:          sellerIsExact,
+			Order:                        outputOrder,
+			LedgerClosedAt:               outputLedgerClosedAt,
+			SellingAccountAddress:        outputSellingAccountAddress,
+			SellingAssetType:             outputSellingAssetType,
+			SellingAssetCode:             outputSellingAssetCode,
+			SellingAssetIssuer:           outputSellingAssetIssuer,
+			SellingAssetID:               outputSellingAssetID,
+			SellingAmount:                utils.ConvertStroopValueToReal(outputSellingAmount),
+			BuyingAccountAddress:         outputBuyingAccountAddress,
+			BuyingAssetType:              outputBuyingAssetType,
+			BuyingAssetCode:              outputBuyingAssetCode,
+			BuyingAssetIssuer:            outputBuyingAssetIssuer,
+			BuyingAssetID:                outputBuyingAssetID,
+			BuyingAmount:                 utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
+			PriceN:                       outputPriceN,
+			PriceD:                       outputPriceD,
+			SellingOfferID:               outputSellingOfferID,
+			BuyingOfferID:                outputBuyingOfferID,
+			SellingLiquidityPoolID:       liquidityPoolID,
+			LiquidityPoolFee:             outputPoolFee,
+			HistoryOperationID:           outputOperationID,
+			TradeType:                    tradeType,
+			RoundingSlippage:             roundingSlippageBips,
+			SellerIsExact:                sellerIsExact,
+			SellingLiquidityPoolIDStrkey: liquidityPoolIDStrkey,
 		}
 
 		transformedTrades = append(transformedTrades, trade)

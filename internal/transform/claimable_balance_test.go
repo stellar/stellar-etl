@@ -105,7 +105,7 @@ func makeClaimableBalanceTestInput() ingest.Change {
 
 func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 	return ClaimableBalanceOutput{
-		BalanceID: "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
+		BalanceID: "000000000102030405060708090000000000000000000000000000000000000000000000",
 		Claimants: []Claimant{
 			{
 				Destination: "GCEODJVUUVYVFD5KT4TOEDTMXQ76OPFOQC2EMYYMLPXQCUVPOB6XRWPQ",
@@ -126,5 +126,6 @@ func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 		Deleted:            true,
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+		BalanceIDStrkey:    "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 	}
 }
