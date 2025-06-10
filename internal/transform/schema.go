@@ -528,7 +528,7 @@ type ContractDataOutput struct {
 	Val                       interface{} `json:"val"`
 	ValDecoded                interface{} `json:"val_decoded"`
 	ContractDataXDR           string      `json:"contract_data_xdr"`
-	LedgerKeyHashBase64       string            `json:"ledger_key_hash_base_64"`
+	LedgerKeyHashBase64       string      `json:"ledger_key_hash_base_64"`
 }
 
 // ContractCodeOutput is a representation of contract code that aligns with the Bigquery table soroban_contract_code
