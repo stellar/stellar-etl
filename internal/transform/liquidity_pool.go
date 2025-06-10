@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/utils"
 )
@@ -56,6 +57,12 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 
 	ledgerSequence := header.Header.LedgerSeq
 
+	var poolIDStrkey string
+	poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, lp.LiquidityPoolId[:])
+	if err != nil {
+		return PoolOutput{}, err
+	}
+
 	transformedPool := PoolOutput{
 		PoolID:             PoolIDToString(lp.LiquidityPoolId),
 		PoolType:           poolType,
@@ -77,6 +84,7 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
+		PoolIDStrkey:       poolIDStrkey,
 	}
 	return transformedPool, nil
 }

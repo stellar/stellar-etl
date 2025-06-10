@@ -16,6 +16,8 @@ debug
 stellar-etl
 env
 testdata/got
+changes_output/
+exported_*.txt
 
 ### Credentials checks
 credentials.json

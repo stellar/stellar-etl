@@ -62,7 +62,20 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, nil, false
 	}
 
+	var ledgerKey xdr.LedgerKey
+	var ledgerKeyHashBase64 string
+
 	ledgerKeyHash := utils.LedgerEntryToLedgerKeyHash(ledgerEntry)
+
+	ledgerKey, err = ledgerEntry.LedgerKey()
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
+
+	ledgerKeyHashBase64, err = xdr.MarshalBase64(ledgerKey)
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
 
 	var contractDataAssetType string
 	var contractDataAssetCode string
@@ -70,10 +83,11 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	contractDataAsset := t.AssetFromContractData(ledgerEntry, passphrase)
 	if contractDataAsset != nil {
-		contractDataAssetType = contractDataAsset.Type.String()
-		contractDataAssetCode = contractDataAsset.GetCode()
+		err = contractDataAsset.Extract(&contractDataAssetType, &contractDataAssetCode, &contractDataAssetIssuer)
+		if err != nil {
+			return ContractDataOutput{}, err, false
+		}
 		contractDataAssetCode = strings.ReplaceAll(contractDataAssetCode, "\x00", "")
-		contractDataAssetIssuer = contractDataAsset.GetIssuer()
 	}
 
 	var contractDataBalanceHolder string
@@ -138,6 +152,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		Val:                       outputVal,
 		ValDecoded:                outputValDecoded,
 		ContractDataXDR:           outputContractDataXDR,
+		LedgerKeyHashBase64:       ledgerKeyHashBase64,
 	}
 	return transformedData, nil, true
 }
