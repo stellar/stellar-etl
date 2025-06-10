@@ -31,10 +31,14 @@ func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHead
 	if !balanceFound {
 		return ClaimableBalanceOutput{}, fmt.Errorf("could not extract claimable balance data from ledger entry; actual type is %s", ledgerEntry.Data.Type)
 	}
+
 	balanceID, err := xdr.MarshalHex(balanceEntry.BalanceId)
 	if err != nil {
 		return ClaimableBalanceOutput{}, fmt.Errorf("invalid balanceId in op: %d", uint32(ledgerEntry.LastModifiedLedgerSeq))
 	}
+
+	balanceIDStrkey := balanceEntry.BalanceId.MustEncodeToStrkey()
+
 	outputFlags := uint32(balanceEntry.Flags())
 	outputAsset, err := transformSingleAsset(balanceEntry.Asset)
 	if err != nil {
@@ -67,6 +71,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHead
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
+		BalanceIDStrkey:    balanceIDStrkey,
 	}
 	return transformed, nil
 }

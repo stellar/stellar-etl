@@ -10,6 +10,7 @@ import (
 
 	"github.com/stellar/go/exp/orderbook"
 	"github.com/stellar/go/ingest"
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/internal/toid"
@@ -76,13 +77,18 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			return []TradeOutput{}, err
 		}
 
-		var outputSellingAccountAddress string
-		var liquidityPoolID null.String
+		var outputSellingAccountAddress, liquidityPoolIDString string
+		var liquidityPoolID, liquidityPoolIDStrkey null.String
 		var outputPoolFee, roundingSlippageBips null.Int
 		var outputSellingOfferID, outputBuyingOfferID null.Int
 		var tradeType int32
 		if claimOffer.Type == xdr.ClaimAtomTypeClaimAtomTypeLiquidityPool {
 			id := claimOffer.MustLiquidityPool().LiquidityPoolId
+			liquidityPoolIDString, err = strkey.Encode(strkey.VersionByteLiquidityPool, id[:])
+			if err != nil {
+				return []TradeOutput{}, err
+			}
+			liquidityPoolIDStrkey = null.StringFrom(liquidityPoolIDString)
 			liquidityPoolID = null.StringFrom(PoolIDToString(id))
 			tradeType = int32(2)
 			var fee uint32
@@ -123,30 +129,31 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		}
 
 		trade := TradeOutput{
-			Order:                  outputOrder,
-			LedgerClosedAt:         outputLedgerClosedAt,
-			SellingAccountAddress:  outputSellingAccountAddress,
-			SellingAssetType:       outputSellingAssetType,
-			SellingAssetCode:       outputSellingAssetCode,
-			SellingAssetIssuer:     outputSellingAssetIssuer,
-			SellingAssetID:         outputSellingAssetID,
-			SellingAmount:          utils.ConvertStroopValueToReal(outputSellingAmount),
-			BuyingAccountAddress:   outputBuyingAccountAddress,
-			BuyingAssetType:        outputBuyingAssetType,
-			BuyingAssetCode:        outputBuyingAssetCode,
-			BuyingAssetIssuer:      outputBuyingAssetIssuer,
-			BuyingAssetID:          outputBuyingAssetID,
-			BuyingAmount:           utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
-			PriceN:                 outputPriceN,
-			PriceD:                 outputPriceD,
-			SellingOfferID:         outputSellingOfferID,
-			BuyingOfferID:          outputBuyingOfferID,
-			SellingLiquidityPoolID: liquidityPoolID,
-			LiquidityPoolFee:       outputPoolFee,
-			HistoryOperationID:     outputOperationID,
-			TradeType:              tradeType,
-			RoundingSlippage:       roundingSlippageBips,
-			SellerIsExact:          sellerIsExact,
+			Order:                        outputOrder,
+			LedgerClosedAt:               outputLedgerClosedAt,
+			SellingAccountAddress:        outputSellingAccountAddress,
+			SellingAssetType:             outputSellingAssetType,
+			SellingAssetCode:             outputSellingAssetCode,
+			SellingAssetIssuer:           outputSellingAssetIssuer,
+			SellingAssetID:               outputSellingAssetID,
+			SellingAmount:                utils.ConvertStroopValueToReal(outputSellingAmount),
+			BuyingAccountAddress:         outputBuyingAccountAddress,
+			BuyingAssetType:              outputBuyingAssetType,
+			BuyingAssetCode:              outputBuyingAssetCode,
+			BuyingAssetIssuer:            outputBuyingAssetIssuer,
+			BuyingAssetID:                outputBuyingAssetID,
+			BuyingAmount:                 utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
+			PriceN:                       outputPriceN,
+			PriceD:                       outputPriceD,
+			SellingOfferID:               outputSellingOfferID,
+			BuyingOfferID:                outputBuyingOfferID,
+			SellingLiquidityPoolID:       liquidityPoolID,
+			LiquidityPoolFee:             outputPoolFee,
+			HistoryOperationID:           outputOperationID,
+			TradeType:                    tradeType,
+			RoundingSlippage:             roundingSlippageBips,
+			SellerIsExact:                sellerIsExact,
+			SellingLiquidityPoolIDStrkey: liquidityPoolIDStrkey,
 		}
 
 		transformedTrades = append(transformedTrades, trade)
