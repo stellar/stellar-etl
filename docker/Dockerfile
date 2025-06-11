@@ -1,5 +1,9 @@
-# stage 1: build stellar-etl app
-FROM golang:1.23.4-alpine AS build
+# stage 1: build stellar-etl app with CGO
+FROM golang:1.23.4 AS build
+
+ENV CGO_ENABLED=1
+
+RUN apt-get update && apt-get install -y build-essential pkg-config
 
 WORKDIR /usr/src/etl
 
@@ -10,8 +14,11 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /usr/local/bin ./...
 
+
 # stage 2: runtime enviroment
-FROM stellar/unsafe-stellar-core:22.0.0-2126.rc3.92923c2db.focal
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y ca-certificates
 
 WORKDIR /etl
 

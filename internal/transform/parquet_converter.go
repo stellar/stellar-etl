@@ -414,10 +414,10 @@ func (ceo ContractEventOutput) ToParquet() interface{} {
 		ContractId:               ceo.ContractId,
 		Type:                     ceo.Type,
 		TypeString:               ceo.TypeString,
-		Topics:                   toJSONString(ceo.Topics),
-		TopicsDecoded:            toJSONString(ceo.TopicsDecoded),
-		Data:                     toJSONString(ceo.Data),
-		DataDecoded:              toJSONString(ceo.DataDecoded),
+		Topics:                   ceo.Topics,
+		TopicsDecoded:            ceo.TopicsDecoded,
+		Data:                     ceo.Data,
+		DataDecoded:              ceo.DataDecoded,
 		ContractEventXDR:         ceo.ContractEventXDR,
 	}
 }

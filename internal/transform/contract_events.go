@@ -2,8 +2,10 @@ package transform
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
+	"github.com/stellar/go-stellar-xdr-json/xdrjson"
 	"github.com/stellar/stellar-etl/internal/toid"
 	"github.com/stellar/stellar-etl/internal/utils"
 
@@ -38,9 +40,12 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 	var transformedContractEvents []ContractEventOutput
 
 	for _, contractEvent := range contractEvents {
+		var err error
 		var outputContractId string
-		outputTopicsJson := make(map[string][]map[string]string, 1)
-		outputTopicsDecodedJson := make(map[string][]map[string]string, 1)
+		var outputTopics []interface{}
+		var outputTopicsDecoded []interface{}
+		var outputData interface{}
+		var outputDataDecoded interface{}
 
 		outputInSuccessfulContractCall := contractEvent.InSuccessfulContractCall
 		event := contractEvent.Event
@@ -48,12 +53,16 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 		outputTypeString := event.Type.String()
 
 		eventTopics := getEventTopics(event.Body)
-		outputTopics, outputTopicsDecoded := serializeScValArray(eventTopics)
-		outputTopicsJson["topics"] = outputTopics
-		outputTopicsDecodedJson["topics_decoded"] = outputTopicsDecoded
+		outputTopics, outputTopicsDecoded, err = serializeScValArray(eventTopics)
+		if err != nil {
+			return []ContractEventOutput{}, err
+		}
 
 		eventData := getEventData(event.Body)
-		outputData, outputDataDecoded := serializeScVal(eventData)
+		outputData, outputDataDecoded, err = serializeScVal(eventData)
+		if err != nil {
+			return []ContractEventOutput{}, err
+		}
 
 		// Convert the xdrContactId to string
 		// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 this should be a stellar/go/xdr function
@@ -81,8 +90,8 @@ func TransformContractEvent(transaction ingest.LedgerTransaction, lhe xdr.Ledger
 			ContractId:               outputContractId,
 			Type:                     int32(outputType),
 			TypeString:               outputTypeString,
-			Topics:                   outputTopicsJson,
-			TopicsDecoded:            outputTopicsDecodedJson,
+			Topics:                   outputTopics,
+			TopicsDecoded:            outputTopicsDecoded,
 			Data:                     outputData,
 			DataDecoded:              outputDataDecoded,
 			ContractEventXDR:         outputContractEventXDR,
@@ -116,38 +125,45 @@ func getEventData(eventBody xdr.ContractEventBody) xdr.ScVal {
 	}
 }
 
-// TODO this should also be used in the operations processor
-func serializeScVal(scVal xdr.ScVal) (map[string]string, map[string]string) {
-	serializedData := map[string]string{}
-	serializedData["value"] = "n/a"
-	serializedData["type"] = "n/a"
+func serializeScVal(scVal xdr.ScVal) (interface{}, interface{}, error) {
+	var serializedData, serializedDataDecoded interface{}
+	serializedData = "n/a"
+	serializedDataDecoded = "n/a"
 
-	serializedDataDecoded := map[string]string{}
-	serializedDataDecoded["value"] = "n/a"
-	serializedDataDecoded["type"] = "n/a"
-
-	if scValTypeName, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
-		serializedData["type"] = scValTypeName
-		serializedDataDecoded["type"] = scValTypeName
-		if raw, err := scVal.MarshalBinary(); err == nil {
-			serializedData["value"] = base64.StdEncoding.EncodeToString(raw)
-			serializedDataDecoded["value"] = scVal.String()
+	if _, ok := scVal.ArmForSwitch(int32(scVal.Type)); ok {
+		var err error
+		var raw []byte
+		var jsonMessage json.RawMessage
+		raw, err = scVal.MarshalBinary()
+		if err != nil {
+			return nil, nil, err
 		}
+
+		serializedData = base64.StdEncoding.EncodeToString(raw)
+		jsonMessage, err = xdrjson.Decode(xdrjson.ScVal, raw)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		serializedDataDecoded = jsonMessage
 	}
 
-	return serializedData, serializedDataDecoded
+	return serializedData, serializedDataDecoded, nil
 }
 
-// TODO this should also be used in the operations processor
-func serializeScValArray(scVals []xdr.ScVal) ([]map[string]string, []map[string]string) {
-	data := make([]map[string]string, 0, len(scVals))
-	dataDecoded := make([]map[string]string, 0, len(scVals))
+func serializeScValArray(scVals []xdr.ScVal) ([]interface{}, []interface{}, error) {
+	data := make([]interface{}, 0, len(scVals))
+	dataDecoded := make([]interface{}, 0, len(scVals))
 
 	for _, scVal := range scVals {
-		serializedData, serializedDataDecoded := serializeScVal(scVal)
+		serializedData, serializedDataDecoded, err := serializeScVal(scVal)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		data = append(data, serializedData)
 		dataDecoded = append(dataDecoded, serializedDataDecoded)
 	}
 
-	return data, dataDecoded
+	return data, dataDecoded, nil
 }

@@ -194,12 +194,12 @@ func getAddress(nodeID xdr.NodeId) (string, error) {
 	case xdr.PublicKeyTypePublicKeyTypeEd25519:
 		ed, ok := nodeID.GetEd25519()
 		if !ok {
-			return "", fmt.Errorf("Could not get Ed25519")
+			return "", fmt.Errorf("could not get Ed25519")
 		}
 		raw := make([]byte, 32)
 		copy(raw, ed[:])
 		return strkey.Encode(strkey.VersionByteAccountID, raw)
 	default:
-		return "", fmt.Errorf("Unknown node id type: %v", nodeID.Type)
+		return "", fmt.Errorf("unknown node id type: %v", nodeID.Type)
 	}
 }

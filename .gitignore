@@ -15,6 +15,7 @@ debug
 *.key
 stellar-etl
 env
+testdata/got
 changes_output/
 exported_*.txt
 
