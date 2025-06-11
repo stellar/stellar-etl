@@ -1042,7 +1042,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
+			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args)
+			if err != nil {
+				return nil, err
+			}
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction, network); err != nil {
 				return nil, err
@@ -1071,6 +1074,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContractV2:
+			var err error
 			args := op.HostFunction.MustCreateContractV2()
 			details["type"] = "create_contract_v2"
 
@@ -1079,11 +1083,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			// ConstructorArgs is a list of ScVals
-			// This will initially be handled the same as InvokeContractParams until a different
-			// model is found necessary.
-			constructorArgs := args.ConstructorArgs
-			details["parameters"], details["parameters_decoded"] = serializeParameters(constructorArgs)
+			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args.ConstructorArgs)
+			if err != nil {
+				return nil, err
+			}
 
 			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
 			for key, val := range preimageTypeMap {
@@ -1639,7 +1642,10 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
+			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args)
+			if err != nil {
+				return nil, err
+			}
 
 			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
 				return nil, err
@@ -1668,6 +1674,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContractV2:
+			var err error
 			args := op.HostFunction.MustCreateContractV2()
 			details["type"] = "create_contract_v2"
 
@@ -1676,11 +1683,10 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			// ConstructorArgs is a list of ScVals
-			// This will initially be handled the same as InvokeContractParams until a different
-			// model is found necessary.
-			constructorArgs := args.ConstructorArgs
-			details["parameters"], details["parameters_decoded"] = serializeParameters(constructorArgs)
+			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args.ConstructorArgs)
+			if err != nil {
+				return nil, err
+			}
 
 			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
 			for key, val := range preimageTypeMap {
@@ -2152,34 +2158,6 @@ func dedupeParticipants(in []xdr.AccountId) (out []xdr.AccountId) {
 		out = append(out, id)
 	}
 	return
-}
-
-func serializeParameters(args []xdr.ScVal) ([]map[string]string, []map[string]string) {
-	params := make([]map[string]string, 0, len(args))
-	paramsDecoded := make([]map[string]string, 0, len(args))
-
-	for _, param := range args {
-		serializedParam := map[string]string{}
-		serializedParam["value"] = "n/a"
-		serializedParam["type"] = "n/a"
-
-		serializedParamDecoded := map[string]string{}
-		serializedParamDecoded["value"] = "n/a"
-		serializedParamDecoded["type"] = "n/a"
-
-		if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-			serializedParam["type"] = scValTypeName
-			serializedParamDecoded["type"] = scValTypeName
-			if raw, err := param.MarshalBinary(); err == nil {
-				serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-				serializedParamDecoded["value"] = param.String()
-			}
-		}
-		params = append(params, serializedParam)
-		paramsDecoded = append(paramsDecoded, serializedParamDecoded)
-	}
-
-	return params, paramsDecoded
 }
 
 func switchContractIdPreimageType(contractIdPreimage xdr.ContractIdPreimage) map[string]interface{} {
