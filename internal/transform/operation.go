@@ -1042,7 +1042,8 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args)
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args)
 			if err != nil {
 				return nil, err
 			}
@@ -1083,7 +1084,8 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args.ConstructorArgs)
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args.ConstructorArgs)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args.ConstructorArgs)
 			if err != nil {
 				return nil, err
 			}
@@ -1642,7 +1644,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractId
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args)
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args)
 			if err != nil {
 				return nil, err
 			}
@@ -1683,7 +1686,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			details["parameters"], details["parameters_decoded"], err = serializeScValArray(args.ConstructorArgs)
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args.ConstructorArgs)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args.ConstructorArgs)
 			if err != nil {
 				return nil, err
 			}
@@ -2158,6 +2162,34 @@ func dedupeParticipants(in []xdr.AccountId) (out []xdr.AccountId) {
 		out = append(out, id)
 	}
 	return
+}
+
+func serializeParameters(args []xdr.ScVal) ([]map[string]string, []map[string]string) {
+	params := make([]map[string]string, 0, len(args))
+	paramsDecoded := make([]map[string]string, 0, len(args))
+
+	for _, param := range args {
+		serializedParam := map[string]string{}
+		serializedParam["value"] = "n/a"
+		serializedParam["type"] = "n/a"
+
+		serializedParamDecoded := map[string]string{}
+		serializedParamDecoded["value"] = "n/a"
+		serializedParamDecoded["type"] = "n/a"
+
+		if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+			serializedParam["type"] = scValTypeName
+			serializedParamDecoded["type"] = scValTypeName
+			if raw, err := param.MarshalBinary(); err == nil {
+				serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+				serializedParamDecoded["value"] = param.String()
+			}
+		}
+		params = append(params, serializedParam)
+		paramsDecoded = append(paramsDecoded, serializedParamDecoded)
+	}
+
+	return params, paramsDecoded
 }
 
 func switchContractIdPreimageType(contractIdPreimage xdr.ContractIdPreimage) map[string]interface{} {

@@ -1844,11 +1844,31 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"contract_code_hash":    "",
 				"asset_balance_changes": []map[string]interface{}{},
 				"ledger_key_hash":       nilStringArray,
-				"parameters": []interface{}{
+				"parameters": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					},
+					{
+						"type":  "Sym",
+						"value": "AAAADwAAAAR0ZXN0",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+					},
+					{
+						"type":  "Sym",
+						"value": "test",
+					},
+				},
+				"parameters_json": []interface{}{
 					"AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 					"AAAADwAAAAR0ZXN0",
 				},
-				"parameters_decoded": []interface{}{
+				"parameters_json_decoded": []interface{}{
 					json.RawMessage(
 						"{\"address\":\"CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4\"}",
 					),
@@ -1867,11 +1887,31 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"contract_code_hash":    "",
 				"asset_balance_changes": []map[string]interface{}{},
 				"ledger_key_hash":       nilStringArray,
-				"parameters": []interface{}{
+				"parameters": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					},
+					{
+						"type":  "Sym",
+						"value": "AAAADwAAAAR0ZXN0",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "Address",
+						"value": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4",
+					},
+					{
+						"type":  "Sym",
+						"value": "test",
+					},
+				},
+				"parameters_json": []interface{}{
 					"AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 					"AAAADwAAAAR0ZXN0",
 				},
-				"parameters_decoded": []interface{}{
+				"parameters_json_decoded": []interface{}{
 					json.RawMessage(
 						"{\"address\":\"CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4\"}",
 					),
@@ -1951,10 +1991,22 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"from":               "asset",
 				"asset":              ":GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 				"ledger_key_hash":    nilStringArray,
-				"parameters": []interface{}{
+				"parameters": []map[string]string{
+					{
+						"type":  "B",
+						"value": "AAAAAAAAAAE=",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "B",
+						"value": "true",
+					},
+				},
+				"parameters_json": []interface{}{
 					"AAAAAAAAAAE=",
 				},
-				"parameters_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
+				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
@@ -1967,10 +2019,22 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"from":               "asset",
 				"asset":              ":GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
 				"ledger_key_hash":    nilStringArray,
-				"parameters": []interface{}{
+				"parameters": []map[string]string{
+					{
+						"type":  "B",
+						"value": "AAAAAAAAAAE=",
+					},
+				},
+				"parameters_decoded": []map[string]string{
+					{
+						"type":  "B",
+						"value": "true",
+					},
+				},
+				"parameters_json": []interface{}{
 					"AAAAAAAAAAE=",
 				},
-				"parameters_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
+				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 		},
 		OperationOutput{
