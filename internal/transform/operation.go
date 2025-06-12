@@ -1043,6 +1043,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
 			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args)
+			if err != nil {
+				return nil, err
+			}
 
 			if balanceChanges, err := parseAssetBalanceChangesFromContractEvents(transaction, network); err != nil {
 				return nil, err
@@ -1071,6 +1075,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContractV2:
+			var err error
 			args := op.HostFunction.MustCreateContractV2()
 			details["type"] = "create_contract_v2"
 
@@ -1079,11 +1084,11 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			// ConstructorArgs is a list of ScVals
-			// This will initially be handled the same as InvokeContractParams until a different
-			// model is found necessary.
-			constructorArgs := args.ConstructorArgs
-			details["parameters"], details["parameters_decoded"] = serializeParameters(constructorArgs)
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args.ConstructorArgs)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args.ConstructorArgs)
+			if err != nil {
+				return nil, err
+			}
 
 			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
 			for key, val := range preimageTypeMap {
@@ -1640,6 +1645,10 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
 			details["parameters"], details["parameters_decoded"] = serializeParameters(args)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args)
+			if err != nil {
+				return nil, err
+			}
 
 			if balanceChanges, err := operation.parseAssetBalanceChangesFromContractEvents(); err != nil {
 				return nil, err
@@ -1668,6 +1677,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["ledger_key_hash"] = ledgerKeyHashFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 		case xdr.HostFunctionTypeHostFunctionTypeCreateContractV2:
+			var err error
 			args := op.HostFunction.MustCreateContractV2()
 			details["type"] = "create_contract_v2"
 
@@ -1676,11 +1686,11 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			details["contract_id"] = contractIdFromTxEnvelope(transactionEnvelope)
 			details["contract_code_hash"] = contractCodeHashFromTxEnvelope(transactionEnvelope)
 
-			// ConstructorArgs is a list of ScVals
-			// This will initially be handled the same as InvokeContractParams until a different
-			// model is found necessary.
-			constructorArgs := args.ConstructorArgs
-			details["parameters"], details["parameters_decoded"] = serializeParameters(constructorArgs)
+			details["parameters"], details["parameters_decoded"] = serializeParameters(args.ConstructorArgs)
+			details["parameters_json"], details["parameters_json_decoded"], err = serializeScValArray(args.ConstructorArgs)
+			if err != nil {
+				return nil, err
+			}
 
 			preimageTypeMap := switchContractIdPreimageType(args.ContractIdPreimage)
 			for key, val := range preimageTypeMap {

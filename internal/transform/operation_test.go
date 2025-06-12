@@ -2,6 +2,7 @@ package transform
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -1863,6 +1864,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"value": "test",
 					},
 				},
+				"parameters_json": []interface{}{
+					"AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					"AAAADwAAAAR0ZXN0",
+				},
+				"parameters_json_decoded": []interface{}{
+					json.RawMessage(
+						"{\"address\":\"CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4\"}",
+					),
+					json.RawMessage(
+						"{\"symbol\":\"test\"}",
+					),
+				},
 			},
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
@@ -1893,6 +1906,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"type":  "Sym",
 						"value": "test",
 					},
+				},
+				"parameters_json": []interface{}{
+					"AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					"AAAADwAAAAR0ZXN0",
+				},
+				"parameters_json_decoded": []interface{}{
+					json.RawMessage(
+						"{\"address\":\"CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4\"}",
+					),
+					json.RawMessage(
+						"{\"symbol\":\"test\"}",
+					),
 				},
 			},
 		},
@@ -1978,6 +2003,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"value": "true",
 					},
 				},
+				"parameters_json": []interface{}{
+					"AAAAAAAAAAE=",
+				},
+				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
@@ -2002,6 +2031,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"value": "true",
 					},
 				},
+				"parameters_json": []interface{}{
+					"AAAAAAAAAAE=",
+				},
+				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 		},
 		OperationOutput{
