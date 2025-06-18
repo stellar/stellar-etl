@@ -32,21 +32,21 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	txMemoryLimit := contractCompute.TxMemoryLimit
 
 	contractLedgerCost, _ := configSetting.GetContractLedgerCost()
-	ledgerMaxReadLedgerEntries := contractLedgerCost.LedgerMaxReadLedgerEntries
-	ledgerMaxReadBytes := contractLedgerCost.LedgerMaxReadBytes
+	ledgerMaxReadLedgerEntries := contractLedgerCost.LedgerMaxDiskReadEntries
+	ledgerMaxReadBytes := contractLedgerCost.LedgerMaxDiskReadBytes
 	ledgerMaxWriteLedgerEntries := contractLedgerCost.LedgerMaxWriteLedgerEntries
 	ledgerMaxWriteBytes := contractLedgerCost.LedgerMaxWriteBytes
-	txMaxReadLedgerEntries := contractLedgerCost.TxMaxReadLedgerEntries
-	txMaxReadBytes := contractLedgerCost.TxMaxReadBytes
+	txMaxReadLedgerEntries := contractLedgerCost.TxMaxDiskReadEntries
+	txMaxReadBytes := contractLedgerCost.TxMaxDiskReadBytes
 	txMaxWriteLedgerEntries := contractLedgerCost.TxMaxWriteLedgerEntries
 	txMaxWriteBytes := contractLedgerCost.TxMaxWriteBytes
-	feeReadLedgerEntry := contractLedgerCost.FeeReadLedgerEntry
+	feeReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
 	feeWriteLedgerEntry := contractLedgerCost.FeeWriteLedgerEntry
-	feeRead1Kb := contractLedgerCost.FeeRead1Kb
-	bucketListTargetSizeBytes := contractLedgerCost.BucketListTargetSizeBytes
-	writeFee1KbBucketListLow := contractLedgerCost.WriteFee1KbBucketListLow
-	writeFee1KbBucketListHigh := contractLedgerCost.WriteFee1KbBucketListHigh
-	bucketListWriteFeeGrowthFactor := contractLedgerCost.BucketListWriteFeeGrowthFactor
+	feeRead1Kb := contractLedgerCost.FeeDiskRead1Kb
+	bucketListTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
+	writeFee1KbBucketListLow := contractLedgerCost.RentFee1KbSorobanStateSizeLow
+	writeFee1KbBucketListHigh := contractLedgerCost.RentFee1KbSorobanStateSizeHigh
+	bucketListWriteFeeGrowthFactor := contractLedgerCost.SorobanStateRentFeeGrowthFactor
 
 	contractHistoricalData, _ := configSetting.GetContractHistoricalData()
 	feeHistorical1Kb := contractHistoricalData.FeeHistorical1Kb
@@ -77,14 +77,14 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	persistentRentRateDenominator := stateArchivalSettings.PersistentRentRateDenominator
 	tempRentRateDenominator := stateArchivalSettings.TempRentRateDenominator
 	maxEntriesToArchive := stateArchivalSettings.MaxEntriesToArchive
-	bucketListSizeWindowSampleSize := stateArchivalSettings.BucketListSizeWindowSampleSize
+	bucketListSizeWindowSampleSize := stateArchivalSettings.LiveSorobanStateSizeWindowSampleSize
 	evictionScanSize := stateArchivalSettings.EvictionScanSize
 	startingEvictionScanLevel := stateArchivalSettings.StartingEvictionScanLevel
 
 	contractExecutionLanes, _ := configSetting.GetContractExecutionLanes()
 	ledgerMaxTxCount := contractExecutionLanes.LedgerMaxTxCount
 
-	bucketList, _ := configSetting.GetBucketListSizeWindow()
+	bucketList, _ := configSetting.GetLiveSorobanStateSizeWindow()
 	bucketListSizeWindow := make([]uint64, 0, len(bucketList))
 	for _, sizeWindow := range bucketList {
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))

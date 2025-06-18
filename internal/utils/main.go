@@ -909,7 +909,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -921,7 +920,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
