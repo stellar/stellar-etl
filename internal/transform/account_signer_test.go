@@ -122,9 +122,10 @@ func makeSignersTestInput() ingest.Change {
 		},
 	}
 	return ingest.Change{
-		Type: xdr.LedgerEntryTypeAccount,
-		Pre:  &ledgerEntry,
-		Post: nil,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryRemoved,
+		Type:       xdr.LedgerEntryTypeAccount,
+		Pre:        &ledgerEntry,
+		Post:       nil,
 	}
 }
 
