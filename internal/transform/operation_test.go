@@ -2,6 +2,7 @@ package transform
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -1284,20 +1285,22 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID: 4096,
 			OperationID:   4105,
 			OperationDetails: map[string]interface{}{
-				"trustor":           hardCodedSourceAccountAddress,
-				"limit":             50000000000.0,
-				"asset_type":        "liquidity_pool_shares",
-				"liquidity_pool_id": "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
+				"trustor":                  hardCodedSourceAccountAddress,
+				"limit":                    50000000000.0,
+				"asset_type":               "liquidity_pool_shares",
+				"liquidity_pool_id":        "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
+				"liquidity_pool_id_strkey": "LAMFU2ZYJRSRKUV2BGZSQUNXT5PWVNQ6QCED2MB7KK7KCQDKJER7BGLT",
 			},
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ChangeTrustResultCodeChangeTrustSuccess",
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
-				"trustor":           hardCodedSourceAccountAddress,
-				"limit":             50000000000.0,
-				"asset_type":        "liquidity_pool_shares",
-				"liquidity_pool_id": "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
+				"trustor":                  hardCodedSourceAccountAddress,
+				"limit":                    50000000000.0,
+				"asset_type":               "liquidity_pool_shares",
+				"liquidity_pool_id":        "185a6b384c651552ba09b32851b79f5f6ab61e80883d303f52bea1406a4923f0",
+				"liquidity_pool_id_strkey": "LAMFU2ZYJRSRKUV2BGZSQUNXT5PWVNQ6QCED2MB7KK7KCQDKJER7BGLT",
 			},
 		},
 		{
@@ -1501,16 +1504,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID: 4096,
 			OperationID:   4114,
 			OperationDetails: map[string]interface{}{
-				"claimant":   hardCodedSourceAccountAddress,
-				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"claimant":          hardCodedSourceAccountAddress,
+				"balance_id":        "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"balance_id_strkey": "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 			},
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClaimClaimableBalanceResultCodeClaimClaimableBalanceSuccess",
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
-				"claimant":   hardCodedSourceAccountAddress,
-				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"claimant":          hardCodedSourceAccountAddress,
+				"balance_id":        "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"balance_id_strkey": "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 			},
 		},
 		{
@@ -1573,14 +1578,16 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID: 4096,
 			OperationID:   4118,
 			OperationDetails: map[string]interface{}{
-				"claimable_balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"claimable_balance_id":        "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"claimable_balance_id_strkey": "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 			},
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
-				"claimable_balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"claimable_balance_id":        "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"claimable_balance_id_strkey": "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 			},
 		},
 		{
@@ -1645,14 +1652,16 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID: 4096,
 			OperationID:   4122,
 			OperationDetails: map[string]interface{}{
-				"liquidity_pool_id": "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id":        "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id_strkey": "LAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATUC",
 			},
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "RevokeSponsorshipResultCodeRevokeSponsorshipSuccess",
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
-				"liquidity_pool_id": "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id":        "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id_strkey": "LAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATUC",
 			},
 		},
 		{
@@ -1689,14 +1698,16 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			TransactionID: 4096,
 			OperationID:   4124,
 			OperationDetails: map[string]interface{}{
-				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"balance_id":        "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"balance_id_strkey": "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 			},
 			ClosedAt:            hardCodedLedgerClose,
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "ClawbackClaimableBalanceResultCodeClawbackClaimableBalanceSuccess",
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
-				"balance_id": "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"balance_id":        "000000000102030405060708090000000000000000000000000000000000000000000000",
+				"balance_id_strkey": "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
 			},
 		},
 		{
@@ -1740,6 +1751,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationID:   4126,
 			OperationDetails: map[string]interface{}{
 				"liquidity_pool_id":        "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id_strkey": "LAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATUC",
 				"reserve_a_asset_type":     "native",
 				"reserve_a_asset_id":       int64(-5706705804583548011),
 				"reserve_a_max_amount":     0.0001,
@@ -1768,6 +1780,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
 				"liquidity_pool_id":        "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id_strkey": "LAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATUC",
 				"reserve_a_asset_type":     "native",
 				"reserve_a_asset_id":       int64(-5706705804583548011),
 				"reserve_a_max_amount":     0.0001,
@@ -1799,6 +1812,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			OperationID:   4127,
 			OperationDetails: map[string]interface{}{
 				"liquidity_pool_id":         "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id_strkey":  "LAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATUC",
 				"reserve_a_asset_type":      "native",
 				"reserve_a_asset_id":        int64(-5706705804583548011),
 				"reserve_a_min_amount":      0.0000001,
@@ -1817,6 +1831,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 			LedgerSequence:      0,
 			OperationDetailsJSON: map[string]interface{}{
 				"liquidity_pool_id":         "0102030405060708090000000000000000000000000000000000000000000000",
+				"liquidity_pool_id_strkey":  "LAAQEAYEAUDAOCAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATUC",
 				"reserve_a_asset_type":      "native",
 				"reserve_a_asset_id":        int64(-5706705804583548011),
 				"reserve_a_min_amount":      0.0000001,
@@ -1863,6 +1878,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"value": "test",
 					},
 				},
+				"parameters_json": []interface{}{
+					"AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					"AAAADwAAAAR0ZXN0",
+				},
+				"parameters_json_decoded": []interface{}{
+					json.RawMessage(
+						"{\"address\":\"CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4\"}",
+					),
+					json.RawMessage(
+						"{\"symbol\":\"test\"}",
+					),
+				},
 			},
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
@@ -1893,6 +1920,18 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"type":  "Sym",
 						"value": "test",
 					},
+				},
+				"parameters_json": []interface{}{
+					"AAAAEgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+					"AAAADwAAAAR0ZXN0",
+				},
+				"parameters_json_decoded": []interface{}{
+					json.RawMessage(
+						"{\"address\":\"CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4\"}",
+					),
+					json.RawMessage(
+						"{\"symbol\":\"test\"}",
+					),
 				},
 			},
 		},
@@ -1978,6 +2017,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"value": "true",
 					},
 				},
+				"parameters_json": []interface{}{
+					"AAAAAAAAAAE=",
+				},
+				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 			OperationResultCode: "OperationResultCodeOpInner",
 			OperationTraceCode:  "InvokeHostFunctionResultCodeInvokeHostFunctionSuccess",
@@ -2002,6 +2045,10 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 						"value": "true",
 					},
 				},
+				"parameters_json": []interface{}{
+					"AAAAAAAAAAE=",
+				},
+				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 		},
 		OperationOutput{
