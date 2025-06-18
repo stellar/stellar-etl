@@ -397,6 +397,12 @@ func addLiquidityPoolAssetDetails(result map[string]interface{}, lpp xdr.Liquidi
 		return err
 	}
 	result["liquidity_pool_id"] = PoolIDToString(poolID)
+	var poolIDStrkey string
+	poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, poolID[:])
+	if err != nil {
+		return err
+	}
+	result["liquidity_pool_id_strkey"] = poolIDStrkey
 	return nil
 }
 
@@ -469,6 +475,7 @@ func addLedgerKeyToDetails(result map[string]interface{}, ledgerKey xdr.LedgerKe
 			return errors.Wrapf(err, "in claimable balance")
 		}
 		result["claimable_balance_id"] = marshalHex
+		result["claimable_balance_id_strkey"] = ledgerKey.ClaimableBalance.BalanceId.MustEncodeToStrkey()
 	case xdr.LedgerEntryTypeData:
 		result["data_account_id"] = ledgerKey.Data.AccountId.Address()
 		result["data_name"] = string(ledgerKey.Data.DataName)
@@ -477,12 +484,27 @@ func addLedgerKeyToDetails(result map[string]interface{}, ledgerKey xdr.LedgerKe
 	case xdr.LedgerEntryTypeTrustline:
 		result["trustline_account_id"] = ledgerKey.TrustLine.AccountId.Address()
 		if ledgerKey.TrustLine.Asset.Type == xdr.AssetTypeAssetTypePoolShare {
-			result["trustline_liquidity_pool_id"] = PoolIDToString(*ledgerKey.TrustLine.Asset.LiquidityPoolId)
+			var err error
+			var poolIDStrkey string
+			poolID := *ledgerKey.TrustLine.Asset.LiquidityPoolId
+			result["trustline_liquidity_pool_id"] = PoolIDToString(poolID)
+			poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, poolID[:])
+			if err != nil {
+				return err
+			}
+			result["trustline_liquidity_pool_id_strkey"] = poolIDStrkey
 		} else {
 			result["trustline_asset"] = ledgerKey.TrustLine.Asset.ToAsset().StringCanonical()
 		}
 	case xdr.LedgerEntryTypeLiquidityPool:
+		var err error
+		var poolIDStrkey string
 		result["liquidity_pool_id"] = PoolIDToString(ledgerKey.LiquidityPool.LiquidityPoolId)
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, ledgerKey.LiquidityPool.LiquidityPoolId[:])
+		if err != nil {
+			return err
+		}
+		result["liquidity_pool_id_strkey"] = poolIDStrkey
 	}
 	return nil
 }
@@ -869,6 +891,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("invalid balanceId in op: %d", operationIndex)
 		}
 		details["balance_id"] = balanceID
+		details["balance_id_strkey"] = op.BalanceId.MustEncodeToStrkey()
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "claimant"); err != nil {
 			return details, err
 		}
@@ -915,6 +938,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("invalid balanceId in op: %d", operationIndex)
 		}
 		details["balance_id"] = balanceID
+		details["balance_id_strkey"] = op.BalanceId.MustEncodeToStrkey()
 
 	case xdr.OperationTypeSetTrustLineFlags:
 		op := operation.Body.MustSetTrustLineFlagsOp()
@@ -932,12 +956,21 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 	case xdr.OperationTypeLiquidityPoolDeposit:
 		op := operation.Body.MustLiquidityPoolDepositOp()
-		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		var err error
+		var poolIDStrkey string
 		var (
 			assetA, assetB         xdr.Asset
 			depositedA, depositedB xdr.Int64
 			sharesReceived         xdr.Int64
 		)
+
+		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, op.LiquidityPoolId[:])
+		if err != nil {
+			return details, err
+		}
+		details["liquidity_pool_id_strkey"] = poolIDStrkey
+
 		if transaction.Result.Successful() {
 			// we will use the defaults (omitted asset and 0 amounts) if the transaction failed
 			lp, delta, err := getLiquidityPoolAndProductDelta(operationIndex, transaction, &op.LiquidityPoolId)
@@ -987,11 +1020,20 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 	case xdr.OperationTypeLiquidityPoolWithdraw:
 		op := operation.Body.MustLiquidityPoolWithdrawOp()
-		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		var err error
+		var poolIDStrkey string
 		var (
 			assetA, assetB       xdr.Asset
 			receivedA, receivedB xdr.Int64
 		)
+
+		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, op.LiquidityPoolId[:])
+		if err != nil {
+			return details, err
+		}
+		details["liquidity_pool_id_strkey"] = poolIDStrkey
+
 		if transaction.Result.Successful() {
 			// we will use the defaults (omitted asset and 0 amounts) if the transaction failed
 			lp, delta, err := getLiquidityPoolAndProductDelta(operationIndex, transaction, &op.LiquidityPoolId)
@@ -1512,6 +1554,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			panic(fmt.Errorf("invalid balanceId in op: %d", operation.index))
 		}
 		details["balance_id"] = balanceID
+		details["balance_id_strkey"] = op.BalanceId.MustEncodeToStrkey()
 		addAccountAndMuxedAccountDetails(details, *source, "claimant")
 	case xdr.OperationTypeBeginSponsoringFutureReserves:
 		op := operation.operation.Body.MustBeginSponsoringFutureReservesOp()
@@ -1545,6 +1588,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			panic(fmt.Errorf("invalid balanceId in op: %d", operation.index))
 		}
 		details["balance_id"] = balanceID
+		details["balance_id_strkey"] = op.BalanceId.MustEncodeToStrkey()
 	case xdr.OperationTypeSetTrustLineFlags:
 		op := operation.operation.Body.MustSetTrustLineFlagsOp()
 		details["trustor"] = op.Trustor.Address()
@@ -1558,12 +1602,21 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		}
 	case xdr.OperationTypeLiquidityPoolDeposit:
 		op := operation.operation.Body.MustLiquidityPoolDepositOp()
-		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		var err error
+		var poolIDStrkey string
 		var (
 			assetA, assetB         string
 			depositedA, depositedB xdr.Int64
 			sharesReceived         xdr.Int64
 		)
+
+		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, op.LiquidityPoolId[:])
+		if err != nil {
+			return details, err
+		}
+		details["liquidity_pool_id_strkey"] = poolIDStrkey
+
 		if operation.transaction.Result.Successful() {
 			// we will use the defaults (omitted asset and 0 amounts) if the transaction failed
 			lp, delta, err := operation.getLiquidityPoolAndProductDelta(&op.LiquidityPoolId)
@@ -1596,11 +1649,20 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		details["shares_received"] = amount.String(sharesReceived)
 	case xdr.OperationTypeLiquidityPoolWithdraw:
 		op := operation.operation.Body.MustLiquidityPoolWithdrawOp()
-		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		var err error
+		var poolIDStrkey string
 		var (
 			assetA, assetB       string
 			receivedA, receivedB xdr.Int64
 		)
+
+		details["liquidity_pool_id"] = PoolIDToString(op.LiquidityPoolId)
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, op.LiquidityPoolId[:])
+		if err != nil {
+			return details, err
+		}
+		details["liquidity_pool_id_strkey"] = poolIDStrkey
+
 		if operation.transaction.Result.Successful() {
 			// we will use the defaults (omitted asset and 0 amounts) if the transaction failed
 			lp, delta, err := operation.getLiquidityPoolAndProductDelta(&op.LiquidityPoolId)
@@ -2025,6 +2087,7 @@ func addLedgerKeyDetails(result map[string]interface{}, ledgerKey xdr.LedgerKey)
 			return errors.Wrapf(err, "in claimable balance")
 		}
 		result["claimable_balance_id"] = marshalHex
+		result["claimable_balance_id_strkey"] = ledgerKey.ClaimableBalance.BalanceId.MustEncodeToStrkey()
 	case xdr.LedgerEntryTypeData:
 		result["data_account_id"] = ledgerKey.Data.AccountId.Address()
 		result["data_name"] = ledgerKey.Data.DataName
@@ -2033,12 +2096,29 @@ func addLedgerKeyDetails(result map[string]interface{}, ledgerKey xdr.LedgerKey)
 	case xdr.LedgerEntryTypeTrustline:
 		result["trustline_account_id"] = ledgerKey.TrustLine.AccountId.Address()
 		if ledgerKey.TrustLine.Asset.Type == xdr.AssetTypeAssetTypePoolShare {
-			result["trustline_liquidity_pool_id"] = PoolIDToString(*ledgerKey.TrustLine.Asset.LiquidityPoolId)
+			var err error
+			var poolIDStrkey string
+
+			poolID := *ledgerKey.TrustLine.Asset.LiquidityPoolId
+			result["trustline_liquidity_pool_id"] = PoolIDToString(poolID)
+			poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, poolID[:])
+			if err != nil {
+				return err
+			}
+			result["trustline_liquidity_pool_id_strkey"] = poolIDStrkey
 		} else {
 			result["trustline_asset"] = ledgerKey.TrustLine.Asset.ToAsset().StringCanonical()
 		}
 	case xdr.LedgerEntryTypeLiquidityPool:
+		var err error
+		var poolIDStrkey string
+
 		result["liquidity_pool_id"] = PoolIDToString(ledgerKey.LiquidityPool.LiquidityPoolId)
+		poolIDStrkey, err = strkey.Encode(strkey.VersionByteLiquidityPool, ledgerKey.LiquidityPool.LiquidityPoolId[:])
+		if err != nil {
+			return err
+		}
+		result["liquidity_pool_id_strkey"] = poolIDStrkey
 	}
 	return nil
 }
