@@ -564,17 +564,24 @@ type ConfigSettingOutput struct {
 	FeeRatePerInstructionsIncrement int64               `json:"fee_rate_per_instructions_increment"`
 	TxMemoryLimit                   uint32              `json:"tx_memory_limit"`
 	LedgerMaxReadLedgerEntries      uint32              `json:"ledger_max_read_ledger_entries"`
+	LedgerMaxDiskReadEntries        uint32              `json:"ledger_max_disk_read_entries"`
 	LedgerMaxReadBytes              uint32              `json:"ledger_max_read_bytes"`
+	LedgerMaxDiskReadBytes          uint32              `json:"ledger_max_disk_read_bytes"`
 	LedgerMaxWriteLedgerEntries     uint32              `json:"ledger_max_write_ledger_entries"`
 	LedgerMaxWriteBytes             uint32              `json:"ledger_max_write_bytes"`
 	TxMaxReadLedgerEntries          uint32              `json:"tx_max_read_ledger_entries"`
+	TxMaxDiskReadEntries            uint32              `json:"tx_max_disk_read_entries"`
 	TxMaxReadBytes                  uint32              `json:"tx_max_read_bytes"`
+	TxMaxDiskReadBytes              uint32              `json:"tx_max_disk_read_bytes"`
 	TxMaxWriteLedgerEntries         uint32              `json:"tx_max_write_ledger_entries"`
 	TxMaxWriteBytes                 uint32              `json:"tx_max_write_bytes"`
 	FeeReadLedgerEntry              int64               `json:"fee_read_ledger_entry"`
+	FeeDiskReadLedgerEntry          int64               `json:"fee_disk_read_ledger_entry"`
 	FeeWriteLedgerEntry             int64               `json:"fee_write_ledger_entry"`
 	FeeRead1Kb                      int64               `json:"fee_read_1kb"`
+	FeeDiskRead1Kb                  int64               `json:"fee_disk_read_1kb"`
 	BucketListTargetSizeBytes       int64               `json:"bucket_list_target_size_bytes"`
+	SorobanStateTargetSizeBytes     int64               `json:"soroban_state_target_size_bytes"`
 	WriteFee1KbBucketListLow        int64               `json:"write_fee_1kb_bucket_list_low"`
 	WriteFee1KbBucketListHigh       int64               `json:"write_fee_1kb_bucket_list_high"`
 	BucketListWriteFeeGrowthFactor  uint32              `json:"bucket_list_write_fee_growth_factor"`

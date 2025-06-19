@@ -306,17 +306,24 @@ type ConfigSettingOutputParquet struct {
 	FeeRatePerInstructionsIncrement int64   `parquet:"name=fee_rate_per_instructions_increment, type=INT64"`
 	TxMemoryLimit                   int64   `parquet:"name=tx_memory_limit, type=INT64, convertedtype=UINT_64"`
 	LedgerMaxReadLedgerEntries      int64   `parquet:"name=ledger_max_read_ledger_entries, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxDiskReadEntries        int64   `parquet:"name=ledger_max_disk_read_entries, type=INT64, convertedtype=UINT_64"`
 	LedgerMaxReadBytes              int64   `parquet:"name=ledger_max_read_bytes, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxDiskReadBytes          int64   `parquet:"name=ledger_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
 	LedgerMaxWriteLedgerEntries     int64   `parquet:"name=ledger_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
 	LedgerMaxWriteBytes             int64   `parquet:"name=ledger_max_write_bytes, type=INT64, convertedtype=UINT_64"`
 	TxMaxReadLedgerEntries          int64   `parquet:"name=tx_max_read_ledger_entries, type=INT64, convertedtype=UINT_64"`
+	TxMaxDiskReadEntries            int64   `parquet:"name=tx_max_disk_read_entries, type=INT64, convertedtype=UINT_64"`
 	TxMaxReadBytes                  int64   `parquet:"name=tx_max_read_bytes, type=INT64, convertedtype=UINT_64"`
+	TxMaxDiskReadBytes              int64   `parquet:"name=tx_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
 	TxMaxWriteLedgerEntries         int64   `parquet:"name=tx_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
 	TxMaxWriteBytes                 int64   `parquet:"name=tx_max_write_bytes, type=INT64, convertedtype=UINT_64"`
 	FeeReadLedgerEntry              int64   `parquet:"name=fee_read_ledger_entry, type=INT64"`
+	FeeDiskReadLedgerEntry          int64   `parquet:"name=fee_disk_read_ledger_entry, type=INT64"`
 	FeeWriteLedgerEntry             int64   `parquet:"name=fee_write_ledger_entry, type=INT64"`
 	FeeRead1Kb                      int64   `parquet:"name=fee_read_1kb, type=INT64"`
+	FeeDiskRead1Kb                  int64   `parquet:"name=fee_disk_read_1kb, type=INT64"`
 	BucketListTargetSizeBytes       int64   `parquet:"name=bucket_list_target_size_bytes, type=INT64"`
+	SorobanStateTargetSizeBytes     int64   `parquet:"name=soroban_state_target_size_bytes, type=INT64"`
 	WriteFee1KbBucketListLow        int64   `parquet:"name=write_fee_1kb_bucket_list_low, type=INT64"`
 	WriteFee1KbBucketListHigh       int64   `parquet:"name=write_fee_1kb_bucket_list_high, type=INT64"`
 	BucketListWriteFeeGrowthFactor  int64   `parquet:"name=bucket_list_write_fee_growth_factor, type=INT64, convertedtype=UINT_64"`

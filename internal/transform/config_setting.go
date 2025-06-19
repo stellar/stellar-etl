@@ -33,17 +33,24 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 
 	contractLedgerCost, _ := configSetting.GetContractLedgerCost()
 	ledgerMaxReadLedgerEntries := contractLedgerCost.LedgerMaxDiskReadEntries
+	ledgerMaxDiskReadEntries := contractLedgerCost.LedgerMaxDiskReadEntries
 	ledgerMaxReadBytes := contractLedgerCost.LedgerMaxDiskReadBytes
+	ledgerMaxDiskReadBytes := contractLedgerCost.LedgerMaxDiskReadBytes
 	ledgerMaxWriteLedgerEntries := contractLedgerCost.LedgerMaxWriteLedgerEntries
 	ledgerMaxWriteBytes := contractLedgerCost.LedgerMaxWriteBytes
 	txMaxReadLedgerEntries := contractLedgerCost.TxMaxDiskReadEntries
+	txMaxDiskReadEntries := contractLedgerCost.TxMaxDiskReadEntries
 	txMaxReadBytes := contractLedgerCost.TxMaxDiskReadBytes
+	txMaxDiskReadBytes := contractLedgerCost.TxMaxDiskReadBytes
 	txMaxWriteLedgerEntries := contractLedgerCost.TxMaxWriteLedgerEntries
 	txMaxWriteBytes := contractLedgerCost.TxMaxWriteBytes
 	feeReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
+	feeDiskReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
 	feeWriteLedgerEntry := contractLedgerCost.FeeWriteLedgerEntry
 	feeRead1Kb := contractLedgerCost.FeeDiskRead1Kb
+	feeDiskRead1Kb := contractLedgerCost.FeeDiskRead1Kb
 	bucketListTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
+	sorobanStateTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
 	writeFee1KbBucketListLow := contractLedgerCost.RentFee1KbSorobanStateSizeLow
 	writeFee1KbBucketListHigh := contractLedgerCost.RentFee1KbSorobanStateSizeHigh
 	bucketListWriteFeeGrowthFactor := contractLedgerCost.SorobanStateRentFeeGrowthFactor
@@ -105,17 +112,24 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		FeeRatePerInstructionsIncrement: int64(feeRatePerInstructionsIncrement),
 		TxMemoryLimit:                   uint32(txMemoryLimit),
 		LedgerMaxReadLedgerEntries:      uint32(ledgerMaxReadLedgerEntries),
+		LedgerMaxDiskReadEntries:        uint32(ledgerMaxDiskReadEntries),
 		LedgerMaxReadBytes:              uint32(ledgerMaxReadBytes),
+		LedgerMaxDiskReadBytes:          uint32(ledgerMaxDiskReadBytes),
 		LedgerMaxWriteLedgerEntries:     uint32(ledgerMaxWriteLedgerEntries),
 		LedgerMaxWriteBytes:             uint32(ledgerMaxWriteBytes),
 		TxMaxReadLedgerEntries:          uint32(txMaxReadLedgerEntries),
+		TxMaxDiskReadEntries:            uint32(txMaxDiskReadEntries),
 		TxMaxReadBytes:                  uint32(txMaxReadBytes),
+		TxMaxDiskReadBytes:              uint32(txMaxDiskReadBytes),
 		TxMaxWriteLedgerEntries:         uint32(txMaxWriteLedgerEntries),
 		TxMaxWriteBytes:                 uint32(txMaxWriteBytes),
 		FeeReadLedgerEntry:              int64(feeReadLedgerEntry),
+		FeeDiskReadLedgerEntry:          int64(feeDiskReadLedgerEntry),
 		FeeWriteLedgerEntry:             int64(feeWriteLedgerEntry),
 		FeeRead1Kb:                      int64(feeRead1Kb),
+		FeeDiskRead1Kb:                  int64(feeDiskRead1Kb),
 		BucketListTargetSizeBytes:       int64(bucketListTargetSizeBytes),
+		SorobanStateTargetSizeBytes:     int64(sorobanStateTargetSizeBytes),
 		WriteFee1KbBucketListLow:        int64(writeFee1KbBucketListLow),
 		WriteFee1KbBucketListHigh:       int64(writeFee1KbBucketListHigh),
 		BucketListWriteFeeGrowthFactor:  uint32(bucketListWriteFeeGrowthFactor),
