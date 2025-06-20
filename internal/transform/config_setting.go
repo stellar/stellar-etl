@@ -52,8 +52,11 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	bucketListTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
 	sorobanStateTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
 	writeFee1KbBucketListLow := contractLedgerCost.RentFee1KbSorobanStateSizeLow
+	rentFee1KBSorobanStateSizeLow := contractLedgerCost.RentFee1KbSorobanStateSizeLow
 	writeFee1KbBucketListHigh := contractLedgerCost.RentFee1KbSorobanStateSizeHigh
+	rentFee1KBSorobanStateSizeHigh := contractLedgerCost.RentFee1KbSorobanStateSizeHigh
 	bucketListWriteFeeGrowthFactor := contractLedgerCost.SorobanStateRentFeeGrowthFactor
+	sorobanStateRentFeeGrowthFactor := contractLedgerCost.SorobanStateRentFeeGrowthFactor
 
 	contractHistoricalData, _ := configSetting.GetContractHistoricalData()
 	feeHistorical1Kb := contractHistoricalData.FeeHistorical1Kb
@@ -85,6 +88,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	tempRentRateDenominator := stateArchivalSettings.TempRentRateDenominator
 	maxEntriesToArchive := stateArchivalSettings.MaxEntriesToArchive
 	bucketListSizeWindowSampleSize := stateArchivalSettings.LiveSorobanStateSizeWindowSampleSize
+	liveSorobanStateSizeWindowSampleSize := stateArchivalSettings.LiveSorobanStateSizeWindowSampleSize
 	evictionScanSize := stateArchivalSettings.EvictionScanSize
 	startingEvictionScanLevel := stateArchivalSettings.StartingEvictionScanLevel
 
@@ -93,8 +97,10 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 
 	bucketList, _ := configSetting.GetLiveSorobanStateSizeWindow()
 	bucketListSizeWindow := make([]uint64, 0, len(bucketList))
+	liveSorobanStateSizeWindow := make([]uint64, 0, len(bucketList))
 	for _, sizeWindow := range bucketList {
 		bucketListSizeWindow = append(bucketListSizeWindow, uint64(sizeWindow))
+		liveSorobanStateSizeWindow = append(liveSorobanStateSizeWindow, uint64(sizeWindow))
 	}
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
@@ -105,60 +111,65 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedConfigSetting := ConfigSettingOutput{
-		ConfigSettingId:                 int32(configSettingId),
-		ContractMaxSizeBytes:            uint32(contractMaxSizeBytes),
-		LedgerMaxInstructions:           int64(ledgerMaxInstructions),
-		TxMaxInstructions:               int64(txMaxInstructions),
-		FeeRatePerInstructionsIncrement: int64(feeRatePerInstructionsIncrement),
-		TxMemoryLimit:                   uint32(txMemoryLimit),
-		LedgerMaxReadLedgerEntries:      uint32(ledgerMaxReadLedgerEntries),
-		LedgerMaxDiskReadEntries:        uint32(ledgerMaxDiskReadEntries),
-		LedgerMaxReadBytes:              uint32(ledgerMaxReadBytes),
-		LedgerMaxDiskReadBytes:          uint32(ledgerMaxDiskReadBytes),
-		LedgerMaxWriteLedgerEntries:     uint32(ledgerMaxWriteLedgerEntries),
-		LedgerMaxWriteBytes:             uint32(ledgerMaxWriteBytes),
-		TxMaxReadLedgerEntries:          uint32(txMaxReadLedgerEntries),
-		TxMaxDiskReadEntries:            uint32(txMaxDiskReadEntries),
-		TxMaxReadBytes:                  uint32(txMaxReadBytes),
-		TxMaxDiskReadBytes:              uint32(txMaxDiskReadBytes),
-		TxMaxWriteLedgerEntries:         uint32(txMaxWriteLedgerEntries),
-		TxMaxWriteBytes:                 uint32(txMaxWriteBytes),
-		FeeReadLedgerEntry:              int64(feeReadLedgerEntry),
-		FeeDiskReadLedgerEntry:          int64(feeDiskReadLedgerEntry),
-		FeeWriteLedgerEntry:             int64(feeWriteLedgerEntry),
-		FeeRead1Kb:                      int64(feeRead1Kb),
-		FeeDiskRead1Kb:                  int64(feeDiskRead1Kb),
-		BucketListTargetSizeBytes:       int64(bucketListTargetSizeBytes),
-		SorobanStateTargetSizeBytes:     int64(sorobanStateTargetSizeBytes),
-		WriteFee1KbBucketListLow:        int64(writeFee1KbBucketListLow),
-		WriteFee1KbBucketListHigh:       int64(writeFee1KbBucketListHigh),
-		BucketListWriteFeeGrowthFactor:  uint32(bucketListWriteFeeGrowthFactor),
-		FeeHistorical1Kb:                int64(feeHistorical1Kb),
-		TxMaxContractEventsSizeBytes:    uint32(txMaxContractEventsSizeBytes),
-		FeeContractEvents1Kb:            int64(feeContractEvents1Kb),
-		LedgerMaxTxsSizeBytes:           uint32(ledgerMaxTxsSizeBytes),
-		TxMaxSizeBytes:                  uint32(txMaxSizeBytes),
-		FeeTxSize1Kb:                    int64(feeTxSize1Kb),
-		ContractCostParamsCpuInsns:      contractCostParamsCpuInsns,
-		ContractCostParamsMemBytes:      contractCostParamsMemBytes,
-		ContractDataKeySizeBytes:        uint32(contractDataKeySizeBytes),
-		ContractDataEntrySizeBytes:      uint32(contractDataEntrySizeBytes),
-		MaxEntryTtl:                     uint32(maxEntryTtl),
-		MinTemporaryTtl:                 uint32(minTemporaryTtl),
-		MinPersistentTtl:                uint32(minPersistentTtl),
-		PersistentRentRateDenominator:   int64(persistentRentRateDenominator),
-		TempRentRateDenominator:         int64(tempRentRateDenominator),
-		MaxEntriesToArchive:             uint32(maxEntriesToArchive),
-		BucketListSizeWindowSampleSize:  uint32(bucketListSizeWindowSampleSize),
-		EvictionScanSize:                uint64(evictionScanSize),
-		StartingEvictionScanLevel:       uint32(startingEvictionScanLevel),
-		LedgerMaxTxCount:                uint32(ledgerMaxTxCount),
-		BucketListSizeWindow:            bucketListSizeWindow,
-		LastModifiedLedger:              uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:               uint32(changeType),
-		Deleted:                         outputDeleted,
-		ClosedAt:                        closedAt,
-		LedgerSequence:                  uint32(ledgerSequence),
+		ConfigSettingId:                      int32(configSettingId),
+		ContractMaxSizeBytes:                 uint32(contractMaxSizeBytes),
+		LedgerMaxInstructions:                int64(ledgerMaxInstructions),
+		TxMaxInstructions:                    int64(txMaxInstructions),
+		FeeRatePerInstructionsIncrement:      int64(feeRatePerInstructionsIncrement),
+		TxMemoryLimit:                        uint32(txMemoryLimit),
+		LedgerMaxReadLedgerEntries:           uint32(ledgerMaxReadLedgerEntries),
+		LedgerMaxDiskReadEntries:             uint32(ledgerMaxDiskReadEntries),
+		LedgerMaxReadBytes:                   uint32(ledgerMaxReadBytes),
+		LedgerMaxDiskReadBytes:               uint32(ledgerMaxDiskReadBytes),
+		LedgerMaxWriteLedgerEntries:          uint32(ledgerMaxWriteLedgerEntries),
+		LedgerMaxWriteBytes:                  uint32(ledgerMaxWriteBytes),
+		TxMaxReadLedgerEntries:               uint32(txMaxReadLedgerEntries),
+		TxMaxDiskReadEntries:                 uint32(txMaxDiskReadEntries),
+		TxMaxReadBytes:                       uint32(txMaxReadBytes),
+		TxMaxDiskReadBytes:                   uint32(txMaxDiskReadBytes),
+		TxMaxWriteLedgerEntries:              uint32(txMaxWriteLedgerEntries),
+		TxMaxWriteBytes:                      uint32(txMaxWriteBytes),
+		FeeReadLedgerEntry:                   int64(feeReadLedgerEntry),
+		FeeDiskReadLedgerEntry:               int64(feeDiskReadLedgerEntry),
+		FeeWriteLedgerEntry:                  int64(feeWriteLedgerEntry),
+		FeeRead1Kb:                           int64(feeRead1Kb),
+		FeeDiskRead1Kb:                       int64(feeDiskRead1Kb),
+		BucketListTargetSizeBytes:            int64(bucketListTargetSizeBytes),
+		SorobanStateTargetSizeBytes:          int64(sorobanStateTargetSizeBytes),
+		WriteFee1KbBucketListLow:             int64(writeFee1KbBucketListLow),
+		RentFee1KBSorobanStateSizeLow:        int64(rentFee1KBSorobanStateSizeLow),
+		WriteFee1KbBucketListHigh:            int64(writeFee1KbBucketListHigh),
+		RentFee1KBSorobanStateSizeHigh:       int64(rentFee1KBSorobanStateSizeHigh),
+		BucketListWriteFeeGrowthFactor:       uint32(bucketListWriteFeeGrowthFactor),
+		SorobanStateRentFeeGrowthFactor:      uint32(sorobanStateRentFeeGrowthFactor),
+		FeeHistorical1Kb:                     int64(feeHistorical1Kb),
+		TxMaxContractEventsSizeBytes:         uint32(txMaxContractEventsSizeBytes),
+		FeeContractEvents1Kb:                 int64(feeContractEvents1Kb),
+		LedgerMaxTxsSizeBytes:                uint32(ledgerMaxTxsSizeBytes),
+		TxMaxSizeBytes:                       uint32(txMaxSizeBytes),
+		FeeTxSize1Kb:                         int64(feeTxSize1Kb),
+		ContractCostParamsCpuInsns:           contractCostParamsCpuInsns,
+		ContractCostParamsMemBytes:           contractCostParamsMemBytes,
+		ContractDataKeySizeBytes:             uint32(contractDataKeySizeBytes),
+		ContractDataEntrySizeBytes:           uint32(contractDataEntrySizeBytes),
+		MaxEntryTtl:                          uint32(maxEntryTtl),
+		MinTemporaryTtl:                      uint32(minTemporaryTtl),
+		MinPersistentTtl:                     uint32(minPersistentTtl),
+		PersistentRentRateDenominator:        int64(persistentRentRateDenominator),
+		TempRentRateDenominator:              int64(tempRentRateDenominator),
+		MaxEntriesToArchive:                  uint32(maxEntriesToArchive),
+		BucketListSizeWindowSampleSize:       uint32(bucketListSizeWindowSampleSize),
+		LiveSorobanStateSizeWindowSampleSize: uint32(liveSorobanStateSizeWindowSampleSize),
+		EvictionScanSize:                     uint64(evictionScanSize),
+		StartingEvictionScanLevel:            uint32(startingEvictionScanLevel),
+		LedgerMaxTxCount:                     uint32(ledgerMaxTxCount),
+		BucketListSizeWindow:                 bucketListSizeWindow,
+		LiveSorobanStateSizeWindow:           liveSorobanStateSizeWindow,
+		LastModifiedLedger:                   uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:                    uint32(changeType),
+		Deleted:                              outputDeleted,
+		ClosedAt:                             closedAt,
+		LedgerSequence:                       uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil
 }

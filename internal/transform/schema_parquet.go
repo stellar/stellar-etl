@@ -2,27 +2,28 @@ package transform
 
 // LedgerOutputParquet is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutputParquet struct {
-	Sequence                   int64  `parquet:"name=sequence, type=INT64, convertedtype=UINT_64"`
-	LedgerHash                 string `parquet:"name=ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	PreviousLedgerHash         string `parquet:"name=previous_ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	LedgerHeader               string `parquet:"name=ledger_header, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	TransactionCount           int32  `parquet:"name=transaction_count, type=INT32"`
-	OperationCount             int32  `parquet:"name=operation_count, type=INT32"`
-	SuccessfulTransactionCount int32  `parquet:"name=successful_transaction_count, type=INT32"`
-	FailedTransactionCount     int32  `parquet:"name=failed_transaction_count, type=INT32"`
-	TxSetOperationCount        string `parquet:"name=tx_set_operation_count, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ClosedAt                   int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
-	TotalCoins                 int64  `parquet:"name=total_coins, type=INT64"`
-	FeePool                    int64  `parquet:"name=fee_pool, type=INT64"`
-	BaseFee                    int64  `parquet:"name=base_fee, type=INT64, convertedtype=UINT_64"`
-	BaseReserve                int64  `parquet:"name=base_reserve, type=INT64, convertedtype=UINT_64"`
-	MaxTxSetSize               int64  `parquet:"name=max_tx_set_size, type=INT64, convertedtype=UINT_64"`
-	ProtocolVersion            int64  `parquet:"name=protocol_version, type=INT64, convertedtype=UINT_64"`
-	LedgerID                   int64  `parquet:"name=id, type=INT64"`
-	SorobanFeeWrite1Kb         int64  `parquet:"name=soroban_fee_write_1kb, type=INT64"`
-	NodeID                     string `parquet:"name=node_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Signature                  string `parquet:"name=signature, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	TotalByteSizeOfBucketList  int64  `parquet:"name=total_byte_size_of_bucket_list, type=INT64, convertedtype=UINT_64"`
+	Sequence                        int64  `parquet:"name=sequence, type=INT64, convertedtype=UINT_64"`
+	LedgerHash                      string `parquet:"name=ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	PreviousLedgerHash              string `parquet:"name=previous_ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	LedgerHeader                    string `parquet:"name=ledger_header, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TransactionCount                int32  `parquet:"name=transaction_count, type=INT32"`
+	OperationCount                  int32  `parquet:"name=operation_count, type=INT32"`
+	SuccessfulTransactionCount      int32  `parquet:"name=successful_transaction_count, type=INT32"`
+	FailedTransactionCount          int32  `parquet:"name=failed_transaction_count, type=INT32"`
+	TxSetOperationCount             string `parquet:"name=tx_set_operation_count, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ClosedAt                        int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	TotalCoins                      int64  `parquet:"name=total_coins, type=INT64"`
+	FeePool                         int64  `parquet:"name=fee_pool, type=INT64"`
+	BaseFee                         int64  `parquet:"name=base_fee, type=INT64, convertedtype=UINT_64"`
+	BaseReserve                     int64  `parquet:"name=base_reserve, type=INT64, convertedtype=UINT_64"`
+	MaxTxSetSize                    int64  `parquet:"name=max_tx_set_size, type=INT64, convertedtype=UINT_64"`
+	ProtocolVersion                 int64  `parquet:"name=protocol_version, type=INT64, convertedtype=UINT_64"`
+	LedgerID                        int64  `parquet:"name=id, type=INT64"`
+	SorobanFeeWrite1Kb              int64  `parquet:"name=soroban_fee_write_1kb, type=INT64"`
+	NodeID                          string `parquet:"name=node_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Signature                       string `parquet:"name=signature, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TotalByteSizeOfBucketList       int64  `parquet:"name=total_byte_size_of_bucket_list, type=INT64, convertedtype=UINT_64"`
+	TotalByteSizeOfLiveSorobanState int64  `parquet:"name=total_byte_size_of_live_soroban_state, type=INT64, convertedtype=UINT_64"`
 }
 
 // TransactionOutputParquet is a representation of a transaction that aligns with the BigQuery table history_transactions
@@ -58,6 +59,7 @@ type TransactionOutputParquet struct {
 	ResourceFee                          int64    `parquet:"name=resource_fee, type=INT64"`
 	SorobanResourcesInstructions         int64    `parquet:"name=soroban_resources_instructions, type=INT64, convertedtype=UINT_64"`
 	SorobanResourcesReadBytes            int64    `parquet:"name=soroban_resources_read_bytes, type=INT64, convertedtype=UINT_64"`
+	SorobanResourcesDiskReadBytes        int64    `parquet:"name=soroban_resources_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
 	SorobanResourcesWriteBytes           int64    `parquet:"name=soroban_resources_write_bytes, type=INT64, convertedtype=UINT_64"`
 	TransactionResultCode                string   `parquet:"name=transaction_result_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	InclusionFeeBid                      int64    `parquet:"name=inclusion_fee_bid, type=INT64"`
@@ -299,61 +301,66 @@ type ContractCodeOutputParquet struct {
 
 // ConfigSettingOutputParquet is a representation of soroban config settings that aligns with the Bigquery table config_settings
 type ConfigSettingOutputParquet struct {
-	ConfigSettingId                 int32   `parquet:"name=config_setting_id, type=INT32"`
-	ContractMaxSizeBytes            int64   `parquet:"name=contract_max_size_bytes, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxInstructions           int64   `parquet:"name=ledger_max_instructions, type=INT64"`
-	TxMaxInstructions               int64   `parquet:"name=tx_max_instructions, type=INT64"`
-	FeeRatePerInstructionsIncrement int64   `parquet:"name=fee_rate_per_instructions_increment, type=INT64"`
-	TxMemoryLimit                   int64   `parquet:"name=tx_memory_limit, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxReadLedgerEntries      int64   `parquet:"name=ledger_max_read_ledger_entries, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxDiskReadEntries        int64   `parquet:"name=ledger_max_disk_read_entries, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxReadBytes              int64   `parquet:"name=ledger_max_read_bytes, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxDiskReadBytes          int64   `parquet:"name=ledger_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxWriteLedgerEntries     int64   `parquet:"name=ledger_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxWriteBytes             int64   `parquet:"name=ledger_max_write_bytes, type=INT64, convertedtype=UINT_64"`
-	TxMaxReadLedgerEntries          int64   `parquet:"name=tx_max_read_ledger_entries, type=INT64, convertedtype=UINT_64"`
-	TxMaxDiskReadEntries            int64   `parquet:"name=tx_max_disk_read_entries, type=INT64, convertedtype=UINT_64"`
-	TxMaxReadBytes                  int64   `parquet:"name=tx_max_read_bytes, type=INT64, convertedtype=UINT_64"`
-	TxMaxDiskReadBytes              int64   `parquet:"name=tx_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
-	TxMaxWriteLedgerEntries         int64   `parquet:"name=tx_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
-	TxMaxWriteBytes                 int64   `parquet:"name=tx_max_write_bytes, type=INT64, convertedtype=UINT_64"`
-	FeeReadLedgerEntry              int64   `parquet:"name=fee_read_ledger_entry, type=INT64"`
-	FeeDiskReadLedgerEntry          int64   `parquet:"name=fee_disk_read_ledger_entry, type=INT64"`
-	FeeWriteLedgerEntry             int64   `parquet:"name=fee_write_ledger_entry, type=INT64"`
-	FeeRead1Kb                      int64   `parquet:"name=fee_read_1kb, type=INT64"`
-	FeeDiskRead1Kb                  int64   `parquet:"name=fee_disk_read_1kb, type=INT64"`
-	BucketListTargetSizeBytes       int64   `parquet:"name=bucket_list_target_size_bytes, type=INT64"`
-	SorobanStateTargetSizeBytes     int64   `parquet:"name=soroban_state_target_size_bytes, type=INT64"`
-	WriteFee1KbBucketListLow        int64   `parquet:"name=write_fee_1kb_bucket_list_low, type=INT64"`
-	WriteFee1KbBucketListHigh       int64   `parquet:"name=write_fee_1kb_bucket_list_high, type=INT64"`
-	BucketListWriteFeeGrowthFactor  int64   `parquet:"name=bucket_list_write_fee_growth_factor, type=INT64, convertedtype=UINT_64"`
-	FeeHistorical1Kb                int64   `parquet:"name=fee_historical_1kb, type=INT64"`
-	TxMaxContractEventsSizeBytes    int64   `parquet:"name=tx_max_contract_events_size_bytes, type=INT64, convertedtype=UINT_64"`
-	FeeContractEvents1Kb            int64   `parquet:"name=fee_contract_events_1kb, type=INT64"`
-	LedgerMaxTxsSizeBytes           int64   `parquet:"name=ledger_max_txs_size_bytes, type=INT64, convertedtype=UINT_64"`
-	TxMaxSizeBytes                  int64   `parquet:"name=tx_max_size_bytes, type=INT64, convertedtype=UINT_64"`
-	FeeTxSize1Kb                    int64   `parquet:"name=fee_tx_size_1kb, type=INT64"`
-	ContractCostParamsCpuInsns      string  `parquet:"name=contract_cost_params_cpu_insns, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractCostParamsMemBytes      string  `parquet:"name=contract_cost_params_mem_bytes, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ContractDataKeySizeBytes        int64   `parquet:"name=contract_data_key_size_bytes, type=INT64, convertedtype=UINT_64"`
-	ContractDataEntrySizeBytes      int64   `parquet:"name=contract_data_entry_size_bytes, type=INT64, convertedtype=UINT_64"`
-	MaxEntryTtl                     int64   `parquet:"name=max_entry_ttl, type=INT64, convertedtype=UINT_64"`
-	MinTemporaryTtl                 int64   `parquet:"name=min_temporary_ttl, type=INT64, convertedtype=UINT_64"`
-	MinPersistentTtl                int64   `parquet:"name=min_persistent_ttl, type=INT64, convertedtype=UINT_64"`
-	AutoBumpLedgers                 int64   `parquet:"name=auto_bump_ledgers, type=INT64, convertedtype=UINT_64"`
-	PersistentRentRateDenominator   int64   `parquet:"name=persistent_rent_rate_denominator, type=INT64"`
-	TempRentRateDenominator         int64   `parquet:"name=temp_rent_rate_denominator, type=INT64"`
-	MaxEntriesToArchive             int64   `parquet:"name=max_entries_to_archive, type=INT64, convertedtype=UINT_64"`
-	BucketListSizeWindowSampleSize  int64   `parquet:"name=bucket_list_size_window_sample_size, type=INT64, convertedtype=UINT_64"`
-	EvictionScanSize                int64   `parquet:"name=eviction_scan_size, type=INT64"`
-	StartingEvictionScanLevel       int64   `parquet:"name=starting_eviction_scan_level, type=INT64, convertedtype=UINT_64"`
-	LedgerMaxTxCount                int64   `parquet:"name=ledger_max_tx_count, type=INT64, convertedtype=UINT_64"`
-	BucketListSizeWindow            []int64 `parquet:"name=bucket_list_size_window, type=INT64, repetitiontype=REPEATED"`
-	LastModifiedLedger              int64   `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
-	LedgerEntryChange               int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
-	Deleted                         bool    `parquet:"name=deleted, type=BOOLEAN"`
-	ClosedAt                        int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
-	LedgerSequence                  int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	ConfigSettingId                      int32   `parquet:"name=config_setting_id, type=INT32"`
+	ContractMaxSizeBytes                 int64   `parquet:"name=contract_max_size_bytes, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxInstructions                int64   `parquet:"name=ledger_max_instructions, type=INT64"`
+	TxMaxInstructions                    int64   `parquet:"name=tx_max_instructions, type=INT64"`
+	FeeRatePerInstructionsIncrement      int64   `parquet:"name=fee_rate_per_instructions_increment, type=INT64"`
+	TxMemoryLimit                        int64   `parquet:"name=tx_memory_limit, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxReadLedgerEntries           int64   `parquet:"name=ledger_max_read_ledger_entries, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxDiskReadEntries             int64   `parquet:"name=ledger_max_disk_read_entries, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxReadBytes                   int64   `parquet:"name=ledger_max_read_bytes, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxDiskReadBytes               int64   `parquet:"name=ledger_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxWriteLedgerEntries          int64   `parquet:"name=ledger_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxWriteBytes                  int64   `parquet:"name=ledger_max_write_bytes, type=INT64, convertedtype=UINT_64"`
+	TxMaxReadLedgerEntries               int64   `parquet:"name=tx_max_read_ledger_entries, type=INT64, convertedtype=UINT_64"`
+	TxMaxDiskReadEntries                 int64   `parquet:"name=tx_max_disk_read_entries, type=INT64, convertedtype=UINT_64"`
+	TxMaxReadBytes                       int64   `parquet:"name=tx_max_read_bytes, type=INT64, convertedtype=UINT_64"`
+	TxMaxDiskReadBytes                   int64   `parquet:"name=tx_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
+	TxMaxWriteLedgerEntries              int64   `parquet:"name=tx_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
+	TxMaxWriteBytes                      int64   `parquet:"name=tx_max_write_bytes, type=INT64, convertedtype=UINT_64"`
+	FeeReadLedgerEntry                   int64   `parquet:"name=fee_read_ledger_entry, type=INT64"`
+	FeeDiskReadLedgerEntry               int64   `parquet:"name=fee_disk_read_ledger_entry, type=INT64"`
+	FeeWriteLedgerEntry                  int64   `parquet:"name=fee_write_ledger_entry, type=INT64"`
+	FeeRead1Kb                           int64   `parquet:"name=fee_read_1kb, type=INT64"`
+	FeeDiskRead1Kb                       int64   `parquet:"name=fee_disk_read_1kb, type=INT64"`
+	BucketListTargetSizeBytes            int64   `parquet:"name=bucket_list_target_size_bytes, type=INT64"`
+	SorobanStateTargetSizeBytes          int64   `parquet:"name=soroban_state_target_size_bytes, type=INT64"`
+	WriteFee1KbBucketListLow             int64   `parquet:"name=write_fee_1kb_bucket_list_low, type=INT64"`
+	RentFee1KBSorobanStateSizeLow        int64   `parquet:"name=rent_fee_1kb_soroban_state_size_low, type=INT64"`
+	WriteFee1KbBucketListHigh            int64   `parquet:"name=write_fee_1kb_bucket_list_high, type=INT64"`
+	RentFee1KBSorobanStateSizeHigh       int64   `parquet:"name=rent_fee_1kb_soroban_state_size_high, type=INT64"`
+	BucketListWriteFeeGrowthFactor       int64   `parquet:"name=bucket_list_write_fee_growth_factor, type=INT64, convertedtype=UINT_64"`
+	SorobanStateRentFeeGrowthFactor      int64   `parquet:"name=soroban_state_rent_fee_growth_factor, type=INT64, convertedtype=UINT_64"`
+	FeeHistorical1Kb                     int64   `parquet:"name=fee_historical_1kb, type=INT64"`
+	TxMaxContractEventsSizeBytes         int64   `parquet:"name=tx_max_contract_events_size_bytes, type=INT64, convertedtype=UINT_64"`
+	FeeContractEvents1Kb                 int64   `parquet:"name=fee_contract_events_1kb, type=INT64"`
+	LedgerMaxTxsSizeBytes                int64   `parquet:"name=ledger_max_txs_size_bytes, type=INT64, convertedtype=UINT_64"`
+	TxMaxSizeBytes                       int64   `parquet:"name=tx_max_size_bytes, type=INT64, convertedtype=UINT_64"`
+	FeeTxSize1Kb                         int64   `parquet:"name=fee_tx_size_1kb, type=INT64"`
+	ContractCostParamsCpuInsns           string  `parquet:"name=contract_cost_params_cpu_insns, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractCostParamsMemBytes           string  `parquet:"name=contract_cost_params_mem_bytes, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractDataKeySizeBytes             int64   `parquet:"name=contract_data_key_size_bytes, type=INT64, convertedtype=UINT_64"`
+	ContractDataEntrySizeBytes           int64   `parquet:"name=contract_data_entry_size_bytes, type=INT64, convertedtype=UINT_64"`
+	MaxEntryTtl                          int64   `parquet:"name=max_entry_ttl, type=INT64, convertedtype=UINT_64"`
+	MinTemporaryTtl                      int64   `parquet:"name=min_temporary_ttl, type=INT64, convertedtype=UINT_64"`
+	MinPersistentTtl                     int64   `parquet:"name=min_persistent_ttl, type=INT64, convertedtype=UINT_64"`
+	AutoBumpLedgers                      int64   `parquet:"name=auto_bump_ledgers, type=INT64, convertedtype=UINT_64"`
+	PersistentRentRateDenominator        int64   `parquet:"name=persistent_rent_rate_denominator, type=INT64"`
+	TempRentRateDenominator              int64   `parquet:"name=temp_rent_rate_denominator, type=INT64"`
+	MaxEntriesToArchive                  int64   `parquet:"name=max_entries_to_archive, type=INT64, convertedtype=UINT_64"`
+	BucketListSizeWindowSampleSize       int64   `parquet:"name=bucket_list_size_window_sample_size, type=INT64, convertedtype=UINT_64"`
+	LiveSorobanStateSizeWindowSampleSize int64   `parquet:"name=live_soroban_state_size_window_sample_size, type=INT64, convertedtype=UINT_64"`
+	EvictionScanSize                     int64   `parquet:"name=eviction_scan_size, type=INT64"`
+	StartingEvictionScanLevel            int64   `parquet:"name=starting_eviction_scan_level, type=INT64, convertedtype=UINT_64"`
+	LedgerMaxTxCount                     int64   `parquet:"name=ledger_max_tx_count, type=INT64, convertedtype=UINT_64"`
+	BucketListSizeWindow                 []int64 `parquet:"name=bucket_list_size_window, type=INT64, repetitiontype=REPEATED"`
+	LiveSorobanStateSizeWindow           []int64 `parquet:"name=live_soroban_state_size_window, type=INT64, repetitiontype=REPEATED"`
+	LastModifiedLedger                   int64   `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
+	LedgerEntryChange                    int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
+	Deleted                              bool    `parquet:"name=deleted, type=BOOLEAN"`
+	ClosedAt                             int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	LedgerSequence                       int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
 // TtlOutputParquet is a representation of soroban ttl that aligns with the Bigquery table ttls

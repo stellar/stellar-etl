@@ -230,6 +230,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		ResourceFee:                          outputResourceFee,
 		SorobanResourcesInstructions:         outputSorobanResourcesInstructions,
 		SorobanResourcesReadBytes:            outputSorobanResourcesReadBytes,
+		SorobanResourcesDiskReadBytes:        outputSorobanResourcesReadBytes,
 		SorobanResourcesWriteBytes:           outputSorobanResourcesWriteBytes,
 		TransactionResultCode:                outputTxResultCode,
 		InclusionFeeBid:                      outputInclusionFeeBid,
