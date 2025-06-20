@@ -115,6 +115,14 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		FailedTransactionCount:     1,
 		TxSetOperationCount:        "13",
 		SorobanFeeWrite1Kb:         1234,
+		EvictedKeys: []xdr.LedgerKey{
+			{
+				Type: xdr.LedgerEntryTypeLiquidityPool,
+				LiquidityPool: &xdr.LedgerKeyLiquidityPool{
+					LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+				},
+			},
+		},
 	}
 	return
 }
@@ -167,6 +175,14 @@ func makeLedgerTestInput() (lcm utils.HistoryArchiveLedgerAndLCM, err error) {
 					V: 1,
 					V1: &xdr.LedgerCloseMetaExtV1{
 						SorobanFeeWrite1Kb: xdr.Int64(1234),
+					},
+				},
+				EvictedKeys: []xdr.LedgerKey{
+					{
+						Type: xdr.LedgerEntryTypeLiquidityPool,
+						LiquidityPool: &xdr.LedgerKeyLiquidityPool{
+							LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+						},
 					},
 				},
 			},

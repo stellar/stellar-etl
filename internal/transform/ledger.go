@@ -25,6 +25,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
+
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
@@ -59,6 +60,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 
 	var outputSorobanFeeWrite1Kb int64
 	var outputTotalByteSizeOfBucketList uint64
+	var outputEvictedKeys []xdr.LedgerKey
 	lcmV1, ok := lcm.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
@@ -67,6 +69,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfLiveSorobanState
 		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeys = lcmV1.EvictedKeys
 	}
 
 	var outputNodeID string
@@ -103,6 +106,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		Signature:                       outputSignature,
 		TotalByteSizeOfBucketList:       outputTotalByteSizeOfBucketList,
 		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfBucketList,
+		EvictedKeys:                     outputEvictedKeys,
 	}
 	return transformedLedger, nil
 }
