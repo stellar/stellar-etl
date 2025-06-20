@@ -32,6 +32,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	txMemoryLimit := contractCompute.TxMemoryLimit
 
 	contractLedgerCost, _ := configSetting.GetContractLedgerCost()
+	contractLedgerCostV0, _ := configSetting.GetContractLedgerCostExt()
 	ledgerMaxReadLedgerEntries := contractLedgerCost.LedgerMaxDiskReadEntries
 	ledgerMaxDiskReadEntries := contractLedgerCost.LedgerMaxDiskReadEntries
 	ledgerMaxReadBytes := contractLedgerCost.LedgerMaxDiskReadBytes
@@ -44,10 +45,12 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	txMaxDiskReadBytes := contractLedgerCost.TxMaxDiskReadBytes
 	txMaxWriteLedgerEntries := contractLedgerCost.TxMaxWriteLedgerEntries
 	txMaxWriteBytes := contractLedgerCost.TxMaxWriteBytes
+	txMaxInMemoryReadEntries := contractLedgerCostV0.TxMaxInMemoryReadEntries
 	feeReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
 	feeDiskReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
 	feeWriteLedgerEntry := contractLedgerCost.FeeWriteLedgerEntry
 	feeRead1Kb := contractLedgerCost.FeeDiskRead1Kb
+	feeWrite1Kb := contractLedgerCostV0.FeeWrite1Kb
 	feeDiskRead1Kb := contractLedgerCost.FeeDiskRead1Kb
 	bucketListTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
 	sorobanStateTargetSizeBytes := contractLedgerCost.SorobanStateTargetSizeBytes
@@ -129,10 +132,12 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		TxMaxDiskReadBytes:                   uint32(txMaxDiskReadBytes),
 		TxMaxWriteLedgerEntries:              uint32(txMaxWriteLedgerEntries),
 		TxMaxWriteBytes:                      uint32(txMaxWriteBytes),
+		TxMaxInMemoryReadEntries:             uint32(txMaxInMemoryReadEntries),
 		FeeReadLedgerEntry:                   int64(feeReadLedgerEntry),
 		FeeDiskReadLedgerEntry:               int64(feeDiskReadLedgerEntry),
 		FeeWriteLedgerEntry:                  int64(feeWriteLedgerEntry),
 		FeeRead1Kb:                           int64(feeRead1Kb),
+		FeeWrite1Kb:                          int64(feeWrite1Kb),
 		FeeDiskRead1Kb:                       int64(feeDiskRead1Kb),
 		BucketListTargetSizeBytes:            int64(bucketListTargetSizeBytes),
 		SorobanStateTargetSizeBytes:          int64(sorobanStateTargetSizeBytes),

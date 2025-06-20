@@ -577,10 +577,12 @@ type ConfigSettingOutput struct {
 	TxMaxDiskReadBytes                   uint32              `json:"tx_max_disk_read_bytes"`
 	TxMaxWriteLedgerEntries              uint32              `json:"tx_max_write_ledger_entries"`
 	TxMaxWriteBytes                      uint32              `json:"tx_max_write_bytes"`
+	TxMaxInMemoryReadEntries             uint32              `json:"tx_max_in_memory_read_entries"`
 	FeeReadLedgerEntry                   int64               `json:"fee_read_ledger_entry"`
 	FeeDiskReadLedgerEntry               int64               `json:"fee_disk_read_ledger_entry"`
 	FeeWriteLedgerEntry                  int64               `json:"fee_write_ledger_entry"`
 	FeeRead1Kb                           int64               `json:"fee_read_1kb"`
+	FeeWrite1Kb                          int64               `json:"fee_write_1kb"`
 	FeeDiskRead1Kb                       int64               `json:"fee_disk_read_1kb"`
 	BucketListTargetSizeBytes            int64               `json:"bucket_list_target_size_bytes"`
 	SorobanStateTargetSizeBytes          int64               `json:"soroban_state_target_size_bytes"`

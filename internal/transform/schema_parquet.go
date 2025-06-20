@@ -319,10 +319,12 @@ type ConfigSettingOutputParquet struct {
 	TxMaxDiskReadBytes                   int64   `parquet:"name=tx_max_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
 	TxMaxWriteLedgerEntries              int64   `parquet:"name=tx_max_write_ledger_entries, type=INT64, convertedtype=UINT_64"`
 	TxMaxWriteBytes                      int64   `parquet:"name=tx_max_write_bytes, type=INT64, convertedtype=UINT_64"`
+	TxMaxInMemoryReadEntries             int64   `parquet:"name=tx_max_in_memory_read_entries, type=INT64, convertedtype=UINT_64"`
 	FeeReadLedgerEntry                   int64   `parquet:"name=fee_read_ledger_entry, type=INT64"`
 	FeeDiskReadLedgerEntry               int64   `parquet:"name=fee_disk_read_ledger_entry, type=INT64"`
 	FeeWriteLedgerEntry                  int64   `parquet:"name=fee_write_ledger_entry, type=INT64"`
 	FeeRead1Kb                           int64   `parquet:"name=fee_read_1kb, type=INT64"`
+	FeeWrite1Kb                          int64   `parquet:"name=fee_write_1kb, type=INT64"`
 	FeeDiskRead1Kb                       int64   `parquet:"name=fee_disk_read_1kb, type=INT64"`
 	BucketListTargetSizeBytes            int64   `parquet:"name=bucket_list_target_size_bytes, type=INT64"`
 	SorobanStateTargetSizeBytes          int64   `parquet:"name=soroban_state_target_size_bytes, type=INT64"`
