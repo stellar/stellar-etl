@@ -2584,6 +2584,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 	source := xdr.MustMuxedAddress("GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY")
 	usdAsset := xdr.MustNewCreditAsset("USD", "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY")
 	poolIDStr := "ea4e3e63a95fd840c1394f195722ffdcb2d0d4f0a26589c6ab557d81e6b0bf9d"
+	poolIDStrkey := "LDVE4PTDVFP5QQGBHFHRSVZC77OLFUGU6CRGLCOGVNKX3APGWC7Z3NUW"
 	var poolID xdr.PoolId
 	poolIDBytes, err := hex.DecodeString(poolIDStr)
 	assert.NoError(t, err)
@@ -2691,9 +2692,10 @@ func TestLiquidityPoolEffects(t *testing.T) {
 					Address:     "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 					OperationID: 4294967297,
 					Details: map[string]interface{}{
-						"asset_type":        "liquidity_pool_shares",
-						"limit":             "0.0001000",
-						"liquidity_pool_id": poolIDStr,
+						"asset_type":               "liquidity_pool_shares",
+						"limit":                    "0.0001000",
+						"liquidity_pool_id":        poolIDStr,
+						"liquidity_pool_id_strkey": poolIDStrkey,
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
 					LedgerSequence: 1,
