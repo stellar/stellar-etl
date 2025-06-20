@@ -25,6 +25,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
+
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
@@ -59,14 +60,16 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 
 	var outputSorobanFeeWrite1Kb int64
 	var outputTotalByteSizeOfBucketList uint64
+	var outputEvictedKeys []xdr.LedgerKey
 	lcmV1, ok := lcm.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
 		if ok {
 			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
 		}
-		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfBucketList
+		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfLiveSorobanState
 		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeys = lcmV1.EvictedKeys
 	}
 
 	var outputNodeID string
@@ -81,27 +84,29 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	}
 
 	transformedLedger := LedgerOutput{
-		Sequence:                   outputSequence,
-		LedgerID:                   outputLedgerID,
-		LedgerHash:                 outputLedgerHash,
-		PreviousLedgerHash:         outputPreviousHash,
-		LedgerHeader:               outputLedgerHeader,
-		TransactionCount:           outputTransactionCount,
-		OperationCount:             outputOperationCount,
-		SuccessfulTransactionCount: outputSuccessfulCount,
-		FailedTransactionCount:     outputFailedCount,
-		TxSetOperationCount:        outputTxSetOperationCount,
-		ClosedAt:                   outputCloseTime,
-		TotalCoins:                 outputTotalCoins,
-		FeePool:                    outputFeePool,
-		BaseFee:                    outputBaseFee,
-		BaseReserve:                outputBaseReserve,
-		MaxTxSetSize:               outputMaxTxSetSize,
-		ProtocolVersion:            outputProtocolVersion,
-		SorobanFeeWrite1Kb:         outputSorobanFeeWrite1Kb,
-		NodeID:                     outputNodeID,
-		Signature:                  outputSignature,
-		TotalByteSizeOfBucketList:  outputTotalByteSizeOfBucketList,
+		Sequence:                        outputSequence,
+		LedgerID:                        outputLedgerID,
+		LedgerHash:                      outputLedgerHash,
+		PreviousLedgerHash:              outputPreviousHash,
+		LedgerHeader:                    outputLedgerHeader,
+		TransactionCount:                outputTransactionCount,
+		OperationCount:                  outputOperationCount,
+		SuccessfulTransactionCount:      outputSuccessfulCount,
+		FailedTransactionCount:          outputFailedCount,
+		TxSetOperationCount:             outputTxSetOperationCount,
+		ClosedAt:                        outputCloseTime,
+		TotalCoins:                      outputTotalCoins,
+		FeePool:                         outputFeePool,
+		BaseFee:                         outputBaseFee,
+		BaseReserve:                     outputBaseReserve,
+		MaxTxSetSize:                    outputMaxTxSetSize,
+		ProtocolVersion:                 outputProtocolVersion,
+		SorobanFeeWrite1Kb:              outputSorobanFeeWrite1Kb,
+		NodeID:                          outputNodeID,
+		Signature:                       outputSignature,
+		TotalByteSizeOfBucketList:       outputTotalByteSizeOfBucketList,
+		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfBucketList,
+		EvictedKeys:                     outputEvictedKeys,
 	}
 	return transformedLedger, nil
 }
