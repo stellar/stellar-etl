@@ -673,3 +673,12 @@ type TokenTransferOutput struct {
 	ToMuxed         null.String `json:"to_muxed"`
 	ToMuxedID       null.String `json:"to_muxed_id"`
 }
+
+// RestoredKeyOutput is a representation of a restored key that aligns with the BigQuery table restored_key
+type RestoredKeyOutput struct {
+	Key                xdr.LedgerKey `json:"key"`
+	LastModifiedLedger uint32        `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32        `json:"ledger_entry_change"`
+	ClosedAt           time.Time     `json:"closed_at"`
+	LedgerSequence     uint32        `json:"ledger_sequence"`
+}
