@@ -376,4 +376,5 @@ type ContractEventOutputParquet struct {
 	Data                     interface{}   `parquet:"name=data, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	DataDecoded              interface{}   `parquet:"name=data_decoded, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	ContractEventXDR         string        `parquet:"name=contract_event_xdr, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	OperationID              int64         `parquet:"name=operation_id, type=INT64"`
 }
