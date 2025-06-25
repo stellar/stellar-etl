@@ -160,7 +160,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	if hasSorobanData {
 		outputResourceFee = int64(sorobanData.ResourceFee)
 		outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
-		outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
+		outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.DiskReadBytes)
 		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
 		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
 

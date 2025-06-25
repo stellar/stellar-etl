@@ -235,7 +235,8 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
-	flags.String("datastore-path", "sdf-ledger-close-meta/ledgers", "Datastore bucket path to read txmeta files from.")
+	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
+	flags.String("datastore-path", "sdf-ledger-close-meta-rc1/ledgers", "Datastore bucket path to read txmeta files from.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
@@ -834,7 +835,7 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, err
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
-	switch changeType := change.LedgerEntryChangeType(); changeType {
+	switch changeType := change.ChangeType; changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
@@ -905,7 +906,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -917,7 +917,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)

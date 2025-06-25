@@ -65,7 +65,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		if ok {
 			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
 		}
-		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfBucketList
+		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfLiveSorobanState
 		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
 	}
 

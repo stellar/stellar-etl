@@ -87,7 +87,7 @@ func makeContractDataTestInput() []ingest.Change {
 			ContractData: &xdr.ContractDataEntry{
 				Contract: xdr.ScAddress{
 					Type:       xdr.ScAddressTypeScAddressTypeContract,
-					ContractId: &hash,
+					ContractId: &xdr.ContractId{},
 				},
 				Key: xdr.ScVal{
 					Type: xdr.ScValTypeScvContractInstance,

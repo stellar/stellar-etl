@@ -634,6 +634,7 @@ type ContractEventOutput struct {
 	Data                     interface{}   `json:"data"`
 	DataDecoded              interface{}   `json:"data_decoded"`
 	ContractEventXDR         string        `json:"contract_event_xdr"`
+	OperationID              null.Int      `json:"operation_id"`
 }
 
 type TokenTransferOutput struct {
