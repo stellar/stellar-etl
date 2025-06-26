@@ -111,17 +111,6 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	return transformedLedger, nil
 }
 
-func TransactionProcessing(l xdr.LedgerCloseMeta) []xdr.TransactionResultMeta {
-	switch l.V {
-	case 0:
-		return l.MustV0().TxProcessing
-	case 1:
-		return l.MustV1().TxProcessing
-	default:
-		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", l.V))
-	}
-}
-
 func extractCounts(ledger historyarchive.Ledger) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
 	transactions := GetTransactionSet(ledger)
 	results := ledger.TransactionResult.TxResultSet.Results
