@@ -71,6 +71,7 @@ type TransactionOutput struct {
 	SorobanResourcesReadBytes            uint32         `json:"soroban_resources_read_bytes"`
 	SorobanResourcesDiskReadBytes        uint32         `json:"soroban_resources_disk_read_bytes"`
 	SorobanResourcesWriteBytes           uint32         `json:"soroban_resources_write_bytes"`
+	SorobanResourcesArchivedEntries      []uint32       `json:"soroban_resources_archived_entries"`
 	TransactionResultCode                string         `json:"transaction_result_code"`
 	InclusionFeeBid                      int64          `json:"inclusion_fee_bid"`
 	InclusionFeeCharged                  int64          `json:"inclusion_fee_charged"`

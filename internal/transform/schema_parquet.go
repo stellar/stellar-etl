@@ -62,6 +62,7 @@ type TransactionOutputParquet struct {
 	SorobanResourcesReadBytes            int64    `parquet:"name=soroban_resources_read_bytes, type=INT64, convertedtype=UINT_64"`
 	SorobanResourcesDiskReadBytes        int64    `parquet:"name=soroban_resources_disk_read_bytes, type=INT64, convertedtype=UINT_64"`
 	SorobanResourcesWriteBytes           int64    `parquet:"name=soroban_resources_write_bytes, type=INT64, convertedtype=UINT_64"`
+	SorobanResourcesArchivedEntries      []uint32 `parquet:"name=soroban_resources_archived_entries, type=INT32, repetitiontype=REPEATED"`
 	TransactionResultCode                string   `parquet:"name=transaction_result_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	InclusionFeeBid                      int64    `parquet:"name=inclusion_fee_bid, type=INT64"`
 	InclusionFeeCharged                  int64    `parquet:"name=inclusion_fee_charged, type=INT64"`

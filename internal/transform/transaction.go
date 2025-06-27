@@ -138,6 +138,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var outputSorobanResourcesInstructions uint32
 	var outputSorobanResourcesReadBytes uint32
 	var outputSorobanResourcesWriteBytes uint32
+	var outputSorobanArchivedEntries []uint32
 	var outputInclusionFeeBid int64
 	var outputInclusionFeeCharged int64
 	var outputResourceFeeRefund int64
@@ -163,6 +164,9 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.DiskReadBytes)
 		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
 		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		for _, entry := range sorobanData.Ext.ResourceExt.ArchivedSorobanEntries {
+			outputSorobanArchivedEntries = append(outputSorobanArchivedEntries, uint32(entry))
+		}
 
 		accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, feeAccountAddress)
 		initialFeeCharged := accountBalanceStart - accountBalanceEnd
@@ -232,6 +236,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		SorobanResourcesReadBytes:            outputSorobanResourcesReadBytes,
 		SorobanResourcesDiskReadBytes:        outputSorobanResourcesReadBytes,
 		SorobanResourcesWriteBytes:           outputSorobanResourcesWriteBytes,
+		SorobanResourcesArchivedEntries:      outputSorobanArchivedEntries,
 		TransactionResultCode:                outputTxResultCode,
 		InclusionFeeBid:                      outputInclusionFeeBid,
 		InclusionFeeCharged:                  outputInclusionFeeCharged,

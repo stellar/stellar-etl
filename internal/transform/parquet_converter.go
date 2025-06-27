@@ -90,6 +90,7 @@ func (to TransactionOutput) ToParquet() interface{} {
 		SorobanResourcesReadBytes:            int64(to.SorobanResourcesReadBytes),
 		SorobanResourcesDiskReadBytes:        int64(to.SorobanResourcesDiskReadBytes),
 		SorobanResourcesWriteBytes:           int64(to.SorobanResourcesWriteBytes),
+		SorobanResourcesArchivedEntries:      to.SorobanResourcesArchivedEntries,
 		TransactionResultCode:                to.TransactionResultCode,
 		InclusionFeeBid:                      to.InclusionFeeBid,
 		InclusionFeeCharged:                  to.InclusionFeeCharged,
