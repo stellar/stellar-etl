@@ -72,6 +72,17 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		outputEvictedKeys = lcmV1.EvictedKeys
 	}
 
+	lcmV2, ok := lcm.GetV2()
+	if ok {
+		extV1, ok := lcmV2.Ext.GetV1()
+		if ok {
+			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
+		}
+		totalByteSizeOfBucketList := lcmV2.TotalByteSizeOfLiveSorobanState
+		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeys = lcmV2.EvictedKeys
+	}
+
 	var outputNodeID string
 	var outputSignature string
 	LedgerCloseValueSignature, ok := ledgerHeader.ScpValue.Ext.GetLcValueSignature()
