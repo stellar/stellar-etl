@@ -1,32 +1,30 @@
 package transform
 
-import "github.com/stellar/go/xdr"
-
 // LedgerOutputParquet is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutputParquet struct {
-	Sequence                        int64           `parquet:"name=sequence, type=INT64, convertedtype=UINT_64"`
-	LedgerHash                      string          `parquet:"name=ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	PreviousLedgerHash              string          `parquet:"name=previous_ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	LedgerHeader                    string          `parquet:"name=ledger_header, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	TransactionCount                int32           `parquet:"name=transaction_count, type=INT32"`
-	OperationCount                  int32           `parquet:"name=operation_count, type=INT32"`
-	SuccessfulTransactionCount      int32           `parquet:"name=successful_transaction_count, type=INT32"`
-	FailedTransactionCount          int32           `parquet:"name=failed_transaction_count, type=INT32"`
-	TxSetOperationCount             string          `parquet:"name=tx_set_operation_count, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ClosedAt                        int64           `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
-	TotalCoins                      int64           `parquet:"name=total_coins, type=INT64"`
-	FeePool                         int64           `parquet:"name=fee_pool, type=INT64"`
-	BaseFee                         int64           `parquet:"name=base_fee, type=INT64, convertedtype=UINT_64"`
-	BaseReserve                     int64           `parquet:"name=base_reserve, type=INT64, convertedtype=UINT_64"`
-	MaxTxSetSize                    int64           `parquet:"name=max_tx_set_size, type=INT64, convertedtype=UINT_64"`
-	ProtocolVersion                 int64           `parquet:"name=protocol_version, type=INT64, convertedtype=UINT_64"`
-	LedgerID                        int64           `parquet:"name=id, type=INT64"`
-	SorobanFeeWrite1Kb              int64           `parquet:"name=soroban_fee_write_1kb, type=INT64"`
-	NodeID                          string          `parquet:"name=node_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	Signature                       string          `parquet:"name=signature, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	TotalByteSizeOfBucketList       int64           `parquet:"name=total_byte_size_of_bucket_list, type=INT64, convertedtype=UINT_64"`
-	TotalByteSizeOfLiveSorobanState int64           `parquet:"name=total_byte_size_of_live_soroban_state, type=INT64, convertedtype=UINT_64"`
-	EvictedKeys                     []xdr.LedgerKey `parquet:"name=evicted_keys, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Sequence                        int64    `parquet:"name=sequence, type=INT64, convertedtype=UINT_64"`
+	LedgerHash                      string   `parquet:"name=ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	PreviousLedgerHash              string   `parquet:"name=previous_ledger_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	LedgerHeader                    string   `parquet:"name=ledger_header, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TransactionCount                int32    `parquet:"name=transaction_count, type=INT32"`
+	OperationCount                  int32    `parquet:"name=operation_count, type=INT32"`
+	SuccessfulTransactionCount      int32    `parquet:"name=successful_transaction_count, type=INT32"`
+	FailedTransactionCount          int32    `parquet:"name=failed_transaction_count, type=INT32"`
+	TxSetOperationCount             string   `parquet:"name=tx_set_operation_count, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ClosedAt                        int64    `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	TotalCoins                      int64    `parquet:"name=total_coins, type=INT64"`
+	FeePool                         int64    `parquet:"name=fee_pool, type=INT64"`
+	BaseFee                         int64    `parquet:"name=base_fee, type=INT64, convertedtype=UINT_64"`
+	BaseReserve                     int64    `parquet:"name=base_reserve, type=INT64, convertedtype=UINT_64"`
+	MaxTxSetSize                    int64    `parquet:"name=max_tx_set_size, type=INT64, convertedtype=UINT_64"`
+	ProtocolVersion                 int64    `parquet:"name=protocol_version, type=INT64, convertedtype=UINT_64"`
+	LedgerID                        int64    `parquet:"name=id, type=INT64"`
+	SorobanFeeWrite1Kb              int64    `parquet:"name=soroban_fee_write_1kb, type=INT64"`
+	NodeID                          string   `parquet:"name=node_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Signature                       string   `parquet:"name=signature, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TotalByteSizeOfBucketList       int64    `parquet:"name=total_byte_size_of_bucket_list, type=INT64, convertedtype=UINT_64"`
+	TotalByteSizeOfLiveSorobanState int64    `parquet:"name=total_byte_size_of_live_soroban_state, type=INT64, convertedtype=UINT_64"`
+	EvictedLedgerKeys               []string `parquet:"name=evicted_ledger_keys, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // TransactionOutputParquet is a representation of a transaction that aligns with the BigQuery table history_transactions

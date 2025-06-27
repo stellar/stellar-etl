@@ -83,13 +83,7 @@ func makeRestoredKeyTestInput() (ledgerChange ingest.Change, err error) {
 
 func makeRestoredKeyTestOutput() RestoredKeyOutput {
 	return RestoredKeyOutput{
-		Key: xdr.LedgerKey{
-			Type: xdr.LedgerEntryTypeOffer,
-			Offer: &xdr.LedgerKeyOffer{
-				SellerId: testAccount1ID,
-				OfferId:  260678439,
-			},
-		},
+		LedgerKey:          "AAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAAPiaMn",
 		LastModifiedLedger: 30715263,
 		LedgerEntryChange:  4,
 		LedgerSequence:     10,

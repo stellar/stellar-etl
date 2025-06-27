@@ -11,29 +11,29 @@ import (
 
 // LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
-	Sequence                        uint32          `json:"sequence"` // sequence number of the ledger
-	LedgerHash                      string          `json:"ledger_hash"`
-	PreviousLedgerHash              string          `json:"previous_ledger_hash"`
-	LedgerHeader                    string          `json:"ledger_header"` // base 64 encoding of the ledger header
-	TransactionCount                int32           `json:"transaction_count"`
-	OperationCount                  int32           `json:"operation_count"` // counts only operations that were a part of successful transactions
-	SuccessfulTransactionCount      int32           `json:"successful_transaction_count"`
-	FailedTransactionCount          int32           `json:"failed_transaction_count"`
-	TxSetOperationCount             string          `json:"tx_set_operation_count"` // counts all operations, even those that are part of failed transactions
-	ClosedAt                        time.Time       `json:"closed_at"`              // UTC timestamp
-	TotalCoins                      int64           `json:"total_coins"`
-	FeePool                         int64           `json:"fee_pool"`
-	BaseFee                         uint32          `json:"base_fee"`
-	BaseReserve                     uint32          `json:"base_reserve"`
-	MaxTxSetSize                    uint32          `json:"max_tx_set_size"`
-	ProtocolVersion                 uint32          `json:"protocol_version"`
-	LedgerID                        int64           `json:"id"`
-	SorobanFeeWrite1Kb              int64           `json:"soroban_fee_write_1kb"`
-	NodeID                          string          `json:"node_id"`
-	Signature                       string          `json:"signature"`
-	TotalByteSizeOfBucketList       uint64          `json:"total_byte_size_of_bucket_list"`
-	TotalByteSizeOfLiveSorobanState uint64          `json:"total_byte_size_of_live_soroban_state"`
-	EvictedKeys                     []xdr.LedgerKey `json:"evicted_keys"`
+	Sequence                        uint32    `json:"sequence"` // sequence number of the ledger
+	LedgerHash                      string    `json:"ledger_hash"`
+	PreviousLedgerHash              string    `json:"previous_ledger_hash"`
+	LedgerHeader                    string    `json:"ledger_header"` // base 64 encoding of the ledger header
+	TransactionCount                int32     `json:"transaction_count"`
+	OperationCount                  int32     `json:"operation_count"` // counts only operations that were a part of successful transactions
+	SuccessfulTransactionCount      int32     `json:"successful_transaction_count"`
+	FailedTransactionCount          int32     `json:"failed_transaction_count"`
+	TxSetOperationCount             string    `json:"tx_set_operation_count"` // counts all operations, even those that are part of failed transactions
+	ClosedAt                        time.Time `json:"closed_at"`              // UTC timestamp
+	TotalCoins                      int64     `json:"total_coins"`
+	FeePool                         int64     `json:"fee_pool"`
+	BaseFee                         uint32    `json:"base_fee"`
+	BaseReserve                     uint32    `json:"base_reserve"`
+	MaxTxSetSize                    uint32    `json:"max_tx_set_size"`
+	ProtocolVersion                 uint32    `json:"protocol_version"`
+	LedgerID                        int64     `json:"id"`
+	SorobanFeeWrite1Kb              int64     `json:"soroban_fee_write_1kb"`
+	NodeID                          string    `json:"node_id"`
+	Signature                       string    `json:"signature"`
+	TotalByteSizeOfBucketList       uint64    `json:"total_byte_size_of_bucket_list"`
+	TotalByteSizeOfLiveSorobanState uint64    `json:"total_byte_size_of_live_soroban_state"`
+	EvictedLedgerKeys               []string  `json:"evicted_ledger_keys"`
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
@@ -676,9 +676,9 @@ type TokenTransferOutput struct {
 
 // RestoredKeyOutput is a representation of a restored key that aligns with the BigQuery table restored_key
 type RestoredKeyOutput struct {
-	Key                xdr.LedgerKey `json:"key"`
-	LastModifiedLedger uint32        `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32        `json:"ledger_entry_change"`
-	ClosedAt           time.Time     `json:"closed_at"`
-	LedgerSequence     uint32        `json:"ledger_sequence"`
+	LedgerKey          string    `json:"ledger_key"`
+	LastModifiedLedger uint32    `json:"last_modified_ledger"`
+	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
+	ClosedAt           time.Time `json:"closed_at"`
+	LedgerSequence     uint32    `json:"ledger_sequence"`
 }

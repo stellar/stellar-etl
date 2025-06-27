@@ -60,7 +60,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 
 	var outputSorobanFeeWrite1Kb int64
 	var outputTotalByteSizeOfBucketList uint64
-	var outputEvictedKeys []xdr.LedgerKey
+	var outputEvictedKeys []string
 	lcmV1, ok := lcm.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
@@ -69,7 +69,10 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfLiveSorobanState
 		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
-		outputEvictedKeys = lcmV1.EvictedKeys
+		outputEvictedKeys, err = getLedgerKeyStringsFromLedgerKeys(lcmV1.EvictedKeys)
+		if err != nil {
+			return LedgerOutput{}, err
+		}
 	}
 
 	lcmV2, ok := lcm.GetV2()
@@ -80,7 +83,10 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 		totalByteSizeOfBucketList := lcmV2.TotalByteSizeOfLiveSorobanState
 		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
-		outputEvictedKeys = lcmV2.EvictedKeys
+		outputEvictedKeys, err = getLedgerKeyStringsFromLedgerKeys(lcmV2.EvictedKeys)
+		if err != nil {
+			return LedgerOutput{}, err
+		}
 	}
 
 	var outputNodeID string
@@ -117,7 +123,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		Signature:                       outputSignature,
 		TotalByteSizeOfBucketList:       outputTotalByteSizeOfBucketList,
 		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfBucketList,
-		EvictedKeys:                     outputEvictedKeys,
+		EvictedLedgerKeys:               outputEvictedKeys,
 	}
 	return transformedLedger, nil
 }
@@ -190,6 +196,18 @@ func getTransactionPhase(transactionPhase []xdr.TransactionPhase) (transactionEn
 	}
 	return transactionSlice
 
+}
+
+func getLedgerKeyStringsFromLedgerKeys(ledgerKeys []xdr.LedgerKey) ([]string, error) {
+	ledgerKeyStrings := make([]string, len(ledgerKeys))
+	for i, key := range ledgerKeys {
+		keyString, err := utils.LedgerKeyToLedgerKeyString(key)
+		if err != nil {
+			return nil, fmt.Errorf("could not convert ledger key to string: %v", err)
+		}
+		ledgerKeyStrings[i] = keyString
+	}
+	return ledgerKeyStrings, nil
 }
 
 // TODO: This should be moved into the go monorepo xdr functions

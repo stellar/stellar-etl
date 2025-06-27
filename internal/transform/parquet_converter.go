@@ -51,7 +51,7 @@ func (lo LedgerOutput) ToParquet() interface{} {
 		Signature:                       lo.Signature,
 		TotalByteSizeOfBucketList:       int64(lo.TotalByteSizeOfBucketList),
 		TotalByteSizeOfLiveSorobanState: int64(lo.TotalByteSizeOfLiveSorobanState),
-		EvictedKeys:                     lo.EvictedKeys,
+		EvictedLedgerKeys:               lo.EvictedLedgerKeys,
 	}
 }
 

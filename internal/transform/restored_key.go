@@ -20,6 +20,10 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 	if err != nil {
 		return RestoredKeyOutput{}, err
 	}
+	keyString, err := utils.LedgerKeyToLedgerKeyString(key)
+	if err != nil {
+		return RestoredKeyOutput{}, err
+	}
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
 	if err != nil {
@@ -30,7 +34,7 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedKey := RestoredKeyOutput{
-		Key:                key,
+		LedgerKey:          keyString,
 		LastModifiedLedger: outputLastModifiedLedger,
 		LedgerEntryChange:  uint32(changeType),
 		ClosedAt:           closedAt,

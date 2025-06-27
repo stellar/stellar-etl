@@ -144,14 +144,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		FailedTransactionCount:     1,
 		TxSetOperationCount:        "13",
 		SorobanFeeWrite1Kb:         1234,
-		EvictedKeys: []xdr.LedgerKey{
-			{
-				Type: xdr.LedgerEntryTypeLiquidityPool,
-				LiquidityPool: &xdr.LedgerKeyLiquidityPool{
-					LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
-				},
-			},
-		},
+		EvictedLedgerKeys:          []string{"AAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
 	}
 	return
 }
