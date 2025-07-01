@@ -59,8 +59,9 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
 	var outputSorobanFeeWrite1Kb int64
-	var outputTotalByteSizeOfBucketList uint64
-	var outputEvictedKeys []string
+	var outputTotalByteSizeOfLiveSorobanState uint64
+	var outputEvictedKeysHash []string
+	var outputEvictedKeysType []string
 	lcmV1, ok := lcm.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
@@ -68,8 +69,8 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
 		}
 		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfLiveSorobanState
-		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
-		outputEvictedKeys, err = getLedgerKeyStringsFromLedgerKeys(lcmV1.EvictedKeys)
+		outputTotalByteSizeOfLiveSorobanState = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeysHash, outputEvictedKeysType, err = transformLedgerKeys(lcmV1.EvictedKeys)
 		if err != nil {
 			return LedgerOutput{}, err
 		}
@@ -82,8 +83,8 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
 		}
 		totalByteSizeOfBucketList := lcmV2.TotalByteSizeOfLiveSorobanState
-		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
-		outputEvictedKeys, err = getLedgerKeyStringsFromLedgerKeys(lcmV2.EvictedKeys)
+		outputTotalByteSizeOfLiveSorobanState = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeysHash, outputEvictedKeysType, err = transformLedgerKeys(lcmV2.EvictedKeys)
 		if err != nil {
 			return LedgerOutput{}, err
 		}
@@ -121,9 +122,10 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		SorobanFeeWrite1Kb:              outputSorobanFeeWrite1Kb,
 		NodeID:                          outputNodeID,
 		Signature:                       outputSignature,
-		TotalByteSizeOfBucketList:       outputTotalByteSizeOfBucketList,
-		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfBucketList,
-		EvictedLedgerKeys:               outputEvictedKeys,
+		TotalByteSizeOfBucketList:       outputTotalByteSizeOfLiveSorobanState,
+		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfLiveSorobanState,
+		EvictedLedgerKeysType:           outputEvictedKeysType,
+		EvictedLedgerKeysHash:           outputEvictedKeysHash,
 	}
 	return transformedLedger, nil
 }
@@ -198,16 +200,18 @@ func getTransactionPhase(transactionPhase []xdr.TransactionPhase) (transactionEn
 
 }
 
-func getLedgerKeyStringsFromLedgerKeys(ledgerKeys []xdr.LedgerKey) ([]string, error) {
-	ledgerKeyStrings := make([]string, len(ledgerKeys))
+func transformLedgerKeys(ledgerKeys []xdr.LedgerKey) ([]string, []string, error) {
+	ledgerKeysHash := make([]string, len(ledgerKeys))
+	ledgerKeysType := make([]string, len(ledgerKeys))
 	for i, key := range ledgerKeys {
-		keyString, err := utils.LedgerKeyToLedgerKeyString(key)
+		keyHash, err := xdr.MarshalBase64(key)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert ledger key to string: %v", err)
+			return nil, nil, fmt.Errorf("could not convert ledger key to hash: %v", err)
 		}
-		ledgerKeyStrings[i] = keyString
+		ledgerKeysHash[i] = keyHash
+		ledgerKeysType[i] = key.Type.String()
 	}
-	return ledgerKeyStrings, nil
+	return ledgerKeysHash, ledgerKeysType, nil
 }
 
 // TODO: This should be moved into the go monorepo xdr functions

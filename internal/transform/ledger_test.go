@@ -144,7 +144,8 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		FailedTransactionCount:     1,
 		TxSetOperationCount:        "13",
 		SorobanFeeWrite1Kb:         1234,
-		EvictedLedgerKeys:          []string{"AAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
+		EvictedLedgerKeysType:      []string{"LedgerEntryTypeLiquidityPool"},
+		EvictedLedgerKeysHash:      []string{"AAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
 	}
 	return
 }

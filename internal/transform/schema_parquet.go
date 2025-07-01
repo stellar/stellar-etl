@@ -24,7 +24,8 @@ type LedgerOutputParquet struct {
 	Signature                       string   `parquet:"name=signature, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	TotalByteSizeOfBucketList       int64    `parquet:"name=total_byte_size_of_bucket_list, type=INT64, convertedtype=UINT_64"`
 	TotalByteSizeOfLiveSorobanState int64    `parquet:"name=total_byte_size_of_live_soroban_state, type=INT64, convertedtype=UINT_64"`
-	EvictedLedgerKeys               []string `parquet:"name=evicted_ledger_keys, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	EvictedLedgerKeysType           []string `parquet:"name=evicted_ledger_keys_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	EvictedLedgerKeysHash           []string `parquet:"name=evicted_ledger_keys_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // TransactionOutputParquet is a representation of a transaction that aligns with the BigQuery table history_transactions

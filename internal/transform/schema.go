@@ -33,7 +33,8 @@ type LedgerOutput struct {
 	Signature                       string    `json:"signature"`
 	TotalByteSizeOfBucketList       uint64    `json:"total_byte_size_of_bucket_list"`
 	TotalByteSizeOfLiveSorobanState uint64    `json:"total_byte_size_of_live_soroban_state"`
-	EvictedLedgerKeys               []string  `json:"evicted_ledger_keys"`
+	EvictedLedgerKeysType           []string  `json:"evicted_ledger_keys_type"`
+	EvictedLedgerKeysHash           []string  `json:"evicted_ledger_keys_hash"`
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
@@ -677,9 +678,9 @@ type TokenTransferOutput struct {
 
 // RestoredKeyOutput is a representation of a restored key that aligns with the BigQuery table restored_key
 type RestoredKeyOutput struct {
-	LedgerKey          string    `json:"ledger_key"`
+	LedgerKeyHash      string    `json:"ledger_key_hash"`
+	LedgerEntryType    string    `json:"ledger_entry_type"`
 	LastModifiedLedger uint32    `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	ClosedAt           time.Time `json:"closed_at"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 }

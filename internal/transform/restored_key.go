@@ -6,7 +6,7 @@ import (
 	"github.com/stellar/stellar-etl/internal/utils"
 )
 
-// TransformRestoredKey converts an ttl ledger change entry into a form suitable for BigQuery
+// TransformRestoredKey fetches keyhash from restored ledger change entry into a form suitable for BigQuery
 func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (RestoredKeyOutput, error) {
 	ledgerEntry, changeType, _, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
@@ -20,7 +20,8 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 	if err != nil {
 		return RestoredKeyOutput{}, err
 	}
-	keyString, err := utils.LedgerKeyToLedgerKeyString(key)
+	ledgerKeyHash, err := xdr.MarshalBase64(key)
+	ledgerEntryType := key.Type.String()
 	if err != nil {
 		return RestoredKeyOutput{}, err
 	}
@@ -34,9 +35,9 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedKey := RestoredKeyOutput{
-		LedgerKey:          keyString,
+		LedgerKeyHash:      ledgerKeyHash,
+		LedgerEntryType:    ledgerEntryType,
 		LastModifiedLedger: outputLastModifiedLedger,
-		LedgerEntryChange:  uint32(changeType),
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
 	}

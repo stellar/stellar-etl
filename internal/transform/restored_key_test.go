@@ -83,9 +83,9 @@ func makeRestoredKeyTestInput() (ledgerChange ingest.Change, err error) {
 
 func makeRestoredKeyTestOutput() RestoredKeyOutput {
 	return RestoredKeyOutput{
-		LedgerKey:          "AAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAAPiaMn",
+		LedgerKeyHash:      "AAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAAPiaMn",
+		LedgerEntryType:    "LedgerEntryTypeOffer",
 		LastModifiedLedger: 30715263,
-		LedgerEntryChange:  4,
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 	}

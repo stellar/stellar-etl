@@ -35,8 +35,8 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 			index: 0,
 			transaction: ingest.LedgerTransaction{
 				UnsafeMeta: xdr.TransactionMeta{
-					V:  3,
-					V3: &xdr.TransactionMetaV3{},
+					V:  2,
+					V2: &xdr.TransactionMetaV2{},
 				},
 			},
 			operation:      op,

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -1103,14 +1102,4 @@ func AccountSignersChanged(c ingest.Change) bool {
 type HistoryArchiveLedgerAndLCM struct {
 	Ledger historyarchive.Ledger
 	LCM    xdr.LedgerCloseMeta
-}
-
-func LedgerKeyToLedgerKeyString(ledgerKey xdr.LedgerKey) (string, error) {
-	key, err := ledgerKey.MarshalBinary()
-	if err != nil {
-		return "", fmt.Errorf("error running MarshalBinaryCompress when calculating ledger key")
-	}
-
-	return base64.StdEncoding.EncodeToString(key), nil
-
 }
