@@ -331,8 +331,8 @@ func makeTokenTransferTestInput() (events [][]*token_transfer.TokenTransferEvent
 			},
 		},
 		{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
+			V: 2,
+			V2: &xdr.LedgerCloseMetaV2{
 				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 					Header: xdr.LedgerHeader{
 						ScpValue: xdr.StellarValue{

@@ -778,7 +778,9 @@ var testArchiveURLs = []string{
 
 // futrenet is used for testing new Protocol features
 var futureArchiveURLs = []string{
-	"https://history-futurenet.stellar.org/",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_001",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_002",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_003",
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
@@ -834,11 +836,13 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, err
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
-	switch changeType := change.LedgerEntryChangeType(); changeType {
+	switch changeType := change.ChangeType; changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 		return *change.Pre, changeType, true, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
+		return *change.Post, changeType, false, nil
 	default:
 		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}
@@ -905,7 +909,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -917,7 +920,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)

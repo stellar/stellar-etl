@@ -111,6 +111,7 @@ be exported.`,
 					"contract_code":      {},
 					"config_settings":    {},
 					"ttl":                {},
+					"restored_key":       {},
 				}
 
 				for entryType, changes := range batch.Changes {
@@ -256,6 +257,18 @@ be exported.`,
 							}
 							transformedOutputs["ttl"] = append(transformedOutputs["ttl"], ttl)
 						}
+					}
+					if !exports["export-restored-keys"] {
+						continue
+					}
+					for i, change := range changes.Changes {
+						key, err := transform.TransformRestoredKey(change, changes.LedgerHeaders[i])
+						if err != nil {
+							entry, _, _, _ := utils.ExtractEntryFromChange(change)
+							cmdLogger.LogError(fmt.Errorf("error transforming restored key entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+							continue
+						}
+						transformedOutputs["restored_key"] = append(transformedOutputs["restored_key"], key)
 					}
 				}
 

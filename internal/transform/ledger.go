@@ -25,6 +25,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	outputPreviousHash := utils.HashToHexString(ledgerHeader.PreviousLedgerHash)
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledgerHeader)
+
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
@@ -58,15 +59,35 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	outputProtocolVersion := uint32(ledgerHeader.LedgerVersion)
 
 	var outputSorobanFeeWrite1Kb int64
-	var outputTotalByteSizeOfBucketList uint64
+	var outputTotalByteSizeOfLiveSorobanState uint64
+	var outputEvictedKeysHash []string
+	var outputEvictedKeysType []string
 	lcmV1, ok := lcm.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
 		if ok {
 			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
 		}
-		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfBucketList
-		outputTotalByteSizeOfBucketList = uint64(totalByteSizeOfBucketList)
+		totalByteSizeOfBucketList := lcmV1.TotalByteSizeOfLiveSorobanState
+		outputTotalByteSizeOfLiveSorobanState = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeysHash, outputEvictedKeysType, err = transformLedgerKeys(lcmV1.EvictedKeys)
+		if err != nil {
+			return LedgerOutput{}, err
+		}
+	}
+
+	lcmV2, ok := lcm.GetV2()
+	if ok {
+		extV1, ok := lcmV2.Ext.GetV1()
+		if ok {
+			outputSorobanFeeWrite1Kb = int64(extV1.SorobanFeeWrite1Kb)
+		}
+		totalByteSizeOfBucketList := lcmV2.TotalByteSizeOfLiveSorobanState
+		outputTotalByteSizeOfLiveSorobanState = uint64(totalByteSizeOfBucketList)
+		outputEvictedKeysHash, outputEvictedKeysType, err = transformLedgerKeys(lcmV2.EvictedKeys)
+		if err != nil {
+			return LedgerOutput{}, err
+		}
 	}
 
 	var outputNodeID string
@@ -81,40 +102,32 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 	}
 
 	transformedLedger := LedgerOutput{
-		Sequence:                   outputSequence,
-		LedgerID:                   outputLedgerID,
-		LedgerHash:                 outputLedgerHash,
-		PreviousLedgerHash:         outputPreviousHash,
-		LedgerHeader:               outputLedgerHeader,
-		TransactionCount:           outputTransactionCount,
-		OperationCount:             outputOperationCount,
-		SuccessfulTransactionCount: outputSuccessfulCount,
-		FailedTransactionCount:     outputFailedCount,
-		TxSetOperationCount:        outputTxSetOperationCount,
-		ClosedAt:                   outputCloseTime,
-		TotalCoins:                 outputTotalCoins,
-		FeePool:                    outputFeePool,
-		BaseFee:                    outputBaseFee,
-		BaseReserve:                outputBaseReserve,
-		MaxTxSetSize:               outputMaxTxSetSize,
-		ProtocolVersion:            outputProtocolVersion,
-		SorobanFeeWrite1Kb:         outputSorobanFeeWrite1Kb,
-		NodeID:                     outputNodeID,
-		Signature:                  outputSignature,
-		TotalByteSizeOfBucketList:  outputTotalByteSizeOfBucketList,
+		Sequence:                        outputSequence,
+		LedgerID:                        outputLedgerID,
+		LedgerHash:                      outputLedgerHash,
+		PreviousLedgerHash:              outputPreviousHash,
+		LedgerHeader:                    outputLedgerHeader,
+		TransactionCount:                outputTransactionCount,
+		OperationCount:                  outputOperationCount,
+		SuccessfulTransactionCount:      outputSuccessfulCount,
+		FailedTransactionCount:          outputFailedCount,
+		TxSetOperationCount:             outputTxSetOperationCount,
+		ClosedAt:                        outputCloseTime,
+		TotalCoins:                      outputTotalCoins,
+		FeePool:                         outputFeePool,
+		BaseFee:                         outputBaseFee,
+		BaseReserve:                     outputBaseReserve,
+		MaxTxSetSize:                    outputMaxTxSetSize,
+		ProtocolVersion:                 outputProtocolVersion,
+		SorobanFeeWrite1Kb:              outputSorobanFeeWrite1Kb,
+		NodeID:                          outputNodeID,
+		Signature:                       outputSignature,
+		TotalByteSizeOfBucketList:       outputTotalByteSizeOfLiveSorobanState,
+		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfLiveSorobanState,
+		EvictedLedgerKeysType:           outputEvictedKeysType,
+		EvictedLedgerKeysHash:           outputEvictedKeysHash,
 	}
 	return transformedLedger, nil
-}
-
-func TransactionProcessing(l xdr.LedgerCloseMeta) []xdr.TransactionResultMeta {
-	switch l.V {
-	case 0:
-		return l.MustV0().TxProcessing
-	case 1:
-		return l.MustV1().TxProcessing
-	default:
-		panic(fmt.Sprintf("Unsupported LedgerCloseMeta.V: %d", l.V))
-	}
 }
 
 func extractCounts(ledger historyarchive.Ledger) (transactionCount int32, operationCount int32, successTxCount int32, failedTxCount int32, txSetOperationCount string, err error) {
@@ -185,6 +198,20 @@ func getTransactionPhase(transactionPhase []xdr.TransactionPhase) (transactionEn
 	}
 	return transactionSlice
 
+}
+
+func transformLedgerKeys(ledgerKeys []xdr.LedgerKey) ([]string, []string, error) {
+	ledgerKeysHash := make([]string, len(ledgerKeys))
+	ledgerKeysType := make([]string, len(ledgerKeys))
+	for i, key := range ledgerKeys {
+		keyHash, err := xdr.MarshalBase64(key)
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not convert ledger key to hash: %v", err)
+		}
+		ledgerKeysHash[i] = keyHash
+		ledgerKeysType[i] = key.Type.String()
+	}
+	return ledgerKeysHash, ledgerKeysType, nil
 }
 
 // TODO: This should be moved into the go monorepo xdr functions

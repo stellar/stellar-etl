@@ -29,7 +29,8 @@ func TestTransformOffer(t *testing.T) {
 	tests := []transformTest{
 		{
 			inputStruct{ingest.Change{
-				Type: xdr.LedgerEntryTypeAccount,
+				ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+				Type:       xdr.LedgerEntryTypeAccount,
 				Post: &xdr.LedgerEntry{
 					Data: xdr.LedgerEntryData{
 						Type: xdr.LedgerEntryTypeAccount,
@@ -113,8 +114,9 @@ func TestTransformOffer(t *testing.T) {
 
 func wrapOfferEntry(offerEntry xdr.OfferEntry, lastModified int) ingest.Change {
 	return ingest.Change{
-		Type: xdr.LedgerEntryTypeOffer,
-		Pre:  nil,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+		Type:       xdr.LedgerEntryTypeOffer,
+		Pre:        nil,
 		Post: &xdr.LedgerEntry{
 			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
 			Data: xdr.LedgerEntryData{
@@ -127,7 +129,8 @@ func wrapOfferEntry(offerEntry xdr.OfferEntry, lastModified int) ingest.Change {
 
 func makeOfferTestInput() (ledgerChange ingest.Change, err error) {
 	ledgerChange = ingest.Change{
-		Type: xdr.LedgerEntryTypeOffer,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryRemoved,
+		Type:       xdr.LedgerEntryTypeOffer,
 		Pre: &xdr.LedgerEntry{
 			LastModifiedLedgerSeq: xdr.Uint32(30715263),
 			Data: xdr.LedgerEntryData{
