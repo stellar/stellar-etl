@@ -779,7 +779,9 @@ var testArchiveURLs = []string{
 
 // futrenet is used for testing new Protocol features
 var futureArchiveURLs = []string{
-	"https://history-futurenet.stellar.org/",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_001",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_002",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_003",
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
@@ -840,6 +842,8 @@ func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEn
 		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 		return *change.Pre, changeType, true, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
+		return *change.Post, changeType, false, nil
 	default:
 		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}

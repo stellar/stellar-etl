@@ -28,7 +28,8 @@ func TestTransformOfferNormalized(t *testing.T) {
 	tests := []transformTest{
 		{
 			input: testInput{ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
+				ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryRemoved,
+				Type:       xdr.LedgerEntryTypeOffer,
 				Pre: &xdr.LedgerEntry{
 					LastModifiedLedgerSeq: xdr.Uint32(100),
 					Data: xdr.LedgerEntryData{
@@ -63,8 +64,9 @@ func TestTransformOfferNormalized(t *testing.T) {
 
 func makeOfferNormalizedTestInput() (ledgerChange ingest.Change, err error) {
 	ledgerChange = ingest.Change{
-		Type: xdr.LedgerEntryTypeOffer,
-		Pre:  nil,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+		Type:       xdr.LedgerEntryTypeOffer,
+		Pre:        nil,
 		Post: &xdr.LedgerEntry{
 			LastModifiedLedgerSeq: xdr.Uint32(30715263),
 			Data: xdr.LedgerEntryData{

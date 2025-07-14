@@ -26,8 +26,9 @@ func TestTransformContractData(t *testing.T) {
 	tests := []transformTest{
 		{
 			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
+				ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+				Type:       xdr.LedgerEntryTypeOffer,
+				Pre:        nil,
 				Post: &xdr.LedgerEntry{
 					Data: xdr.LedgerEntryData{
 						Type: xdr.LedgerEntryTypeOffer,
@@ -77,6 +78,7 @@ func MockContractBalanceFromContractData(ledgerEntry xdr.LedgerEntry, passphrase
 
 func makeContractDataTestInput() []ingest.Change {
 	var hash xdr.Hash
+	var contractIdHash xdr.ContractId
 	var scStr xdr.ScString = "a"
 	var testVal bool = true
 
@@ -121,9 +123,10 @@ func makeContractDataTestInput() []ingest.Change {
 
 	return []ingest.Change{
 		{
-			Type: xdr.LedgerEntryTypeContractData,
-			Pre:  &xdr.LedgerEntry{},
-			Post: &contractDataLedgerEntry,
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+			Type:       xdr.LedgerEntryTypeContractData,
+			Pre:        &xdr.LedgerEntry{},
+			Post:       &contractDataLedgerEntry,
 		},
 	}
 }

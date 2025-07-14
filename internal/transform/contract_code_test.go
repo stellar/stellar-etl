@@ -23,8 +23,9 @@ func TestTransformContractCode(t *testing.T) {
 	tests := []transformTest{
 		{
 			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
+				ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+				Type:       xdr.LedgerEntryTypeOffer,
+				Pre:        nil,
 				Post: &xdr.LedgerEntry{
 					Data: xdr.LedgerEntryData{
 						Type: xdr.LedgerEntryTypeOffer,
@@ -90,9 +91,10 @@ func makeContractCodeTestInput() []ingest.Change {
 
 	return []ingest.Change{
 		{
-			Type: xdr.LedgerEntryTypeContractCode,
-			Pre:  &xdr.LedgerEntry{},
-			Post: &contractCodeLedgerEntry,
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+			Type:       xdr.LedgerEntryTypeContractCode,
+			Pre:        &xdr.LedgerEntry{},
+			Post:       &contractCodeLedgerEntry,
 		},
 	}
 }
