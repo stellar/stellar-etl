@@ -103,7 +103,6 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		return
 	}
 
-	contractHash := xdr.ContractId{}
 	salt := [32]byte{}
 	assetCode := [12]byte{}
 	assetIssuer := xdr.Uint256{}
