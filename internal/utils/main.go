@@ -236,7 +236,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
-	flags.String("datastore-path", "sdf-ledger-close-meta-rc1/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.String("datastore-path", "sdf-ledger-close-meta/ledgers", "Datastore bucket path to read txmeta files from.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
