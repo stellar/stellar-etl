@@ -159,7 +159,7 @@ func contractEvent2DiagnosticEvent(contractEvent xdr.ContractEvent) xdr.Diagnost
 // this is a parse of DiagnosticEvents and most likely converted ContractEvents and TransactionEvents.
 // This decision can be revisted later to rename these variable/output names as well as the history_contract_events table.
 // Note that classic events are also named ContractEvents even though they have no association with a smart contract and
-// this is unlikey to change at the core level.
+// this is unlikely to change at the core level.
 func parseDiagnosticEvent(
 	diagnosticEvent xdr.DiagnosticEvent,
 	transaction ingest.LedgerTransaction,
