@@ -188,6 +188,20 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			}
 		}
 
+		// For P23 onwards, transaction meta v3 will be empty
+		metav4, ok := transaction.UnsafeMeta.GetV4()
+		if ok {
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, feeAccountAddress)
+			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
+			if metav4.SorobanMeta != nil {
+				extV1, ok := metav4.SorobanMeta.Ext.GetV1()
+				if ok {
+					outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
+					outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
+					outputRentFeeCharged = int64(extV1.RentFeeCharged)
+				}
+			}
+		}
 		// Protocol 20 contained a bug where the feeCharged was incorrectly calculated but was fixed for
 		// Protocol 21 with https://github.com/stellar/stellar-core/issues/4188
 		// Any Soroban Fee Bump transactions before P21 will need the below logic to calculate the correct feeCharged
