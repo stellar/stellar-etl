@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"runtime/debug"
 
 	"github.com/spf13/cobra"
@@ -14,18 +15,18 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		buildInfo, ok := debug.ReadBuildInfo()
 		if !ok {
-			fmt.Printf("stellar-etl (unknown)\n")
+			fmt.Fprintf(cmd.OutOrStdout(), "stellar-etl (unknown)\n")
 			return
 		}
-		fmt.Printf("stellar-etl %s\n", buildInfo.Main.Version)
+		fmt.Fprintf(cmd.OutOrStdout(), "stellar-etl %s\n", buildInfo.Main.Version)
 
 		// Find and display versions of libs containing XDR
-		printDepVersion(buildInfo, "github.com/stellar/go")
-		printDepVersion(buildInfo, "github.com/stellar/go-stellar-xdr-json")
+		printDepVersion(cmd.OutOrStdout(), buildInfo, "github.com/stellar/go")
+		printDepVersion(cmd.OutOrStdout(), buildInfo, "github.com/stellar/go-stellar-xdr-json")
 	},
 }
 
-func printDepVersion(buildInfo *debug.BuildInfo, name string) {
+func printDepVersion(out io.Writer, buildInfo *debug.BuildInfo, name string) {
 	version := "unknown"
 	for _, dep := range buildInfo.Deps {
 		if dep.Path == name {
@@ -33,7 +34,7 @@ func printDepVersion(buildInfo *debug.BuildInfo, name string) {
 			break
 		}
 	}
-	fmt.Printf("%s %s\n", name, version)
+	fmt.Fprintf(out, "%s %s\n", name, version)
 }
 
 func init() {
