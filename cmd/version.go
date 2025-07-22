@@ -10,33 +10,30 @@ import (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display version information",
-	Long:  `Display the version of stellar-etl and the version of XDR supported.`,
+	Long:  `Display the version of stellar-etl and the versions of XDR libs.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Get build info using runtime/debug
 		buildInfo, ok := debug.ReadBuildInfo()
 		if !ok {
-			fmt.Println("Version information not available")
+			fmt.Printf("stellar-etl (unknown)\n")
 			return
 		}
+		fmt.Printf("stellar-etl %s\n", buildInfo.Main.Version)
 
-		// Display main module version
-		fmt.Printf("stellar-etl version: %s\n", buildInfo.Main.Version)
-
-		// Find and display stellar/go version (which provides XDR support)
-		var stellarGoVersion string
-		for _, dep := range buildInfo.Deps {
-			if dep.Path == "github.com/stellar/go" {
-				stellarGoVersion = dep.Version
-				break
-			}
-		}
-
-		if stellarGoVersion != "" {
-			fmt.Printf("Stellar XDR version (github.com/stellar/go): %s\n", stellarGoVersion)
-		} else {
-			fmt.Println("Stellar XDR version: not found")
-		}
+		// Find and display versions of libs containing XDR
+		printDepVersion(buildInfo, "github.com/stellar/go")
+		printDepVersion(buildInfo, "github.com/stellar/go-stellar-xdr-json")
 	},
+}
+
+func printDepVersion(buildInfo *debug.BuildInfo, name string) {
+	version := "unknown"
+	for _, dep := range buildInfo.Deps {
+		if dep.Path == name {
+			version = dep.Version
+			break
+		}
+	}
+	fmt.Printf("%s %s\n", name, version)
 }
 
 func init() {
