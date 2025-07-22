@@ -27,7 +27,7 @@ var versionCmd = &cobra.Command{
 }
 
 func printDepVersion(out io.Writer, buildInfo *debug.BuildInfo, name string) {
-	version := "unknown"
+	version := "(unknown)"
 	for _, dep := range buildInfo.Deps {
 		if dep.Path == name {
 			version = dep.Version
