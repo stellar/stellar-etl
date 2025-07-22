@@ -48,7 +48,7 @@ If branch is already made, just rename it _before passing the pull request_.
 1. Install Golang v1.22.1 or later: https://golang.org/dl/
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. If using captive-core, download and install Stellar-Core v20.0.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
-4. Run `go install github.com/stellar/stellar-etl@latest` to install the ETL
+4. Run `go install github.com/stellar/stellar-etl/v2@latest` to install the ETL
 5. Run export commands to export information about the legder
 
 ## **Manual build for local development**
