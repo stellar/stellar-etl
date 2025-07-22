@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dgryski/go-farm"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/stellar/go/xdr"
 )
