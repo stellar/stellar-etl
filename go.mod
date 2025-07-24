@@ -1,4 +1,4 @@
-module github.com/stellar/stellar-etl
+module github.com/stellar/stellar-etl/v2
 
 go 1.23.4
 
