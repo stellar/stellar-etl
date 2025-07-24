@@ -1,20 +1,12 @@
 # **Stellar ETL**
 
+[![Apache 2.0 licensed](https://img.shields.io/badge/license-apache%202.0-blue.svg)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stellar/stellar-etl)
+
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
-
-## ** Before creating a branch **
-
-Pay attention, it is very important to know if your modification to this repository is a release (breaking changes), a feature (functionalities) or a patch(to fix bugs). With that information, create your branch name like this:
-
-- `major/<branch-name>`
-- `minor/<branch-name>`
-- `patch/<branch-name>`
-
-If branch is already made, just rename it _before passing the pull request_.
-
 ## **Table of Contents**
 
-- [Exporting the Ledger Chain](#exporting-the-ledger-chain)
+- [Install](#install)
 - [Command Reference](#command-reference)
   - [Export Commands](#export-commands)
     - [export_ledgers](#export_ledgers)
@@ -35,7 +27,7 @@ If branch is already made, just rename it _before passing the pull request_.
 
 ---
 
-# **Exporting the Ledger Chain**
+# Install
 
 ## **Docker**
 
