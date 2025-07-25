@@ -3,7 +3,7 @@ package input
 import (
 	"context"
 
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // GetLedgersHistoryArchive returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)

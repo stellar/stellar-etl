@@ -8,8 +8,8 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/ingest"
