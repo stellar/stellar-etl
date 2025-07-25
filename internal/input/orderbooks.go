@@ -120,7 +120,7 @@ func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) 
 
 // GetOfferChanges gets the offer changes that occurred between the firstSeq ledger and nextSeq ledger
 func GetOfferChanges(core *ledgerbackend.CaptiveStellarCore, env utils.EnvironmentDetails, firstSeq, nextSeq uint32) (*ingest.ChangeCompactor, error) {
-	offChanges := ingest.NewChangeCompactor()
+	offChanges := ingest.NewChangeCompactor(ingest.ChangeCompactorConfig{SuppressRemoveAfterRestoreChange: false})
 	ctx := context.Background()
 
 	for seq := firstSeq; seq <= nextSeq; {

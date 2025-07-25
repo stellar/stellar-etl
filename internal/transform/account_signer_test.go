@@ -24,8 +24,10 @@ func TestTransformAccountSigner(t *testing.T) {
 		wantErr    error
 	}
 
-	hardCodedInput := makeSignersTestInput()
-	hardCodedOutput := makeSignersTestOutput()
+	hardCodedInputRemovedEntry, _ := makeSignersTestInput(xdr.LedgerEntryChangeTypeLedgerEntryRemoved)
+	hardCodedOutputRemovedEntry, _ := makeSignersTestOutput(xdr.LedgerEntryChangeTypeLedgerEntryRemoved)
+	hardCodedInputRestoredEntry, _ := makeSignersTestInput(xdr.LedgerEntryChangeTypeLedgerEntryRestored)
+	hardCodedOutputRestoredEntry, _ := makeSignersTestOutput(xdr.LedgerEntryChangeTypeLedgerEntryRestored)
 
 	tests := []transformTest{
 		{
@@ -44,9 +46,15 @@ func TestTransformAccountSigner(t *testing.T) {
 		},
 		{
 			inputStruct{
-				hardCodedInput,
+				hardCodedInputRemovedEntry,
 			},
-			hardCodedOutput, nil,
+			hardCodedOutputRemovedEntry, nil,
+		},
+		{
+			inputStruct{
+				hardCodedInputRestoredEntry,
+			},
+			hardCodedOutputRestoredEntry, nil,
 		},
 	}
 
@@ -65,7 +73,30 @@ func TestTransformAccountSigner(t *testing.T) {
 	}
 }
 
-func makeSignersTestInput() ingest.Change {
+func makeSignersTestInput(changeType xdr.LedgerEntryChangeType) (ingest.Change, error) {
+	ledgerEntry := makeTestLedgerEntry()
+
+	switch changeType {
+	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
+		return ingest.Change{
+			ChangeType: changeType,
+			Type:       xdr.LedgerEntryTypeAccount,
+			Pre:        &ledgerEntry,
+			Post:       nil,
+		}, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
+		return ingest.Change{
+			ChangeType: changeType,
+			Type:       xdr.LedgerEntryTypeAccount,
+			Pre:        nil,
+			Post:       &ledgerEntry,
+		}, nil
+	default:
+		return ingest.Change{}, fmt.Errorf("unexpected changeType: %v", changeType)
+	}
+}
+
+func makeTestLedgerEntry() xdr.LedgerEntry {
 	sponsor, _ := xdr.AddressToAccountId("GBADGWKHSUFOC4C7E3KXKINZSRX5KPHUWHH67UGJU77LEORGVLQ3BN3B")
 
 	var ledgerEntry = xdr.LedgerEntry{
@@ -121,14 +152,23 @@ func makeSignersTestInput() ingest.Change {
 			},
 		},
 	}
-	return ingest.Change{
-		Type: xdr.LedgerEntryTypeAccount,
-		Pre:  &ledgerEntry,
-		Post: nil,
-	}
+	return ledgerEntry
 }
 
-func makeSignersTestOutput() []AccountSignerOutput {
+func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSignerOutput, error) {
+	var ledgerEntryChange uint32
+	var deleted bool
+	switch changeType {
+	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
+		ledgerEntryChange = 2
+		deleted = true
+	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
+		ledgerEntryChange = 4
+		deleted = false
+	default:
+		return []AccountSignerOutput{}, fmt.Errorf("unexpected changeType: %v", changeType)
+	}
+
 	return []AccountSignerOutput{
 		{
 			AccountID:          testAccount1ID.Address(),
@@ -136,8 +176,8 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			Weight:             2.0,
 			Sponsor:            null.String{},
 			LastModifiedLedger: 30705278,
-			LedgerEntryChange:  2,
-			Deleted:            true,
+			LedgerEntryChange:  ledgerEntryChange,
+			Deleted:            deleted,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		}, {
@@ -146,8 +186,8 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			Weight:             10.0,
 			Sponsor:            null.StringFrom("GBADGWKHSUFOC4C7E3KXKINZSRX5KPHUWHH67UGJU77LEORGVLQ3BN3B"),
 			LastModifiedLedger: 30705278,
-			LedgerEntryChange:  2,
-			Deleted:            true,
+			LedgerEntryChange:  ledgerEntryChange,
+			Deleted:            deleted,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		}, {
@@ -156,10 +196,10 @@ func makeSignersTestOutput() []AccountSignerOutput {
 			Weight:             20.0,
 			Sponsor:            null.String{},
 			LastModifiedLedger: 30705278,
-			LedgerEntryChange:  2,
-			Deleted:            true,
+			LedgerEntryChange:  ledgerEntryChange,
+			Deleted:            deleted,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		},
-	}
+	}, nil
 }

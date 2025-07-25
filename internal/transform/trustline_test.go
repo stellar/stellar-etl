@@ -28,8 +28,9 @@ func TestTransformTrustline(t *testing.T) {
 		{
 			inputStruct{
 				ingest.Change{
-					Type: xdr.LedgerEntryTypeOffer,
-					Pre:  nil,
+					ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+					Type:       xdr.LedgerEntryTypeOffer,
+					Pre:        nil,
 					Post: &xdr.LedgerEntry{
 						Data: xdr.LedgerEntryData{
 							Type: xdr.LedgerEntryTypeOffer,
@@ -111,14 +112,16 @@ func makeTrustlineTestInput() []ingest.Change {
 	}
 	return []ingest.Change{
 		{
-			Type: xdr.LedgerEntryTypeTrustline,
-			Pre:  &xdr.LedgerEntry{},
-			Post: &assetLedgerEntry,
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+			Type:       xdr.LedgerEntryTypeTrustline,
+			Pre:        &xdr.LedgerEntry{},
+			Post:       &assetLedgerEntry,
 		},
 		{
-			Type: xdr.LedgerEntryTypeTrustline,
-			Pre:  &xdr.LedgerEntry{},
-			Post: &lpLedgerEntry,
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+			Type:       xdr.LedgerEntryTypeTrustline,
+			Pre:        &xdr.LedgerEntry{},
+			Post:       &lpLedgerEntry,
 		},
 	}
 }

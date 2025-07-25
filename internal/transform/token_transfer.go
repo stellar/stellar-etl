@@ -12,14 +12,14 @@ import (
 )
 
 func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphrase string) ([]TokenTransferOutput, error) {
-	eventsProcessor := token_transfer.NewEventsProcessor(networkPassphrase)
+	eventsProcessor := token_transfer.NewEventsProcessorForUnifiedEvents(networkPassphrase)
 
 	events, err := eventsProcessor.EventsFromLedger(ledgerCloseMeta)
 	if err != nil {
 		return []TokenTransferOutput{}, err
 	}
 
-	err = token_transfer.VerifyEvents(ledgerCloseMeta, networkPassphrase)
+	err = token_transfer.VerifyEvents(ledgerCloseMeta, networkPassphrase, true)
 	if err != nil {
 		return []TokenTransferOutput{}, err
 	}

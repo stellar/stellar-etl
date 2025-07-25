@@ -23,8 +23,9 @@ func TestTransformTtl(t *testing.T) {
 	tests := []transformTest{
 		{
 			ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
+				ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+				Type:       xdr.LedgerEntryTypeOffer,
+				Pre:        nil,
 				Post: &xdr.LedgerEntry{
 					Data: xdr.LedgerEntryData{
 						Type: xdr.LedgerEntryTypeOffer,
@@ -85,9 +86,10 @@ func makeTtlTestInput() []ingest.Change {
 
 	return []ingest.Change{
 		{
-			Type: xdr.LedgerEntryTypeTtl,
-			Pre:  &preTtlLedgerEntry,
-			Post: &TtlLedgerEntry,
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+			Type:       xdr.LedgerEntryTypeTtl,
+			Pre:        &preTtlLedgerEntry,
+			Post:       &TtlLedgerEntry,
 		},
 	}
 }

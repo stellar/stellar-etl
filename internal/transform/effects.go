@@ -118,14 +118,16 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	case xdr.OperationTypeInvokeHostFunction:
 		// If there's an invokeHostFunction operation, there's definitely V3
 		// meta in the transaction, which means this error is real.
-		diagnosticEvents, innerErr := operation.transaction.GetDiagnosticEvents()
+		// TODO: Replace GetContractEvents with TransformContractEvent to get all the events
+		contractEvents, innerErr := operation.transaction.GetContractEvents()
+
 		if innerErr != nil {
 			return nil, innerErr
 		}
 
 		// For now, the only effects are related to the events themselves.
 		// Possible add'l work: https://github.com/stellar/go/issues/4585
-		err = wrapper.addInvokeHostFunctionEffects(filterEvents(diagnosticEvents))
+		err = wrapper.addInvokeHostFunctionEffects(contractEvents)
 	case xdr.OperationTypeExtendFootprintTtl:
 		err = wrapper.addExtendFootprintTtlEffect()
 	case xdr.OperationTypeRestoreFootprint:
@@ -133,6 +135,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	default:
 		return nil, fmt.Errorf("unknown operation type: %s", op.Body.Type)
 	}
+
 	if err != nil {
 		return nil, err
 	}
