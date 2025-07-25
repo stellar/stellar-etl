@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stellar/stellar-etl/internal/input"
+	"github.com/stellar/stellar-etl/v2/internal/input"
 
 	"github.com/spf13/cobra"
 )

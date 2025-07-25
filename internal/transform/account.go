@@ -6,7 +6,7 @@ import (
 	"github.com/guregu/null/zero"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // TransformAccount converts an account from the history archive ingestion system into a form suitable for BigQuery

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/stellar/stellar-etl/internal/transform"
+	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/writer"
 )
