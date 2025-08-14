@@ -107,7 +107,6 @@ func makeConfigSettingTestOutput() []ConfigSettingOutput {
 			TxMaxDiskReadBytes:                     0,
 			TxMaxWriteLedgerEntries:                0,
 			TxMaxWriteBytes:                        0,
-			TxMaxInMemoryReadEntries:               0,
 			FeeReadLedgerEntry:                     0,
 			FeeDiskReadLedgerEntry:                 0,
 			FeeWriteLedgerEntry:                    0,

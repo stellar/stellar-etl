@@ -363,7 +363,6 @@ func (cso ConfigSettingOutput) ToParquet() interface{} {
 		TxMaxDiskReadBytes:                     int64(cso.TxMaxDiskReadBytes),
 		TxMaxWriteLedgerEntries:                int64(cso.TxMaxWriteLedgerEntries),
 		TxMaxWriteBytes:                        int64(cso.TxMaxWriteBytes),
-		TxMaxInMemoryReadEntries:               int64(cso.TxMaxInMemoryReadEntries),
 		FeeReadLedgerEntry:                     cso.FeeReadLedgerEntry,
 		FeeDiskReadLedgerEntry:                 cso.FeeDiskReadLedgerEntry,
 		FeeWriteLedgerEntry:                    cso.FeeWriteLedgerEntry,

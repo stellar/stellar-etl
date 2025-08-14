@@ -45,7 +45,6 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 	txMaxDiskReadBytes := contractLedgerCost.TxMaxDiskReadBytes
 	txMaxWriteLedgerEntries := contractLedgerCost.TxMaxWriteLedgerEntries
 	txMaxWriteBytes := contractLedgerCost.TxMaxWriteBytes
-	txMaxInMemoryReadEntries := contractLedgerCostV0.TxMaxInMemoryReadEntries
 	feeReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
 	feeDiskReadLedgerEntry := contractLedgerCost.FeeDiskReadLedgerEntry
 	feeWriteLedgerEntry := contractLedgerCost.FeeWriteLedgerEntry
@@ -133,7 +132,6 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		TxMaxDiskReadBytes:                     uint32(txMaxDiskReadBytes),
 		TxMaxWriteLedgerEntries:                uint32(txMaxWriteLedgerEntries),
 		TxMaxWriteBytes:                        uint32(txMaxWriteBytes),
-		TxMaxInMemoryReadEntries:               uint32(txMaxInMemoryReadEntries),
 		FeeReadLedgerEntry:                     int64(feeReadLedgerEntry),
 		FeeDiskReadLedgerEntry:                 int64(feeDiskReadLedgerEntry),
 		FeeWriteLedgerEntry:                    int64(feeWriteLedgerEntry),

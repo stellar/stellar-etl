@@ -972,7 +972,7 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 // CreateDatastore creates the datastore to interface with GCS
 // TODO: this can be updated to use different cloud storage services in the future.
 // For now only GCS works datastore.Datastore.
-func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, error) {
+func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
 	// These params are specific for GCS
 	params := make(map[string]string)
 	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath + "/" + env.Network
@@ -987,7 +987,8 @@ func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.Dat
 		},
 	}
 
-	return datastore.NewDataStore(ctx, dataStoreConfig)
+	datastore, error := datastore.NewDataStore(ctx, dataStoreConfig)
+	return datastore, dataStoreConfig, error
 }
 
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
@@ -1002,7 +1003,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		return backend, nil
 	}
 
-	dataStore, err := CreateDatastore(ctx, env)
+	dataStore, datastoreConfig, err := CreateDatastore(ctx, env)
 	if err != nil {
 		return nil, err
 	}
@@ -1014,7 +1015,10 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		RetryWait:  time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
 	}
 
-	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore)
+	var schema datastore.DataStoreSchema
+	schema, err = datastore.LoadSchema(context.Background(), dataStore, datastoreConfig)
+
+	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore, schema)
 	if err != nil {
 		return nil, err
 	}

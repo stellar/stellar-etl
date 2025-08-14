@@ -580,7 +580,6 @@ type ConfigSettingOutput struct {
 	TxMaxDiskReadBytes                     uint32              `json:"tx_max_disk_read_bytes"`
 	TxMaxWriteLedgerEntries                uint32              `json:"tx_max_write_ledger_entries"`
 	TxMaxWriteBytes                        uint32              `json:"tx_max_write_bytes"`
-	TxMaxInMemoryReadEntries               uint32              `json:"tx_max_in_memory_read_entries"`
 	FeeReadLedgerEntry                     int64               `json:"fee_read_ledger_entry"`
 	FeeDiskReadLedgerEntry                 int64               `json:"fee_disk_read_ledger_entry"`
 	FeeWriteLedgerEntry                    int64               `json:"fee_write_ledger_entry"`
