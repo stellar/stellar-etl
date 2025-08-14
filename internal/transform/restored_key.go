@@ -3,7 +3,7 @@ package transform
 import (
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // TransformRestoredKey fetches keyhash from restored ledger change entry into a form suitable for BigQuery
