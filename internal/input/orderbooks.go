@@ -10,8 +10,8 @@ import (
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/stellar-etl/internal/transform"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/transform"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // OrderbookBatch represents a batch of orderbooks

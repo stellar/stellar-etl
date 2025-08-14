@@ -13,8 +13,8 @@ import (
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery

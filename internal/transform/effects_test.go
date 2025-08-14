@@ -14,8 +14,8 @@ import (
 	"github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/support/contractevents"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/suite"

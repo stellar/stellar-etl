@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stellar/go/ingest/ledgerbackend"
 	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/transform"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/input"
+	"github.com/stellar/stellar-etl/v2/internal/transform"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 var exportLedgerEntryChangesCmd = &cobra.Command{
