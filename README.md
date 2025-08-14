@@ -4,6 +4,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stellar/stellar-etl)
 
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
+
 ## **Table of Contents**
 
 - [Install](#install)
