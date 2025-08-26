@@ -681,6 +681,8 @@ github.com/stellar/go v0.0.0-20250814141936-1ccc2b074af6 h1:0cMxYd3GLZoun9MBM/Du
 github.com/stellar/go v0.0.0-20250814141936-1ccc2b074af6/go.mod h1:ac8hwpljbFXC3Sf9nGfqBXXEvAEdnNRqQHGqP7QN8oY=
 github.com/stellar/go-stellar-xdr-json v0.0.0-20250313212840-946095f42c76 h1:LSz1/3LGAFhf8M9ufxaNrh3Mf3SRBReQClI0RxF5Q60=
 github.com/stellar/go-stellar-xdr-json v0.0.0-20250313212840-946095f42c76/go.mod h1:UEZ6EvdC3Cou6N46OJ5SXvbWTlod8gOUI/CvhY1JVaM=
+github.com/stellar/go-stellar-xdr-json v0.0.0-20250826182913-ceea61fdd34a h1:kB1ruqqwqgNEzQyUTbvTHCZ/+VdC/NkMtN6yczFg5Mo=
+github.com/stellar/go-stellar-xdr-json v0.0.0-20250826182913-ceea61fdd34a/go.mod h1:UEZ6EvdC3Cou6N46OJ5SXvbWTlod8gOUI/CvhY1JVaM=
 github.com/stellar/go-xdr v0.0.0-20231122183749-b53fb00bcac2 h1:OzCVd0SV5qE3ZcDeSFCmOWLZfEWZ3Oe8KtmSOYKEVWE=
 github.com/stellar/go-xdr v0.0.0-20231122183749-b53fb00bcac2/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stellar/stellar-rpc v0.9.6-0.20250130160539-be7702aa01ba h1:fCKETMnEBI2CDo2cUDoZsJUpTnpK5H2aDFoCfozyzIM=
