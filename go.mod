@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.17.0
-	github.com/stellar/go v0.0.0-20250814141936-1ccc2b074af6
+	github.com/stellar/go v0.0.0-20250822224526-9397ce4b6da2
 	github.com/stellar/go-stellar-xdr-json v0.0.0-20250826185517-ee4033414d38
 	github.com/stretchr/testify v1.10.0
 	github.com/xitongsys/parquet-go v1.6.2
