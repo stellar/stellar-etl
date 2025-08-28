@@ -191,7 +191,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		// For P23 onwards, transaction meta v3 will be empty
 		metav4, ok := transaction.UnsafeMeta.GetV4()
 		if ok {
-			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(meta.TxChangesAfter, feeAccountAddress)
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(metav4.TxChangesAfter, feeAccountAddress)
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
 			if metav4.SorobanMeta != nil {
 				extV1, ok := metav4.SorobanMeta.Ext.GetV1()
