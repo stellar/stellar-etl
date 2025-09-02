@@ -1,6 +1,8 @@
 package transform
 
 import (
+	"fmt"
+
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
@@ -14,8 +16,9 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 	}
 
 	if changeType != xdr.LedgerEntryChangeTypeLedgerEntryRestored {
-		return RestoredKeyOutput{}, err
+		return RestoredKeyOutput{}, fmt.Errorf("expected change type to be LedgerEntryRestored, got %s", changeType.String())
 	}
+
 	key, err := ledgerEntry.LedgerKey()
 	if err != nil {
 		return RestoredKeyOutput{}, err

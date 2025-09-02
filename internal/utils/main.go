@@ -286,6 +286,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-contract-data", "", false, "set in order to export contract data changes")
 	flags.BoolP("export-config-settings", "", false, "set in order to export config settings changes")
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
+	flags.BoolP("export-restored-keys", "r", false, "set in order to export restored ledger keys")
 }
 
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
@@ -639,6 +640,7 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-contract-data":   false,
 		"export-config-settings": false,
 		"export-ttl":             false,
+		"export-restored-keys":   false,
 	}
 
 	for export_name := range exports {
