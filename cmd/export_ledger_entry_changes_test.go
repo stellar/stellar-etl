@@ -95,8 +95,8 @@ func TestExportChanges(t *testing.T) {
 		},
 		{
 			Name:              "restored keys from ledger entry",
-			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "327180", "-e", "327190", "-o", GotTestDir(t, "restored_keys/"), "--export-restored-keys", "true", "--testnet"},
-			Golden:            "restored_keys.golden",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "327180", "-e", "327190", "-o", GotTestDir(t, "restored_key/"), "--export-restored-keys", "true", "--testnet"},
+			Golden:            "restored_key.golden",
 			WantErr:           nil,
 			SortForComparison: true,
 		},
