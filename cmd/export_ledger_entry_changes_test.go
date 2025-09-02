@@ -93,6 +93,13 @@ func TestExportChanges(t *testing.T) {
 			WantErr:           nil,
 			SortForComparison: true,
 		},
+		{
+			Name:              "restored keys from ledger entry",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "327180", "-e", "327190", "-o", GotTestDir(t, "restored_keys/"), "--export-restored-keys", "true", "--testnet"},
+			Golden:            "restored_keys.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
 	}
 
 	for _, test := range tests {
