@@ -4,6 +4,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stellar/stellar-etl)
 
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
+
 ## **Table of Contents**
 
 - [Install](#install)
@@ -37,7 +38,7 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 
 ## **Manual Installation**
 
-1. Install Golang v1.22.1 or later: https://golang.org/dl/
+1. Install Golang v1.23.0 or later: https://golang.org/dl/
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. If using captive-core, download and install Stellar-Core v20.0.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
 4. Run `go install github.com/stellar/stellar-etl/v2@latest` to install the ETL

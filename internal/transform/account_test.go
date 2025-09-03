@@ -29,8 +29,9 @@ func TestTransformAccount(t *testing.T) {
 	tests := []transformTest{
 		{
 			inputStruct{ingest.Change{
-				Type: xdr.LedgerEntryTypeOffer,
-				Pre:  nil,
+				ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+				Type:       xdr.LedgerEntryTypeOffer,
+				Pre:        nil,
 				Post: &xdr.LedgerEntry{
 					Data: xdr.LedgerEntryData{
 						Type: xdr.LedgerEntryTypeOffer,
@@ -111,7 +112,8 @@ func TestTransformAccount(t *testing.T) {
 
 func wrapAccountEntry(accountEntry xdr.AccountEntry, lastModified int) ingest.Change {
 	return ingest.Change{
-		Type: xdr.LedgerEntryTypeAccount,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryRemoved,
+		Type:       xdr.LedgerEntryTypeAccount,
 		Pre: &xdr.LedgerEntry{
 			LastModifiedLedgerSeq: xdr.Uint32(lastModified),
 			Data: xdr.LedgerEntryData{
@@ -163,9 +165,10 @@ func makeAccountTestInput() ingest.Change {
 		},
 	}
 	return ingest.Change{
-		Type: xdr.LedgerEntryTypeAccount,
-		Pre:  &ledgerEntry,
-		Post: nil,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryRemoved,
+		Type:       xdr.LedgerEntryTypeAccount,
+		Pre:        &ledgerEntry,
+		Post:       nil,
 	}
 }
 
