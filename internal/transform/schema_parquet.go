@@ -377,3 +377,23 @@ type ContractEventOutputParquet struct {
 	DataDecoded              interface{}   `parquet:"name=data_decoded, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	ContractEventXDR         string        `parquet:"name=contract_event_xdr, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
+
+type TokenTransferOutputParquet struct {
+	TransactionHash string  `parquet:"name=transaction_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	TransactionID   int64   `parquet:"name=transaction_id, type=INT64"`
+	OperationID     int64   `parquet:"name=operation_id, type=INT64"`
+	EventTopic      string  `parquet:"name=event_topic, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	From            string  `parquet:"name=from, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	To              string  `parquet:"name=to, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Asset           string  `parquet:"name=asset, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	AssetType       string  `parquet:"name=asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	AssetCode       string  `parquet:"name=asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	AssetIssuer     string  `parquet:"name=asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	Amount          float64 `parquet:"name=amount, type=DOUBLE"`
+	AmountRaw       string  `parquet:"name=amount_raw, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ContractID      string  `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	LedgerSequence  int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	ClosedAt        int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ToMuxed         string  `parquet:"name=to_muxed, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ToMuxedID       string  `parquet:"name=to_muxed_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+}

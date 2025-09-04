@@ -421,3 +421,25 @@ func (ceo ContractEventOutput) ToParquet() interface{} {
 		ContractEventXDR:         ceo.ContractEventXDR,
 	}
 }
+
+func (tto TokenTransferOutput) ToParquet() interface{} {
+	return TokenTransferOutputParquet{
+		TransactionHash: tto.TransactionHash,
+		TransactionID:   tto.TransactionID,
+		OperationID:     tto.OperationID.Int64,
+		EventTopic:      tto.EventTopic,
+		From:            tto.From.String,
+		To:              tto.To.String,
+		Asset:           tto.Asset,
+		AssetType:       tto.AssetType,
+		AssetCode:       tto.AssetCode.String,
+		AssetIssuer:     tto.AssetIssuer.String,
+		Amount:          tto.Amount,
+		AmountRaw:       tto.AmountRaw,
+		ContractID:      tto.ContractID,
+		LedgerSequence:  int64(tto.LedgerSequence),
+		ClosedAt:        tto.ClosedAt.UnixMilli(),
+		ToMuxed:         tto.ToMuxed.String,
+		ToMuxedID:       tto.ToMuxedID.String,
+	}
+}

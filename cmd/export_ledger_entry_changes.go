@@ -254,6 +254,10 @@ func exportTransformedData(
 					transformedResource = append(transformedResource, v)
 					parquetSchema = new(transform.TtlOutputParquet)
 					skip = false
+				case transform.TokenTransferOutput:
+					transformedResource = append(transformedResource, v)
+					parquetSchema = new(transform.TokenTransferOutputParquet)
+					skip = false
 				}
 			}
 		}
