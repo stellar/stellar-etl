@@ -11,27 +11,30 @@ import (
 
 // LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
 type LedgerOutput struct {
-	Sequence                   uint32    `json:"sequence"` // sequence number of the ledger
-	LedgerHash                 string    `json:"ledger_hash"`
-	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
-	LedgerHeader               string    `json:"ledger_header"` // base 64 encoding of the ledger header
-	TransactionCount           int32     `json:"transaction_count"`
-	OperationCount             int32     `json:"operation_count"` // counts only operations that were a part of successful transactions
-	SuccessfulTransactionCount int32     `json:"successful_transaction_count"`
-	FailedTransactionCount     int32     `json:"failed_transaction_count"`
-	TxSetOperationCount        string    `json:"tx_set_operation_count"` // counts all operations, even those that are part of failed transactions
-	ClosedAt                   time.Time `json:"closed_at"`              // UTC timestamp
-	TotalCoins                 int64     `json:"total_coins"`
-	FeePool                    int64     `json:"fee_pool"`
-	BaseFee                    uint32    `json:"base_fee"`
-	BaseReserve                uint32    `json:"base_reserve"`
-	MaxTxSetSize               uint32    `json:"max_tx_set_size"`
-	ProtocolVersion            uint32    `json:"protocol_version"`
-	LedgerID                   int64     `json:"id"`
-	SorobanFeeWrite1Kb         int64     `json:"soroban_fee_write_1kb"`
-	NodeID                     string    `json:"node_id"`
-	Signature                  string    `json:"signature"`
-	TotalByteSizeOfBucketList  uint64    `json:"total_byte_size_of_bucket_list"`
+	Sequence                        uint32    `json:"sequence"` // sequence number of the ledger
+	LedgerHash                      string    `json:"ledger_hash"`
+	PreviousLedgerHash              string    `json:"previous_ledger_hash"`
+	LedgerHeader                    string    `json:"ledger_header"` // base 64 encoding of the ledger header
+	TransactionCount                int32     `json:"transaction_count"`
+	OperationCount                  int32     `json:"operation_count"` // counts only operations that were a part of successful transactions
+	SuccessfulTransactionCount      int32     `json:"successful_transaction_count"`
+	FailedTransactionCount          int32     `json:"failed_transaction_count"`
+	TxSetOperationCount             string    `json:"tx_set_operation_count"` // counts all operations, even those that are part of failed transactions
+	ClosedAt                        time.Time `json:"closed_at"`              // UTC timestamp
+	TotalCoins                      int64     `json:"total_coins"`
+	FeePool                         int64     `json:"fee_pool"`
+	BaseFee                         uint32    `json:"base_fee"`
+	BaseReserve                     uint32    `json:"base_reserve"`
+	MaxTxSetSize                    uint32    `json:"max_tx_set_size"`
+	ProtocolVersion                 uint32    `json:"protocol_version"`
+	LedgerID                        int64     `json:"id"`
+	SorobanFeeWrite1Kb              int64     `json:"soroban_fee_write_1kb"`
+	NodeID                          string    `json:"node_id"`
+	Signature                       string    `json:"signature"`
+	TotalByteSizeOfBucketList       uint64    `json:"total_byte_size_of_bucket_list"`
+	TotalByteSizeOfLiveSorobanState uint64    `json:"total_byte_size_of_live_soroban_state"`
+	EvictedLedgerKeysType           []string  `json:"evicted_ledger_keys_type"`
+	EvictedLedgerKeysHash           []string  `json:"evicted_ledger_keys_hash"`
 }
 
 // TransactionOutput is a representation of a transaction that aligns with the BigQuery table history_transactions
@@ -67,7 +70,9 @@ type TransactionOutput struct {
 	ResourceFee                          int64          `json:"resource_fee"`
 	SorobanResourcesInstructions         uint32         `json:"soroban_resources_instructions"`
 	SorobanResourcesReadBytes            uint32         `json:"soroban_resources_read_bytes"`
+	SorobanResourcesDiskReadBytes        uint32         `json:"soroban_resources_disk_read_bytes"`
 	SorobanResourcesWriteBytes           uint32         `json:"soroban_resources_write_bytes"`
+	SorobanResourcesArchivedEntries      []uint32       `json:"soroban_resources_archived_entries"`
 	TransactionResultCode                string         `json:"transaction_result_code"`
 	InclusionFeeBid                      int64          `json:"inclusion_fee_bid"`
 	InclusionFeeCharged                  int64          `json:"inclusion_fee_charged"`
@@ -557,54 +562,68 @@ type ContractCodeOutput struct {
 
 // ConfigSettingOutput is a representation of soroban config settings that aligns with the Bigquery table config_settings
 type ConfigSettingOutput struct {
-	ConfigSettingId                 int32               `json:"config_setting_id"`
-	ContractMaxSizeBytes            uint32              `json:"contract_max_size_bytes"`
-	LedgerMaxInstructions           int64               `json:"ledger_max_instructions"`
-	TxMaxInstructions               int64               `json:"tx_max_instructions"`
-	FeeRatePerInstructionsIncrement int64               `json:"fee_rate_per_instructions_increment"`
-	TxMemoryLimit                   uint32              `json:"tx_memory_limit"`
-	LedgerMaxReadLedgerEntries      uint32              `json:"ledger_max_read_ledger_entries"`
-	LedgerMaxReadBytes              uint32              `json:"ledger_max_read_bytes"`
-	LedgerMaxWriteLedgerEntries     uint32              `json:"ledger_max_write_ledger_entries"`
-	LedgerMaxWriteBytes             uint32              `json:"ledger_max_write_bytes"`
-	TxMaxReadLedgerEntries          uint32              `json:"tx_max_read_ledger_entries"`
-	TxMaxReadBytes                  uint32              `json:"tx_max_read_bytes"`
-	TxMaxWriteLedgerEntries         uint32              `json:"tx_max_write_ledger_entries"`
-	TxMaxWriteBytes                 uint32              `json:"tx_max_write_bytes"`
-	FeeReadLedgerEntry              int64               `json:"fee_read_ledger_entry"`
-	FeeWriteLedgerEntry             int64               `json:"fee_write_ledger_entry"`
-	FeeRead1Kb                      int64               `json:"fee_read_1kb"`
-	BucketListTargetSizeBytes       int64               `json:"bucket_list_target_size_bytes"`
-	WriteFee1KbBucketListLow        int64               `json:"write_fee_1kb_bucket_list_low"`
-	WriteFee1KbBucketListHigh       int64               `json:"write_fee_1kb_bucket_list_high"`
-	BucketListWriteFeeGrowthFactor  uint32              `json:"bucket_list_write_fee_growth_factor"`
-	FeeHistorical1Kb                int64               `json:"fee_historical_1kb"`
-	TxMaxContractEventsSizeBytes    uint32              `json:"tx_max_contract_events_size_bytes"`
-	FeeContractEvents1Kb            int64               `json:"fee_contract_events_1kb"`
-	LedgerMaxTxsSizeBytes           uint32              `json:"ledger_max_txs_size_bytes"`
-	TxMaxSizeBytes                  uint32              `json:"tx_max_size_bytes"`
-	FeeTxSize1Kb                    int64               `json:"fee_tx_size_1kb"`
-	ContractCostParamsCpuInsns      []map[string]string `json:"contract_cost_params_cpu_insns"`
-	ContractCostParamsMemBytes      []map[string]string `json:"contract_cost_params_mem_bytes"`
-	ContractDataKeySizeBytes        uint32              `json:"contract_data_key_size_bytes"`
-	ContractDataEntrySizeBytes      uint32              `json:"contract_data_entry_size_bytes"`
-	MaxEntryTtl                     uint32              `json:"max_entry_ttl"`
-	MinTemporaryTtl                 uint32              `json:"min_temporary_ttl"`
-	MinPersistentTtl                uint32              `json:"min_persistent_ttl"`
-	AutoBumpLedgers                 uint32              `json:"auto_bump_ledgers"`
-	PersistentRentRateDenominator   int64               `json:"persistent_rent_rate_denominator"`
-	TempRentRateDenominator         int64               `json:"temp_rent_rate_denominator"`
-	MaxEntriesToArchive             uint32              `json:"max_entries_to_archive"`
-	BucketListSizeWindowSampleSize  uint32              `json:"bucket_list_size_window_sample_size"`
-	EvictionScanSize                uint64              `json:"eviction_scan_size"`
-	StartingEvictionScanLevel       uint32              `json:"starting_eviction_scan_level"`
-	LedgerMaxTxCount                uint32              `json:"ledger_max_tx_count"`
-	BucketListSizeWindow            []uint64            `json:"bucket_list_size_window"`
-	LastModifiedLedger              uint32              `json:"last_modified_ledger"`
-	LedgerEntryChange               uint32              `json:"ledger_entry_change"`
-	Deleted                         bool                `json:"deleted"`
-	ClosedAt                        time.Time           `json:"closed_at"`
-	LedgerSequence                  uint32              `json:"ledger_sequence"`
+	ConfigSettingId                        int32               `json:"config_setting_id"`
+	ContractMaxSizeBytes                   uint32              `json:"contract_max_size_bytes"`
+	LedgerMaxInstructions                  int64               `json:"ledger_max_instructions"`
+	TxMaxInstructions                      int64               `json:"tx_max_instructions"`
+	FeeRatePerInstructionsIncrement        int64               `json:"fee_rate_per_instructions_increment"`
+	TxMemoryLimit                          uint32              `json:"tx_memory_limit"`
+	LedgerMaxReadLedgerEntries             uint32              `json:"ledger_max_read_ledger_entries"`
+	LedgerMaxDiskReadEntries               uint32              `json:"ledger_max_disk_read_entries"`
+	LedgerMaxReadBytes                     uint32              `json:"ledger_max_read_bytes"`
+	LedgerMaxDiskReadBytes                 uint32              `json:"ledger_max_disk_read_bytes"`
+	LedgerMaxWriteLedgerEntries            uint32              `json:"ledger_max_write_ledger_entries"`
+	LedgerMaxWriteBytes                    uint32              `json:"ledger_max_write_bytes"`
+	TxMaxReadLedgerEntries                 uint32              `json:"tx_max_read_ledger_entries"`
+	TxMaxDiskReadEntries                   uint32              `json:"tx_max_disk_read_entries"`
+	TxMaxReadBytes                         uint32              `json:"tx_max_read_bytes"`
+	TxMaxDiskReadBytes                     uint32              `json:"tx_max_disk_read_bytes"`
+	TxMaxWriteLedgerEntries                uint32              `json:"tx_max_write_ledger_entries"`
+	TxMaxWriteBytes                        uint32              `json:"tx_max_write_bytes"`
+	FeeReadLedgerEntry                     int64               `json:"fee_read_ledger_entry"`
+	FeeDiskReadLedgerEntry                 int64               `json:"fee_disk_read_ledger_entry"`
+	FeeWriteLedgerEntry                    int64               `json:"fee_write_ledger_entry"`
+	FeeRead1Kb                             int64               `json:"fee_read_1kb"`
+	FeeWrite1Kb                            int64               `json:"fee_write_1kb"`
+	FeeDiskRead1Kb                         int64               `json:"fee_disk_read_1kb"`
+	BucketListTargetSizeBytes              int64               `json:"bucket_list_target_size_bytes"`
+	SorobanStateTargetSizeBytes            int64               `json:"soroban_state_target_size_bytes"`
+	WriteFee1KbBucketListLow               int64               `json:"write_fee_1kb_bucket_list_low"`
+	RentFee1KBSorobanStateSizeLow          int64               `json:"rent_fee_1kb_soroban_state_size_low"`
+	WriteFee1KbBucketListHigh              int64               `json:"write_fee_1kb_bucket_list_high"`
+	RentFee1KBSorobanStateSizeHigh         int64               `json:"rent_fee_1kb_soroban_state_size_high"`
+	BucketListWriteFeeGrowthFactor         uint32              `json:"bucket_list_write_fee_growth_factor"`
+	SorobanStateRentFeeGrowthFactor        uint32              `json:"soroban_state_rent_fee_growth_factor"`
+	FeeHistorical1Kb                       int64               `json:"fee_historical_1kb"`
+	TxMaxContractEventsSizeBytes           uint32              `json:"tx_max_contract_events_size_bytes"`
+	FeeContractEvents1Kb                   int64               `json:"fee_contract_events_1kb"`
+	LedgerMaxTxsSizeBytes                  uint32              `json:"ledger_max_txs_size_bytes"`
+	TxMaxSizeBytes                         uint32              `json:"tx_max_size_bytes"`
+	FeeTxSize1Kb                           int64               `json:"fee_tx_size_1kb"`
+	ContractCostParamsCpuInsns             []map[string]string `json:"contract_cost_params_cpu_insns"`
+	ContractCostParamsMemBytes             []map[string]string `json:"contract_cost_params_mem_bytes"`
+	ContractDataKeySizeBytes               uint32              `json:"contract_data_key_size_bytes"`
+	ContractDataEntrySizeBytes             uint32              `json:"contract_data_entry_size_bytes"`
+	MaxEntryTtl                            uint32              `json:"max_entry_ttl"`
+	MinTemporaryTtl                        uint32              `json:"min_temporary_ttl"`
+	MinPersistentTtl                       uint32              `json:"min_persistent_ttl"`
+	AutoBumpLedgers                        uint32              `json:"auto_bump_ledgers"`
+	PersistentRentRateDenominator          int64               `json:"persistent_rent_rate_denominator"`
+	TempRentRateDenominator                int64               `json:"temp_rent_rate_denominator"`
+	MaxEntriesToArchive                    uint32              `json:"max_entries_to_archive"`
+	BucketListSizeWindowSampleSize         uint32              `json:"bucket_list_size_window_sample_size"`
+	LiveSorobanStateSizeWindowSampleSize   uint32              `json:"live_soroban_state_size_window_sample_size"`
+	LiveSorobanStateSizeWindowSamplePeriod uint32              `json:"live_soroban_state_size_window_sample_period"`
+	EvictionScanSize                       uint64              `json:"eviction_scan_size"`
+	StartingEvictionScanLevel              uint32              `json:"starting_eviction_scan_level"`
+	LedgerMaxTxCount                       uint32              `json:"ledger_max_tx_count"`
+	BucketListSizeWindow                   []uint64            `json:"bucket_list_size_window"`
+	LiveSorobanStateSizeWindow             []uint64            `json:"live_soroban_state_size_window"`
+	LastModifiedLedger                     uint32              `json:"last_modified_ledger"`
+	LedgerEntryChange                      uint32              `json:"ledger_entry_change"`
+	Deleted                                bool                `json:"deleted"`
+	ClosedAt                               time.Time           `json:"closed_at"`
+	LedgerSequence                         uint32              `json:"ledger_sequence"`
 }
 
 // TtlOutput is a representation of soroban ttl that aligns with the Bigquery table ttls
@@ -634,6 +653,7 @@ type ContractEventOutput struct {
 	Data                     interface{}   `json:"data"`
 	DataDecoded              interface{}   `json:"data_decoded"`
 	ContractEventXDR         string        `json:"contract_event_xdr"`
+	OperationID              null.Int      `json:"operation_id"`
 }
 
 type TokenTransferOutput struct {
@@ -654,4 +674,13 @@ type TokenTransferOutput struct {
 	ClosedAt        time.Time   `json:"closed_at"`
 	ToMuxed         null.String `json:"to_muxed"`
 	ToMuxedID       null.String `json:"to_muxed_id"`
+}
+
+// RestoredKeyOutput is a representation of a restored key that aligns with the BigQuery table restored_key
+type RestoredKeyOutput struct {
+	LedgerKeyHash      string    `json:"ledger_key_hash"`
+	LedgerEntryType    string    `json:"ledger_entry_type"`
+	LastModifiedLedger uint32    `json:"last_modified_ledger"`
+	ClosedAt           time.Time `json:"closed_at"`
+	LedgerSequence     uint32    `json:"ledger_sequence"`
 }

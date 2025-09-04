@@ -834,7 +834,7 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, err
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
-	switch changeType := change.LedgerEntryChangeType(); changeType {
+	switch changeType := change.ChangeType; changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
@@ -905,7 +905,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -917,7 +916,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
@@ -969,7 +967,7 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 // CreateDatastore creates the datastore to interface with GCS
 // TODO: this can be updated to use different cloud storage services in the future.
 // For now only GCS works datastore.Datastore.
-func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, error) {
+func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
 	// These params are specific for GCS
 	params := make(map[string]string)
 	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath + "/" + env.Network
@@ -984,7 +982,8 @@ func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.Dat
 		},
 	}
 
-	return datastore.NewDataStore(ctx, dataStoreConfig)
+	datastore, error := datastore.NewDataStore(ctx, dataStoreConfig)
+	return datastore, dataStoreConfig, error
 }
 
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
@@ -999,7 +998,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		return backend, nil
 	}
 
-	dataStore, err := CreateDatastore(ctx, env)
+	dataStore, datastoreConfig, err := CreateDatastore(ctx, env)
 	if err != nil {
 		return nil, err
 	}
@@ -1011,7 +1010,10 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		RetryWait:  time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
 	}
 
-	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore)
+	var schema datastore.DataStoreSchema
+	schema, _ = datastore.LoadSchema(context.Background(), dataStore, datastoreConfig)
+
+	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore, schema)
 	if err != nil {
 		return nil, err
 	}

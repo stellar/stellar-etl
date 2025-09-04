@@ -77,7 +77,6 @@ func makeContractEventTestOutput() (output [][]ContractEventOutput, err error) {
 func makeContractEventTestInput() (transaction []ingest.LedgerTransaction, historyHeader []xdr.LedgerHeaderHistoryEntry, err error) {
 	hardCodedMemoText := "HL5aCgozQHIW7sSc5XdcfmR"
 	hardCodedTransactionHash := xdr.Hash([32]byte{0xa8, 0x7f, 0xef, 0x5e, 0xeb, 0x26, 0x2, 0x69, 0xc3, 0x80, 0xf2, 0xde, 0x45, 0x6a, 0xad, 0x72, 0xb5, 0x9b, 0xb3, 0x15, 0xaa, 0xac, 0x77, 0x78, 0x60, 0x45, 0x6e, 0x9, 0xda, 0xc0, 0xba, 0xfb})
-	var hardCodedContractId xdr.Hash
 	hardCodedBool := true
 	hardCodedTxMetaV3 := xdr.TransactionMetaV3{
 		SorobanMeta: &xdr.SorobanTransactionMeta{
@@ -88,7 +87,7 @@ func makeContractEventTestInput() (transaction []ingest.LedgerTransaction, histo
 						Ext: xdr.ExtensionPoint{
 							V: 0,
 						},
-						ContractId: &hardCodedContractId,
+						ContractId: &xdr.ContractId{},
 						Type:       xdr.ContractEventTypeDiagnostic,
 						Body: xdr.ContractEventBody{
 							V: 0,

@@ -40,6 +40,7 @@ var ledgersCmd = &cobra.Command{
 		totalNumBytes := 0
 		var transformedLedgers []transform.SchemaParquet
 		for i, ledger := range ledgers {
+			fmt.Print(ledger.LCM)
 			transformed, err := transform.TransformLedger(ledger.Ledger, ledger.LCM)
 			if err != nil {
 				cmdLogger.LogError(fmt.Errorf("could not json transform ledger %d: %s", startNum+uint32(i), err))

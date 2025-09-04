@@ -2,8 +2,6 @@ package input
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"math"
 
 	"github.com/stellar/stellar-etl/internal/utils"
@@ -20,11 +18,13 @@ var (
 type LedgerChanges struct {
 	Changes       []ingest.Change
 	LedgerHeaders []xdr.LedgerHeaderHistoryEntry
+	LCM           xdr.LedgerCloseMeta
 }
 
 // ChangeBatch represents the changes in a batch of ledgers represented by the range [BatchStart, BatchEnd)
 type ChangeBatch struct {
 	Changes    map[xdr.LedgerEntryType]LedgerChanges
+	LCM        []xdr.LedgerCloseMeta
 	BatchStart uint32
 	BatchEnd   uint32
 }
@@ -37,7 +37,6 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -50,7 +49,6 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			Toml:               toml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
@@ -99,61 +97,28 @@ func extractBatch(
 		xdr.LedgerEntryTypeTtl}
 
 	ledgerChanges := map[xdr.LedgerEntryType]LedgerChanges{}
+	lcms := []xdr.LedgerCloseMeta{}
 	ctx := context.Background()
 	for seq := batchStart; seq <= batchEnd; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
 		for _, dt := range dataTypes {
-			changeCompactors[dt] = ingest.NewChangeCompactor()
+			changeCompactors[dt] = ingest.NewChangeCompactor(ingest.ChangeCompactorConfig{SuppressRemoveAfterRestoreChange: false})
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.
 		// Otherwise, nothing is incremented, and we try again on the next iteration of the loop
-		var header xdr.LedgerHeaderHistoryEntry
 		if seq <= batchEnd {
-			changeReader, err := ingest.NewLedgerChangeReader(ctx, *backend, env.NetworkPassphrase, seq)
-			if err != nil {
-				logger.Fatal(fmt.Sprintf("unable to create change reader for ledger %d: ", seq), err)
-			}
-			header = changeReader.LedgerTransactionReader.GetHeader()
-
-			for {
-				change, err := changeReader.Read()
-				if err == io.EOF {
-					break
-				}
-				if err != nil {
-					logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
-				}
-				cache, ok := changeCompactors[change.Type]
-				if !ok {
-					// TODO: once LedgerEntryTypeData is tracked as well, all types should be addressed,
-					// so this info log should be a warning.
-					// Skip LedgerEntryTypeData as we are intentionally not processing it
-					if change.Type != xdr.LedgerEntryTypeData {
-						logger.Infof("change type: %v not tracked", change.Type)
-					}
-				} else {
-					cache.AddChange(change)
-				}
-			}
-
-			changeReader.Close()
+			realBackend := *backend
+			lcm, _ := realBackend.GetLedger(ctx, seq)
+			lcms = append(lcms, lcm)
 			seq++
-		}
-
-		for dataType, compactor := range changeCompactors {
-			for _, change := range compactor.GetChanges() {
-				dataTypeChanges := ledgerChanges[dataType]
-				dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
-				dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
-				ledgerChanges[dataType] = dataTypeChanges
-			}
 		}
 
 	}
 
 	return ChangeBatch{
 		Changes:    ledgerChanges,
+		LCM:        lcms,
 		BatchStart: batchStart,
 		BatchEnd:   batchEnd,
 	}
