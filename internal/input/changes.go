@@ -122,6 +122,13 @@ func extractBatch(
 				if err != nil {
 					logger.Fatal(fmt.Sprintf("unable to read changes from ledger %d: ", seq), err)
 				}
+				if change.Type == xdr.LedgerEntryTypeContractData {
+					contractDataChanges := ledgerChanges[xdr.LedgerEntryTypeContractData]
+					contractDataChanges.Changes = append(contractDataChanges.Changes, change)
+					contractDataChanges.LedgerHeaders = append(contractDataChanges.LedgerHeaders, header)
+					ledgerChanges[xdr.LedgerEntryTypeContractData] = contractDataChanges
+				}
+
 				cache, ok := changeCompactors[change.Type]
 				if !ok {
 					// TODO: once LedgerEntryTypeData is tracked as well, all types should be addressed,
@@ -139,14 +146,14 @@ func extractBatch(
 			seq++
 		}
 
-		for dataType, compactor := range changeCompactors {
-			for _, change := range compactor.GetChanges() {
-				dataTypeChanges := ledgerChanges[dataType]
-				dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
-				dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
-				ledgerChanges[dataType] = dataTypeChanges
-			}
-		}
+		//for dataType, compactor := range changeCompactors {
+		//	for _, change := range compactor.GetChanges() {
+		//		dataTypeChanges := ledgerChanges[dataType]
+		//		dataTypeChanges.Changes = append(dataTypeChanges.Changes, change)
+		//		dataTypeChanges.LedgerHeaders = append(dataTypeChanges.LedgerHeaders, header)
+		//		ledgerChanges[dataType] = dataTypeChanges
+		//	}
+		//}
 
 	}
 
