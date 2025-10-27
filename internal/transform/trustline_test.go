@@ -59,7 +59,7 @@ func TestTransformTrustline(t *testing.T) {
 				LedgerSeq: 10,
 			},
 		}
-		actualOutput, actualError := TransformTrustline(test.input.ingest, header)
+		actualOutput, actualError := TransformTrustline(test.input.ingest, header, "test passphrase")
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -145,6 +145,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			Deleted:            false,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+			ContractId:         "CDTDW4NDEV7UNDX4P35Q2OCAP2EJCBFPIWQLNGXV2LNTOPRQ6AMFNGQ3",
 		},
 		{
 			LedgerKey:             "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",

@@ -7,11 +7,12 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
+	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
 )
 
 // TransformAsset converts an asset from a payment operation into a form suitable for BigQuery
-func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIndex int32, ledgerSeq int32, lcm xdr.LedgerCloseMeta) (AssetOutput, error) {
+func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIndex int32, ledgerSeq int32, lcm xdr.LedgerCloseMeta, passphrase string) (AssetOutput, error) {
 	operationID := toid.New(ledgerSeq, int32(transactionIndex), operationIndex).ToInt64()
 
 	opType := operation.Body.Type
@@ -37,7 +38,7 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 
 	}
 
-	outputAsset, err := transformSingleAsset(asset)
+	outputAsset, err := transformSingleAsset(asset, passphrase)
 	if err != nil {
 		return AssetOutput{}, fmt.Errorf("%s (id %d)", err.Error(), operationID)
 	}
@@ -52,7 +53,7 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 	return outputAsset, nil
 }
 
-func transformSingleAsset(asset xdr.Asset) (AssetOutput, error) {
+func transformSingleAsset(asset xdr.Asset, passphrase string) (AssetOutput, error) {
 	var outputAssetType, outputAssetCode, outputAssetIssuer string
 	err := asset.Extract(&outputAssetType, &outputAssetCode, &outputAssetIssuer)
 	if err != nil {
@@ -61,11 +62,22 @@ func transformSingleAsset(asset xdr.Asset) (AssetOutput, error) {
 
 	farmAssetID := FarmHashAsset(outputAssetCode, outputAssetIssuer, outputAssetType)
 
+	contractIdByte, err := asset.ContractID(passphrase)
+	if err != nil {
+		return AssetOutput{}, err
+	}
+
+	contractId, err := strkey.Encode(strkey.VersionByteContract, contractIdByte[:])
+	if err != nil {
+		return AssetOutput{}, err
+	}
+
 	return AssetOutput{
 		AssetCode:   outputAssetCode,
 		AssetIssuer: outputAssetIssuer,
 		AssetType:   outputAssetType,
 		AssetID:     farmAssetID,
+		ContractId:  contractId,
 	}, nil
 }
 

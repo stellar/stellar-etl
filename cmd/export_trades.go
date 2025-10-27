@@ -35,7 +35,7 @@ var tradesCmd = &cobra.Command{
 		totalNumBytes := 0
 		var transformedTrades []transform.SchemaParquet
 		for _, tradeInput := range trades {
-			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
+			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime, env.NetworkPassphrase)
 			if err != nil {
 				parsedID := toid.Parse(tradeInput.OperationHistoryID)
 				cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))

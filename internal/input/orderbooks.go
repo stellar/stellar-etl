@@ -34,9 +34,9 @@ type OrderbookParser struct {
 }
 
 // convertOffer converts an offer to its normalized form and adds it to the AllConvertedOffers
-func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.NormalizedOfferOutput, index int, offer ingest.Change, seq uint32, wg *sync.WaitGroup) {
+func (o *OrderbookParser) convertOffer(allConvertedOffers []transform.NormalizedOfferOutput, index int, offer ingest.Change, seq uint32, wg *sync.WaitGroup, passphrase string) {
 	defer wg.Done()
-	transformed, err := transform.TransformOfferNormalized(offer, seq)
+	transformed, err := transform.TransformOfferNormalized(offer, seq, passphrase)
 	if err != nil {
 		errorMsg := fmt.Errorf("error json marshalling offer #%d in ledger sequence number #%d: %s", index, seq, err)
 		o.Logger.LogError(errorMsg)
@@ -59,12 +59,12 @@ func NewOrderbookParser(logger *utils.EtlLogger) OrderbookParser {
 	}
 }
 
-func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32) {
+func (o *OrderbookParser) parseOrderbook(orderbook []ingest.Change, seq uint32, passphrase string) {
 	var group sync.WaitGroup
 	allConverted := make([]transform.NormalizedOfferOutput, len(orderbook))
 	for i, v := range orderbook {
 		group.Add(1)
-		go o.convertOffer(allConverted, i, v, seq, &group)
+		go o.convertOffer(allConverted, i, v, seq, &group, passphrase)
 	}
 
 	group.Wait()
@@ -237,7 +237,7 @@ func StreamOrderbooks(core *ledgerbackend.CaptiveStellarCore, start, end, batchS
 }
 
 // ReceiveParsedOrderbooks reads a batch from the orderbookChannel, parses it using an orderbook parser, and returns the parser.
-func ReceiveParsedOrderbooks(orderbookChannel chan OrderbookBatch, logger *utils.EtlLogger) *OrderbookParser {
+func ReceiveParsedOrderbooks(orderbookChannel chan OrderbookBatch, logger *utils.EtlLogger, passphrase string) *OrderbookParser {
 	batchParser := NewOrderbookParser(logger)
 	batchRead := false
 	for {
@@ -250,7 +250,7 @@ func ReceiveParsedOrderbooks(orderbookChannel chan OrderbookBatch, logger *utils
 			}
 
 			for seq, orderbook := range batch.Orderbooks {
-				batchParser.parseOrderbook(orderbook, seq)
+				batchParser.parseOrderbook(orderbook, seq, passphrase)
 			}
 
 			batchRead = true

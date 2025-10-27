@@ -18,7 +18,8 @@ func TestTransformAsset(t *testing.T) {
 		index     int32
 		txnIndex  int32
 		// transaction xdr.TransactionEnvelope
-		lcm xdr.LedgerCloseMeta
+		lcm        xdr.LedgerCloseMeta
+		passphrase string
 	}
 
 	type transformTest struct {
@@ -49,17 +50,19 @@ func TestTransformAsset(t *testing.T) {
 	for i, op := range hardCodedInputTransaction.Envelope.Operations() {
 		tests = append(tests, transformTest{
 			input: assetInput{
-				operation: op,
-				index:     int32(i),
-				txnIndex:  int32(i),
-				lcm:       genericLedgerCloseMeta},
+				operation:  op,
+				index:      int32(i),
+				txnIndex:   int32(i),
+				lcm:        genericLedgerCloseMeta,
+				passphrase: "test passphrase",
+			},
 			wantOutput: hardCodedOutputArray[i],
 			wantErr:    nil,
 		})
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformAsset(test.input.operation, test.input.index, test.input.txnIndex, 0, test.input.lcm)
+		actualOutput, actualError := TransformAsset(test.input.operation, test.input.index, test.input.txnIndex, 0, test.input.lcm, test.input.passphrase)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -110,6 +113,7 @@ func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 			AssetID:        -8205667356306085451,
 			ClosedAt:       time.Date(1970, time.January, 1, 0, 0, 10, 0, time.UTC),
 			LedgerSequence: 2,
+			ContractId:     "CCJCSP2CMLAWALLQ4ZBPML2EPYNN7AIC5COPC43PSDR6HZ3ZCVXUNL5M",
 		},
 		{
 			AssetCode:      "",
@@ -118,6 +122,7 @@ func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 			AssetID:        -5706705804583548011,
 			ClosedAt:       time.Date(1970, time.January, 1, 0, 0, 10, 0, time.UTC),
 			LedgerSequence: 2,
+			ContractId:     "CCCVYPOBCE4ZKFBTNRI465A7N2AT3YMLEWXEY5LN76O6NYCHYXYPVXY7",
 		},
 	}
 	return

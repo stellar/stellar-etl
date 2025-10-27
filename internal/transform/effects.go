@@ -433,7 +433,7 @@ func (e *effectsWrapper) addPaymentEffects() {
 	op := e.operation.operation.Body.MustPaymentOp()
 
 	details := map[string]interface{}{"amount": amount.String(op.Amount)}
-	addAssetDetails(details, op.Asset, "")
+	addAssetDetails(details, op.Asset, "", e.operation.network)
 
 	e.addMuxed(
 		&op.Destination,
@@ -453,7 +453,7 @@ func (e *effectsWrapper) pathPaymentStrictReceiveEffects() error {
 	source := e.operation.SourceAccount()
 
 	details := map[string]interface{}{"amount": amount.String(op.DestAmount)}
-	addAssetDetails(details, op.DestAsset, "")
+	addAssetDetails(details, op.DestAsset, "", e.operation.network)
 
 	e.addMuxed(
 		&op.Destination,
@@ -463,7 +463,7 @@ func (e *effectsWrapper) pathPaymentStrictReceiveEffects() error {
 
 	result := e.operation.OperationResult().MustPathPaymentStrictReceiveResult()
 	details = map[string]interface{}{"amount": amount.String(result.SendAmount())}
-	addAssetDetails(details, op.SendAsset, "")
+	addAssetDetails(details, op.SendAsset, "", e.operation.network)
 
 	e.addMuxed(
 		source,
@@ -481,11 +481,11 @@ func (e *effectsWrapper) addPathPaymentStrictSendEffects() error {
 	result := e.operation.OperationResult().MustPathPaymentStrictSendResult()
 
 	details := map[string]interface{}{"amount": amount.String(result.DestAmount())}
-	addAssetDetails(details, op.DestAsset, "")
+	addAssetDetails(details, op.DestAsset, "", e.operation.network)
 	e.addMuxed(&op.Destination, EffectAccountCredited, details)
 
 	details = map[string]interface{}{"amount": amount.String(op.SendAmount)}
-	addAssetDetails(details, op.SendAsset, "")
+	addAssetDetails(details, op.SendAsset, "", e.operation.network)
 	e.addMuxed(source, EffectAccountDebited, details)
 
 	return e.addIngestTradeEffects(*source, resultSuccess.Offers, true)
@@ -687,7 +687,7 @@ func (e *effectsWrapper) addChangeTrustEffects() error {
 				return err
 			}
 		} else {
-			addAssetDetails(details, op.Line.ToAsset(), "")
+			addAssetDetails(details, op.Line.ToAsset(), "", e.operation.network)
 		}
 
 		e.addMuxed(source, effect, details)
@@ -704,7 +704,7 @@ func (e *effectsWrapper) addAllowTrustEffects() error {
 	details := map[string]interface{}{
 		"trustor": op.Trustor.Address(),
 	}
-	addAssetDetails(details, asset, "")
+	addAssetDetails(details, asset, "", e.operation.network)
 
 	switch {
 	case xdr.TrustLineFlags(op.Authorize).IsAuthorized():
@@ -851,7 +851,7 @@ func (e *effectsWrapper) addCreateClaimableBalanceEffects(changes []ingest.Chang
 	details := map[string]interface{}{
 		"amount": amount.String(cb.Amount),
 	}
-	addAssetDetails(details, cb.Asset, "")
+	addAssetDetails(details, cb.Asset, "", e.operation.network)
 	e.addMuxed(
 		source,
 		EffectAccountDebited,
@@ -955,7 +955,7 @@ func (e *effectsWrapper) addClaimClaimableBalanceEffects(changes []ingest.Change
 	details = map[string]interface{}{
 		"amount": amount.String(cBalance.Amount),
 	}
-	addAssetDetails(details, cBalance.Asset, "")
+	addAssetDetails(details, cBalance.Asset, "", e.operation.network)
 	e.addMuxed(
 		source,
 		EffectAccountCredited,
@@ -984,7 +984,7 @@ func (e *effectsWrapper) addIngestTradeEffects(buyer xdr.MuxedAccount, claims []
 
 func (e *effectsWrapper) addClaimTradeEffects(buyer xdr.MuxedAccount, claim xdr.ClaimAtom, isPathPayment bool) {
 	seller := claim.SellerId()
-	bd, sd := tradeDetails(buyer, seller, claim)
+	bd, sd := tradeDetails(buyer, seller, claim, e.operation.network)
 
 	tradeEffects := []EffectType{
 		EffectTrade,
@@ -1039,7 +1039,7 @@ func (e *effectsWrapper) addClawbackEffects() error {
 		"amount": amount.String(op.Amount),
 	}
 	source := e.operation.SourceAccount()
-	addAssetDetails(details, op.Asset, "")
+	addAssetDetails(details, op.Asset, "", e.operation.network)
 
 	// The funds will be burned, but even with that, we generated an account credited effect
 	e.addMuxed(
@@ -1078,7 +1078,7 @@ func (e *effectsWrapper) addClawbackClaimableBalanceEffects(changes []ingest.Cha
 		if c.Type == xdr.LedgerEntryTypeClaimableBalance && c.Post == nil && c.Pre != nil {
 			cb := c.Pre.Data.ClaimableBalance
 			details = map[string]interface{}{"amount": amount.String(cb.Amount)}
-			addAssetDetails(details, cb.Asset, "")
+			addAssetDetails(details, cb.Asset, "", e.operation.network)
 			e.addMuxed(
 				source,
 				EffectAccountCredited,
@@ -1107,7 +1107,7 @@ func (e *effectsWrapper) addTrustLineFlagsEffect(
 	details := map[string]interface{}{
 		"trustor": trustor.Address(),
 	}
-	addAssetDetails(details, asset, "")
+	addAssetDetails(details, asset, "", e.operation.network)
 
 	var flagDetailsAdded bool
 	if setFlags != nil {
@@ -1226,15 +1226,15 @@ func setAuthFlagDetails(flagDetails map[string]interface{}, flags xdr.AccountFla
 	}
 }
 
-func tradeDetails(buyer xdr.MuxedAccount, seller xdr.AccountId, claim xdr.ClaimAtom) (bd map[string]interface{}, sd map[string]interface{}) {
+func tradeDetails(buyer xdr.MuxedAccount, seller xdr.AccountId, claim xdr.ClaimAtom, passphrase string) (bd map[string]interface{}, sd map[string]interface{}) {
 	bd = map[string]interface{}{
 		"offer_id":      claim.OfferId(),
 		"seller":        seller.Address(),
 		"bought_amount": amount.String(claim.AmountSold()),
 		"sold_amount":   amount.String(claim.AmountBought()),
 	}
-	addAssetDetails(bd, claim.AssetSold(), "bought_")
-	addAssetDetails(bd, claim.AssetBought(), "sold_")
+	addAssetDetails(bd, claim.AssetSold(), "bought_", passphrase)
+	addAssetDetails(bd, claim.AssetBought(), "sold_", passphrase)
 
 	sd = map[string]interface{}{
 		"offer_id":      claim.OfferId(),
@@ -1242,8 +1242,8 @@ func tradeDetails(buyer xdr.MuxedAccount, seller xdr.AccountId, claim xdr.ClaimA
 		"sold_amount":   amount.String(claim.AmountSold()),
 	}
 	addAccountAndMuxedAccountDetails(sd, buyer, "seller")
-	addAssetDetails(sd, claim.AssetBought(), "bought_")
-	addAssetDetails(sd, claim.AssetSold(), "sold_")
+	addAssetDetails(sd, claim.AssetBought(), "bought_", passphrase)
+	addAssetDetails(sd, claim.AssetSold(), "sold_", passphrase)
 
 	return
 }
@@ -1332,7 +1332,7 @@ func (e *effectsWrapper) addInvokeHostFunctionEffects(events []contractevents.Ev
 		}
 
 		details := make(map[string]interface{}, 4)
-		addAssetDetails(details, evt.GetAsset(), "")
+		addAssetDetails(details, evt.GetAsset(), "", e.operation.network)
 
 		//
 		// Note: We ignore effects that involve contracts (until the day we have

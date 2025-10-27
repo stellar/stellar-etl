@@ -174,6 +174,7 @@ var usdtAssetPath = Path{
 	AssetType:   "credit_alphanum4",
 	AssetCode:   "USDT",
 	AssetIssuer: testAccount4Address,
+	ContractId:  "CA374MGQ6KEYR55VBTK6LDM76PQA5QJQWFOAF4EBBNF7M77YZP5FAHJN",
 }
 
 var ethAsset = xdr.Asset{

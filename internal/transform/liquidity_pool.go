@@ -10,7 +10,7 @@ import (
 )
 
 // TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery
-func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (PoolOutput, error) {
+func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry, passphrase string) (PoolOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return PoolOutput{}, err
@@ -36,19 +36,15 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		return PoolOutput{}, fmt.Errorf("unknown liquidity pool type: %d", lp.Body.Type)
 	}
 
-	var assetAType, assetACode, assetAIssuer string
-	err = cp.Params.AssetA.Extract(&assetAType, &assetACode, &assetAIssuer)
+	assetAOutput, err := transformSingleAsset(cp.Params.AssetA, passphrase)
 	if err != nil {
 		return PoolOutput{}, err
 	}
-	assetAID := FarmHashAsset(assetACode, assetAIssuer, assetAType)
 
-	var assetBType, assetBCode, assetBIssuer string
-	err = cp.Params.AssetB.Extract(&assetBType, &assetBCode, &assetBIssuer)
+	assetBOutput, err := transformSingleAsset(cp.Params.AssetB, passphrase)
 	if err != nil {
 		return PoolOutput{}, err
 	}
-	assetBID := FarmHashAsset(assetBCode, assetBIssuer, assetBType)
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
 	if err != nil {
@@ -69,15 +65,15 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		PoolFee:            uint32(cp.Params.Fee),
 		TrustlineCount:     uint64(cp.PoolSharesTrustLineCount),
 		PoolShareCount:     utils.ConvertStroopValueToReal(cp.TotalPoolShares),
-		AssetAType:         assetAType,
-		AssetACode:         assetACode,
-		AssetAIssuer:       assetAIssuer,
-		AssetAID:           assetAID,
+		AssetAType:         assetAOutput.AssetType,
+		AssetACode:         assetAOutput.AssetCode,
+		AssetAIssuer:       assetAOutput.AssetIssuer,
+		AssetAID:           assetAOutput.AssetID,
 		AssetAReserve:      utils.ConvertStroopValueToReal(cp.ReserveA),
-		AssetBType:         assetBType,
-		AssetBCode:         assetBCode,
-		AssetBIssuer:       assetBIssuer,
-		AssetBID:           assetBID,
+		AssetBType:         assetBOutput.AssetType,
+		AssetBCode:         assetBOutput.AssetCode,
+		AssetBIssuer:       assetBOutput.AssetIssuer,
+		AssetBID:           assetBOutput.AssetID,
 		AssetBReserve:      utils.ConvertStroopValueToReal(cp.ReserveB),
 		LastModifiedLedger: uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:  uint32(changeType),
@@ -85,6 +81,8 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		ClosedAt:           closedAt,
 		LedgerSequence:     uint32(ledgerSequence),
 		PoolIDStrkey:       poolIDStrkey,
+		AssetAContractId:   assetAOutput.ContractId,
+		AssetBContractId:   assetBOutput.ContractId,
 	}
 	return transformedPool, nil
 }

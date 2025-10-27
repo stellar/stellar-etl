@@ -182,6 +182,8 @@ func (po PoolOutput) ToParquet() interface{} {
 		Deleted:            po.Deleted,
 		ClosedAt:           po.ClosedAt.UnixMilli(),
 		LedgerSequence:     int64(po.LedgerSequence),
+		AssetAContractId:   po.AssetAContractId,
+		AssetBContractId:   po.AssetBContractId,
 	}
 }
 
@@ -193,6 +195,7 @@ func (ao AssetOutput) ToParquet() interface{} {
 		AssetID:        ao.AssetID,
 		ClosedAt:       ao.ClosedAt.UnixMilli(),
 		LedgerSequence: int64(ao.LedgerSequence),
+		ContractId:     ao.ContractId,
 	}
 }
 
@@ -216,32 +219,35 @@ func (to TrustlineOutput) ToParquet() interface{} {
 		Deleted:            to.Deleted,
 		ClosedAt:           to.ClosedAt.UnixMilli(),
 		LedgerSequence:     int64(to.LedgerSequence),
+		ContractId:         to.ContractId,
 	}
 }
 
 func (oo OfferOutput) ToParquet() interface{} {
 	return OfferOutputParquet{
-		SellerID:           oo.SellerID,
-		OfferID:            oo.OfferID,
-		SellingAssetType:   oo.SellingAssetType,
-		SellingAssetCode:   oo.SellingAssetCode,
-		SellingAssetIssuer: oo.SellingAssetIssuer,
-		SellingAssetID:     oo.SellingAssetID,
-		BuyingAssetType:    oo.BuyingAssetType,
-		BuyingAssetCode:    oo.BuyingAssetCode,
-		BuyingAssetIssuer:  oo.BuyingAssetIssuer,
-		BuyingAssetID:      oo.BuyingAssetID,
-		Amount:             oo.Amount,
-		PriceN:             oo.PriceN,
-		PriceD:             oo.PriceD,
-		Price:              oo.Price,
-		Flags:              int64(oo.Flags),
-		LastModifiedLedger: int64(oo.LastModifiedLedger),
-		LedgerEntryChange:  int64(oo.LedgerEntryChange),
-		Deleted:            oo.Deleted,
-		Sponsor:            oo.Sponsor.String,
-		ClosedAt:           oo.ClosedAt.UnixMilli(),
-		LedgerSequence:     int64(oo.LedgerSequence),
+		SellerID:               oo.SellerID,
+		OfferID:                oo.OfferID,
+		SellingAssetType:       oo.SellingAssetType,
+		SellingAssetCode:       oo.SellingAssetCode,
+		SellingAssetIssuer:     oo.SellingAssetIssuer,
+		SellingAssetID:         oo.SellingAssetID,
+		BuyingAssetType:        oo.BuyingAssetType,
+		BuyingAssetCode:        oo.BuyingAssetCode,
+		BuyingAssetIssuer:      oo.BuyingAssetIssuer,
+		BuyingAssetID:          oo.BuyingAssetID,
+		Amount:                 oo.Amount,
+		PriceN:                 oo.PriceN,
+		PriceD:                 oo.PriceD,
+		Price:                  oo.Price,
+		Flags:                  int64(oo.Flags),
+		LastModifiedLedger:     int64(oo.LastModifiedLedger),
+		LedgerEntryChange:      int64(oo.LedgerEntryChange),
+		Deleted:                oo.Deleted,
+		Sponsor:                oo.Sponsor.String,
+		ClosedAt:               oo.ClosedAt.UnixMilli(),
+		LedgerSequence:         int64(oo.LedgerSequence),
+		SellingAssetContractId: oo.SellingAssetContractId,
+		BuyingAssetContractId:  oo.BuyingAssetContractId,
 	}
 }
 
@@ -271,6 +277,8 @@ func (to TradeOutput) ToParquet() interface{} {
 		TradeType:              to.TradeType,
 		RoundingSlippage:       to.RoundingSlippage.Int64,
 		SellerIsExact:          to.SellerIsExact.Bool,
+		SellingAssetContractId: to.SellingAssetContractId,
+		BuyingAssetContractId:  to.BuyingAssetContractId,
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 )
 
 // TransformTrustline converts a trustline from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (TrustlineOutput, error) {
+func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry, passphrase string) (TrustlineOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return TrustlineOutput{}, err
@@ -31,7 +31,9 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 		return TrustlineOutput{}, err
 	}
 
-	var assetType, outputAssetCode, outputAssetIssuer, poolID, poolIDStrkey string
+	// Using separate asset variables instead of the AssetOutput struct to make the final TrustlineOutput struct
+	// construction easiser to populate.
+	var assetType, outputAssetCode, outputAssetIssuer, poolID, poolIDStrkey, contractId string
 
 	asset := trustEntry.Asset
 
@@ -49,9 +51,25 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 		poolID = PoolIDToString(trustEntry.Asset.MustLiquidityPoolId())
 		assetType = "pool_share"
 	} else {
+		// TODO: We could write a wrapper for extracting and converting xdr.TrustlineAsset into xdr.Asset
+		// but we can do that when we see the need to do this conversion in multiple places instead of only
+		// in the trustline transform.
 		if err = asset.Extract(&assetType, &outputAssetCode, &outputAssetIssuer); err != nil {
 			return TrustlineOutput{}, errors.Wrap(err, fmt.Sprintf("could not parse asset for trustline with account %s", outputAccountID))
 		}
+
+		nonPoolAsset := xdr.Asset{
+			Type:       asset.Type,
+			AlphaNum4:  asset.AlphaNum4,
+			AlphaNum12: asset.AlphaNum12,
+		}
+
+		assetOutput, err := transformSingleAsset(nonPoolAsset, passphrase)
+		if err != nil {
+			return TrustlineOutput{}, err
+		}
+
+		contractId = assetOutput.ContractId
 	}
 
 	outputAssetID := FarmHashAsset(outputAssetCode, outputAssetIssuer, asset.Type.String())
@@ -85,6 +103,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 		ClosedAt:              closedAt,
 		LedgerSequence:        uint32(ledgerSequence),
 		LiquidityPoolIDStrkey: poolIDStrkey,
+		ContractId:            contractId,
 	}
 
 	return transformedTrustline, nil
