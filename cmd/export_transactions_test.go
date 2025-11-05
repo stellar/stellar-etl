@@ -33,7 +33,7 @@ func TestExportTransactions(t *testing.T) {
 		{
 			Name:    "ledger with fee bump transaction",
 			Args:    []string{"export_transactions", "-s", "59699270", "-e", "59699271", "-o", GotTestDir(t, "ledger_fee_bump.txt")},
-			Golden:  "ledger_no_txs.golden",
+			Golden:  "ledger_fee_bump.golden",
 			WantErr: nil,
 		},
 	}
