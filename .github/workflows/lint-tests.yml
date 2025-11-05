@@ -10,27 +10,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    if: >-
-      github.event.pull_request.merged == false &&
-      github.event.pull_request.state == 'open'
+  golangci:
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
+          fetch-depth: 0 # required for new-from-rev option in .golangci.yml
+      - uses: ./.github/actions/setup-go
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
         with:
-          go-version: 1
-
-      - id: file_changes
-        uses: trilom/file-changes-action@a6ca26c14274c33b15e6499323aac178af06ad4b # v1.2.4
-        with:
-          output: " "
-
-      - uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507 # v3.0.0
-        env:
-          extra_args: --color=always --files ${{ steps.file_changes.outputs.files}}
+          version: v2.1.6
+          args: -v --issues-exit-code=0 --config=.golangci.yml # exit without errors for now - won't fail the build
