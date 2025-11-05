@@ -174,6 +174,8 @@ func GetTransactionSet(transactionEntry historyarchive.Ledger) (transactionProce
 	default:
 		panic(fmt.Sprintf("Unsupported TransactionHistoryEntry.Ext: %d", transactionEntry.Transaction.Ext.V))
 	}
+
+	return
 }
 
 func getTransactionPhase(transactionPhase []xdr.TransactionPhase) (transactionEnvelope []xdr.TransactionEnvelope) {

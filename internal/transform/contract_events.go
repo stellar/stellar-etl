@@ -76,6 +76,8 @@ func getEventTopics(eventBody xdr.ContractEventBody) []xdr.ScVal {
 	default:
 		panic("unsupported event body version: " + string(eventBody.V))
 	}
+
+	return []xdr.ScVal{}
 }
 
 // TODO this should be a stellar/go/xdr function
@@ -87,6 +89,8 @@ func getEventData(eventBody xdr.ContractEventBody) xdr.ScVal {
 	default:
 		panic("unsupported event body version: " + string(eventBody.V))
 	}
+
+	return xdr.ScVal{}
 }
 
 func serializeScVal(scVal xdr.ScVal) (interface{}, interface{}, error) {

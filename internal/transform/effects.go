@@ -12,7 +12,7 @@ import (
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon/base"
+	"github.com/stellar/go/protocols/horizon/base" //nolint:all
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/support/contractevents"
 	"github.com/stellar/go/support/errors"
