@@ -163,7 +163,11 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
 		outputSorobanResourcesDiskReadBytes = uint32(sorobanData.Resources.DiskReadBytes)
 		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
-		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		if transaction.Envelope.IsFeeBump() {
+			outputInclusionFeeBid = int64(transaction.Envelope.FeeBumpFee()) - outputResourceFee
+		} else {
+			outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		}
 		if sorobanData.Ext.ResourceExt != nil {
 			for _, entry := range sorobanData.Ext.ResourceExt.ArchivedSorobanEntries {
 				outputSorobanArchivedEntries = append(outputSorobanArchivedEntries, uint32(entry))
