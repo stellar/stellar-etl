@@ -110,17 +110,17 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			TxSigners:                     []string{"GD2GXC24XWOM6T2UHABEMSYW5UZGJ4U7WEN7AQT2WYW32TQFP4ND3M7O4VGCBTT2BWNILFEVDX5DBBBMK2RTQIBMJNL6F62MAQ53NBAIXUDA"},
 		},
 		{
-			TxEnvelope:                    "AAAABQAAAQAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHCAAAAACAAAAAIjhprSlcVKPqp8m4g5svD/nPK6AtEZjDFvvAVKvcH14AAAAAAIU9jYAAAB9AAAAAQAAAAAAAAAAAAAAAF8Gq3QAAAABAAAAF0hMNWFDZ296UUhJVzdzU2M1WGRjZm1SAAAAAAEAAAABAAAAABxHQZcY7vqkWzjLfy8lUBqeOcuDh6Y26fvMDHSkdwMYAAAAAgAAAAAAAAAAAAAAAAAAAAABAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABY0KvjwAAAED0a4tcvZzPT1Q4AkZLFu0yZPKfsRvwQnq2Lb1OBX8aPbPu5UwgznoNmoWUlR36MIQsVqM4ICxLV+L7TAQ7toQI",
+			TxEnvelope:                    "AAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwgAAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAACFPY2AAAAfQAAAAEAAAAAAAAAAAAAAABfBqt0AAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPoAAAAAAAAAAAAAAABY0KvjwAAAED0a4tcvZzPT1Q4AkZLFu0yZPKfsRvwQnq2Lb1OBX8aPbPu5UwgznoNmoWUlR36MIQsVqM4ICxLV+L7TAQ7toQI",
 			TxResult:                      "AAAAAAAAASwAAAABqH/vXusmAmnDgPLeRWqtcrWbsxWqrHd4YEVuCdrAuvsAAAAAAAAAZAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 			TxMeta:                        "AAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAAA",
-			TxFeeMeta:                     "AAAAAA==",
+			TxFeeMeta:                     "AAAAAgAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 			TransactionHash:               "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 			LedgerSequence:                30521817,
 			TransactionID:                 131090205829500928,
 			Account:                       testAccount1Address,
 			AccountSequence:               150015399398735997,
 			MaxFee:                        0,
-			FeeCharged:                    300,
+			FeeCharged:                    1000,
 			OperationCount:                1,
 			CreatedAt:                     correctTime,
 			MemoType:                      "MemoTypeMemoText",
@@ -129,16 +129,18 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			Successful:                    true,
 			InnerTransactionHash:          "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 			FeeAccount:                    testAccount5Address,
-			FeeAccountMuxed:               "MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFNZG",
+			FeeAccountMuxed:               "",
 			NewMaxFee:                     7200,
 			ClosedAt:                      time.Date(2020, time.July, 9, 5, 28, 42, 0, time.UTC),
-			ResourceFee:                   0,
+			ResourceFee:                   1000,
 			SorobanResourcesInstructions:  0,
 			SorobanResourcesReadBytes:     0,
 			SorobanResourcesDiskReadBytes: 0,
 			SorobanResourcesWriteBytes:    0,
 			TransactionResultCode:         "TransactionResultCodeTxFeeBumpInnerSuccess", //inner fee bump success
 			TxSigners:                     []string{"GD2GXC24XWOM6T2UHABEMSYW5UZGJ4U7WEN7AQT2WYW32TQFP4ND3M7O4VGCBTT2BWNILFEVDX5DBBBMK2RTQIBMJNL6F62MAQ53NBAIXUDA"},
+			InclusionFeeBid:               6200,
+			InclusionFeeCharged:           50,
 		},
 		{
 			TxEnvelope:                    "AAAAAgAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAGQBpLyvsiV6gwAAAAIAAAABAAAAAAAAAAAAAAAAXwardAAAAAEAAAAFAAAACgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAMCAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFjQq+PAAAAQPRri1y9nM9PVDgCRksW7TJk8p+xG/BCerYtvU4Ffxo9s+7lTCDOeg2ahZSVHfowhCxWozggLEtX4vtMBDu2hAg=",
@@ -294,6 +296,12 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 											},
 										},
 									},
+									Ext: xdr.TransactionExt{
+										V: 1,
+										SorobanData: &xdr.SorobanTransactionData{
+											ResourceFee: 1000,
+										},
+									},
 								},
 							},
 						},
@@ -329,6 +337,32 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							},
 						},
 						Results: &[]xdr.OperationResult{{}},
+					},
+				},
+			},
+			FeeChanges: xdr.LedgerEntryChanges{
+				xdr.LedgerEntryChange{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+					State: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   1100,
+							},
+						},
+					},
+				},
+				xdr.LedgerEntryChange{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+					Updated: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   50,
+							},
+						},
 					},
 				},
 			},
