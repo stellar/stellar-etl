@@ -1,6 +1,6 @@
 module github.com/stellar/stellar-etl/v2
 
-go 1.25
+go 1.24.0
 
 require (
 	cloud.google.com/go/storage v1.42.0
