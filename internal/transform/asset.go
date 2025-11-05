@@ -3,7 +3,7 @@ package transform
 import (
 	"fmt"
 
-	"github.com/dgryski/go-farm"
+	farm "github.com/dgryski/go-farm"
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
