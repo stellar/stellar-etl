@@ -42,7 +42,7 @@ var assetsCmd = &cobra.Command{
 		totalNumBytes := 0
 		var transformedAssets []transform.SchemaParquet
 		for _, transformInput := range paymentOps {
-			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.TransactionIndex, transformInput.LedgerSeqNum, transformInput.LedgerCloseMeta)
+			transformed, err := transform.TransformAsset(transformInput.Operation, transformInput.OperationIndex, transformInput.TransactionIndex, transformInput.LedgerSeqNum, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
 			if err != nil {
 				txIndex := transformInput.TransactionIndex
 				cmdLogger.LogError(fmt.Errorf("could not extract asset from operation %d in transaction %d in ledger %d: ", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum))

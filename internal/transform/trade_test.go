@@ -19,6 +19,7 @@ func TestTransformTrade(t *testing.T) {
 		index       int32
 		transaction ingest.LedgerTransaction
 		closeTime   time.Time
+		passphrase  string
 	}
 	type transformTest struct {
 		input      tradeInput
@@ -169,7 +170,7 @@ func TestTransformTrade(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrade(test.input.index, 100, test.input.transaction, test.input.closeTime)
+		actualOutput, actualError := TransformTrade(test.input.index, 100, test.input.transaction, test.input.closeTime, test.input.passphrase)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -719,48 +720,52 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 
 func makeTradeTestOutput() [][]TradeOutput {
 	offerOneOutput := TradeOutput{
-		Order:                 0,
-		LedgerClosedAt:        genericCloseTime,
-		SellingAccountAddress: testAccount1Address,
-		SellingAssetCode:      "ETH",
-		SellingAssetIssuer:    testAccount3Address,
-		SellingAssetType:      "credit_alphanum4",
-		SellingAssetID:        4476940172956910889,
-		SellingAmount:         13300347 * 0.0000001,
-		BuyingAccountAddress:  testAccount3Address,
-		BuyingAssetCode:       "USDT",
-		BuyingAssetIssuer:     testAccount4Address,
-		BuyingAssetType:       "credit_alphanum4",
-		BuyingAssetID:         -8205667356306085451,
-		BuyingAmount:          12634 * 0.0000001,
-		PriceN:                12634,
-		PriceD:                13300347,
-		SellingOfferID:        null.IntFrom(97684906),
-		BuyingOfferID:         null.IntFrom(4611686018427388005),
-		HistoryOperationID:    101,
-		TradeType:             1,
+		Order:                  0,
+		LedgerClosedAt:         genericCloseTime,
+		SellingAccountAddress:  testAccount1Address,
+		SellingAssetCode:       "ETH",
+		SellingAssetIssuer:     testAccount3Address,
+		SellingAssetType:       "credit_alphanum4",
+		SellingAssetID:         4476940172956910889,
+		SellingAmount:          13300347 * 0.0000001,
+		BuyingAccountAddress:   testAccount3Address,
+		BuyingAssetCode:        "USDT",
+		BuyingAssetIssuer:      testAccount4Address,
+		BuyingAssetType:        "credit_alphanum4",
+		BuyingAssetID:          -8205667356306085451,
+		BuyingAmount:           12634 * 0.0000001,
+		PriceN:                 12634,
+		PriceD:                 13300347,
+		SellingOfferID:         null.IntFrom(97684906),
+		BuyingOfferID:          null.IntFrom(4611686018427388005),
+		HistoryOperationID:     101,
+		TradeType:              1,
+		SellingAssetContractId: "CB3BEFUUYP7WRI7LIUDQWD5KTXZXD7OAWK52RTULOXCIY5BE46VVVZAF",
+		BuyingAssetContractId:  "CA374MGQ6KEYR55VBTK6LDM76PQA5QJQWFOAF4EBBNF7M77YZP5FAHJN",
 	}
 	offerTwoOutput := TradeOutput{
-		Order:                 0,
-		LedgerClosedAt:        genericCloseTime,
-		SellingAccountAddress: testAccount3Address,
-		SellingAssetCode:      "USDT",
-		SellingAssetIssuer:    testAccount4Address,
-		SellingAssetType:      "credit_alphanum4",
-		SellingAssetID:        -8205667356306085451,
-		SellingAmount:         500 * 0.0000001,
-		BuyingAccountAddress:  testAccount3Address,
-		BuyingAssetCode:       "",
-		BuyingAssetIssuer:     "",
-		BuyingAssetType:       "native",
-		BuyingAssetID:         -5706705804583548011,
-		BuyingAmount:          20 * 0.0000001,
-		PriceN:                25,
-		PriceD:                1,
-		SellingOfferID:        null.IntFrom(86106895),
-		BuyingOfferID:         null.IntFrom(4611686018427388005),
-		HistoryOperationID:    101,
-		TradeType:             1,
+		Order:                  0,
+		LedgerClosedAt:         genericCloseTime,
+		SellingAccountAddress:  testAccount3Address,
+		SellingAssetCode:       "USDT",
+		SellingAssetIssuer:     testAccount4Address,
+		SellingAssetType:       "credit_alphanum4",
+		SellingAssetID:         -8205667356306085451,
+		SellingAmount:          500 * 0.0000001,
+		BuyingAccountAddress:   testAccount3Address,
+		BuyingAssetCode:        "",
+		BuyingAssetIssuer:      "",
+		BuyingAssetType:        "native",
+		BuyingAssetID:          -5706705804583548011,
+		BuyingAmount:           20 * 0.0000001,
+		PriceN:                 25,
+		PriceD:                 1,
+		SellingOfferID:         null.IntFrom(86106895),
+		BuyingOfferID:          null.IntFrom(4611686018427388005),
+		HistoryOperationID:     101,
+		TradeType:              1,
+		SellingAssetContractId: "CA374MGQ6KEYR55VBTK6LDM76PQA5QJQWFOAF4EBBNF7M77YZP5FAHJN",
+		BuyingAssetContractId:  "CB2HF7THKN3V25XQ23URFTQYZTN5ZKZTCY4CEQDVPFFSWREE4DX7C2FI",
 	}
 
 	lPOneOutput := TradeOutput{
@@ -787,6 +792,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		RoundingSlippage:             null.IntFrom(0),
 		SellerIsExact:                null.BoolFrom(false),
 		SellingLiquidityPoolIDStrkey: null.StringFrom("LACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGOE"),
+		SellingAssetContractId:       "CB72Y2ITZOX6WAL3BGPWC5PY6J23LP7HY5VDBSYWRRL26XTTJXVEJ7FG",
+		BuyingAssetContractId:        "CBYGYI4BBA5JGMLTJK4GPKXUGVGGJLWB76US3VUWMHZZ26FYRUPBCHWD",
 	}
 
 	lPTwoOutput := TradeOutput{
@@ -813,6 +820,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 		RoundingSlippage:             null.IntFrom(9223372036854775807),
 		SellerIsExact:                null.BoolFrom(true),
 		SellingLiquidityPoolIDStrkey: null.StringFrom("LAAQEAYEAUDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABUTF"),
+		SellingAssetContractId:       "CCR5HNZO2UWNN75EERXCXRDTD34NP4Z4HAIHPG4ML2CHCDATMTIJDRBZ",
+		BuyingAssetContractId:        "CA3CL5YLHO5C4M2OEKAPMMURG64FPAFYUMDFCBDENQQELPW5KNGB74DH",
 	}
 
 	onePriceIsAmount := offerOneOutput

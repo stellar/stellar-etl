@@ -12,8 +12,9 @@ import (
 
 func TestTransformOfferNormalized(t *testing.T) {
 	type testInput struct {
-		change ingest.Change
-		ledger uint32
+		change     ingest.Change
+		ledger     uint32
+		passphrase string
 	}
 	type transformTest struct {
 		input      testInput
@@ -44,19 +45,19 @@ func TestTransformOfferNormalized(t *testing.T) {
 					},
 				},
 				Post: nil,
-			}, 100},
+			}, 100, "test passphrase"},
 			wantOutput: NormalizedOfferOutput{},
 			wantErr:    fmt.Errorf("offer 0 is deleted"),
 		},
 		{
-			input:      testInput{hardCodedInput, 100},
+			input:      testInput{hardCodedInput, 100, "test passphrase"},
 			wantOutput: hardCodedOutput,
 			wantErr:    nil,
 		},
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformOfferNormalized(test.input.change, test.input.ledger)
+		actualOutput, actualError := TransformOfferNormalized(test.input.change, test.input.ledger, test.input.passphrase)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}

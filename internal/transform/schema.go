@@ -166,6 +166,7 @@ type ClaimableBalanceOutput struct {
 	ClosedAt           time.Time   `json:"closed_at"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
 	BalanceIDStrkey    string      `json:"balance_id_strkey"`
+	ContractId         string      `json:"contract_id"`
 }
 
 // Claimants
@@ -185,19 +186,23 @@ type Path struct {
 	AssetCode   string `json:"asset_code"`
 	AssetIssuer string `json:"asset_issuer"`
 	AssetType   string `json:"asset_type"`
+	ContractId  string `json:"contract_id"`
 }
 
+// TODO: confirm if this struct is not used
 // LiquidityPoolAsset represents the asset pairs in a liquidity pool
-type LiquidityPoolAsset struct {
-	AssetAType   string
-	AssetACode   string
-	AssetAIssuer string
-	AssetAAmount float64
-	AssetBType   string
-	AssetBCode   string
-	AssetBIssuer string
-	AssetBAmount float64
-}
+//type LiquidityPoolAsset struct {
+//	AssetAType   string
+//	AssetACode   string
+//	AssetAIssuer string
+//	AssetAAmount float64
+//	AssetBType   string
+//	AssetBCode   string
+//	AssetBIssuer string
+//	AssetBAmount float64
+//	AssetAContractId  string
+//	AssetBContractId  string
+//}
 
 // PoolOutput is a representation of a liquidity pool that aligns with the Bigquery table liquidity_pools
 type PoolOutput struct {
@@ -222,6 +227,8 @@ type PoolOutput struct {
 	ClosedAt           time.Time `json:"closed_at"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 	PoolIDStrkey       string    `json:"liquidity_pool_id_strkey"`
+	AssetAContractId   string    `json:"asset_a_contract_id"`
+	AssetBContractId   string    `json:"asset_b_contract_id"`
 }
 
 // AssetOutput is a representation of an asset that aligns with the BigQuery table history_assets
@@ -232,6 +239,7 @@ type AssetOutput struct {
 	AssetID        int64     `json:"asset_id"`
 	ClosedAt       time.Time `json:"closed_at"`
 	LedgerSequence uint32    `json:"ledger_sequence"`
+	ContractId     string    `json:"contract_id"`
 }
 
 // TrustlineOutput is a representation of a trustline that aligns with the BigQuery table trust_lines
@@ -255,31 +263,34 @@ type TrustlineOutput struct {
 	ClosedAt              time.Time   `json:"closed_at"`
 	LedgerSequence        uint32      `json:"ledger_sequence"`
 	LiquidityPoolIDStrkey string      `json:"liquidity_pool_id_strkey"`
+	ContractId            string      `json:"contract_id"`
 }
 
 // OfferOutput is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutput struct {
-	SellerID           string      `json:"seller_id"` // Account address of the seller
-	OfferID            int64       `json:"offer_id"`
-	SellingAssetType   string      `json:"selling_asset_type"`
-	SellingAssetCode   string      `json:"selling_asset_code"`
-	SellingAssetIssuer string      `json:"selling_asset_issuer"`
-	SellingAssetID     int64       `json:"selling_asset_id"`
-	BuyingAssetType    string      `json:"buying_asset_type"`
-	BuyingAssetCode    string      `json:"buying_asset_code"`
-	BuyingAssetIssuer  string      `json:"buying_asset_issuer"`
-	BuyingAssetID      int64       `json:"buying_asset_id"`
-	Amount             float64     `json:"amount"`
-	PriceN             int32       `json:"pricen"`
-	PriceD             int32       `json:"priced"`
-	Price              float64     `json:"price"`
-	Flags              uint32      `json:"flags"`
-	LastModifiedLedger uint32      `json:"last_modified_ledger"`
-	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
-	Deleted            bool        `json:"deleted"`
-	Sponsor            null.String `json:"sponsor"`
-	ClosedAt           time.Time   `json:"closed_at"`
-	LedgerSequence     uint32      `json:"ledger_sequence"`
+	SellerID               string      `json:"seller_id"` // Account address of the seller
+	OfferID                int64       `json:"offer_id"`
+	SellingAssetType       string      `json:"selling_asset_type"`
+	SellingAssetCode       string      `json:"selling_asset_code"`
+	SellingAssetIssuer     string      `json:"selling_asset_issuer"`
+	SellingAssetID         int64       `json:"selling_asset_id"`
+	BuyingAssetType        string      `json:"buying_asset_type"`
+	BuyingAssetCode        string      `json:"buying_asset_code"`
+	BuyingAssetIssuer      string      `json:"buying_asset_issuer"`
+	BuyingAssetID          int64       `json:"buying_asset_id"`
+	Amount                 float64     `json:"amount"`
+	PriceN                 int32       `json:"pricen"`
+	PriceD                 int32       `json:"priced"`
+	Price                  float64     `json:"price"`
+	Flags                  uint32      `json:"flags"`
+	LastModifiedLedger     uint32      `json:"last_modified_ledger"`
+	LedgerEntryChange      uint32      `json:"ledger_entry_change"`
+	Deleted                bool        `json:"deleted"`
+	Sponsor                null.String `json:"sponsor"`
+	ClosedAt               time.Time   `json:"closed_at"`
+	LedgerSequence         uint32      `json:"ledger_sequence"`
+	SellingAssetContractId string      `json:"selling_asset_contract_id"`
+	BuyingAssetContractId  string      `json:"buying_asset_contract_id"`
 }
 
 // TradeOutput is a representation of a trade that aligns with the BigQuery table history_trades
@@ -309,6 +320,8 @@ type TradeOutput struct {
 	RoundingSlippage             null.Int    `json:"rounding_slippage"`
 	SellerIsExact                null.Bool   `json:"seller_is_exact"`
 	SellingLiquidityPoolIDStrkey null.String `json:"selling_liquidity_pool_id_strkey"`
+	SellingAssetContractId       string      `json:"selling_asset_contract_id"`
+	BuyingAssetContractId        string      `json:"buying_asset_contract_id"`
 }
 
 // DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts

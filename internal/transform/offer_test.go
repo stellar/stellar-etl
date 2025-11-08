@@ -106,7 +106,7 @@ func TestTransformOffer(t *testing.T) {
 				LedgerSeq: 10,
 			},
 		}
-		actualOutput, actualError := TransformOffer(test.input.ingest, header)
+		actualOutput, actualError := TransformOffer(test.input.ingest, header, "test passphrase")
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -162,26 +162,28 @@ func makeOfferTestInput() (ledgerChange ingest.Change, err error) {
 
 func makeOfferTestOutput() OfferOutput {
 	return OfferOutput{
-		SellerID:           testAccount1Address,
-		OfferID:            260678439,
-		SellingAssetType:   "native",
-		SellingAssetCode:   "",
-		SellingAssetIssuer: "",
-		SellingAssetID:     -5706705804583548011,
-		BuyingAssetType:    "credit_alphanum4",
-		BuyingAssetCode:    "ETH",
-		BuyingAssetIssuer:  testAccount3Address,
-		BuyingAssetID:      4476940172956910889,
-		Amount:             262.8450327,
-		PriceN:             920936891,
-		PriceD:             1790879058,
-		Price:              0.5142373444404865,
-		Flags:              2,
-		LastModifiedLedger: 30715263,
-		LedgerEntryChange:  2,
-		Deleted:            true,
-		Sponsor:            null.StringFrom(testAccount3Address),
-		LedgerSequence:     10,
-		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+		SellerID:               testAccount1Address,
+		OfferID:                260678439,
+		SellingAssetType:       "native",
+		SellingAssetCode:       "",
+		SellingAssetIssuer:     "",
+		SellingAssetID:         -5706705804583548011,
+		BuyingAssetType:        "credit_alphanum4",
+		BuyingAssetCode:        "ETH",
+		BuyingAssetIssuer:      testAccount3Address,
+		BuyingAssetID:          4476940172956910889,
+		Amount:                 262.8450327,
+		PriceN:                 920936891,
+		PriceD:                 1790879058,
+		Price:                  0.5142373444404865,
+		Flags:                  2,
+		LastModifiedLedger:     30715263,
+		LedgerEntryChange:      2,
+		Deleted:                true,
+		Sponsor:                null.StringFrom(testAccount3Address),
+		LedgerSequence:         10,
+		ClosedAt:               time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+		SellingAssetContractId: "CCCVYPOBCE4ZKFBTNRI465A7N2AT3YMLEWXEY5LN76O6NYCHYXYPVXY7",
+		BuyingAssetContractId:  "CDTDW4NDEV7UNDX4P35Q2OCAP2EJCBFPIWQLNGXV2LNTOPRQ6AMFNGQ3",
 	}
 }

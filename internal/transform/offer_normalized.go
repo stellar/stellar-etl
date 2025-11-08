@@ -13,10 +13,10 @@ import (
 )
 
 // TransformOfferNormalized converts an offer into a normalized form, allowing it to be stored as part of the historical orderbook dataset
-func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32) (NormalizedOfferOutput, error) {
+func TransformOfferNormalized(ledgerChange ingest.Change, ledgerSeq uint32, passphrase string) (NormalizedOfferOutput, error) {
 
 	var header xdr.LedgerHeaderHistoryEntry
-	transformed, err := TransformOffer(ledgerChange, header)
+	transformed, err := TransformOffer(ledgerChange, header, passphrase)
 	if err != nil {
 		return NormalizedOfferOutput{}, err
 	}
