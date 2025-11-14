@@ -100,6 +100,48 @@ func TestExportChanges(t *testing.T) {
 			WantErr:           nil,
 			SortForComparison: true,
 		},
+		{
+			Name:              "No flags exports all types",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265350", "-o", GotTestDir(t, "no_flags/")},
+			Golden:            "all.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
+		{
+			Name:              "Multiple flags - accounts and trustlines",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265400", "-o", GotTestDir(t, "accounts_trustlines/"), "--export-accounts", "true", "--export-trustlines", "true"},
+			Golden:            "accounts_trustlines.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
+		{
+			Name:              "Multiple flags - accounts, offers, and pools",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265400", "-o", GotTestDir(t, "accounts_offers_pools/"), "--export-accounts", "true", "--export-offers", "true", "--export-pools", "true"},
+			Golden:            "accounts_offers_pools.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
+		{
+			Name:              "All contract-related flags",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "51340657", "-e", "51340757", "-o", GotTestDir(t, "all_contract_types/"), "--export-contract-code", "true", "--export-contract-data", "true"},
+			Golden:            "all_contract_types.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
+		{
+			Name:              "Flag set to false exports all types",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "49265302", "-e", "49265350", "-o", GotTestDir(t, "flag_false/"), "--export-accounts=false"},
+			Golden:            "all.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
+		{
+			Name:              "Export config settings with no data creates empty file",
+			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "59834400", "-e", "59834415", "-o", GotTestDir(t, "empty_config/"), "--export-config-settings", "true"},
+			Golden:            "empty_config.golden",
+			WantErr:           nil,
+			SortForComparison: true,
+		},
 	}
 
 	for _, test := range tests {

@@ -644,10 +644,22 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-restored-keys":   false,
 	}
 
+	// Check if any flag was explicitly set to true
+	anyTrue := false
 	for export_name := range exports {
 		exports[export_name], err = flags.GetBool(export_name)
 		if err != nil {
 			logger.Fatalf("could not get %s flag: %v", export_name, err)
+		}
+		if exports[export_name] {
+			anyTrue = true
+		}
+	}
+
+	// If no flags were set to true, export everything
+	if !anyTrue {
+		for export_name := range exports {
+			exports[export_name] = true
 		}
 	}
 
