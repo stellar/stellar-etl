@@ -84,18 +84,28 @@ be exported.`,
 				if !ok {
 					continue
 				}
-				transformedOutputs := map[string][]interface{}{
-					"accounts":           {},
-					"signers":            {},
-					"claimable_balances": {},
-					"offers":             {},
-					"trustlines":         {},
-					"liquidity_pools":    {},
-					"contract_data":      {},
-					"contract_code":      {},
-					"config_settings":    {},
-					"ttl":                {},
-					"restored_key":       {},
+
+				transformedOutputs := map[string][]interface{}{}
+				
+				exportMapping := map[string][]string{
+					"export-accounts":        {"accounts", "signers"},
+					"export-balances":        {"claimable_balances"},
+					"export-offers":          {"offers"},
+					"export-trustlines":      {"trustlines"},
+					"export-pools":           {"liquidity_pools"},
+					"export-contract-data":   {"contract_data"},
+					"export-contract-code":   {"contract_code"},
+					"export-config-settings": {"config_settings"},
+					"export-ttl":             {"ttl"},
+					"export-restored-keys":   {"restored_key"},
+				}
+				
+				for flagName, outputKeys := range exportMapping {
+					if exports[flagName] {
+						for _, key := range outputKeys {
+							transformedOutputs[key] = []interface{}{}
+						}
+					}
 				}
 
 				for entryType, changes := range batch.Changes {
@@ -283,10 +293,6 @@ func exportTransformedData(
 	writeParquet bool) error {
 
 	for resource, output := range transformedOutput {
-		// Skip if no data to export
-		if len(output) == 0 {
-			continue
-		}
 
 		// Filenames are typically exclusive of end point. This processor
 		// is different and we have to increment by 1 since the end batch number
