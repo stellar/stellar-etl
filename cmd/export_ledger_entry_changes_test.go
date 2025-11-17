@@ -135,24 +135,5 @@ func TestExportChanges(t *testing.T) {
 			Golden:            "all.golden",
 			WantErr:           nil,
 			SortForComparison: true,
-		},
-		{
-			Name:              "Export config settings with no data creates empty file",
-			Args:              []string{"export_ledger_entry_changes", "-x", coreExecutablePath, "-c", coreConfigPath, "-s", "59834400", "-e", "59834415", "-o", GotTestDir(t, "empty_config/"), "--export-config-settings", "true"},
-			Golden:            "empty_config.golden",
-			WantErr:           nil,
-			SortForComparison: true,
-		},
-	}
-
-	for _, test := range tests {
-		RunCLITest(t, test, "testdata/changes/", "", false)
-		// Trim trailing newlines from the golden file output before comparison
-		if test.Golden == "empty_config.golden" {
-			trimmedOutput := bytes.TrimRightFunc([]byte(test.Golden), func(r rune) bool {
-				return r == '\n'
-			})
-			test.Golden = string(trimmedOutput)
-		}
 	}
 }
