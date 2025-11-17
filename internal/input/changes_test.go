@@ -161,7 +161,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 65},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 65,
 					},
 				},
@@ -171,9 +171,9 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 66},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 64,
-					}, batchRange{
+					}, {
 						batchStart: 65, batchEnd: 66,
 					},
 				},
@@ -183,10 +183,10 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 128},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 64,
 					},
-					batchRange{
+					{
 						batchStart: 65, batchEnd: 128,
 					},
 				},
@@ -196,7 +196,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 32},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 32,
 					},
 				},
