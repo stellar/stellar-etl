@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 )
@@ -135,5 +134,10 @@ func TestExportChanges(t *testing.T) {
 			Golden:            "all.golden",
 			WantErr:           nil,
 			SortForComparison: true,
+		},
+	}
+
+	for _, test := range tests {
+		RunCLITest(t, test, "testdata/changes/", "", false)
 	}
 }
