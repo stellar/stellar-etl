@@ -128,136 +128,145 @@ be exported.`,
 
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
-						if exports["export-accounts"] {
-							for i, change := range changes.Changes {
-								if changed, err := change.AccountChangedExceptSigners(); err != nil {
-									cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
-									continue
-								} else if changed {
+						if !exports["export-accounts"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							if changed, err := change.AccountChangedExceptSigners(); err != nil {
+								cmdLogger.LogError(fmt.Errorf("unable to identify changed accounts: %v", err))
+								continue
+							} else if changed {
 
-									acc, err := transform.TransformAccount(change, changes.LedgerHeaders[i])
-									if err != nil {
-										entry, _, _, _ := utils.ExtractEntryFromChange(change)
-										cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-										continue
-									}
-									transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
+								acc, err := transform.TransformAccount(change, changes.LedgerHeaders[i])
+								if err != nil {
+									entry, _, _, _ := utils.ExtractEntryFromChange(change)
+									cmdLogger.LogError(fmt.Errorf("error transforming account entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+									continue
 								}
-								if utils.AccountSignersChanged(change) {
-									signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
-									if err != nil {
-										entry, _, _, _ := utils.ExtractEntryFromChange(change)
-										cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
-										continue
-									}
-									for _, s := range signers {
-										transformedOutputs["signers"] = append(transformedOutputs["signers"], s)
-									}
+								transformedOutputs["accounts"] = append(transformedOutputs["accounts"], acc)
+							}
+							if utils.AccountSignersChanged(change) {
+								signers, err := transform.TransformSigners(change, changes.LedgerHeaders[i])
+								if err != nil {
+									entry, _, _, _ := utils.ExtractEntryFromChange(change)
+									cmdLogger.LogError(fmt.Errorf("error transforming account signers from %d :%s", entry.LastModifiedLedgerSeq, err))
+									continue
+								}
+								for _, s := range signers {
+									transformedOutputs["signers"] = append(transformedOutputs["signers"], s)
 								}
 							}
 						}
 					case xdr.LedgerEntryTypeClaimableBalance:
-						if exports["export-balances"] {
-							for i, change := range changes.Changes {
-								balance, err := transform.TransformClaimableBalance(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["claimable_balances"] = append(transformedOutputs["claimable_balances"], balance)
+						if !exports["export-balances"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							balance, err := transform.TransformClaimableBalance(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["claimable_balances"] = append(transformedOutputs["claimable_balances"], balance)
 						}
 					case xdr.LedgerEntryTypeOffer:
-						if exports["export-offers"] {
-							for i, change := range changes.Changes {
-								offer, err := transform.TransformOffer(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["offers"] = append(transformedOutputs["offers"], offer)
+						if !exports["export-offers"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							offer, err := transform.TransformOffer(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["offers"] = append(transformedOutputs["offers"], offer)
 						}
 					case xdr.LedgerEntryTypeTrustline:
-						if exports["export-trustlines"] {
-							for i, change := range changes.Changes {
-								trust, err := transform.TransformTrustline(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["trustlines"] = append(transformedOutputs["trustlines"], trust)
+						if !exports["export-trustlines"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							trust, err := transform.TransformTrustline(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["trustlines"] = append(transformedOutputs["trustlines"], trust)
 						}
 					case xdr.LedgerEntryTypeLiquidityPool:
-						if exports["export-pools"] {
-							for i, change := range changes.Changes {
-								pool, err := transform.TransformPool(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
+						if !exports["export-pools"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							pool, err := transform.TransformPool(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["liquidity_pools"] = append(transformedOutputs["liquidity_pools"], pool)
 						}
 					case xdr.LedgerEntryTypeContractData:
-						if exports["export-contract-data"] {
-							for i, change := range changes.Changes {
-								TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
-								contractData, err, _ := TransformContractData.TransformContractData(change, env.NetworkPassphrase, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-
-								// Empty contract data that has no error is a nonce. Does not need to be recorded
-								if contractData.ContractId == "" {
-									continue
-								}
-
-								transformedOutputs["contract_data"] = append(transformedOutputs["contract_data"], contractData)
+						if !exports["export-contract-data"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							TransformContractData := transform.NewTransformContractDataStruct(transform.AssetFromContractData, transform.ContractBalanceFromContractData)
+							contractData, err, _ := TransformContractData.TransformContractData(change, env.NetworkPassphrase, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming contract data entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+
+							// Empty contract data that has no error is a nonce. Does not need to be recorded
+							if contractData.ContractId == "" {
+								continue
+							}
+
+							transformedOutputs["contract_data"] = append(transformedOutputs["contract_data"], contractData)
 						}
 					case xdr.LedgerEntryTypeContractCode:
-						if exports["export-contract-code"] {
-							for i, change := range changes.Changes {
-								contractCode, err := transform.TransformContractCode(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming contract code entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["contract_code"] = append(transformedOutputs["contract_code"], contractCode)
+						if !exports["export-contract-code"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							contractCode, err := transform.TransformContractCode(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming contract code entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["contract_code"] = append(transformedOutputs["contract_code"], contractCode)
 						}
 					case xdr.LedgerEntryTypeConfigSetting:
-						if exports["export-config-settings"] {
-							for i, change := range changes.Changes {
-								configSettings, err := transform.TransformConfigSetting(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming config settings entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], configSettings)
+						if !exports["export-config-settings"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							configSettings, err := transform.TransformConfigSetting(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming config settings entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["config_settings"] = append(transformedOutputs["config_settings"], configSettings)
 						}
 					case xdr.LedgerEntryTypeTtl:
-						if exports["export-ttl"] {
-							for i, change := range changes.Changes {
-								ttl, err := transform.TransformTtl(change, changes.LedgerHeaders[i])
-								if err != nil {
-									entry, _, _, _ := utils.ExtractEntryFromChange(change)
-									cmdLogger.LogError(fmt.Errorf("error transforming ttl entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
-									continue
-								}
-								transformedOutputs["ttl"] = append(transformedOutputs["ttl"], ttl)
+						if !exports["export-ttl"] {
+							continue
+						}
+						for i, change := range changes.Changes {
+							ttl, err := transform.TransformTtl(change, changes.LedgerHeaders[i])
+							if err != nil {
+								entry, _, _, _ := utils.ExtractEntryFromChange(change)
+								cmdLogger.LogError(fmt.Errorf("error transforming ttl entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
 							}
+							transformedOutputs["ttl"] = append(transformedOutputs["ttl"], ttl)
 						}
 					}
 				}

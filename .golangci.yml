@@ -1,11 +1,16 @@
+version: "2"
 linters:
+  default: none
   disable:
-    - gosimple
     - errcheck
     - ineffassign
     - staticcheck
 
   enable:
-    - goimports # Check import statements are formatted according to the 'goimport' command. Reformat imports in autofix mode.
     - importas # Enforces consistent import aliases.
     - misspell # Finds commonly misspelled English words.
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
