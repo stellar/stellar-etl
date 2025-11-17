@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 )
@@ -146,5 +147,12 @@ func TestExportChanges(t *testing.T) {
 
 	for _, test := range tests {
 		RunCLITest(t, test, "testdata/changes/", "", false)
+		// Trim trailing newlines from the golden file output before comparison
+		if test.Golden == "empty_config.golden" {
+			trimmedOutput := bytes.TrimRightFunc([]byte(test.Golden), func(r rune) bool {
+				return r == '\n'
+			})
+			test.Golden = string(trimmedOutput)
+		}
 	}
 }

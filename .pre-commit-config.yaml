@@ -10,7 +10,6 @@ repos:
       - id: fix-byte-order-marker # removes utf-8 byte order marker.
       - id: mixed-line-ending # replaces or checks mixed line ending.
       - id: trailing-whitespace # trims trailing whitespace.
-        exclude: ^testdata/changes/empty_config\.golden$
 
   - repo: https://github.com/golangci-lint/golangci-lint
     rev: v1.59.1
