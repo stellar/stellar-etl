@@ -86,7 +86,7 @@ be exported.`,
 				}
 
 				transformedOutputs := map[string][]interface{}{}
-				
+
 				exportMapping := map[string][]string{
 					"export-accounts":        {"accounts", "signers"},
 					"export-balances":        {"claimable_balances"},
@@ -99,7 +99,7 @@ be exported.`,
 					"export-ttl":             {"ttl"},
 					"export-restored-keys":   {"restored_key"},
 				}
-				
+
 				for flagName, outputKeys := range exportMapping {
 					if exports[flagName] {
 						for _, key := range outputKeys {
