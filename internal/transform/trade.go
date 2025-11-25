@@ -18,7 +18,7 @@ import (
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
+func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, ledgerCloseTime time.Time, passphrase string) ([]TradeOutput, error) {
 	operationResults, ok := transaction.Result.OperationResults()
 	if !ok {
 		return []TradeOutput{}, fmt.Errorf("could not get any results from this transaction")
@@ -42,24 +42,20 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		outputOrder := int32(claimOrder)
 		outputLedgerClosedAt := ledgerCloseTime
 
-		var outputSellingAssetType, outputSellingAssetCode, outputSellingAssetIssuer string
-		err = claimOffer.AssetSold().Extract(&outputSellingAssetType, &outputSellingAssetCode, &outputSellingAssetIssuer)
+		sellingAssetOutput, err := transformSingleAsset(claimOffer.AssetSold(), passphrase)
 		if err != nil {
 			return []TradeOutput{}, err
 		}
-		outputSellingAssetID := FarmHashAsset(outputSellingAssetCode, outputSellingAssetIssuer, outputSellingAssetType)
 
 		outputSellingAmount := claimOffer.AmountSold()
 		if outputSellingAmount < 0 {
 			return []TradeOutput{}, fmt.Errorf("amount sold is negative (%d) for operation at index %d", outputSellingAmount, operationIndex)
 		}
 
-		var outputBuyingAssetType, outputBuyingAssetCode, outputBuyingAssetIssuer string
-		err = claimOffer.AssetBought().Extract(&outputBuyingAssetType, &outputBuyingAssetCode, &outputBuyingAssetIssuer)
+		buyingAssetOutput, err := transformSingleAsset(claimOffer.AssetBought(), passphrase)
 		if err != nil {
 			return []TradeOutput{}, err
 		}
-		outputBuyingAssetID := FarmHashAsset(outputBuyingAssetCode, outputBuyingAssetIssuer, outputBuyingAssetType)
 
 		outputBuyingAmount := int64(claimOffer.AmountBought())
 		if outputBuyingAmount < 0 {
@@ -132,16 +128,16 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			Order:                        outputOrder,
 			LedgerClosedAt:               outputLedgerClosedAt,
 			SellingAccountAddress:        outputSellingAccountAddress,
-			SellingAssetType:             outputSellingAssetType,
-			SellingAssetCode:             outputSellingAssetCode,
-			SellingAssetIssuer:           outputSellingAssetIssuer,
-			SellingAssetID:               outputSellingAssetID,
+			SellingAssetType:             sellingAssetOutput.AssetType,
+			SellingAssetCode:             sellingAssetOutput.AssetCode,
+			SellingAssetIssuer:           sellingAssetOutput.AssetIssuer,
+			SellingAssetID:               sellingAssetOutput.AssetID,
 			SellingAmount:                utils.ConvertStroopValueToReal(outputSellingAmount),
 			BuyingAccountAddress:         outputBuyingAccountAddress,
-			BuyingAssetType:              outputBuyingAssetType,
-			BuyingAssetCode:              outputBuyingAssetCode,
-			BuyingAssetIssuer:            outputBuyingAssetIssuer,
-			BuyingAssetID:                outputBuyingAssetID,
+			BuyingAssetType:              buyingAssetOutput.AssetType,
+			BuyingAssetCode:              buyingAssetOutput.AssetCode,
+			BuyingAssetIssuer:            buyingAssetOutput.AssetIssuer,
+			BuyingAssetID:                buyingAssetOutput.AssetID,
 			BuyingAmount:                 utils.ConvertStroopValueToReal(xdr.Int64(outputBuyingAmount)),
 			PriceN:                       outputPriceN,
 			PriceD:                       outputPriceD,
@@ -154,6 +150,8 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			RoundingSlippage:             roundingSlippageBips,
 			SellerIsExact:                sellerIsExact,
 			SellingLiquidityPoolIDStrkey: liquidityPoolIDStrkey,
+			SellingAssetContractId:       sellingAssetOutput.ContractId,
+			BuyingAssetContractId:        buyingAssetOutput.ContractId,
 		}
 
 		transformedTrades = append(transformedTrades, trade)

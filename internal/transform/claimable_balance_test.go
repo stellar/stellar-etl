@@ -43,7 +43,7 @@ func TestTransformClaimableBalance(t *testing.T) {
 				LedgerSeq: 10,
 			},
 		}
-		actualOutput, actualError := TransformClaimableBalance(test.input.ingest, header)
+		actualOutput, actualError := TransformClaimableBalance(test.input.ingest, header, "test passphrase")
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -128,5 +128,6 @@ func makeClaimableBalanceTestOutput() ClaimableBalanceOutput {
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		BalanceIDStrkey:    "BAAACAQDAQCQMBYIBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACPGI",
+		ContractId:         "CAVDLQWFTGGUWJ4DDFOAQBZYVMJUXJDJGTCFP5NLL4JWH2ITE2VWCUML",
 	}
 }
