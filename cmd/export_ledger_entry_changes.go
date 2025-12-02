@@ -34,13 +34,25 @@ be exported.`,
 		cmdLogger.StrictExport = commonArgs.StrictExport
 		env := utils.GetEnvironmentDetails(commonArgs)
 
-		_, configPath, startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
+		_, configPath, startNum, startTimestamp, batchSize, outputFolder, parquetOutputFolder := utils.MustCoreFlags(cmd.Flags(), cmdLogger)
 		exports := utils.MustExportTypeFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 
 		cmd.Flags()
 
-		err := os.MkdirAll(outputFolder, os.ModePerm)
+		var err error
+
+		// If start/end timestamps are provided, override start/end ledger.
+		// TODO: StartTimestamp and EndTimestamp default to "" to fit with how our current parameters are parsed.
+		// We should refactor this later when we refactor our parameter parsing.
+		if startTimestamp != "" && commonArgs.EndTimestamp != "" {
+			startNum, commonArgs.EndNum, err = TimestampToLedger(startTimestamp, commonArgs.EndTimestamp, commonArgs.IsTest, commonArgs.IsFuture)
+			if err != nil {
+				cmdLogger.Fatal("could not calculate ledger range: ", err)
+			}
+		}
+
+		err = os.MkdirAll(outputFolder, os.ModePerm)
 		if err != nil {
 			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
 		}
@@ -383,7 +395,7 @@ func init() {
 	utils.AddExportTypeFlags(exportLedgerEntryChangesCmd.Flags())
 	utils.AddCloudStorageFlags(exportLedgerEntryChangesCmd.Flags())
 
-	exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
+	//exportLedgerEntryChangesCmd.MarkFlagRequired("start-ledger")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period

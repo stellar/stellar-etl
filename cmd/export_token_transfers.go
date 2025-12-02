@@ -18,12 +18,22 @@ var tokenTransfersCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, _, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, startTimestamp, path, _, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
 		var ledgers []utils.HistoryArchiveLedgerAndLCM
 		var err error
+
+		// If start/end timestamps are provided, override start/end ledger.
+		// TODO: StartTimestamp and EndTimestamp default to "" to fit with how our current parameters are parsed.
+		// We should refactor this later when we refactor our parameter parsing.
+		if startTimestamp != "" && commonArgs.EndTimestamp != "" {
+			startNum, commonArgs.EndNum, err = TimestampToLedger(startTimestamp, commonArgs.EndTimestamp, commonArgs.IsTest, commonArgs.IsFuture)
+			if err != nil {
+				cmdLogger.Fatal("could not calculate ledger range: ", err)
+			}
+		}
 
 		ledgers, err = input.GetLedgers(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 
@@ -68,7 +78,7 @@ func init() {
 	utils.AddCommonFlags(tokenTransfersCmd.Flags())
 	utils.AddArchiveFlags("token_transfer", tokenTransfersCmd.Flags())
 	utils.AddCloudStorageFlags(tokenTransfersCmd.Flags())
-	tokenTransfersCmd.MarkFlagRequired("end-ledger")
+	//tokenTransfersCmd.MarkFlagRequired("end-ledger")
 	/*
 		Current flags:
 			start-ledger: the ledger sequence number for the beginning of the export period

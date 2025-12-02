@@ -22,6 +22,18 @@ var contractEventsCmd = &cobra.Command{
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
+		var err error
+
+		// If start/end timestamps are provided, override start/end ledger.
+		// TODO: StartTimestamp and EndTimestamp default to "" to fit with how our current parameters are parsed.
+		// We should refactor this later when we refactor our parameter parsing.
+		if cmdArgs.StartTimestamp != "" && cmdArgs.EndTimestamp != "" {
+			cmdArgs.StartNum, commonArgs.EndNum, err = TimestampToLedger(cmdArgs.StartTimestamp, cmdArgs.EndTimestamp, commonArgs.IsTest, commonArgs.IsFuture)
+			if err != nil {
+				cmdLogger.Fatal("could not calculate ledger range: ", err)
+			}
+		}
+
 		transactions, err := input.GetTransactions(cmdArgs.StartNum, cmdArgs.EndNum, cmdArgs.Limit, env, cmdArgs.UseCaptiveCore)
 		if err != nil {
 			cmdLogger.Fatal("could not read transactions: ", err)
@@ -74,6 +86,6 @@ func init() {
 	utils.AddArchiveFlags("contract_events", contractEventsCmd.Flags())
 	utils.AddCloudStorageFlags(contractEventsCmd.Flags())
 
-	contractEventsCmd.MarkFlagRequired("start-ledger")
-	contractEventsCmd.MarkFlagRequired("end-ledger")
+	//contractEventsCmd.MarkFlagRequired("start-ledger")
+	//contractEventsCmd.MarkFlagRequired("end-ledger")
 }

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/stellar/stellar-etl/v2/internal/input"
 	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/writer"
@@ -177,4 +179,33 @@ func WriteParquet(data []transform.SchemaParquet, path string, schema interface{
 			cmdLogger.Fatal("could not write record to parquet file: ", err)
 		}
 	}
+}
+
+// TimestampToLedger is a helper function to take the start/end timestamp string input and convert them
+// to ledger sequences. This function will be used in any export command that requires start/end ledger ranges.
+func TimestampToLedger(startString, endString string, isTest, isFuture bool) (uint32, uint32, error) {
+	formatString := "2006-01-02T15:04:05-07:00"
+	startTime, err := time.Parse(formatString, startString)
+	if err != nil {
+		return 0, 0, fmt.Errorf("could not parse start time: %s", err)
+	}
+
+	endTime, err := time.Parse(formatString, endString)
+	if err != nil {
+		return 0, 0, fmt.Errorf("could not parse end time: %s", err)
+	}
+
+	// TODO: Not sure why GetLedgerRange returns int64 instead of uint32. Ledger sequence numbers are uint32.
+	// This can be refactored later. Right now casting to uin32 is good enough as results should never be negative
+	// nor higher than the max uin32 value.
+	startLedger, endLedger, err := input.GetLedgerRange(startTime, endTime, isTest, isFuture)
+	if err != nil {
+		return 0, 0, fmt.Errorf("could not calculate ledger range: %s", err)
+	}
+
+	// Bringing in ledger overlap logic from Airflow to here because we are now calculated ledger ranges from timestamps in the export commands.
+	// For history archives, the start time of the next 5 minute interval is the same as the end time of the current interval, leading to a 1 ledger overlap.
+	// We need to subtract 1 ledger from the end so that there is no overlap. However, sometimes the start ledger equals the end ledger.
+	// By setting the end=max(start, end-1), we ensure every range is valid.
+	return uint32(startLedger), uint32(endLedger - 1), nil
 }

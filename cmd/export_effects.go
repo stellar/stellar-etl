@@ -18,9 +18,21 @@ var effectsCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, startTimestamp, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
+
+		var err error
+
+		// If start/end timestamps are provided, override start/end ledger.
+		// TODO: StartTimestamp and EndTimestamp default to "" to fit with how our current parameters are parsed.
+		// We should refactor this later when we refactor our parameter parsing.
+		if startTimestamp != "" && commonArgs.EndTimestamp != "" {
+			startNum, commonArgs.EndNum, err = TimestampToLedger(startTimestamp, commonArgs.EndTimestamp, commonArgs.IsTest, commonArgs.IsFuture)
+			if err != nil {
+				cmdLogger.Fatal("could not calculate ledger range: ", err)
+			}
+		}
 
 		transactions, err := input.GetTransactions(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
 		if err != nil {
@@ -75,7 +87,7 @@ func init() {
 	utils.AddCommonFlags(effectsCmd.Flags())
 	utils.AddArchiveFlags("effects", effectsCmd.Flags())
 	utils.AddCloudStorageFlags(effectsCmd.Flags())
-	effectsCmd.MarkFlagRequired("end-ledger")
+	//effectsCmd.MarkFlagRequired("end-ledger")
 
 	/*
 		Current flags:

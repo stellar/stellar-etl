@@ -231,6 +231,7 @@ func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr
 // AddCommonFlags adds the flags common to all commands: start-ledger, end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
+	flags.String("end-timestamp", "", "The ledger sequence number for the end of the export range")
 	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
@@ -249,6 +250,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Rename AddArchiveFlags to something more relevant
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.String("start-timestamp", "", "The timestamp for the beginning of the export period")
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.String("parquet-output", "exported_"+objectName+".parquet", "Filename of the parquet output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
@@ -274,6 +276,7 @@ func AddCoreFlags(flags *pflag.FlagSet, defaultFolder string) {
 	flags.String("parquet-output", defaultFolder, "Folder that will contain the parquet output files")
 
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.String("start-timestamp", "", "The timestamp for the beginning of the export period")
 }
 
 // AddExportTypeFlags adds the captive core specifc flags: export-{type} flags
@@ -294,7 +297,9 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 // Some flags should be named better
 type FlagValues struct {
 	StartNum       uint32
+	StartTimestamp string
 	EndNum         uint32
+	EndTimestamp   string
 	StrictExport   bool
 	IsTest         bool
 	IsFuture       bool
@@ -321,6 +326,11 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
+	}
+
+	endTimestamp, err := flags.GetString("end-timestamp")
+	if err != nil {
+		logger.Fatal("could not get end timestamp: ", err)
 	}
 
 	strictExport, err := flags.GetBool("strict-export")
@@ -382,6 +392,11 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 		logger.Fatal("could not get start sequence number: ", err)
 	}
 
+	startTimestamp, err := flags.GetString("start-timestamp")
+	if err != nil {
+		logger.Fatal("could not get start timestamp: ", err)
+	}
+
 	path, err := flags.GetString("output")
 	if err != nil {
 		logger.Fatal("could not get output filename: ", err)
@@ -419,7 +434,9 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 
 	return FlagValues{
 		StartNum:       startNum,
+		StartTimestamp: startTimestamp,
 		EndNum:         endNum,
+		EndTimestamp:   endTimestamp,
 		StrictExport:   strictExport,
 		IsTest:         isTest,
 		IsFuture:       isFuture,
@@ -442,6 +459,7 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 
 type CommonFlagValues struct {
 	EndNum         uint32
+	EndTimestamp   string
 	StrictExport   bool
 	IsTest         bool
 	IsFuture       bool
@@ -461,6 +479,11 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 	endNum, err := flags.GetUint32("end-ledger")
 	if err != nil {
 		logger.Fatal("could not get end sequence number: ", err)
+	}
+
+	endTimestamp, err := flags.GetString("end-timestamp")
+	if err != nil {
+		logger.Fatal("could not get end timestamp: ", err)
 	}
 
 	strictExport, err := flags.GetBool("strict-export")
@@ -523,6 +546,7 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 
 	return CommonFlagValues{
 		EndNum:         endNum,
+		EndTimestamp:   endTimestamp,
 		StrictExport:   strictExport,
 		IsTest:         isTest,
 		IsFuture:       isFuture,
@@ -538,10 +562,15 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 }
 
 // MustArchiveFlags gets the values of the the history archive specific flags: start-ledger, output, and limit
-func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32, path string, parquetPath string, limit int64) {
+func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32, startTimestamp string, path string, parquetPath string, limit int64) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	startTimestamp, err = flags.GetString("start-timestamp")
+	if err != nil {
+		logger.Fatal("could not get start timestamp: ", err)
 	}
 
 	path, err = flags.GetString("output")
@@ -593,7 +622,7 @@ func MustCloudStorageFlags(flags *pflag.FlagSet, logger *EtlLogger) (bucket, cre
 }
 
 // MustCoreFlags gets the values for the core-executable, core-config, start ledger batch-size, and output flags. If any do not exist, it stops the program fatally using the logger
-func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPath string, startNum, batchSize uint32, path, parquetPath string) {
+func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPath string, startNum uint32, startTimestamp string, batchSize uint32, path, parquetPath string) {
 	execPath, err := flags.GetString("core-executable")
 	if err != nil {
 		logger.Fatal("could not get path to stellar-core executable, which is mandatory when not starting at the genesis ledger (ledger 1): ", err)
@@ -617,6 +646,11 @@ func MustCoreFlags(flags *pflag.FlagSet, logger *EtlLogger) (execPath, configPat
 	startNum, err = flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	startTimestamp, err = flags.GetString("start-timestamp")
+	if err != nil {
+		logger.Fatal("could not get start timestamp: ", err)
 	}
 
 	batchSize, err = flags.GetUint32("batch-size")

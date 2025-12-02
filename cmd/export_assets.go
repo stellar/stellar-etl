@@ -18,7 +18,7 @@ var assetsCmd = &cobra.Command{
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, startTimestamp, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
@@ -26,6 +26,16 @@ var assetsCmd = &cobra.Command{
 
 		var paymentOps []input.AssetTransformInput
 		var err error
+
+		// If start/end timestamps are provided, override start/end ledger.
+		// TODO: StartTimestamp and EndTimestamp default to "" to fit with how our current parameters are parsed.
+		// We should refactor this later when we refactor our parameter parsing.
+		if startTimestamp != "" && commonArgs.EndTimestamp != "" {
+			startNum, commonArgs.EndNum, err = TimestampToLedger(startTimestamp, commonArgs.EndTimestamp, commonArgs.IsTest, commonArgs.IsFuture)
+			if err != nil {
+				cmdLogger.Fatal("could not calculate ledger range: ", err)
+			}
+		}
 
 		if commonArgs.UseCaptiveCore {
 			paymentOps, err = input.GetPaymentOperationsHistoryArchive(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
@@ -88,7 +98,7 @@ func init() {
 	utils.AddCommonFlags(assetsCmd.Flags())
 	utils.AddArchiveFlags("assets", assetsCmd.Flags())
 	utils.AddCloudStorageFlags(assetsCmd.Flags())
-	assetsCmd.MarkFlagRequired("end-ledger")
+	//assetsCmd.MarkFlagRequired("end-ledger")
 
 	/*
 		Current flags:
