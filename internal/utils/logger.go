@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/stellar/go/support/log"
+import "github.com/stellar/go-stellar-sdk/support/log"
 
 type EtlLogger struct {
 	*log.Entry

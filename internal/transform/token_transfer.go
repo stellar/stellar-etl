@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/guregu/null"
-	"github.com/stellar/go/processors/token_transfer"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/processors/token_transfer"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 )
 
