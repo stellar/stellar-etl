@@ -56,7 +56,7 @@ func TestTransformPool(t *testing.T) {
 				LedgerSeq: 10,
 			},
 		}
-		actualOutput, actualError := TransformPool(test.input.ingest, header)
+		actualOutput, actualError := TransformPool(test.input.ingest, header, "test passphrase")
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -117,5 +117,7 @@ func makePoolTestOutput() PoolOutput {
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 		PoolIDStrkey:       "LALS2QYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2X",
+		AssetAContractId:   "CCCVYPOBCE4ZKFBTNRI465A7N2AT3YMLEWXEY5LN76O6NYCHYXYPVXY7",
+		AssetBContractId:   "CBJ7HQBIYV65AQ236O43L3LEOUU3AJEXJQD7SCUFCHVMSLC3JXDTUG6Y",
 	}
 }

@@ -364,7 +364,7 @@ func formatPrefix(p string) string {
 	return p
 }
 
-func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.Asset, prefix string) error {
+func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.Asset, prefix string, passphrase string) error {
 	var assetType, code, issuer string
 	err := asset.Extract(&assetType, &code, &issuer)
 	if err != nil {
@@ -372,8 +372,14 @@ func addAssetDetailsToOperationDetails(result map[string]interface{}, asset xdr.
 	}
 
 	prefix = formatPrefix(prefix)
-	result[prefix+"asset_type"] = assetType
 
+	outputAsset, err := transformSingleAsset(asset, passphrase)
+	if err != nil {
+		return err
+	}
+	result[prefix+"asset_contract_id"] = outputAsset.ContractId
+
+	result[prefix+"asset_type"] = assetType
 	if asset.Type == xdr.AssetTypeAssetTypeNative {
 		result[prefix+"asset_id"] = int64(-5706705804583548011)
 		return nil
@@ -509,7 +515,7 @@ func addLedgerKeyToDetails(result map[string]interface{}, ledgerKey xdr.LedgerKe
 	return nil
 }
 
-func transformPath(initialPath []xdr.Asset) []Path {
+func transformPath(initialPath []xdr.Asset, passphrase string) []Path {
 	if len(initialPath) == 0 {
 		return nil
 	}
@@ -521,10 +527,21 @@ func transformPath(initialPath []xdr.Asset) []Path {
 			return nil
 		}
 
+		contractIdByte, err := pathAsset.ContractID(passphrase)
+		if err != nil {
+			return nil
+		}
+
+		contractId, err := strkey.Encode(strkey.VersionByteContract, contractIdByte[:])
+		if err != nil {
+			return nil
+		}
+
 		path = append(path, Path{
 			AssetType:   assetType,
 			AssetIssuer: issuer,
 			AssetCode:   code,
+			ContractId:  contractId,
 		})
 	}
 	return path
@@ -612,7 +629,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, err
 		}
 		details["amount"] = utils.ConvertStroopValueToReal(op.Amount)
-		if err := addAssetDetailsToOperationDetails(details, op.Asset, ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Asset, "", network); err != nil {
 			return details, err
 		}
 
@@ -631,10 +648,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["amount"] = utils.ConvertStroopValueToReal(op.DestAmount)
 		details["source_amount"] = amount.String(0)
 		details["source_max"] = utils.ConvertStroopValueToReal(op.SendMax)
-		if err := addAssetDetailsToOperationDetails(details, op.DestAsset, ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.DestAsset, "", network); err != nil {
 			return details, err
 		}
-		if err := addAssetDetailsToOperationDetails(details, op.SendAsset, "source"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.SendAsset, "source", network); err != nil {
 			return details, err
 		}
 
@@ -655,7 +672,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["source_amount"] = utils.ConvertStroopValueToReal(result.SendAmount())
 		}
 
-		details["path"] = transformPath(op.Path)
+		details["path"] = transformPath(op.Path, network)
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		op, ok := operation.Body.GetPathPaymentStrictSendOp()
@@ -672,10 +689,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["amount"] = amount.String(0)
 		details["source_amount"] = utils.ConvertStroopValueToReal(op.SendAmount)
 		details["destination_min"] = amount.String(op.DestMin)
-		if err := addAssetDetailsToOperationDetails(details, op.DestAsset, ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.DestAsset, "", network); err != nil {
 			return details, err
 		}
-		if err := addAssetDetailsToOperationDetails(details, op.SendAsset, "source"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.SendAsset, "source", network); err != nil {
 			return details, err
 		}
 
@@ -696,7 +713,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			details["amount"] = utils.ConvertStroopValueToReal(result.DestAmount())
 		}
 
-		details["path"] = transformPath(op.Path)
+		details["path"] = transformPath(op.Path, network)
 
 	case xdr.OperationTypeManageBuyOffer:
 		op, ok := operation.Body.GetManageBuyOfferOp()
@@ -710,10 +727,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, err
 		}
 
-		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying", network); err != nil {
 			return details, err
 		}
-		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling", network); err != nil {
 			return details, err
 		}
 
@@ -729,10 +746,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, err
 		}
 
-		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying", network); err != nil {
 			return details, err
 		}
-		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling", network); err != nil {
 			return details, err
 		}
 
@@ -747,10 +764,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, err
 		}
 
-		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Buying, "buying", network); err != nil {
 			return details, err
 		}
-		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Selling, "selling", network); err != nil {
 			return details, err
 		}
 
@@ -808,7 +825,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 				return details, err
 			}
 		} else {
-			if err := addAssetDetailsToOperationDetails(details, op.Line.ToAsset(), ""); err != nil {
+			if err := addAssetDetailsToOperationDetails(details, op.Line.ToAsset(), "", network); err != nil {
 				return details, err
 			}
 			details["trustee"] = details["asset_issuer"]
@@ -825,7 +842,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			return details, fmt.Errorf("could not access AllowTrust info for this operation (index %d)", operationIndex)
 		}
 
-		if err := addAssetDetailsToOperationDetails(details, op.Asset.ToAsset(sourceAccount.ToAccountId()), ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Asset.ToAsset(sourceAccount.ToAccountId()), "", network); err != nil {
 			return details, err
 		}
 		if err := addAccountAndMuxedAccountDetails(details, sourceAccount, "trustee"); err != nil {
@@ -923,7 +940,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 
 	case xdr.OperationTypeClawback:
 		op := operation.Body.MustClawbackOp()
-		if err := addAssetDetailsToOperationDetails(details, op.Asset, ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Asset, "", network); err != nil {
 			return details, err
 		}
 		if err := addAccountAndMuxedAccountDetails(details, op.From, "from"); err != nil {
@@ -943,7 +960,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 	case xdr.OperationTypeSetTrustLineFlags:
 		op := operation.Body.MustSetTrustLineFlagsOp()
 		details["trustor"] = op.Trustor.Address()
-		if err := addAssetDetailsToOperationDetails(details, op.Asset, ""); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, op.Asset, "", network); err != nil {
 			return details, err
 		}
 		if op.SetFlags > 0 {
@@ -984,7 +1001,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 
 		// Process ReserveA Details
-		if err := addAssetDetailsToOperationDetails(details, assetA, "reserve_a"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, assetA, "reserve_a", network); err != nil {
 			return details, err
 		}
 		details["reserve_a_max_amount"] = utils.ConvertStroopValueToReal(op.MaxAmountA)
@@ -995,7 +1012,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["reserve_a_deposit_amount"] = depositA
 
 		//Process ReserveB Details
-		if err := addAssetDetailsToOperationDetails(details, assetB, "reserve_b"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, assetB, "reserve_b", network); err != nil {
 			return details, err
 		}
 		details["reserve_b_max_amount"] = utils.ConvertStroopValueToReal(op.MaxAmountB)
@@ -1045,14 +1062,14 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 			receivedA, receivedB = -delta.ReserveA, -delta.ReserveB
 		}
 		// Process AssetA Details
-		if err := addAssetDetailsToOperationDetails(details, assetA, "reserve_a"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, assetA, "reserve_a", network); err != nil {
 			return details, err
 		}
 		details["reserve_a_min_amount"] = utils.ConvertStroopValueToReal(op.MinAmountA)
 		details["reserve_a_withdraw_amount"] = utils.ConvertStroopValueToReal(receivedA)
 
 		// Process AssetB Details
-		if err := addAssetDetailsToOperationDetails(details, assetB, "reserve_b"); err != nil {
+		if err := addAssetDetailsToOperationDetails(details, assetB, "reserve_b", network); err != nil {
 			return details, err
 		}
 		details["reserve_b_min_amount"] = utils.ConvertStroopValueToReal(op.MinAmountB)
@@ -1375,7 +1392,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		addAccountAndMuxedAccountDetails(details, *source, "from")
 		addAccountAndMuxedAccountDetails(details, op.Destination, "to")
 		details["amount"] = amount.String(op.Amount)
-		addAssetDetails(details, op.Asset, "")
+		addAssetDetails(details, op.Asset, "", operation.network)
 	case xdr.OperationTypePathPaymentStrictReceive:
 		op := operation.operation.Body.MustPathPaymentStrictReceiveOp()
 		addAccountAndMuxedAccountDetails(details, *source, "from")
@@ -1384,8 +1401,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		details["amount"] = amount.String(op.DestAmount)
 		details["source_amount"] = amount.String(0)
 		details["source_max"] = amount.String(op.SendMax)
-		addAssetDetails(details, op.DestAsset, "")
-		addAssetDetails(details, op.SendAsset, "source_")
+		addAssetDetails(details, op.DestAsset, "", operation.network)
+		addAssetDetails(details, op.SendAsset, "source_", operation.network)
 
 		if operation.transaction.Result.Successful() {
 			result := operation.OperationResult().MustPathPaymentStrictReceiveResult()
@@ -1395,7 +1412,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		var path = make([]map[string]interface{}, len(op.Path))
 		for i := range op.Path {
 			path[i] = make(map[string]interface{})
-			addAssetDetails(path[i], op.Path[i], "")
+			addAssetDetails(path[i], op.Path[i], "", operation.network)
 		}
 		details["path"] = path
 
@@ -1407,8 +1424,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		details["amount"] = amount.String(0)
 		details["source_amount"] = amount.String(op.SendAmount)
 		details["destination_min"] = amount.String(op.DestMin)
-		addAssetDetails(details, op.DestAsset, "")
-		addAssetDetails(details, op.SendAsset, "source_")
+		addAssetDetails(details, op.DestAsset, "", operation.network)
+		addAssetDetails(details, op.SendAsset, "source_", operation.network)
 
 		if operation.transaction.Result.Successful() {
 			result := operation.OperationResult().MustPathPaymentStrictSendResult()
@@ -1418,7 +1435,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		var path = make([]map[string]interface{}, len(op.Path))
 		for i := range op.Path {
 			path[i] = make(map[string]interface{})
-			addAssetDetails(path[i], op.Path[i], "")
+			addAssetDetails(path[i], op.Path[i], "", operation.network)
 		}
 		details["path"] = path
 	case xdr.OperationTypeManageBuyOffer:
@@ -1430,8 +1447,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			"n": op.Price.N,
 			"d": op.Price.D,
 		}
-		addAssetDetails(details, op.Buying, "buying_")
-		addAssetDetails(details, op.Selling, "selling_")
+		addAssetDetails(details, op.Buying, "buying_", operation.network)
+		addAssetDetails(details, op.Selling, "selling_", operation.network)
 	case xdr.OperationTypeManageSellOffer:
 		op := operation.operation.Body.MustManageSellOfferOp()
 		details["offer_id"] = op.OfferId
@@ -1441,8 +1458,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			"n": op.Price.N,
 			"d": op.Price.D,
 		}
-		addAssetDetails(details, op.Buying, "buying_")
-		addAssetDetails(details, op.Selling, "selling_")
+		addAssetDetails(details, op.Buying, "buying_", operation.network)
+		addAssetDetails(details, op.Selling, "selling_", operation.network)
 	case xdr.OperationTypeCreatePassiveSellOffer:
 		op := operation.operation.Body.MustCreatePassiveSellOfferOp()
 		details["amount"] = amount.String(op.Amount)
@@ -1451,8 +1468,8 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			"n": op.Price.N,
 			"d": op.Price.D,
 		}
-		addAssetDetails(details, op.Buying, "buying_")
-		addAssetDetails(details, op.Selling, "selling_")
+		addAssetDetails(details, op.Buying, "buying_", operation.network)
+		addAssetDetails(details, op.Selling, "selling_", operation.network)
 	case xdr.OperationTypeSetOptions:
 		op := operation.operation.Body.MustSetOptionsOp()
 
@@ -1499,14 +1516,14 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 				return nil, err
 			}
 		} else {
-			addAssetDetails(details, op.Line.ToAsset(), "")
+			addAssetDetails(details, op.Line.ToAsset(), "", operation.network)
 			details["trustee"] = details["asset_issuer"]
 		}
 		addAccountAndMuxedAccountDetails(details, *source, "trustor")
 		details["limit"] = amount.String(op.Limit)
 	case xdr.OperationTypeAllowTrust:
 		op := operation.operation.Body.MustAllowTrustOp()
-		addAssetDetails(details, op.Asset.ToAsset(source.ToAccountId()), "")
+		addAssetDetails(details, op.Asset.ToAsset(source.ToAccountId()), "", operation.network)
 		addAccountAndMuxedAccountDetails(details, *source, "trustee")
 		details["trustor"] = op.Trustor.Address()
 		details["authorize"] = xdr.TrustLineFlags(op.Authorize).IsAuthorized()
@@ -1578,7 +1595,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		}
 	case xdr.OperationTypeClawback:
 		op := operation.operation.Body.MustClawbackOp()
-		addAssetDetails(details, op.Asset, "")
+		addAssetDetails(details, op.Asset, "", operation.network)
 		addAccountAndMuxedAccountDetails(details, op.From, "from")
 		details["amount"] = amount.String(op.Amount)
 	case xdr.OperationTypeClawbackClaimableBalance:
@@ -1592,7 +1609,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 	case xdr.OperationTypeSetTrustLineFlags:
 		op := operation.operation.Body.MustSetTrustLineFlagsOp()
 		details["trustor"] = op.Trustor.Address()
-		addAssetDetails(details, op.Asset, "")
+		addAssetDetails(details, op.Asset, "", operation.network)
 		if op.SetFlags > 0 {
 			addTrustLineFlagDetails(details, xdr.TrustLineFlags(op.SetFlags), "set")
 		}
@@ -1922,16 +1939,16 @@ func (operation *transactionOperationWrapper) parseAssetBalanceChangesFromContra
 			switch sacEvent.GetType() {
 			case contractevents.EventTypeTransfer:
 				transferEvt := sacEvent.(*contractevents.TransferEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(transferEvt.From, transferEvt.To, transferEvt.Amount, transferEvt.Asset, "transfer"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(transferEvt.From, transferEvt.To, transferEvt.Amount, transferEvt.Asset, "transfer", operation.network))
 			case contractevents.EventTypeMint:
 				mintEvt := sacEvent.(*contractevents.MintEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry("", mintEvt.To, mintEvt.Amount, mintEvt.Asset, "mint"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry("", mintEvt.To, mintEvt.Amount, mintEvt.Asset, "mint", operation.network))
 			case contractevents.EventTypeClawback:
 				clawbackEvt := sacEvent.(*contractevents.ClawbackEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(clawbackEvt.From, "", clawbackEvt.Amount, clawbackEvt.Asset, "clawback"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(clawbackEvt.From, "", clawbackEvt.Amount, clawbackEvt.Asset, "clawback", operation.network))
 			case contractevents.EventTypeBurn:
 				burnEvt := sacEvent.(*contractevents.BurnEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(burnEvt.From, "", burnEvt.Amount, burnEvt.Asset, "burn"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(burnEvt.From, "", burnEvt.Amount, burnEvt.Asset, "burn", operation.network))
 			}
 		}
 	}
@@ -1957,16 +1974,16 @@ func parseAssetBalanceChangesFromContractEvents(transaction ingest.LedgerTransac
 			switch sacEvent.GetType() {
 			case contractevents.EventTypeTransfer:
 				transferEvt := sacEvent.(*contractevents.TransferEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(transferEvt.From, transferEvt.To, transferEvt.Amount, transferEvt.Asset, "transfer"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(transferEvt.From, transferEvt.To, transferEvt.Amount, transferEvt.Asset, "transfer", network))
 			case contractevents.EventTypeMint:
 				mintEvt := sacEvent.(*contractevents.MintEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry("", mintEvt.To, mintEvt.Amount, mintEvt.Asset, "mint"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry("", mintEvt.To, mintEvt.Amount, mintEvt.Asset, "mint", network))
 			case contractevents.EventTypeClawback:
 				clawbackEvt := sacEvent.(*contractevents.ClawbackEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(clawbackEvt.From, "", clawbackEvt.Amount, clawbackEvt.Asset, "clawback"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(clawbackEvt.From, "", clawbackEvt.Amount, clawbackEvt.Asset, "clawback", network))
 			case contractevents.EventTypeBurn:
 				burnEvt := sacEvent.(*contractevents.BurnEvent)
-				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(burnEvt.From, "", burnEvt.Amount, burnEvt.Asset, "burn"))
+				balanceChanges = append(balanceChanges, createSACBalanceChangeEntry(burnEvt.From, "", burnEvt.Amount, burnEvt.Asset, "burn", network))
 			}
 		}
 	}
@@ -1981,7 +1998,7 @@ func parseAssetBalanceChangesFromContractEvents(transaction ingest.LedgerTransac
 // changeType    - the type of source sac event that triggered this change
 //
 // return        - a balance changed record expressed as map of key/value's
-func createSACBalanceChangeEntry(fromAccount string, toAccount string, amountChanged xdr.Int128Parts, asset xdr.Asset, changeType string) map[string]interface{} {
+func createSACBalanceChangeEntry(fromAccount string, toAccount string, amountChanged xdr.Int128Parts, asset xdr.Asset, changeType string, passphrase string) map[string]interface{} {
 	balanceChange := map[string]interface{}{}
 
 	if fromAccount != "" {
@@ -1993,12 +2010,12 @@ func createSACBalanceChangeEntry(fromAccount string, toAccount string, amountCha
 
 	balanceChange["type"] = changeType
 	balanceChange["amount"] = amount.String128(amountChanged)
-	addAssetDetails(balanceChange, asset, "")
+	addAssetDetails(balanceChange, asset, "", passphrase)
 	return balanceChange
 }
 
 // addAssetDetails sets the details for `a` on `result` using keys with `prefix`
-func addAssetDetails(result map[string]interface{}, a xdr.Asset, prefix string) error {
+func addAssetDetails(result map[string]interface{}, a xdr.Asset, prefix string, passphrase string) error {
 	var (
 		assetType string
 		code      string
@@ -2009,8 +2026,14 @@ func addAssetDetails(result map[string]interface{}, a xdr.Asset, prefix string) 
 		err = errors.Wrap(err, "xdr.Asset.Extract error")
 		return err
 	}
-	result[prefix+"asset_type"] = assetType
 
+	outputAsset, err := transformSingleAsset(a, passphrase)
+	if err != nil {
+		return err
+	}
+	result[prefix+"asset_contract_id"] = outputAsset.ContractId
+
+	result[prefix+"asset_type"] = assetType
 	if a.Type == xdr.AssetTypeAssetTypeNative {
 		return nil
 	}

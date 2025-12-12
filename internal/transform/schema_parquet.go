@@ -156,6 +156,8 @@ type PoolOutputParquet struct {
 	Deleted            bool    `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
 	LedgerSequence     int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	AssetAContractId   string  `parquet:"name=asset_a_contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	AssetBContractId   string  `parquet:"name=asset_b_contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // AssetOutputParquet is a representation of an asset that aligns with the BigQuery table history_assets
@@ -166,6 +168,7 @@ type AssetOutputParquet struct {
 	AssetID        int64  `parquet:"name=asset_id, type=INT64"`
 	ClosedAt       int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
 	LedgerSequence int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	ContractId     string `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // TrustlineOutputParquet is a representation of a trustline that aligns with the BigQuery table trust_lines
@@ -188,31 +191,34 @@ type TrustlineOutputParquet struct {
 	Deleted            bool    `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
 	LedgerSequence     int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	ContractId         string  `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // OfferOutputParquet is a representation of an offer that aligns with the BigQuery table offers
 type OfferOutputParquet struct {
-	SellerID           string  `parquet:"name=seller_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	OfferID            int64   `parquet:"name=offer_id, type=INT64"`
-	SellingAssetType   string  `parquet:"name=selling_asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	SellingAssetCode   string  `parquet:"name=selling_asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	SellingAssetIssuer string  `parquet:"name=selling_asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	SellingAssetID     int64   `parquet:"name=selling_asset_id, type=INT64"`
-	BuyingAssetType    string  `parquet:"name=buying_asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	BuyingAssetCode    string  `parquet:"name=buying_asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	BuyingAssetIssuer  string  `parquet:"name=buying_asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	BuyingAssetID      int64   `parquet:"name=buying_asset_id, type=INT64"`
-	Amount             float64 `parquet:"name=amount, type=DOUBLE"`
-	PriceN             int32   `parquet:"name=pricen, type=INT32"`
-	PriceD             int32   `parquet:"name=priced, type=INT32"`
-	Price              float64 `parquet:"name=price, type=DOUBLE"`
-	Flags              int64   `parquet:"name=flags, type=INT64, convertedtype=UINT_64"`
-	LastModifiedLedger int64   `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
-	LedgerEntryChange  int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
-	Deleted            bool    `parquet:"name=deleted, type=BOOLEAN"`
-	Sponsor            string  `parquet:"name=sponsor, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	ClosedAt           int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
-	LedgerSequence     int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	SellerID               string  `parquet:"name=seller_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	OfferID                int64   `parquet:"name=offer_id, type=INT64"`
+	SellingAssetType       string  `parquet:"name=selling_asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	SellingAssetCode       string  `parquet:"name=selling_asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	SellingAssetIssuer     string  `parquet:"name=selling_asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	SellingAssetID         int64   `parquet:"name=selling_asset_id, type=INT64"`
+	BuyingAssetType        string  `parquet:"name=buying_asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	BuyingAssetCode        string  `parquet:"name=buying_asset_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	BuyingAssetIssuer      string  `parquet:"name=buying_asset_issuer, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	BuyingAssetID          int64   `parquet:"name=buying_asset_id, type=INT64"`
+	Amount                 float64 `parquet:"name=amount, type=DOUBLE"`
+	PriceN                 int32   `parquet:"name=pricen, type=INT32"`
+	PriceD                 int32   `parquet:"name=priced, type=INT32"`
+	Price                  float64 `parquet:"name=price, type=DOUBLE"`
+	Flags                  int64   `parquet:"name=flags, type=INT64, convertedtype=UINT_64"`
+	LastModifiedLedger     int64   `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
+	LedgerEntryChange      int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
+	Deleted                bool    `parquet:"name=deleted, type=BOOLEAN"`
+	Sponsor                string  `parquet:"name=sponsor, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	ClosedAt               int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	LedgerSequence         int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
+	SellingAssetContractId string  `parquet:"name=selling_asset_contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	BuyingAssetContractId  string  `parquet:"name=buying_asset_contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // TradeOutputParquet is a representation of a trade that aligns with the BigQuery table history_trades
@@ -241,6 +247,8 @@ type TradeOutputParquet struct {
 	TradeType              int32   `parquet:"name=trade_type, type=INT32"`
 	RoundingSlippage       int64   `parquet:"name=rounding_slippage, type=INT64"`
 	SellerIsExact          bool    `parquet:"name=seller_is_exact, type=BOOLEAN"`
+	SellingAssetContractId string  `parquet:"name=selling_asset_contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	BuyingAssetContractId  string  `parquet:"name=buying_asset_contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 // EffectOutputParquet is a representation of an operation that aligns with the BigQuery table history_effects

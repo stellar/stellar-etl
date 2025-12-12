@@ -10,7 +10,7 @@ import (
 )
 
 // TransformOffer converts an account from the history archive ingestion system into a form suitable for BigQuery
-func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry) (OfferOutput, error) {
+func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntry, passphrase string) (OfferOutput, error) {
 	ledgerEntry, changeType, outputDeleted, err := utils.ExtractEntryFromChange(ledgerChange)
 	if err != nil {
 		return OfferOutput{}, err
@@ -31,12 +31,12 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 		return OfferOutput{}, fmt.Errorf("offerID is negative (%d) for offer from account: %s", outputOfferID, outputSellerID)
 	}
 
-	outputSellingAsset, err := transformSingleAsset(offerEntry.Selling)
+	outputSellingAsset, err := transformSingleAsset(offerEntry.Selling, passphrase)
 	if err != nil {
 		return OfferOutput{}, err
 	}
 
-	outputBuyingAsset, err := transformSingleAsset(offerEntry.Buying)
+	outputBuyingAsset, err := transformSingleAsset(offerEntry.Buying, passphrase)
 	if err != nil {
 		return OfferOutput{}, err
 	}
@@ -77,27 +77,29 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedOffer := OfferOutput{
-		SellerID:           outputSellerID,
-		OfferID:            outputOfferID,
-		SellingAssetType:   outputSellingAsset.AssetType,
-		SellingAssetCode:   outputSellingAsset.AssetCode,
-		SellingAssetIssuer: outputSellingAsset.AssetIssuer,
-		SellingAssetID:     outputSellingAsset.AssetID,
-		BuyingAssetType:    outputBuyingAsset.AssetType,
-		BuyingAssetCode:    outputBuyingAsset.AssetCode,
-		BuyingAssetIssuer:  outputBuyingAsset.AssetIssuer,
-		BuyingAssetID:      outputBuyingAsset.AssetID,
-		Amount:             utils.ConvertStroopValueToReal(outputAmount),
-		PriceN:             outputPriceN,
-		PriceD:             outputPriceD,
-		Price:              outputPrice,
-		Flags:              outputFlags,
-		LastModifiedLedger: outputLastModifiedLedger,
-		LedgerEntryChange:  uint32(changeType),
-		Deleted:            outputDeleted,
-		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
-		ClosedAt:           closedAt,
-		LedgerSequence:     uint32(ledgerSequence),
+		SellerID:               outputSellerID,
+		OfferID:                outputOfferID,
+		SellingAssetType:       outputSellingAsset.AssetType,
+		SellingAssetCode:       outputSellingAsset.AssetCode,
+		SellingAssetIssuer:     outputSellingAsset.AssetIssuer,
+		SellingAssetID:         outputSellingAsset.AssetID,
+		BuyingAssetType:        outputBuyingAsset.AssetType,
+		BuyingAssetCode:        outputBuyingAsset.AssetCode,
+		BuyingAssetIssuer:      outputBuyingAsset.AssetIssuer,
+		BuyingAssetID:          outputBuyingAsset.AssetID,
+		Amount:                 utils.ConvertStroopValueToReal(outputAmount),
+		PriceN:                 outputPriceN,
+		PriceD:                 outputPriceD,
+		Price:                  outputPrice,
+		Flags:                  outputFlags,
+		LastModifiedLedger:     outputLastModifiedLedger,
+		LedgerEntryChange:      uint32(changeType),
+		Deleted:                outputDeleted,
+		Sponsor:                ledgerEntrySponsorToNullString(ledgerEntry),
+		ClosedAt:               closedAt,
+		LedgerSequence:         uint32(ledgerSequence),
+		SellingAssetContractId: outputSellingAsset.ContractId,
+		BuyingAssetContractId:  outputBuyingAsset.ContractId,
 	}
 	return transformedOffer, nil
 }

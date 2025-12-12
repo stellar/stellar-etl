@@ -162,7 +162,7 @@ be exported.`,
 							continue
 						}
 						for i, change := range changes.Changes {
-							balance, err := transform.TransformClaimableBalance(change, changes.LedgerHeaders[i])
+							balance, err := transform.TransformClaimableBalance(change, changes.LedgerHeaders[i], env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming balance entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -175,7 +175,7 @@ be exported.`,
 							continue
 						}
 						for i, change := range changes.Changes {
-							offer, err := transform.TransformOffer(change, changes.LedgerHeaders[i])
+							offer, err := transform.TransformOffer(change, changes.LedgerHeaders[i], env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming offer entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -188,7 +188,7 @@ be exported.`,
 							continue
 						}
 						for i, change := range changes.Changes {
-							trust, err := transform.TransformTrustline(change, changes.LedgerHeaders[i])
+							trust, err := transform.TransformTrustline(change, changes.LedgerHeaders[i], env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming trustline entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
@@ -201,7 +201,7 @@ be exported.`,
 							continue
 						}
 						for i, change := range changes.Changes {
-							pool, err := transform.TransformPool(change, changes.LedgerHeaders[i])
+							pool, err := transform.TransformPool(change, changes.LedgerHeaders[i], env.NetworkPassphrase)
 							if err != nil {
 								entry, _, _, _ := utils.ExtractEntryFromChange(change)
 								cmdLogger.LogError(fmt.Errorf("error transforming liquidity pool entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
