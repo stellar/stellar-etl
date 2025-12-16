@@ -10,6 +10,9 @@ concurrency:
 jobs:
   build-docker-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -28,11 +31,31 @@ jobs:
           ETLHASH: stellar/stellar-etl-dev:${SHORT_SHA}
 
       - name: Login to DockerHub
-        uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b # v1.14.0
+        uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b
         with:
           username: stellardataeng
           password: ${{ secrets.DOCKER_CREDS_DEV }}
 
-      - name: Push docker image
+      - name: Push docker image to DockerHub
         working-directory: .
         run: docker push stellar/stellar-etl-dev:${SHORT_SHA}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/471979297599/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider"
+          service_account: "acr-writer@hubble-261722.iam.gserviceaccount.com"
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Google Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Tag image for Google Artifact Registry
+        run: |
+          docker tag stellar/stellar-etl-dev:${SHORT_SHA} us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl-dev:${SHORT_SHA}
+
+      - name: Push docker image to Google Artifact Registry
+        run: |
+          docker push us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl-dev:${SHORT_SHA}
