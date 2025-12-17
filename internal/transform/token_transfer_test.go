@@ -7,9 +7,9 @@ import (
 	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stellar/go/asset"
-	"github.com/stellar/go/processors/token_transfer"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/asset"
+	"github.com/stellar/go-stellar-sdk/processors/token_transfer"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestTransformTokenTransfer(t *testing.T) {
