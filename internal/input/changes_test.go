@@ -3,13 +3,13 @@ package input
 import (
 	"testing"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/log"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/support/log"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestSendBatchToChannel(t *testing.T) {

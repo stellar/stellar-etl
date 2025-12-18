@@ -6,7 +6,7 @@ import (
 	"github.com/guregu/null"
 	"github.com/guregu/null/zero"
 	"github.com/lib/pq"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers

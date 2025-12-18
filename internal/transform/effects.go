@@ -9,14 +9,14 @@ import (
 	"strconv"
 
 	"github.com/guregu/null"
-	"github.com/stellar/go/amount"
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon/base" //nolint:all
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/support/contractevents"
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/amount"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/keypair"
+	"github.com/stellar/go-stellar-sdk/protocols/horizon/base" //nolint:all
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/support/contractevents"
+	"github.com/stellar/go-stellar-sdk/support/errors"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
@@ -126,7 +126,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 		}
 
 		// For now, the only effects are related to the events themselves.
-		// Possible add'l work: https://github.com/stellar/go/issues/4585
+		// Possible add'l work: https://github.com/stellar/go-stellar-sdk/issues/4585
 		err = wrapper.addInvokeHostFunctionEffects(contractEvents)
 	case xdr.OperationTypeExtendFootprintTtl:
 		err = wrapper.addExtendFootprintTtlEffect()
