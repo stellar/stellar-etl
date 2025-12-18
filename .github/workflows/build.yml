@@ -24,11 +24,23 @@ jobs:
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
           echo "Short SHA: $SHORT_SHA"
 
+      - name: Set image tag based on branch
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            IMAGE_TAG="stellar/stellar-etl:${SHORT_SHA}"
+          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+            IMAGE_TAG="stellar/stellar-etl-staging:${SHORT_SHA}"
+          else
+            IMAGE_TAG="stellar/stellar-etl-dev:${SHORT_SHA}"
+          fi
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "Image tag: $IMAGE_TAG"
+
       - name: Make docker image
         working-directory: .
         run: make docker-build
         env:
-          ETLHASH: stellar/stellar-etl-dev:${SHORT_SHA}
+          ETLHASH: ${{ env.IMAGE_TAG }}
 
       - name: Login to DockerHub
         uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b
@@ -38,7 +50,7 @@ jobs:
 
       - name: Push docker image to DockerHub
         working-directory: .
-        run: docker push stellar/stellar-etl-dev:${SHORT_SHA}
+        run: docker push ${{ env.IMAGE_TAG }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -54,8 +66,16 @@ jobs:
 
       - name: Tag image for Google Artifact Registry
         run: |
-          docker tag stellar/stellar-etl-dev:${SHORT_SHA} us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl-dev:${SHORT_SHA}
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            GAR_IMAGE="us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl:${SHORT_SHA}"
+          elif [ "${{ github.ref }}" = "refs/heads/staging" ]; then
+            GAR_IMAGE="us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl-staging:${SHORT_SHA}"
+          else
+            GAR_IMAGE="us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl-dev:${SHORT_SHA}"
+          fi
+          docker tag ${{ env.IMAGE_TAG }} $GAR_IMAGE
+          echo "GAR_IMAGE=$GAR_IMAGE" >> $GITHUB_ENV
 
       - name: Push docker image to Google Artifact Registry
         run: |
-          docker push us-central1-docker.pkg.dev/hubble-261722/stellar-etl/stellar-etl-dev:${SHORT_SHA}
+          docker push ${{ env.GAR_IMAGE }}
