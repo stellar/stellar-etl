@@ -999,9 +999,10 @@ func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.Dat
 		Schema: datastore.DataStoreSchema{
 			LedgersPerFile:    1,
 			FilesPerPartition: 64000,
+			FileExtension:     "zstd",
 		},
+		Compression: "zstd",
 	}
-
 	datastore, error := datastore.NewDataStore(ctx, dataStoreConfig)
 	return datastore, dataStoreConfig, error
 }
@@ -1032,7 +1033,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 
 	var schema datastore.DataStoreSchema
 	schema, err = datastore.LoadSchema(context.Background(), dataStore, datastoreConfig)
-
+	schema.FileExtension = "zstd"
 	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore, schema)
 	if err != nil {
 		return nil, err
