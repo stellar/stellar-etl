@@ -3,11 +3,11 @@ package transform
 import (
 	"fmt"
 
-	"github.com/dgryski/go-farm"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	farm "github.com/dgryski/go-farm"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // TransformAsset converts an asset from a payment operation into a form suitable for BigQuery

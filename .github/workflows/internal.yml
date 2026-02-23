@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v6
         with:
           go-version: 1
       - name: Build Internal
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v6
         with:
           go-version: 1
       - name: Run Internal Unit Tests

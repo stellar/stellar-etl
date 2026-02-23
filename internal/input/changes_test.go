@@ -3,13 +3,13 @@ package input
 import (
 	"testing"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/log"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/support/log"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestSendBatchToChannel(t *testing.T) {
@@ -161,7 +161,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 65},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 65,
 					},
 				},
@@ -171,9 +171,9 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 66},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 64,
-					}, batchRange{
+					}, {
 						batchStart: 65, batchEnd: 66,
 					},
 				},
@@ -183,10 +183,10 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 128},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 64,
 					},
-					batchRange{
+					{
 						batchStart: 65, batchEnd: 128,
 					},
 				},
@@ -196,7 +196,7 @@ func TestStreamChangesBatchNumbers(t *testing.T) {
 			args: input{batchStart: 1, batchEnd: 32},
 			out: output{
 				batchRanges: []batchRange{
-					batchRange{
+					{
 						batchStart: 1, batchEnd: 32,
 					},
 				},

@@ -9,15 +9,15 @@ import (
 	"strconv"
 
 	"github.com/guregu/null"
-	"github.com/stellar/go/amount"
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon/base"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/support/contractevents"
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/go-stellar-sdk/amount"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/keypair"
+	"github.com/stellar/go-stellar-sdk/protocols/horizon/base" //nolint:all
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/support/contractevents"
+	"github.com/stellar/go-stellar-sdk/support/errors"
+	"github.com/stellar/go-stellar-sdk/xdr"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphrase string) ([]EffectOutput, error) {
@@ -118,14 +118,16 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	case xdr.OperationTypeInvokeHostFunction:
 		// If there's an invokeHostFunction operation, there's definitely V3
 		// meta in the transaction, which means this error is real.
-		diagnosticEvents, innerErr := operation.transaction.GetDiagnosticEvents()
+		// TODO: Replace GetContractEvents with TransformContractEvent to get all the events
+		contractEvents, innerErr := operation.transaction.GetContractEvents()
+
 		if innerErr != nil {
 			return nil, innerErr
 		}
 
 		// For now, the only effects are related to the events themselves.
-		// Possible add'l work: https://github.com/stellar/go/issues/4585
-		err = wrapper.addInvokeHostFunctionEffects(filterEvents(diagnosticEvents))
+		// Possible add'l work: https://github.com/stellar/go-stellar-sdk/issues/4585
+		err = wrapper.addInvokeHostFunctionEffects(contractEvents)
 	case xdr.OperationTypeExtendFootprintTtl:
 		err = wrapper.addExtendFootprintTtlEffect()
 	case xdr.OperationTypeRestoreFootprint:
@@ -133,6 +135,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 	default:
 		return nil, fmt.Errorf("unknown operation type: %s", op.Body.Type)
 	}
+
 	if err != nil {
 		return nil, err
 	}

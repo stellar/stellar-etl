@@ -4,12 +4,12 @@ import (
 	"context"
 	"io"
 
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/support/errors"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // LedgerTransformInput is a representation of the input for the TransformTransaction function

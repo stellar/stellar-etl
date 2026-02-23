@@ -8,12 +8,12 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/lib/pq"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // TransformTransaction converts a transaction from the history archive ingestion system into a form suitable for BigQuery
@@ -136,8 +136,9 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	var hasSorobanData bool
 	var outputResourceFee int64
 	var outputSorobanResourcesInstructions uint32
-	var outputSorobanResourcesReadBytes uint32
+	var outputSorobanResourcesDiskReadBytes uint32
 	var outputSorobanResourcesWriteBytes uint32
+	var outputSorobanArchivedEntries []uint32
 	var outputInclusionFeeBid int64
 	var outputInclusionFeeCharged int64
 	var outputResourceFeeRefund int64
@@ -160,9 +161,18 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 	if hasSorobanData {
 		outputResourceFee = int64(sorobanData.ResourceFee)
 		outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
-		outputSorobanResourcesReadBytes = uint32(sorobanData.Resources.ReadBytes)
+		outputSorobanResourcesDiskReadBytes = uint32(sorobanData.Resources.DiskReadBytes)
 		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
-		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		if transaction.Envelope.IsFeeBump() {
+			outputInclusionFeeBid = int64(transaction.Envelope.FeeBumpFee()) - outputResourceFee
+		} else {
+			outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		}
+		if sorobanData.Ext.ResourceExt != nil {
+			for _, entry := range sorobanData.Ext.ResourceExt.ArchivedSorobanEntries {
+				outputSorobanArchivedEntries = append(outputSorobanArchivedEntries, uint32(entry))
+			}
+		}
 
 		accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(transaction.FeeChanges, feeAccountAddress)
 		initialFeeCharged := accountBalanceStart - accountBalanceEnd
@@ -182,6 +192,20 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			}
 		}
 
+		// For P23 onwards, transaction meta v3 will be empty
+		metav4, ok := transaction.UnsafeMeta.GetV4()
+		if ok {
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(metav4.TxChangesAfter, feeAccountAddress)
+			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
+			if metav4.SorobanMeta != nil {
+				extV1, ok := metav4.SorobanMeta.Ext.GetV1()
+				if ok {
+					outputTotalNonRefundableResourceFeeCharged = int64(extV1.TotalNonRefundableResourceFeeCharged)
+					outputTotalRefundableResourceFeeCharged = int64(extV1.TotalRefundableResourceFeeCharged)
+					outputRentFeeCharged = int64(extV1.RentFeeCharged)
+				}
+			}
+		}
 		// Protocol 20 contained a bug where the feeCharged was incorrectly calculated but was fixed for
 		// Protocol 21 with https://github.com/stellar/stellar-core/issues/4188
 		// Any Soroban Fee Bump transactions before P21 will need the below logic to calculate the correct feeCharged
@@ -229,8 +253,10 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		ClosedAt:                             outputCloseTime,
 		ResourceFee:                          outputResourceFee,
 		SorobanResourcesInstructions:         outputSorobanResourcesInstructions,
-		SorobanResourcesReadBytes:            outputSorobanResourcesReadBytes,
+		SorobanResourcesReadBytes:            outputSorobanResourcesDiskReadBytes,
+		SorobanResourcesDiskReadBytes:        outputSorobanResourcesDiskReadBytes,
 		SorobanResourcesWriteBytes:           outputSorobanResourcesWriteBytes,
+		SorobanResourcesArchivedEntries:      outputSorobanArchivedEntries,
 		TransactionResultCode:                outputTxResultCode,
 		InclusionFeeBid:                      outputInclusionFeeBid,
 		InclusionFeeCharged:                  outputInclusionFeeCharged,

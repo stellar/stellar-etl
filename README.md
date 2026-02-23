@@ -1,20 +1,13 @@
 # **Stellar ETL**
 
+[![Apache 2.0 licensed](https://img.shields.io/badge/license-apache%202.0-blue.svg)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/stellar/stellar-etl)
+
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
-
-## ** Before creating a branch **
-
-Pay attention, it is very important to know if your modification to this repository is a release (breaking changes), a feature (functionalities) or a patch(to fix bugs). With that information, create your branch name like this:
-
-- `major/<branch-name>`
-- `minor/<branch-name>`
-- `patch/<branch-name>`
-
-If branch is already made, just rename it _before passing the pull request_.
 
 ## **Table of Contents**
 
-- [Exporting the Ledger Chain](#exporting-the-ledger-chain)
+- [Install](#install)
 - [Command Reference](#command-reference)
   - [Export Commands](#export-commands)
     - [export_ledgers](#export_ledgers)
@@ -35,7 +28,7 @@ If branch is already made, just rename it _before passing the pull request_.
 
 ---
 
-# **Exporting the Ledger Chain**
+# Install
 
 ## **Docker**
 
@@ -45,10 +38,10 @@ If branch is already made, just rename it _before passing the pull request_.
 
 ## **Manual Installation**
 
-1. Install Golang v1.22.1 or later: https://golang.org/dl/
+1. Install Golang v1.23.0 or later: https://golang.org/dl/
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. If using captive-core, download and install Stellar-Core v20.0.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
-4. Run `go install github.com/stellar/stellar-etl@latest` to install the ETL
+4. Run `go install github.com/stellar/stellar-etl/v2@latest` to install the ETL
 5. Run export commands to export information about the legder
 
 ## **Manual build for local development**
@@ -289,7 +282,13 @@ Exports diagnostic events data within the specified range to an output file
 --end-ledger 500000 --output exported_changes_folder/
 ```
 
-This command exports ledger changes within the provided ledger range. Flags can filter which ledger entry types are exported. If no data type flags are set, then by default all types are exported. If any are set, it is assumed that the others should not be exported.
+This command exports ledger changes within the provided ledger range. Flags can filter which ledger entry types are exported. If no data type flags are set, then by default all types are exported. If any are set, it is assumed that the others should not be exported. If a data type flag is set to false, and no other data type flags are set to true, all types are exported.
+
+```bash
+# This command exports all data types
+> stellar-etl export_ledger_entry_changes --export-accounts=false --start-ledger 1000 \
+--end-ledger 500000 --output exported_changes_folder/
+```
 
 Changes are exported in batches of a size defined by the `--batch-size` flag. By default, the batch-size parameter is set to 64 ledgers, which corresponds to a five minute period of time. This batch size is convenient because checkpoint ledgers are created every 64 ledgers. Checkpoint ledgers act as anchoring points for the nodes on the network, so it is beneficial to export in multiples of 64.
 

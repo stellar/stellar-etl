@@ -6,11 +6,11 @@ import (
 	"io"
 	"math"
 
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 var (
@@ -37,7 +37,6 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -50,7 +49,6 @@ func PrepareCaptiveCore(execPath string, tomlPath string, start, end uint32, env
 			Toml:               toml,
 			NetworkPassphrase:  env.NetworkPassphrase,
 			HistoryArchiveURLs: env.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
@@ -103,7 +101,7 @@ func extractBatch(
 	for seq := batchStart; seq <= batchEnd; {
 		changeCompactors := map[xdr.LedgerEntryType]*ingest.ChangeCompactor{}
 		for _, dt := range dataTypes {
-			changeCompactors[dt] = ingest.NewChangeCompactor()
+			changeCompactors[dt] = ingest.NewChangeCompactor(ingest.ChangeCompactorConfig{SuppressRemoveAfterRestoreChange: false})
 		}
 
 		// if this ledger is available, we process its changes and move on to the next ledger by incrementing seq.

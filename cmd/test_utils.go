@@ -104,7 +104,7 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 		// Instead, it's wrapped in other os/system errors
 		// By reading the error text from the logger, we can extract the lower level error that the user would see
 		if test.Golden == "" {
-			errorMsg := fmt.Errorf(extractErrorMsg(string(errOut)))
+			errorMsg := fmt.Errorf("%s", extractErrorMsg(string(errOut)))
 			assert.Equal(t, test.WantErr, errorMsg)
 			return
 		}

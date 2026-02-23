@@ -9,11 +9,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/transform"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/xdr"
+	"github.com/stellar/stellar-etl/v2/internal/input"
+	"github.com/stellar/stellar-etl/v2/internal/transform"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 var exportLedgerEntryChangesCmd = &cobra.Command{
@@ -54,21 +54,6 @@ be exported.`,
 			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
 		}
 
-		// If none of the export flags are set, then we assume that everything should be exported
-		allFalse := true
-		for _, value := range exports {
-			if value {
-				allFalse = false
-				break
-			}
-		}
-
-		if allFalse {
-			for export_name := range exports {
-				exports[export_name] = true
-			}
-		}
-
 		if configPath == "" && commonArgs.EndNum == 0 {
 			cmdLogger.Fatal("stellar-core needs a config file path when exporting ledgers continuously (endNum = 0)")
 		}
@@ -91,7 +76,6 @@ be exported.`,
 		changeChan := make(chan input.ChangeBatch)
 		closeChan := make(chan int)
 		go input.StreamChanges(&backend, startNum, commonArgs.EndNum, batchSize, changeChan, closeChan, env, cmdLogger)
-
 		for {
 			select {
 			case <-closeChan:
@@ -100,20 +84,48 @@ be exported.`,
 				if !ok {
 					continue
 				}
-				transformedOutputs := map[string][]interface{}{
-					"accounts":           {},
-					"signers":            {},
-					"claimable_balances": {},
-					"offers":             {},
-					"trustlines":         {},
-					"liquidity_pools":    {},
-					"contract_data":      {},
-					"contract_code":      {},
-					"config_settings":    {},
-					"ttl":                {},
+
+				transformedOutputs := map[string][]interface{}{}
+
+				exportMapping := map[string][]string{
+					"export-accounts":        {"accounts", "signers"},
+					"export-balances":        {"claimable_balances"},
+					"export-offers":          {"offers"},
+					"export-trustlines":      {"trustlines"},
+					"export-pools":           {"liquidity_pools"},
+					"export-contract-data":   {"contract_data"},
+					"export-contract-code":   {"contract_code"},
+					"export-config-settings": {"config_settings"},
+					"export-ttl":             {"ttl"},
+					"export-restored-keys":   {"restored_key"},
+				}
+
+				for flagName, outputKeys := range exportMapping {
+					if exports[flagName] {
+						for _, key := range outputKeys {
+							transformedOutputs[key] = []interface{}{}
+						}
+					}
 				}
 
 				for entryType, changes := range batch.Changes {
+					if exports["export-restored-keys"] {
+						for i, change := range changes.Changes {
+							entry, changeType, _, err := utils.ExtractEntryFromChange(change)
+
+							if changeType != xdr.LedgerEntryChangeTypeLedgerEntryRestored {
+								continue
+							}
+
+							key, err := transform.TransformRestoredKey(change, changes.LedgerHeaders[i])
+							if err != nil {
+								cmdLogger.LogError(fmt.Errorf("error transforming restored key entry last updated at %d: %s", entry.LastModifiedLedgerSeq, err))
+								continue
+							}
+							transformedOutputs["restored_key"] = append(transformedOutputs["restored_key"], key)
+						}
+					}
+
 					switch entryType {
 					case xdr.LedgerEntryTypeAccount:
 						if !exports["export-accounts"] {
@@ -290,6 +302,7 @@ func exportTransformedData(
 	writeParquet bool) error {
 
 	for resource, output := range transformedOutput {
+
 		// Filenames are typically exclusive of end point. This processor
 		// is different and we have to increment by 1 since the end batch number
 		// is included in this filename.

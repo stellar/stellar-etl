@@ -1,3 +1,4 @@
+//nolint:typecheck
 package transform
 
 import (
@@ -10,18 +11,18 @@ import (
 	"time"
 
 	"github.com/guregu/null"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/protocols/horizon/base"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/support/contractevents"
-	"github.com/stellar/stellar-etl/internal/toid"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/go-stellar-sdk/keypair"
+	"github.com/stellar/go-stellar-sdk/protocols/horizon/base"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/support/contractevents"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestEffectsCoversAllOperationTypes(t *testing.T) {
@@ -55,6 +56,22 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 				}
 				assert.True(t, err2 != nil || err == nil, s)
 			}()
+
+			// This is hacky but needed for when opType = InvokeHost
+			// This will trigger the path for the IsSorobanTx() check and that check will fail if SorobanData is not present
+			if op.Body.Type == xdr.OperationTypeInvokeHostFunction {
+				operation.transaction.Envelope = xdr.TransactionEnvelope{
+					Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+					V1: &xdr.TransactionV1Envelope{
+						Tx: xdr.Transaction{
+							Ext: xdr.TransactionExt{
+								V:           1,
+								SorobanData: &xdr.SorobanTransactionData{},
+							},
+						},
+					},
+				}
+			}
 			_, err = operation.effects()
 		}()
 	}
@@ -154,10 +171,10 @@ func TestOperationEffects(t *testing.T) {
 	strictPaymentWithMuxedAccountsTxBase64, err := xdr.MarshalBase64(strictPaymentWithMuxedAccountsTx)
 	assert.NoError(t, err)
 
-	creator := xdr.MustAddress("GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H")
-	created := xdr.MustAddress("GCQZP3IU7XU6EJ63JZXKCQOYT2RNXN3HB5CNHENNUEUHSMA4VUJJJSEN")
-	sponsor := xdr.MustAddress("GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A")
-	sponsor2 := xdr.MustAddress("GACMZD5VJXTRLKVET72CETCYKELPNCOTTBDC6DHFEUPLG5DHEK534JQX")
+	creator := xdr.MustAddress("GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H")  //nolint:all
+	created := xdr.MustAddress("GCQZP3IU7XU6EJ63JZXKCQOYT2RNXN3HB5CNHENNUEUHSMA4VUJJJSEN")  //nolint:all
+	sponsor := xdr.MustAddress("GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A")  //nolint:all
+	sponsor2 := xdr.MustAddress("GACMZD5VJXTRLKVET72CETCYKELPNCOTTBDC6DHFEUPLG5DHEK534JQX") //nolint:all
 	createAccountMeta := &xdr.TransactionMeta{
 		V: 1,
 		V1: &xdr.TransactionMetaV1{
@@ -2568,6 +2585,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 	source := xdr.MustMuxedAddress("GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY")
 	usdAsset := xdr.MustNewCreditAsset("USD", "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY")
 	poolIDStr := "ea4e3e63a95fd840c1394f195722ffdcb2d0d4f0a26589c6ab557d81e6b0bf9d"
+	poolIDStrkey := "LDVE4PTDVFP5QQGBHFHRSVZC77OLFUGU6CRGLCOGVNKX3APGWC7Z3NUW"
 	var poolID xdr.PoolId
 	poolIDBytes, err := hex.DecodeString(poolIDStr)
 	assert.NoError(t, err)
@@ -2675,9 +2693,10 @@ func TestLiquidityPoolEffects(t *testing.T) {
 					Address:     "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 					OperationID: 4294967297,
 					Details: map[string]interface{}{
-						"asset_type":        "liquidity_pool_shares",
-						"limit":             "0.0001000",
-						"liquidity_pool_id": poolIDStr,
+						"asset_type":               "liquidity_pool_shares",
+						"limit":                    "0.0001000",
+						"liquidity_pool_id":        poolIDStr,
+						"liquidity_pool_id_strkey": poolIDStrkey,
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
 					LedgerSequence: 1,
@@ -3873,6 +3892,11 @@ func makeInvocationTransaction(
 	envelope := xdr.TransactionV1Envelope{
 		Tx: xdr.Transaction{
 			// the rest doesn't matter for effect ingestion
+			Ext: xdr.TransactionExt{
+				V: 1,
+				// sorobanData is needed to pass the check for IsSorobanTx
+				SorobanData: &xdr.SorobanTransactionData{},
+			},
 			Operations: []xdr.Operation{
 				{
 					SourceAccount: xdr.MustMuxedAddressPtr(admin),

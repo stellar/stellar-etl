@@ -3,11 +3,11 @@ package input
 import (
 	"context"
 
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/historyarchive"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/historyarchive"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
@@ -45,6 +45,14 @@ func GetLedgers(start, end uint32, limit int64, env utils.EnvironmentDetails, us
 				GeneralizedTxSet: &lcm.V1.TxSet,
 			}
 			for _, transactionResultMeta := range lcm.V1.TxProcessing {
+				transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
+			}
+		case 2:
+			ext = xdr.TransactionHistoryEntryExt{
+				V:                1,
+				GeneralizedTxSet: &lcm.V2.TxSet,
+			}
+			for _, transactionResultMeta := range lcm.V2.TxProcessing {
 				transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
 			}
 		}

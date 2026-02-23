@@ -7,9 +7,9 @@ import (
 	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stellar/go/asset"
-	"github.com/stellar/go/processors/token_transfer"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/asset"
+	"github.com/stellar/go-stellar-sdk/processors/token_transfer"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestTransformTokenTransfer(t *testing.T) {
@@ -331,8 +331,8 @@ func makeTokenTransferTestInput() (events [][]*token_transfer.TokenTransferEvent
 			},
 		},
 		{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
+			V: 2,
+			V2: &xdr.LedgerCloseMetaV2{
 				LedgerHeader: xdr.LedgerHeaderHistoryEntry{
 					Header: xdr.LedgerHeader{
 						ScpValue: xdr.StellarValue{

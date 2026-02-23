@@ -3,10 +3,10 @@ package transform
 import (
 	"fmt"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/xdr"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/xdr"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // TransformPool converts an liquidity pool ledger change entry into a form suitable for BigQuery

@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"github.com/stellar/stellar-etl/internal/toid"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
 
 	"github.com/spf13/cobra"
-	"github.com/stellar/stellar-etl/internal/input"
-	"github.com/stellar/stellar-etl/internal/transform"
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/input"
+	"github.com/stellar/stellar-etl/v2/internal/transform"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 // tradesCmd represents the trades command

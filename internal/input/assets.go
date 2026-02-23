@@ -3,10 +3,10 @@ package input
 import (
 	"context"
 
-	"github.com/stellar/stellar-etl/internal/utils"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 type AssetTransformInput struct {
