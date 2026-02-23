@@ -79,6 +79,7 @@ Integration tests require GCP credentials at `$HOME/.config/gcloud/application_d
 ## Flag Registration Helpers
 
 All defined in `internal/utils/main.go`:
+
 - `AddCommonFlags()` :232 — network, strict-export, parquet, captive-core
 - `AddArchiveFlags()` :250 — start/end ledger, limit, output path
 - `AddCloudStorageFlags()` :258 — GCS bucket, credentials, provider
@@ -92,6 +93,7 @@ Controlled by `--testnet` or `--futurenet` flags (default: mainnet). Resolved at
 ## Release Process
 
 Branch naming drives semantic versioning on merge to master:
+
 - `major/*` — bump major
 - `minor/*` — bump minor
 - anything else — bump patch

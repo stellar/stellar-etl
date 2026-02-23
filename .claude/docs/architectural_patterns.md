@@ -5,6 +5,7 @@
 Every `cmd/export_*.go` file follows an identical five-phase pattern. Use `cmd/export_operations.go:17-67` as the canonical reference.
 
 **Phase 1 — Parse flags**
+
 ```
 commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
@@ -53,6 +54,7 @@ Files follow the pattern: entity logic in `transform/{entity}.go`, its `ToParque
 ## 5. Ledger Backend Abstraction
 
 Factory at `internal/utils/main.go:1011` (`CreateLedgerBackend`) selects between:
+
 - **GCS Datastore** (production) — reads pre-exported ledger data from cloud storage
 - **Captive Core** (legacy/testing) — runs a local Stellar Core instance
 
@@ -61,6 +63,7 @@ All `input.Get{Entity}()` functions call `CreateLedgerBackend()` and work identi
 ## 6. Configuration Hierarchy
 
 Managed by Viper in `cmd/root.go:52-75`:
+
 1. CLI flags (highest priority)
 2. Config file (`--config` or `$HOME/.stellar-etl.yaml`)
 3. Environment variables (`viper.AutomaticEnv()` at `root.go:69`)
@@ -71,6 +74,7 @@ Network selection (`internal/utils/main.go:886-915`): `--testnet` and `--futuren
 ## 7. Constructor Factory Pattern
 
 Dependencies are created via `New{Type}()` functions:
+
 - `internal/utils/logger.go:10` — `NewEtlLogger()`
 - `cmd/upload_to_gcs.go` — `newGCS()`
 
@@ -91,6 +95,7 @@ Unit tests in `internal/transform/` use table-driven patterns with Testify asser
 ## 9. Adding a New Export Command
 
 Checklist:
+
 1. **Input struct**: Create `internal/input/{entity}.go` with `{Entity}TransformInput` struct and `Get{Entity}()` function
 2. **Transform**: Create `internal/transform/{entity}.go` with `{Entity}Output`, `{Entity}OutputParquet` structs and `Transform{Entity}()` function
 3. **Parquet**: Add `ToParquet()` method in `internal/transform/parquet_converter.go`
