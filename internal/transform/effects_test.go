@@ -55,6 +55,22 @@ func TestEffectsCoversAllOperationTypes(t *testing.T) {
 				}
 				assert.True(t, err2 != nil || err == nil, s)
 			}()
+
+			// This is hacky but needed for when opType = InvokeHost
+			// This will trigger the path for the IsSorobanTx() check and that check will fail if SorobanData is not present
+			if op.Body.Type == xdr.OperationTypeInvokeHostFunction {
+				operation.transaction.Envelope = xdr.TransactionEnvelope{
+					Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+					V1: &xdr.TransactionV1Envelope{
+						Tx: xdr.Transaction{
+							Ext: xdr.TransactionExt{
+								V:           1,
+								SorobanData: &xdr.SorobanTransactionData{},
+							},
+						},
+					},
+				}
+			}
 			_, err = operation.effects()
 		}()
 	}
@@ -3875,6 +3891,11 @@ func makeInvocationTransaction(
 	envelope := xdr.TransactionV1Envelope{
 		Tx: xdr.Transaction{
 			// the rest doesn't matter for effect ingestion
+			Ext: xdr.TransactionExt{
+				V: 1,
+				// sorobanData is needed to pass the check for IsSorobanTx
+				SorobanData: &xdr.SorobanTransactionData{},
+			},
 			Operations: []xdr.Operation{
 				{
 					SourceAccount: xdr.MustMuxedAddressPtr(admin),

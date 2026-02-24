@@ -97,9 +97,10 @@ func makeClaimableBalanceTestInput() ingest.Change {
 		},
 	}
 	return ingest.Change{
-		Type: xdr.LedgerEntryTypeClaimableBalance,
-		Pre:  &ledgerEntry,
-		Post: nil,
+		ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryRemoved,
+		Type:       xdr.LedgerEntryTypeClaimableBalance,
+		Pre:        &ledgerEntry,
+		Post:       nil,
 	}
 }
 

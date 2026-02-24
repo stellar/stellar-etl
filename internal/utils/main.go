@@ -235,6 +235,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
+	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
 	flags.String("datastore-path", "sdf-ledger-close-meta/ledgers", "Datastore bucket path to read txmeta files from.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
@@ -285,6 +286,7 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 	flags.BoolP("export-contract-data", "", false, "set in order to export contract data changes")
 	flags.BoolP("export-config-settings", "", false, "set in order to export config settings changes")
 	flags.BoolP("export-ttl", "", false, "set in order to export ttl changes")
+	flags.BoolP("export-restored-keys", "", false, "set in order to export restored ledger keys")
 }
 
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
@@ -638,6 +640,7 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-contract-data":   false,
 		"export-config-settings": false,
 		"export-ttl":             false,
+		"export-restored-keys":   false,
 	}
 
 	for export_name := range exports {
@@ -778,7 +781,9 @@ var testArchiveURLs = []string{
 
 // futrenet is used for testing new Protocol features
 var futureArchiveURLs = []string{
-	"https://history-futurenet.stellar.org/",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_001",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_002",
+	"http://history.stellar.org/dev/core-futurenet/core_futurenet_003",
 }
 
 func CreateHistoryArchiveClient(archiveURLS []string) (historyarchive.ArchiveInterface, error) {
@@ -834,11 +839,13 @@ func ExtractLedgerCloseTime(ledger xdr.LedgerHeaderHistoryEntry) (time.Time, err
 
 // ExtractEntryFromChange gets the most recent state of an entry from an ingestio change, as well as if the entry was deleted
 func ExtractEntryFromChange(change ingest.Change) (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
-	switch changeType := change.LedgerEntryChangeType(); changeType {
+	switch changeType := change.ChangeType; changeType {
 	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
 		return *change.Post, changeType, false, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
 		return *change.Pre, changeType, true, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
+		return *change.Post, changeType, false, nil
 	default:
 		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
 	}
@@ -905,7 +912,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
 			Strict:             true,
-			UseDB:              false,
 		},
 	)
 	if err != nil {
@@ -917,7 +923,6 @@ func (e EnvironmentDetails) CreateCaptiveCoreBackend() (*ledgerbackend.CaptiveSt
 			Toml:               captiveCoreToml,
 			NetworkPassphrase:  e.NetworkPassphrase,
 			HistoryArchiveURLs: e.ArchiveURLs,
-			UseDB:              false,
 			UserAgent:          "stellar-etl/1.0.0",
 		},
 	)
@@ -969,7 +974,7 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 // CreateDatastore creates the datastore to interface with GCS
 // TODO: this can be updated to use different cloud storage services in the future.
 // For now only GCS works datastore.Datastore.
-func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, error) {
+func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
 	// These params are specific for GCS
 	params := make(map[string]string)
 	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath + "/" + env.Network
@@ -984,7 +989,8 @@ func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.Dat
 		},
 	}
 
-	return datastore.NewDataStore(ctx, dataStoreConfig)
+	datastore, error := datastore.NewDataStore(ctx, dataStoreConfig)
+	return datastore, dataStoreConfig, error
 }
 
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
@@ -999,7 +1005,7 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		return backend, nil
 	}
 
-	dataStore, err := CreateDatastore(ctx, env)
+	dataStore, datastoreConfig, err := CreateDatastore(ctx, env)
 	if err != nil {
 		return nil, err
 	}
@@ -1011,7 +1017,10 @@ func CreateLedgerBackend(ctx context.Context, useCaptiveCore bool, env Environme
 		RetryWait:  time.Duration(env.CommonFlagValues.RetryWait) * time.Second,
 	}
 
-	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore)
+	var schema datastore.DataStoreSchema
+	schema, err = datastore.LoadSchema(context.Background(), dataStore, datastoreConfig)
+
+	backend, err := ledgerbackend.NewBufferedStorageBackend(BSBackendConfig, dataStore, schema)
 	if err != nil {
 		return nil, err
 	}

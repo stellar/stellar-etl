@@ -74,7 +74,36 @@ func TestTransformLedger(t *testing.T) {
 			fmt.Errorf("the fee pool (-1) is negative for ledger 0 (ledger id=0)"),
 		},
 		{
-			hardCodedLedger,
+			utils.HistoryArchiveLedgerAndLCM{
+				Ledger: historyarchive.Ledger{
+					Header: xdr.LedgerHeaderHistoryEntry{
+						Header: xdr.LedgerHeader{
+							FeePool: -1,
+						},
+					},
+				},
+				LCM: xdr.LedgerCloseMeta{
+					V: 2,
+					V2: &xdr.LedgerCloseMetaV2{
+						Ext: xdr.LedgerCloseMetaExt{
+							V: 1,
+							V1: &xdr.LedgerCloseMetaExtV1{
+								SorobanFeeWrite1Kb: xdr.Int64(1234),
+							},
+						},
+					},
+				},
+			},
+			LedgerOutput{},
+			fmt.Errorf("the fee pool (-1) is negative for ledger 0 (ledger id=0)"),
+		},
+		{
+			hardCodedLedger[0],
+			hardCodedOutput,
+			nil,
+		},
+		{
+			hardCodedLedger[1],
 			hardCodedOutput,
 			nil,
 		},
@@ -115,11 +144,13 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		FailedTransactionCount:     1,
 		TxSetOperationCount:        "13",
 		SorobanFeeWrite1Kb:         1234,
+		EvictedLedgerKeysType:      []string{"LedgerEntryTypeLiquidityPool"},
+		EvictedLedgerKeysHash:      []string{"AAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
 	}
 	return
 }
 
-func makeLedgerTestInput() (lcm utils.HistoryArchiveLedgerAndLCM, err error) {
+func makeLedgerTestInput() (lcm []utils.HistoryArchiveLedgerAndLCM, err error) {
 	hardCodedTxSet := xdr.TransactionSet{
 		Txs: []xdr.TransactionEnvelope{
 			utils.CreateSampleTx(0, 3),
@@ -158,15 +189,47 @@ func makeLedgerTestInput() (lcm utils.HistoryArchiveLedgerAndLCM, err error) {
 		},
 	}
 
-	lcm = utils.HistoryArchiveLedgerAndLCM{
-		Ledger: ledger,
-		LCM: xdr.LedgerCloseMeta{
-			V: 1,
-			V1: &xdr.LedgerCloseMetaV1{
-				Ext: xdr.LedgerCloseMetaExt{
-					V: 1,
-					V1: &xdr.LedgerCloseMetaExtV1{
-						SorobanFeeWrite1Kb: xdr.Int64(1234),
+	lcm = []utils.HistoryArchiveLedgerAndLCM{
+		{
+			Ledger: ledger,
+			LCM: xdr.LedgerCloseMeta{
+				V: 1,
+				V1: &xdr.LedgerCloseMetaV1{
+					Ext: xdr.LedgerCloseMetaExt{
+						V: 1,
+						V1: &xdr.LedgerCloseMetaExtV1{
+							SorobanFeeWrite1Kb: xdr.Int64(1234),
+						},
+					},
+					EvictedKeys: []xdr.LedgerKey{
+						{
+							Type: xdr.LedgerEntryTypeLiquidityPool,
+							LiquidityPool: &xdr.LedgerKeyLiquidityPool{
+								LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Ledger: ledger,
+			LCM: xdr.LedgerCloseMeta{
+				V: 2,
+				V2: &xdr.LedgerCloseMetaV2{
+					Ext: xdr.LedgerCloseMetaExt{
+						V: 1,
+						V1: &xdr.LedgerCloseMetaExtV1{
+							SorobanFeeWrite1Kb: xdr.Int64(1234),
+						},
+					},
+					EvictedKeys: []xdr.LedgerKey{
+						{
+							Type: xdr.LedgerEntryTypeLiquidityPool,
+							LiquidityPool: &xdr.LedgerKeyLiquidityPool{
+								LiquidityPoolId: xdr.PoolId{1, 2, 3, 4, 5, 6, 7, 8, 9},
+							},
+						},
 					},
 				},
 			},

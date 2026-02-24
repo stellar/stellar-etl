@@ -47,6 +47,14 @@ func GetLedgers(start, end uint32, limit int64, env utils.EnvironmentDetails, us
 			for _, transactionResultMeta := range lcm.V1.TxProcessing {
 				transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
 			}
+		case 2:
+			ext = xdr.TransactionHistoryEntryExt{
+				V:                1,
+				GeneralizedTxSet: &lcm.V2.TxSet,
+			}
+			for _, transactionResultMeta := range lcm.V2.TxProcessing {
+				transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
+			}
 		}
 
 		ledger := historyarchive.Ledger{

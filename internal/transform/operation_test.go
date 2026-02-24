@@ -103,7 +103,6 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 		return
 	}
 
-	contractHash := xdr.Hash{}
 	salt := [32]byte{}
 	assetCode := [12]byte{}
 	assetIssuer := xdr.Uint256{}
@@ -527,7 +526,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 						InvokeContract: &xdr.InvokeContractArgs{
 							ContractAddress: xdr.ScAddress{
 								Type:       xdr.ScAddressTypeScAddressTypeContract,
-								ContractId: &contractHash,
+								ContractId: &xdr.ContractId{},
 							},
 							FunctionName: "test",
 							Args:         []xdr.ScVal{},
@@ -549,7 +548,7 @@ func makeOperationTestInput() (inputTransaction ingest.LedgerTransaction, err er
 								FromAddress: &xdr.ContractIdPreimageFromAddress{
 									Address: xdr.ScAddress{
 										Type:       xdr.ScAddressTypeScAddressTypeContract,
-										ContractId: &contractHash,
+										ContractId: &xdr.ContractId{},
 									},
 									Salt: salt,
 								},
