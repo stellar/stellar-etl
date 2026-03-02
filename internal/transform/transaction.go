@@ -192,10 +192,13 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			}
 		}
 
-		// For P23 onwards, transaction meta v3 will be empty
+		// For P23 onwards, transaction meta v3 will be empty.
+		// In P23+, the fee refund balance change moved from TxChangesAfter to
+		// PostTxApplyFeeChanges on the LedgerTransaction, so we need to include both.
 		metav4, ok := transaction.UnsafeMeta.GetV4()
 		if ok {
-			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(metav4.TxChangesAfter, feeAccountAddress)
+			feeChanges := append(metav4.TxChangesAfter, transaction.PostTxApplyFeeChanges...)
+		accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(feeChanges, feeAccountAddress)
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
 			if metav4.SorobanMeta != nil {
 				extV1, ok := metav4.SorobanMeta.Ext.GetV1()
