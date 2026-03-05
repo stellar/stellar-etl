@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - master
-      - 'release-*'
+      - "release-*"
   pull_request:
     branches:
       - master
-      - 'release-*'
+      - "release-*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
