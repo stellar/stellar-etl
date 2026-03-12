@@ -65,6 +65,7 @@ Every export command follows the same pipeline:
 ### Adding a New Export Command
 
 Four files are required:
+
 1. `cmd/export_<name>.go` — Cobra command, flag parsing, orchestration
 2. `cmd/export_<name>_test.go` — integration test with golden files in `testdata/<name>/`
 3. `internal/input/<name>.go` — extraction logic (channel-based for streaming)

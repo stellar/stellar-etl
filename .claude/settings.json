@@ -5,13 +5,19 @@
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "git-secrets --scan $CLAUDE_FILE_PATHS 2>/dev/null || exit 1" }
+          {
+            "type": "command",
+            "command": "git-secrets --scan $CLAUDE_FILE_PATHS 2>/dev/null || exit 1"
+          }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "echo $CLAUDE_TOOL_INPUT | grep -qE 'rm -rf|force-push' && exit 1 || exit 0" }
+          {
+            "type": "command",
+            "command": "echo $CLAUDE_TOOL_INPUT | grep -qE 'rm -rf|force-push' && exit 1 || exit 0"
+          }
         ]
       }
     ],
@@ -19,8 +25,14 @@
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "[ -n \"$CLAUDE_FILE_PATHS\" ] && gofmt -w $CLAUDE_FILE_PATHS || true" },
-          { "type": "command", "command": "[ -n \"$CLAUDE_FILE_PATHS\" ] && golangci-lint run $CLAUDE_FILE_PATHS || true" },
+          {
+            "type": "command",
+            "command": "[ -n \"$CLAUDE_FILE_PATHS\" ] && gofmt -w $CLAUDE_FILE_PATHS || true"
+          },
+          {
+            "type": "command",
+            "command": "[ -n \"$CLAUDE_FILE_PATHS\" ] && golangci-lint run $CLAUDE_FILE_PATHS || true"
+          },
           { "type": "command", "command": "go test ./... 2>&1 | tail -20" }
         ]
       }
