@@ -85,6 +85,7 @@ Four files are required:
 
 - Use GCS datastore and its default settings for `LedgerCloseMetaBatch` files
 - Run lint, tests, and intergration tests before considering a task complete
+- Run pre-commit before creating a PR and committing changes
 - Prefer small and focused changes over large rewrites
 - Keep PRs scoped to only the request
 - Never commit secrets, API keys, or credentials
