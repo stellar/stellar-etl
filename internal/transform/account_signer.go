@@ -86,6 +86,11 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		}
 	}
 
-	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })
+	sort.Slice(signers, func(a, b int) bool {
+		if signers[a].Weight != signers[b].Weight {
+			return signers[a].Weight < signers[b].Weight
+		}
+		return signers[a].Signer < signers[b].Signer
+	})
 	return signers, nil
 }
