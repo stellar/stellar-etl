@@ -18,7 +18,6 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 	if err != nil {
 		return signers, err
 	}
-	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 	accountEntry, accountFound := ledgerEntry.Data.GetAccount()
 	if !accountFound {
 		return signers, fmt.Errorf("could not extract signer data from ledger entry of type: %+v", ledgerEntry.Data.Type)
@@ -30,6 +29,7 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 	}
 
 	ledgerSequence := header.Header.LedgerSeq
+	outputLastModifiedLedger := uint32(ledgerEntry.LastModifiedLedgerSeq)
 
 	sponsors := accountEntry.SponsorPerSigner()
 	for signer, weight := range accountEntry.SignerSummary() {
@@ -50,6 +50,47 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 			LedgerSequence:     uint32(ledgerSequence),
 		})
 	}
-	sort.Slice(signers, func(a, b int) bool { return signers[a].Weight < signers[b].Weight })
+
+	// For account updates, emit deletion rows for signers present in Pre but absent in Post.
+	// Signer deletions don't produce their own ledger entry removal — they're embedded in the
+	// account's UPDATED change — so we must diff Pre vs Post to surface them explicitly.
+	if changeType == xdr.LedgerEntryChangeTypeLedgerEntryUpdated && ledgerChange.Pre != nil {
+		preAccountEntry, preFound := ledgerChange.Pre.Data.GetAccount()
+		if !preFound {
+			return signers, fmt.Errorf("could not extract pre-state signer data from ledger entry of type: %+v", ledgerChange.Pre.Data.Type)
+		}
+
+		postSigners := accountEntry.SignerSummary()
+		preSponsors := preAccountEntry.SponsorPerSigner()
+		preLastModifiedLedger := uint32(ledgerChange.Pre.LastModifiedLedgerSeq)
+
+		for signer := range preAccountEntry.SignerSummary() {
+			if _, stillExists := postSigners[signer]; stillExists {
+				continue
+			}
+			var sponsor null.String
+			if sponsorDesc, isSponsored := preSponsors[signer]; isSponsored {
+				sponsor = null.StringFrom(sponsorDesc.Address())
+			}
+			signers = append(signers, AccountSignerOutput{
+				AccountID:          preAccountEntry.AccountId.Address(),
+				Signer:             signer,
+				Weight:             0,
+				Sponsor:            sponsor,
+				LastModifiedLedger: preLastModifiedLedger,
+				LedgerEntryChange:  uint32(xdr.LedgerEntryChangeTypeLedgerEntryRemoved),
+				Deleted:            true,
+				ClosedAt:           closedAt,
+				LedgerSequence:     uint32(ledgerSequence),
+			})
+		}
+	}
+
+	sort.Slice(signers, func(a, b int) bool {
+		if signers[a].Weight != signers[b].Weight {
+			return signers[a].Weight < signers[b].Weight
+		}
+		return signers[a].Signer < signers[b].Signer
+	})
 	return signers, nil
 }
