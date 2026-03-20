@@ -45,16 +45,6 @@ jobs:
         env:
           ETLHASH: ${{ env.IMAGE_TAG }}
 
-      - name: Login to DockerHub
-        uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b
-        with:
-          username: stellardataeng
-          password: ${{ secrets.DOCKER_CREDS_DEV }}
-
-      - name: Push docker image to DockerHub
-        working-directory: .
-        run: docker push ${{ env.IMAGE_TAG }}
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
