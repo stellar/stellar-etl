@@ -361,6 +361,19 @@ type ConfigSettingOutputParquet struct {
 	LedgerMaxTxCount                       int64   `parquet:"name=ledger_max_tx_count, type=INT64, convertedtype=UINT_64"`
 	BucketListSizeWindow                   []int64 `parquet:"name=bucket_list_size_window, type=INT64, repetitiontype=REPEATED"`
 	LiveSorobanStateSizeWindow             []int64 `parquet:"name=live_soroban_state_size_window, type=INT64, repetitiontype=REPEATED"`
+	// P23 config settings
+	LedgerMaxDependentTxClusters           int64   `parquet:"name=ledger_max_dependent_tx_clusters, type=INT64, convertedtype=UINT_64"`
+	TxMaxFootprintEntries                  int64   `parquet:"name=tx_max_footprint_entries, type=INT64, convertedtype=UINT_64"`
+	LedgerTargetCloseTimeMilliseconds      int64   `parquet:"name=ledger_target_close_time_milliseconds, type=INT64, convertedtype=UINT_64"`
+	NominationTimeoutInitialMilliseconds   int64   `parquet:"name=nomination_timeout_initial_milliseconds, type=INT64, convertedtype=UINT_64"`
+	NominationTimeoutIncrementMilliseconds int64   `parquet:"name=nomination_timeout_increment_milliseconds, type=INT64, convertedtype=UINT_64"`
+	BallotTimeoutInitialMilliseconds       int64   `parquet:"name=ballot_timeout_initial_milliseconds, type=INT64, convertedtype=UINT_64"`
+	BallotTimeoutIncrementMilliseconds     int64   `parquet:"name=ballot_timeout_increment_milliseconds, type=INT64, convertedtype=UINT_64"`
+	// P26 CAP-77 frozen ledger keys
+	FrozenLedgerKeys                       string  `parquet:"name=frozen_ledger_keys, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FrozenLedgerKeysDelta                  string  `parquet:"name=frozen_ledger_keys_delta, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FreezeBypassTxs                        string  `parquet:"name=freeze_bypass_txs, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FreezeBypassTxsDelta                   string  `parquet:"name=freeze_bypass_txs_delta, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	LastModifiedLedger                     int64   `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
 	LedgerEntryChange                      int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted                                bool    `parquet:"name=deleted, type=BOOLEAN"`
