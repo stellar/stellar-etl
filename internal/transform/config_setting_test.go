@@ -82,7 +82,7 @@ func makeConfigSettingTestInput() []ingest.Change {
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeConfigSetting,
 			ConfigSetting: &xdr.ConfigSettingEntry{
-				ConfigSettingId:         xdr.ConfigSettingIdConfigSettingContractParallelCompute,
+				ConfigSettingId:         xdr.ConfigSettingIdConfigSettingContractParallelComputeV0,
 				ContractParallelCompute: &parallelCompute,
 			},
 		},
@@ -98,7 +98,7 @@ func makeConfigSettingTestInput() []ingest.Change {
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeConfigSetting,
 			ConfigSetting: &xdr.ConfigSettingEntry{
-				ConfigSettingId:     xdr.ConfigSettingIdConfigSettingContractLedgerCostExt,
+				ConfigSettingId:     xdr.ConfigSettingIdConfigSettingContractLedgerCostExtV0,
 				ContractLedgerCostExt: &ledgerCostExt,
 			},
 		},
@@ -117,7 +117,7 @@ func makeConfigSettingTestInput() []ingest.Change {
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeConfigSetting,
 			ConfigSetting: &xdr.ConfigSettingEntry{
-				ConfigSettingId:   xdr.ConfigSettingIdConfigSettingContractScpTiming,
+				ConfigSettingId:   xdr.ConfigSettingIdConfigSettingScpTiming,
 				ContractScpTiming: &scpTiming,
 			},
 		},
