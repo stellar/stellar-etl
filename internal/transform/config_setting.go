@@ -1,6 +1,9 @@
 package transform
 
 import (
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -106,6 +109,34 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		liveSorobanStateSizeWindow = append(liveSorobanStateSizeWindow, uint64(sizeWindow))
 	}
 
+	// P23: ContractParallelCompute (ID=14)
+	contractParallelCompute, _ := configSetting.GetContractParallelCompute()
+	ledgerMaxDependentTxClusters := contractParallelCompute.LedgerMaxDependentTxClusters
+
+	// P23: ContractLedgerCostExt (ID=15) - TxMaxFootprintEntries
+	txMaxFootprintEntries := contractLedgerCostV0.TxMaxFootprintEntries
+
+	// P23: ContractScpTiming (ID=16)
+	contractScpTiming, _ := configSetting.GetContractScpTiming()
+	ledgerTargetCloseTimeMilliseconds := contractScpTiming.LedgerTargetCloseTimeMilliseconds
+	nominationTimeoutInitialMilliseconds := contractScpTiming.NominationTimeoutInitialMilliseconds
+	nominationTimeoutIncrementMilliseconds := contractScpTiming.NominationTimeoutIncrementMilliseconds
+	ballotTimeoutInitialMilliseconds := contractScpTiming.BallotTimeoutInitialMilliseconds
+	ballotTimeoutIncrementMilliseconds := contractScpTiming.BallotTimeoutIncrementMilliseconds
+
+	// P26 CAP-77: Frozen ledger keys (IDs 17-20)
+	frozenLedgerKeys, _ := configSetting.GetFrozenLedgerKeys()
+	frozenLedgerKeysJSON := serializeEncodedLedgerKeys(frozenLedgerKeys.Keys)
+
+	frozenLedgerKeysDelta, _ := configSetting.GetFrozenLedgerKeysDelta()
+	frozenLedgerKeysDeltaJSON := serializeFrozenKeysDelta(frozenLedgerKeysDelta)
+
+	freezeBypassTxs, _ := configSetting.GetFreezeBypassTxs()
+	freezeBypassTxsJSON := serializeHashes(freezeBypassTxs.TxHashes)
+
+	freezeBypassTxsDelta, _ := configSetting.GetFreezeBypassTxsDelta()
+	freezeBypassTxsDeltaJSON := serializeFreezeBypassTxsDelta(freezeBypassTxsDelta)
+
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
 	if err != nil {
 		return ConfigSettingOutput{}, err
@@ -170,6 +201,19 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		LedgerMaxTxCount:                       uint32(ledgerMaxTxCount),
 		BucketListSizeWindow:                   bucketListSizeWindow,
 		LiveSorobanStateSizeWindow:             liveSorobanStateSizeWindow,
+		// P23 config settings
+		LedgerMaxDependentTxClusters:           uint32(ledgerMaxDependentTxClusters),
+		TxMaxFootprintEntries:                  uint32(txMaxFootprintEntries),
+		LedgerTargetCloseTimeMilliseconds:      uint32(ledgerTargetCloseTimeMilliseconds),
+		NominationTimeoutInitialMilliseconds:   uint32(nominationTimeoutInitialMilliseconds),
+		NominationTimeoutIncrementMilliseconds: uint32(nominationTimeoutIncrementMilliseconds),
+		BallotTimeoutInitialMilliseconds:       uint32(ballotTimeoutInitialMilliseconds),
+		BallotTimeoutIncrementMilliseconds:     uint32(ballotTimeoutIncrementMilliseconds),
+		// P26 CAP-77 frozen ledger keys
+		FrozenLedgerKeys:                       frozenLedgerKeysJSON,
+		FrozenLedgerKeysDelta:                  frozenLedgerKeysDeltaJSON,
+		FreezeBypassTxs:                        freezeBypassTxsJSON,
+		FreezeBypassTxsDelta:                   freezeBypassTxsDeltaJSON,
 		LastModifiedLedger:                     uint32(ledgerEntry.LastModifiedLedgerSeq),
 		LedgerEntryChange:                      uint32(changeType),
 		Deleted:                                outputDeleted,
@@ -190,4 +234,70 @@ func serializeParams(costParams xdr.ContractCostParams) []map[string]string {
 	}
 
 	return params
+}
+
+// serializeEncodedLedgerKeys converts a slice of EncodedLedgerKey (opaque bytes) to a JSON array of base64 strings.
+func serializeEncodedLedgerKeys(keys []xdr.EncodedLedgerKey) string {
+	if len(keys) == 0 {
+		return ""
+	}
+	encoded := make([]string, 0, len(keys))
+	for _, key := range keys {
+		encoded = append(encoded, base64.StdEncoding.EncodeToString(key))
+	}
+	result, _ := json.Marshal(encoded)
+	return string(result)
+}
+
+// serializeFrozenKeysDelta converts a FrozenLedgerKeysDelta to a JSON object with keysToFreeze and keysToUnfreeze arrays.
+func serializeFrozenKeysDelta(delta xdr.FrozenLedgerKeysDelta) string {
+	if len(delta.KeysToFreeze) == 0 && len(delta.KeysToUnfreeze) == 0 {
+		return ""
+	}
+	freeze := make([]string, 0, len(delta.KeysToFreeze))
+	for _, key := range delta.KeysToFreeze {
+		freeze = append(freeze, base64.StdEncoding.EncodeToString(key))
+	}
+	unfreeze := make([]string, 0, len(delta.KeysToUnfreeze))
+	for _, key := range delta.KeysToUnfreeze {
+		unfreeze = append(unfreeze, base64.StdEncoding.EncodeToString(key))
+	}
+	result, _ := json.Marshal(map[string][]string{
+		"keys_to_freeze":   freeze,
+		"keys_to_unfreeze": unfreeze,
+	})
+	return string(result)
+}
+
+// serializeHashes converts a slice of Hash ([32]byte) to a JSON array of hex strings.
+func serializeHashes(hashes []xdr.Hash) string {
+	if len(hashes) == 0 {
+		return ""
+	}
+	encoded := make([]string, 0, len(hashes))
+	for _, h := range hashes {
+		encoded = append(encoded, hex.EncodeToString(h[:]))
+	}
+	result, _ := json.Marshal(encoded)
+	return string(result)
+}
+
+// serializeFreezeBypassTxsDelta converts a FreezeBypassTxsDelta to a JSON object with addTxs and removeTxs arrays.
+func serializeFreezeBypassTxsDelta(delta xdr.FreezeBypassTxsDelta) string {
+	if len(delta.AddTxs) == 0 && len(delta.RemoveTxs) == 0 {
+		return ""
+	}
+	addTxs := make([]string, 0, len(delta.AddTxs))
+	for _, h := range delta.AddTxs {
+		addTxs = append(addTxs, hex.EncodeToString(h[:]))
+	}
+	removeTxs := make([]string, 0, len(delta.RemoveTxs))
+	for _, h := range delta.RemoveTxs {
+		removeTxs = append(removeTxs, hex.EncodeToString(h[:]))
+	}
+	result, _ := json.Marshal(map[string][]string{
+		"add_txs":    addTxs,
+		"remove_txs": removeTxs,
+	})
+	return string(result)
 }

@@ -73,12 +73,80 @@ func makeConfigSettingTestInput() []ingest.Change {
 		},
 	}
 
+	// P23: ContractParallelCompute (ID=14)
+	parallelCompute := xdr.ConfigSettingContractParallelComputeV0{
+		LedgerMaxDependentTxClusters: 5,
+	}
+	parallelComputeEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 24229504,
+		Data: xdr.LedgerEntryData{
+			Type: xdr.LedgerEntryTypeConfigSetting,
+			ConfigSetting: &xdr.ConfigSettingEntry{
+				ConfigSettingId:         xdr.ConfigSettingIdConfigSettingContractParallelCompute,
+				ContractParallelCompute: &parallelCompute,
+			},
+		},
+	}
+
+	// P23: ContractLedgerCostExt (ID=15)
+	ledgerCostExt := xdr.ConfigSettingContractLedgerCostExtV0{
+		TxMaxFootprintEntries: 100,
+		FeeWrite1Kb:           2000,
+	}
+	ledgerCostExtEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 24229505,
+		Data: xdr.LedgerEntryData{
+			Type: xdr.LedgerEntryTypeConfigSetting,
+			ConfigSetting: &xdr.ConfigSettingEntry{
+				ConfigSettingId:     xdr.ConfigSettingIdConfigSettingContractLedgerCostExt,
+				ContractLedgerCostExt: &ledgerCostExt,
+			},
+		},
+	}
+
+	// P23: ContractScpTiming (ID=16)
+	scpTiming := xdr.ConfigSettingScpTiming{
+		LedgerTargetCloseTimeMilliseconds:      5000,
+		NominationTimeoutInitialMilliseconds:   1000,
+		NominationTimeoutIncrementMilliseconds: 500,
+		BallotTimeoutInitialMilliseconds:       1000,
+		BallotTimeoutIncrementMilliseconds:     1000,
+	}
+	scpTimingEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 24229506,
+		Data: xdr.LedgerEntryData{
+			Type: xdr.LedgerEntryTypeConfigSetting,
+			ConfigSetting: &xdr.ConfigSettingEntry{
+				ConfigSettingId:   xdr.ConfigSettingIdConfigSettingContractScpTiming,
+				ContractScpTiming: &scpTiming,
+			},
+		},
+	}
+
 	return []ingest.Change{
 		{
 			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
 			Type:       xdr.LedgerEntryTypeConfigSetting,
 			Pre:        &xdr.LedgerEntry{},
 			Post:       &contractDataLedgerEntry,
+		},
+		{
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+			Type:       xdr.LedgerEntryTypeConfigSetting,
+			Pre:        nil,
+			Post:       &parallelComputeEntry,
+		},
+		{
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+			Type:       xdr.LedgerEntryTypeConfigSetting,
+			Pre:        nil,
+			Post:       &ledgerCostExtEntry,
+		},
+		{
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+			Type:       xdr.LedgerEntryTypeConfigSetting,
+			Pre:        nil,
+			Post:       &scpTimingEntry,
 		},
 	}
 }
@@ -87,70 +155,125 @@ func makeConfigSettingTestOutput() []ConfigSettingOutput {
 	contractMapType := make([]map[string]string, 0)
 	bucket := make([]uint64, 0)
 
+	// Base output with all zero values (for ContractMaxSizeBytes test)
+	baseOutput := ConfigSettingOutput{
+		ConfigSettingId:                        0,
+		ContractMaxSizeBytes:                   0,
+		LedgerMaxInstructions:                  0,
+		TxMaxInstructions:                      0,
+		FeeRatePerInstructionsIncrement:        0,
+		TxMemoryLimit:                          0,
+		LedgerMaxReadLedgerEntries:             0,
+		LedgerMaxDiskReadEntries:               0,
+		LedgerMaxReadBytes:                     0,
+		LedgerMaxDiskReadBytes:                 0,
+		LedgerMaxWriteLedgerEntries:            0,
+		LedgerMaxWriteBytes:                    0,
+		TxMaxReadLedgerEntries:                 0,
+		TxMaxDiskReadEntries:                   0,
+		TxMaxReadBytes:                         0,
+		TxMaxDiskReadBytes:                     0,
+		TxMaxWriteLedgerEntries:                0,
+		TxMaxWriteBytes:                        0,
+		FeeReadLedgerEntry:                     0,
+		FeeDiskReadLedgerEntry:                 0,
+		FeeWriteLedgerEntry:                    0,
+		FeeRead1Kb:                             0,
+		FeeWrite1Kb:                            0,
+		FeeDiskRead1Kb:                         0,
+		BucketListTargetSizeBytes:              0,
+		SorobanStateTargetSizeBytes:            0,
+		WriteFee1KbBucketListLow:               0,
+		RentFee1KBSorobanStateSizeLow:          0,
+		WriteFee1KbBucketListHigh:              0,
+		RentFee1KBSorobanStateSizeHigh:         0,
+		BucketListWriteFeeGrowthFactor:         0,
+		SorobanStateRentFeeGrowthFactor:        0,
+		FeeHistorical1Kb:                       0,
+		TxMaxContractEventsSizeBytes:           0,
+		FeeContractEvents1Kb:                   0,
+		LedgerMaxTxsSizeBytes:                  0,
+		TxMaxSizeBytes:                         0,
+		FeeTxSize1Kb:                           0,
+		ContractCostParamsCpuInsns:             contractMapType,
+		ContractCostParamsMemBytes:             contractMapType,
+		ContractDataKeySizeBytes:               0,
+		ContractDataEntrySizeBytes:             0,
+		MaxEntryTtl:                            0,
+		MinTemporaryTtl:                        0,
+		MinPersistentTtl:                       0,
+		AutoBumpLedgers:                        0,
+		PersistentRentRateDenominator:          0,
+		TempRentRateDenominator:                0,
+		MaxEntriesToArchive:                    0,
+		BucketListSizeWindowSampleSize:         0,
+		LiveSorobanStateSizeWindowSampleSize:   0,
+		LiveSorobanStateSizeWindowSamplePeriod: 0,
+		EvictionScanSize:                       0,
+		StartingEvictionScanLevel:              0,
+		LedgerMaxTxCount:                       0,
+		BucketListSizeWindow:                   bucket,
+		LiveSorobanStateSizeWindow:             bucket,
+		LedgerMaxDependentTxClusters:           0,
+		TxMaxFootprintEntries:                  0,
+		LedgerTargetCloseTimeMilliseconds:      0,
+		NominationTimeoutInitialMilliseconds:   0,
+		NominationTimeoutIncrementMilliseconds: 0,
+		BallotTimeoutInitialMilliseconds:       0,
+		BallotTimeoutIncrementMilliseconds:     0,
+		FrozenLedgerKeys:                       "",
+		FrozenLedgerKeysDelta:                  "",
+		FreezeBypassTxs:                        "",
+		FreezeBypassTxsDelta:                   "",
+		LastModifiedLedger:                     24229503,
+		LedgerEntryChange:                      1,
+		Deleted:                                false,
+		LedgerSequence:                         10,
+		ClosedAt:                               time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+	}
+
+	// P23: ContractParallelCompute output
+	parallelComputeOutput := baseOutput
+	parallelComputeOutput.ConfigSettingId = 14
+	parallelComputeOutput.LedgerMaxDependentTxClusters = 5
+	parallelComputeOutput.LastModifiedLedger = 24229504
+	parallelComputeOutput.LedgerEntryChange = 0
+	parallelComputeOutput.ContractCostParamsCpuInsns = contractMapType
+	parallelComputeOutput.ContractCostParamsMemBytes = contractMapType
+	parallelComputeOutput.BucketListSizeWindow = bucket
+	parallelComputeOutput.LiveSorobanStateSizeWindow = bucket
+
+	// P23: ContractLedgerCostExt output
+	ledgerCostExtOutput := baseOutput
+	ledgerCostExtOutput.ConfigSettingId = 15
+	ledgerCostExtOutput.TxMaxFootprintEntries = 100
+	ledgerCostExtOutput.FeeWrite1Kb = 2000
+	ledgerCostExtOutput.LastModifiedLedger = 24229505
+	ledgerCostExtOutput.LedgerEntryChange = 0
+	ledgerCostExtOutput.ContractCostParamsCpuInsns = contractMapType
+	ledgerCostExtOutput.ContractCostParamsMemBytes = contractMapType
+	ledgerCostExtOutput.BucketListSizeWindow = bucket
+	ledgerCostExtOutput.LiveSorobanStateSizeWindow = bucket
+
+	// P23: ContractScpTiming output
+	scpTimingOutput := baseOutput
+	scpTimingOutput.ConfigSettingId = 16
+	scpTimingOutput.LedgerTargetCloseTimeMilliseconds = 5000
+	scpTimingOutput.NominationTimeoutInitialMilliseconds = 1000
+	scpTimingOutput.NominationTimeoutIncrementMilliseconds = 500
+	scpTimingOutput.BallotTimeoutInitialMilliseconds = 1000
+	scpTimingOutput.BallotTimeoutIncrementMilliseconds = 1000
+	scpTimingOutput.LastModifiedLedger = 24229506
+	scpTimingOutput.LedgerEntryChange = 0
+	scpTimingOutput.ContractCostParamsCpuInsns = contractMapType
+	scpTimingOutput.ContractCostParamsMemBytes = contractMapType
+	scpTimingOutput.BucketListSizeWindow = bucket
+	scpTimingOutput.LiveSorobanStateSizeWindow = bucket
+
 	return []ConfigSettingOutput{
-		{
-			ConfigSettingId:                        0,
-			ContractMaxSizeBytes:                   0,
-			LedgerMaxInstructions:                  0,
-			TxMaxInstructions:                      0,
-			FeeRatePerInstructionsIncrement:        0,
-			TxMemoryLimit:                          0,
-			LedgerMaxReadLedgerEntries:             0,
-			LedgerMaxDiskReadEntries:               0,
-			LedgerMaxReadBytes:                     0,
-			LedgerMaxDiskReadBytes:                 0,
-			LedgerMaxWriteLedgerEntries:            0,
-			LedgerMaxWriteBytes:                    0,
-			TxMaxReadLedgerEntries:                 0,
-			TxMaxDiskReadEntries:                   0,
-			TxMaxReadBytes:                         0,
-			TxMaxDiskReadBytes:                     0,
-			TxMaxWriteLedgerEntries:                0,
-			TxMaxWriteBytes:                        0,
-			FeeReadLedgerEntry:                     0,
-			FeeDiskReadLedgerEntry:                 0,
-			FeeWriteLedgerEntry:                    0,
-			FeeRead1Kb:                             0,
-			FeeWrite1Kb:                            0,
-			FeeDiskRead1Kb:                         0,
-			BucketListTargetSizeBytes:              0,
-			SorobanStateTargetSizeBytes:            0,
-			WriteFee1KbBucketListLow:               0,
-			RentFee1KBSorobanStateSizeLow:          0,
-			WriteFee1KbBucketListHigh:              0,
-			RentFee1KBSorobanStateSizeHigh:         0,
-			BucketListWriteFeeGrowthFactor:         0,
-			SorobanStateRentFeeGrowthFactor:        0,
-			FeeHistorical1Kb:                       0,
-			TxMaxContractEventsSizeBytes:           0,
-			FeeContractEvents1Kb:                   0,
-			LedgerMaxTxsSizeBytes:                  0,
-			TxMaxSizeBytes:                         0,
-			FeeTxSize1Kb:                           0,
-			ContractCostParamsCpuInsns:             contractMapType,
-			ContractCostParamsMemBytes:             contractMapType,
-			ContractDataKeySizeBytes:               0,
-			ContractDataEntrySizeBytes:             0,
-			MaxEntryTtl:                            0,
-			MinTemporaryTtl:                        0,
-			MinPersistentTtl:                       0,
-			AutoBumpLedgers:                        0,
-			PersistentRentRateDenominator:          0,
-			TempRentRateDenominator:                0,
-			MaxEntriesToArchive:                    0,
-			BucketListSizeWindowSampleSize:         0,
-			LiveSorobanStateSizeWindowSampleSize:   0,
-			LiveSorobanStateSizeWindowSamplePeriod: 0,
-			EvictionScanSize:                       0,
-			StartingEvictionScanLevel:              0,
-			LedgerMaxTxCount:                       0,
-			BucketListSizeWindow:                   bucket,
-			LiveSorobanStateSizeWindow:             bucket,
-			LastModifiedLedger:                     24229503,
-			LedgerEntryChange:                      1,
-			Deleted:                                false,
-			LedgerSequence:                         10,
-			ClosedAt:                               time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
-		},
+		baseOutput,
+		parallelComputeOutput,
+		ledgerCostExtOutput,
+		scpTimingOutput,
 	}
 }

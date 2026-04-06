@@ -619,6 +619,19 @@ type ConfigSettingOutput struct {
 	LedgerMaxTxCount                       uint32              `json:"ledger_max_tx_count"`
 	BucketListSizeWindow                   []uint64            `json:"bucket_list_size_window"`
 	LiveSorobanStateSizeWindow             []uint64            `json:"live_soroban_state_size_window"`
+	// P23 config settings
+	LedgerMaxDependentTxClusters           uint32              `json:"ledger_max_dependent_tx_clusters"`
+	TxMaxFootprintEntries                  uint32              `json:"tx_max_footprint_entries"`
+	LedgerTargetCloseTimeMilliseconds      uint32              `json:"ledger_target_close_time_milliseconds"`
+	NominationTimeoutInitialMilliseconds   uint32              `json:"nomination_timeout_initial_milliseconds"`
+	NominationTimeoutIncrementMilliseconds uint32              `json:"nomination_timeout_increment_milliseconds"`
+	BallotTimeoutInitialMilliseconds       uint32              `json:"ballot_timeout_initial_milliseconds"`
+	BallotTimeoutIncrementMilliseconds     uint32              `json:"ballot_timeout_increment_milliseconds"`
+	// P26 CAP-77 frozen ledger keys
+	FrozenLedgerKeys                       string              `json:"frozen_ledger_keys"`
+	FrozenLedgerKeysDelta                  string              `json:"frozen_ledger_keys_delta"`
+	FreezeBypassTxs                        string              `json:"freeze_bypass_txs"`
+	FreezeBypassTxsDelta                   string              `json:"freeze_bypass_txs_delta"`
 	LastModifiedLedger                     uint32              `json:"last_modified_ledger"`
 	LedgerEntryChange                      uint32              `json:"ledger_entry_change"`
 	Deleted                                bool                `json:"deleted"`
