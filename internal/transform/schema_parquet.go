@@ -51,7 +51,7 @@ type TransactionOutputParquet struct {
 	FeeAccount                           string   `parquet:"name=fee_account, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	FeeAccountMuxed                      string   `parquet:"name=fee_account_muxed, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	InnerTransactionHash                 string   `parquet:"name=inner_transaction_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	NewMaxFee                            int64    `parquet:"name=new_max_fee, type=INT64, convertedtype=UINT_64"`
+	NewMaxFee                            int64    `parquet:"name=new_max_fee, type=INT64"`
 	LedgerBounds                         string   `parquet:"name=ledger_bounds, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	MinAccountSequence                   int64    `parquet:"name=min_account_sequence, type=INT64"`
 	MinAccountSequenceAge                int64    `parquet:"name=min_account_sequence_age, type=INT64"`
