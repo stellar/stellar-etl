@@ -6,7 +6,7 @@ import (
 	"github.com/guregu/null"
 	"github.com/guregu/null/zero"
 	"github.com/lib/pq"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // LedgerOutput is a representation of a ledger that aligns with the BigQuery table history_ledgers
@@ -60,7 +60,7 @@ type TransactionOutput struct {
 	FeeAccount                           string         `json:"fee_account,omitempty"`
 	FeeAccountMuxed                      string         `json:"fee_account_muxed,omitempty"`
 	InnerTransactionHash                 string         `json:"inner_transaction_hash,omitempty"`
-	NewMaxFee                            uint32         `json:"new_max_fee,omitempty"`
+	NewMaxFee                            int64          `json:"new_max_fee,omitempty"`
 	LedgerBounds                         string         `json:"ledger_bounds"`
 	MinAccountSequence                   null.Int       `json:"min_account_sequence"`
 	MinAccountSequenceAge                null.Int       `json:"min_account_sequence_age"`

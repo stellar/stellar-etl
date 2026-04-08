@@ -8,11 +8,11 @@ import (
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
 
-	"github.com/stellar/go/exp/orderbook"
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/support/log"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/exp/orderbook"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/support/log"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
@@ -372,7 +372,7 @@ func roundingSlippage(t ingest.LedgerTransaction, operationIndex int32, trade xd
 		)
 		if !ok {
 			// This is a temporary workaround and will be addressed when
-			// https://github.com/stellar/go/issues/4203 is closed
+			// https://github.com/stellar/go-stellar-sdk/issues/4203 is closed
 			roundingSlippageBips = xdr.Int64(math.MaxInt64)
 		}
 		return null.IntFrom(int64(roundingSlippageBips)), nil
@@ -386,7 +386,7 @@ func roundingSlippage(t ingest.LedgerTransaction, operationIndex int32, trade xd
 			true,
 		)
 		if !ok {
-			// Temporary workaround for https://github.com/stellar/go/issues/4203
+			// Temporary workaround for https://github.com/stellar/go-stellar-sdk/issues/4203
 			// Given strict receives that would overflow here, minimum slippage
 			// so they get excluded.
 			roundingSlippageBips = xdr.Int64(math.MinInt64)

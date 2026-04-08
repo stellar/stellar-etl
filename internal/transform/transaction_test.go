@@ -9,8 +9,8 @@ import (
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestTransformTransaction(t *testing.T) {
@@ -72,10 +72,12 @@ func TestTransformTransaction(t *testing.T) {
 		})
 	}
 
-	for _, test := range tests {
-		actualOutput, actualError := TransformTransaction(test.input.transaction, test.input.historyHeader)
-		assert.Equal(t, test.wantErr, actualError)
-		assert.Equal(t, test.wantOutput, actualOutput)
+	for i, test := range tests {
+		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
+			actualOutput, actualError := TransformTransaction(test.input.transaction, test.input.historyHeader)
+			assert.Equal(t, test.wantErr, actualError)
+			assert.Equal(t, test.wantOutput, actualOutput)
+		})
 	}
 }
 
@@ -110,17 +112,17 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			TxSigners:                     []string{"GD2GXC24XWOM6T2UHABEMSYW5UZGJ4U7WEN7AQT2WYW32TQFP4ND3M7O4VGCBTT2BWNILFEVDX5DBBBMK2RTQIBMJNL6F62MAQ53NBAIXUDA"},
 		},
 		{
-			TxEnvelope:                    "AAAABQAAAQAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHCAAAAACAAAAAIjhprSlcVKPqp8m4g5svD/nPK6AtEZjDFvvAVKvcH14AAAAAAIU9jYAAAB9AAAAAQAAAAAAAAAAAAAAAF8Gq3QAAAABAAAAF0hMNWFDZ296UUhJVzdzU2M1WGRjZm1SAAAAAAEAAAABAAAAABxHQZcY7vqkWzjLfy8lUBqeOcuDh6Y26fvMDHSkdwMYAAAAAgAAAAAAAAAAAAAAAAAAAAABAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABY0KvjwAAAED0a4tcvZzPT1Q4AkZLFu0yZPKfsRvwQnq2Lb1OBX8aPbPu5UwgznoNmoWUlR36MIQsVqM4ICxLV+L7TAQ7toQI",
+			TxEnvelope:                    "AAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwgAAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAAAACFPY2AAAAfQAAAAEAAAAAAAAAAAAAAABfBqt0AAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPoAAAAAAAAAAAAAAABY0KvjwAAAED0a4tcvZzPT1Q4AkZLFu0yZPKfsRvwQnq2Lb1OBX8aPbPu5UwgznoNmoWUlR36MIQsVqM4ICxLV+L7TAQ7toQI",
 			TxResult:                      "AAAAAAAAASwAAAABqH/vXusmAmnDgPLeRWqtcrWbsxWqrHd4YEVuCdrAuvsAAAAAAAAAZAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 			TxMeta:                        "AAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAACAAAAAwAAAAAAAAAFAQIDBAUGBwgJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVU1NEAAAAAGtY3WxokwttAx3Fu/riPvoew/C7WMK8jZONR8Hfs75zAAAAHgAAAAAAAYagAAAAAAAAA+gAAAAAAAAB9AAAAAAAAAAZAAAAAAAAAAEAAAAAAAAABQECAwQFBgcICQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVNTRAAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAB4AAAAAAAGKiAAAAAAAAARMAAAAAAAAAfYAAAAAAAAAGgAAAAAAAAAA",
-			TxFeeMeta:                     "AAAAAA==",
+			TxFeeMeta:                     "AAAAAgAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 			TransactionHash:               "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 			LedgerSequence:                30521817,
 			TransactionID:                 131090205829500928,
 			Account:                       testAccount1Address,
 			AccountSequence:               150015399398735997,
 			MaxFee:                        0,
-			FeeCharged:                    300,
+			FeeCharged:                    1000,
 			OperationCount:                1,
 			CreatedAt:                     correctTime,
 			MemoType:                      "MemoTypeMemoText",
@@ -129,16 +131,18 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			Successful:                    true,
 			InnerTransactionHash:          "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
 			FeeAccount:                    testAccount5Address,
-			FeeAccountMuxed:               "MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFNZG",
+			FeeAccountMuxed:               "",
 			NewMaxFee:                     7200,
 			ClosedAt:                      time.Date(2020, time.July, 9, 5, 28, 42, 0, time.UTC),
-			ResourceFee:                   0,
+			ResourceFee:                   1000,
 			SorobanResourcesInstructions:  0,
 			SorobanResourcesReadBytes:     0,
 			SorobanResourcesDiskReadBytes: 0,
 			SorobanResourcesWriteBytes:    0,
 			TransactionResultCode:         "TransactionResultCodeTxFeeBumpInnerSuccess", //inner fee bump success
 			TxSigners:                     []string{"GD2GXC24XWOM6T2UHABEMSYW5UZGJ4U7WEN7AQT2WYW32TQFP4ND3M7O4VGCBTT2BWNILFEVDX5DBBBMK2RTQIBMJNL6F62MAQ53NBAIXUDA"},
+			InclusionFeeBid:               6200,
+			InclusionFeeCharged:           50,
 		},
 		{
 			TxEnvelope:                    "AAAAAgAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAGQBpLyvsiV6gwAAAAIAAAABAAAAAAAAAAAAAAAAXwardAAAAAEAAAAFAAAACgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAMCAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAABrWN1saJMLbQMdxbv64j76HsPwu1jCvI2TjUfB37O+cwAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFjQq+PAAAAQPRri1y9nM9PVDgCRksW7TJk8p+xG/BCerYtvU4Ffxo9s+7lTCDOeg2ahZSVHfowhCxWozggLEtX4vtMBDu2hAg=",
@@ -170,6 +174,46 @@ func makeTransactionTestOutput() (output []TransactionOutput, err error) {
 			SorobanResourcesWriteBytes:    0,
 			TransactionResultCode:         "TransactionResultCodeTxInsufficientBalance",
 			TxSigners:                     []string{"GD2GXC24XWOM6T2UHABEMSYW5UZGJ4U7WEN7AQT2WYW32TQFP4ND3M7O4VGCBTT2BWNILFEVDX5DBBBMK2RTQIBMJNL6F62MAQ53NBAIXUDA"},
+		},
+		// Test case 4: Fee-bump Soroban tx with V4 meta and PostTxApplyFeeChanges (P23+)
+		// Based on real mainnet tx 5c4f80c4...094116 (ledger 61396807, protocol 25)
+		// Fee breakdown: 20,230 non-refundable + 7,298 refundable + 300 inclusion = 27,828 charged
+		// Resource fee refund: 10,705 (38,533 initial - 27,828 charged)
+		{
+			TxEnvelope:                           "AAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJaFAAAAAgAAAACI4aa0pXFSj6qfJuIObLw/5zyugLRGYwxb7wFSr3B9eAAAlb0BjydzAABBtwAAAAEAAAAAAAAAAAAAAABfBqt0AAAAAQAAABdITDVhQ2dvelFISVc3c1NjNVhkY2ZtUgAAAAABAAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAIAAAAAAAAAAAAAAAAAAAAAAQIDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJVZAAAAAAAAAAAAAAABY0KvjwAAAED0a4tcvZzPT1Q4AkZLFu0yZPKfsRvwQnq2Lb1OBX8aPbPu5UwgznoNmoWUlR36MIQsVqM4ICxLV+L7TAQ7toQI",
+			TxResult:                             "AAAAAAAAbLQAAAABqH/vXusmAmnDgPLeRWqtcrWbsxWqrHd4YEVuCdrAuvsAAAAAAAAAZAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+			TxMeta:                               "AAAABAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAABPBgAAAAAAAByCAAAAAAAAHG4AAAAAAAAAAAAAAAA=",
+			TxFeeMeta:                            "AAAAAgAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7L0HFQ2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7L0G72xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+			TransactionHash:                      "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			LedgerSequence:                       61396807,
+			TransactionID:                        263697278143827968,
+			Account:                              testAccount1Address,
+			AccountSequence:                      112351890582290871,
+			MaxFee:                               38333,
+			FeeCharged:                           27828,
+			OperationCount:                       1,
+			CreatedAt:                            correctTime,
+			MemoType:                             "MemoTypeMemoText",
+			Memo:                                 "HL5aCgozQHIW7sSc5XdcfmR",
+			TimeBounds:                           "[0,1594272628)",
+			Successful:                           true,
+			ClosedAt:                             time.Date(2020, time.July, 9, 5, 28, 42, 0, time.UTC),
+			FeeAccount:                           testAccount5Address,
+			InnerTransactionHash:                 "a87fef5eeb260269c380f2de456aad72b59bb315aaac777860456e09dac0bafb",
+			NewMaxFee:                            38533,
+			ResourceFee:                          38233,
+			SorobanResourcesInstructions:         0,
+			SorobanResourcesReadBytes:            0,
+			SorobanResourcesDiskReadBytes:        0,
+			SorobanResourcesWriteBytes:           0,
+			TransactionResultCode:                "TransactionResultCodeTxFeeBumpInnerSuccess",
+			InclusionFeeBid:                      300,
+			InclusionFeeCharged:                  300,
+			ResourceFeeRefund:                    10705,
+			TotalNonRefundableResourceFeeCharged: 20230,
+			TotalRefundableResourceFeeCharged:    7298,
+			RentFeeCharged:                       7278,
+			TxSigners:                            []string{"GD2GXC24XWOM6T2UHABEMSYW5UZGJ4U7WEN7AQT2WYW32TQFP4ND3M7O4VGCBTT2BWNILFEVDX5DBBBMK2RTQIBMJNL6F62MAQ53NBAIXUDA"},
 		},
 	}
 	return
@@ -294,6 +338,12 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 											},
 										},
 									},
+									Ext: xdr.TransactionExt{
+										V: 1,
+										SorobanData: &xdr.SorobanTransactionData{
+											ResourceFee: 1000,
+										},
+									},
 								},
 							},
 						},
@@ -329,6 +379,32 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 							},
 						},
 						Results: &[]xdr.OperationResult{{}},
+					},
+				},
+			},
+			FeeChanges: xdr.LedgerEntryChanges{
+				xdr.LedgerEntryChange{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+					State: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   1100,
+							},
+						},
+					},
+				},
+				xdr.LedgerEntryChange{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+					Updated: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   50,
+							},
+						},
 					},
 				},
 			},
@@ -392,6 +468,162 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 				},
 			},
 		},
+		// Test case 4: Fee-bump Soroban tx with V4 meta and PostTxApplyFeeChanges (P23+)
+		// Based on real mainnet tx 5c4f80c4...094116 (ledger 61396807, protocol 25)
+		{
+			Index: 1,
+			UnsafeMeta: xdr.TransactionMeta{
+				V: 4,
+				V4: &xdr.TransactionMetaV4{
+					TxChangesBefore: xdr.LedgerEntryChanges{},
+					Operations:      []xdr.OperationMetaV2{{}},
+					TxChangesAfter:  xdr.LedgerEntryChanges{},
+					SorobanMeta: &xdr.SorobanTransactionMetaV2{
+						Ext: xdr.SorobanTransactionMetaExt{
+							V: 1,
+							V1: &xdr.SorobanTransactionMetaExtV1{
+								TotalNonRefundableResourceFeeCharged: 20230,
+								TotalRefundableResourceFeeCharged:    7298,
+								RentFeeCharged:                       7278,
+							},
+						},
+					},
+				},
+			},
+			Envelope: xdr.TransactionEnvelope{
+				Type: xdr.EnvelopeTypeEnvelopeTypeTxFeeBump,
+				FeeBump: &xdr.FeeBumpTransactionEnvelope{
+					Tx: xdr.FeeBumpTransaction{
+						FeeSource: testAccount5,
+						Fee:       38533,
+						InnerTx: xdr.FeeBumpTransactionInnerTx{
+							Type: xdr.EnvelopeTypeEnvelopeTypeTx,
+							V1: &xdr.TransactionV1Envelope{
+								Tx: xdr.Transaction{
+									SourceAccount: testAccount1,
+									SeqNum:        112351890582290871,
+									Memo: xdr.Memo{
+										Type: xdr.MemoTypeMemoText,
+										Text: &hardCodedMemoText,
+									},
+									Fee: 38333,
+									Cond: xdr.Preconditions{
+										Type: xdr.PreconditionTypePrecondTime,
+										TimeBounds: &xdr.TimeBounds{
+											MinTime: 0,
+											MaxTime: 1594272628,
+										},
+									},
+									Operations: []xdr.Operation{
+										{
+											SourceAccount: &testAccount2,
+											Body: xdr.OperationBody{
+												Type: xdr.OperationTypePathPaymentStrictReceive,
+												PathPaymentStrictReceiveOp: &xdr.PathPaymentStrictReceiveOp{
+													Destination: destination,
+												},
+											},
+										},
+									},
+									Ext: xdr.TransactionExt{
+										V: 1,
+										SorobanData: &xdr.SorobanTransactionData{
+											ResourceFee: 38233,
+										},
+									},
+								},
+							},
+						},
+					},
+					Signatures: []xdr.DecoratedSignature{
+						{
+							Hint:      xdr.SignatureHint{99, 66, 175, 143},
+							Signature: xdr.Signature{244, 107, 139, 92, 189, 156, 207, 79, 84, 56, 2, 70, 75, 22, 237, 50, 100, 242, 159, 177, 27, 240, 66, 122, 182, 45, 189, 78, 5, 127, 26, 61, 179, 238, 229, 76, 32, 206, 122, 13, 154, 133, 148, 149, 29, 250, 48, 132, 44, 86, 163, 56, 32, 44, 75, 87, 226, 251, 76, 4, 59, 182, 132, 8},
+						},
+					},
+				},
+			},
+			Result: xdr.TransactionResultPair{
+				TransactionHash: hardCodedTransactionHash,
+				Result: xdr.TransactionResult{
+					FeeCharged: 27828,
+					Result: xdr.TransactionResultResult{
+						Code: xdr.TransactionResultCodeTxFeeBumpInnerSuccess,
+						InnerResultPair: &xdr.InnerTransactionResultPair{
+							TransactionHash: hardCodedTransactionHash,
+							Result: xdr.InnerTransactionResult{
+								FeeCharged: 100,
+								Result: xdr.InnerTransactionResultResult{
+									Code: xdr.TransactionResultCodeTxSuccess,
+									Results: &[]xdr.OperationResult{
+										{
+											Tr: &xdr.OperationResultTr{
+												CreateAccountResult: &xdr.CreateAccountResult{},
+											},
+										},
+									},
+								},
+							},
+						},
+						Results: &[]xdr.OperationResult{{}},
+					},
+				},
+			},
+			// FeeChanges: fee account balance 4,067,134,559,286 -> 4,067,134,520,753 (deducted 38,533)
+			FeeChanges: xdr.LedgerEntryChanges{
+				{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+					State: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   4067134559286,
+							},
+						},
+					},
+				},
+				{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+					Updated: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   4067134520753,
+							},
+						},
+					},
+				},
+			},
+			// PostTxApplyFeeChanges: fee account balance 4,067,134,520,753 -> 4,067,134,531,458 (refund 10,705)
+			PostTxApplyFeeChanges: xdr.LedgerEntryChanges{
+				{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryState,
+					State: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   4067134520753,
+							},
+						},
+					},
+				},
+				{
+					Type: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
+					Updated: &xdr.LedgerEntry{
+						Data: xdr.LedgerEntryData{
+							Type: xdr.LedgerEntryTypeAccount,
+							Account: &xdr.AccountEntry{
+								AccountId: testAccount5ID,
+								Balance:   4067134531458,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	historyHeader = []xdr.LedgerHeaderHistoryEntry{
 		{
@@ -410,6 +642,13 @@ func makeTransactionTestInput() (transaction []ingest.LedgerTransaction, history
 			Header: xdr.LedgerHeader{
 				LedgerSeq: 30521818,
 				ScpValue:  xdr.StellarValue{CloseTime: 1594272522},
+			},
+		},
+		{
+			Header: xdr.LedgerHeader{
+				LedgerSeq:     61396807,
+				LedgerVersion: 25,
+				ScpValue:      xdr.StellarValue{CloseTime: 1594272522},
 			},
 		},
 	}

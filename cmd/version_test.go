@@ -20,6 +20,6 @@ func TestVersionCommand(t *testing.T) {
 
 	outStr := out.String()
 	assert.Contains(t, outStr, "stellar-etl")
-	assert.Contains(t, outStr, "github.com/stellar/go")
-	assert.Contains(t, outStr, "github.com/stellar/go-stellar-xdr-json")
+	assert.Contains(t, outStr, "github.com/stellar/go-stellar-sdk")
+	assert.Contains(t, outStr, "github.com/stellar/go-stellar-sdk-stellar-xdr-json")
 }

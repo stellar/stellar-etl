@@ -21,8 +21,8 @@ var versionCmd = &cobra.Command{
 		fmt.Fprintf(cmd.OutOrStdout(), "stellar-etl %s\n", buildInfo.Main.Version)
 
 		// Find and display versions of libs containing XDR
-		printDepVersion(cmd.OutOrStdout(), buildInfo, "github.com/stellar/go")
-		printDepVersion(cmd.OutOrStdout(), buildInfo, "github.com/stellar/go-stellar-xdr-json")
+		printDepVersion(cmd.OutOrStdout(), buildInfo, "github.com/stellar/go-stellar-sdk")
+		printDepVersion(cmd.OutOrStdout(), buildInfo, "github.com/stellar/go-stellar-sdk-stellar-xdr-json")
 	},
 }
 

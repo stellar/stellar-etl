@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 func TestTransformOperation(t *testing.T) {
@@ -1844,7 +1844,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"shares":                    0.0000004,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1934,7 +1934,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				},
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1962,7 +1962,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1990,7 +1990,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -2050,7 +2050,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"parameters_json_decoded": []interface{}{json.RawMessage("{\"bool\":true}")},
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -2072,7 +2072,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          25,
 			TypeString:    "extend_footprint_ttl",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -2096,7 +2096,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          26,
 			TypeString:    "restore_footprint",
 			SourceAccount: hardCodedSourceAccountAddress,

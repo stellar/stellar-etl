@@ -282,7 +282,13 @@ Exports diagnostic events data within the specified range to an output file
 --end-ledger 500000 --output exported_changes_folder/
 ```
 
-This command exports ledger changes within the provided ledger range. Flags can filter which ledger entry types are exported. If no data type flags are set, then by default all types are exported. If any are set, it is assumed that the others should not be exported.
+This command exports ledger changes within the provided ledger range. Flags can filter which ledger entry types are exported. If no data type flags are set, then by default all types are exported. If any are set, it is assumed that the others should not be exported. If a data type flag is set to false, and no other data type flags are set to true, all types are exported.
+
+```bash
+# This command exports all data types
+> stellar-etl export_ledger_entry_changes --export-accounts=false --start-ledger 1000 \
+--end-ledger 500000 --output exported_changes_folder/
+```
 
 Changes are exported in batches of a size defined by the `--batch-size` flag. By default, the batch-size parameter is set to 64 ledgers, which corresponds to a five minute period of time. This batch size is convenient because checkpoint ledgers are created every 64 ledgers. Checkpoint ledgers act as anchoring points for the nodes on the network, so it is beneficial to export in multiples of 64.
 

@@ -1,3 +1,4 @@
+//nolint:typecheck
 package utils
 
 import (
@@ -10,16 +11,16 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/stellar/go/hash"
-	"github.com/stellar/go/historyarchive"
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/ingest/ledgerbackend"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
-	"github.com/stellar/go/support/datastore"
-	"github.com/stellar/go/support/storage"
-	"github.com/stellar/go/txnbuild"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/hash"
+	"github.com/stellar/go-stellar-sdk/historyarchive"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/keypair"
+	"github.com/stellar/go-stellar-sdk/network"
+	"github.com/stellar/go-stellar-sdk/support/datastore"
+	"github.com/stellar/go-stellar-sdk/support/storage"
+	"github.com/stellar/go-stellar-sdk/txnbuild"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // PanicOnError is a function that panics if the provided error is not nil
@@ -236,7 +237,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
-	flags.String("datastore-path", "sdf-ledger-close-meta/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "Datastore bucket path to read txmeta files from.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
@@ -643,10 +644,22 @@ func MustExportTypeFlags(flags *pflag.FlagSet, logger *EtlLogger) map[string]boo
 		"export-restored-keys":   false,
 	}
 
+	// Check if any flag was explicitly set to true
+	anyTrue := false
 	for export_name := range exports {
 		exports[export_name], err = flags.GetBool(export_name)
 		if err != nil {
 			logger.Fatalf("could not get %s flag: %v", export_name, err)
+		}
+		if exports[export_name] {
+			anyTrue = true
+		}
+	}
+
+	// If no flags were set to true, export everything
+	if !anyTrue {
+		for export_name := range exports {
+			exports[export_name] = true
 		}
 	}
 

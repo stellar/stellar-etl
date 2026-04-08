@@ -5,8 +5,8 @@ import (
 
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 var genericSourceAccount, _ = xdr.NewMuxedAccount(xdr.CryptoKeyTypeKeyTypeEd25519, xdr.Uint256([32]byte{}))
@@ -110,15 +110,9 @@ var testAccount4Address = "GBVVRXLMNCJQW3IDDXC3X6XCH35B5Q7QXNMMFPENSOGUPQO7WO7HG
 var testAccount4ID, _ = xdr.AddressToAccountId(testAccount4Address)
 var testAccount4 = testAccount4ID.ToMuxedAccount()
 
-var dummyEd25519 [32]byte
-var testAccount5 = xdr.MuxedAccount{
-	Type: xdr.CryptoKeyTypeKeyTypeMuxedEd25519,
-	Med25519: &xdr.MuxedAccountMed25519{
-		Id:      xdr.Uint64(1),
-		Ed25519: xdr.Uint256(dummyEd25519),
-	},
-}
 var testAccount5Address = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
+var testAccount5ID, _ = xdr.AddressToAccountId(testAccount5Address)
+var testAccount5 = testAccount5ID.ToMuxedAccount()
 
 // a selection of hardcoded assets and their AssetOutput representations
 

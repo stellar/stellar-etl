@@ -7,12 +7,14 @@ repos:
       - id: check-merge-conflict # checks for files that contain merge conflict strings.
       - id: detect-private-key # detects the presence of private keys.
       - id: end-of-file-fixer # ensures that a file is either empty, or ends with one newline.
+        exclude: ^testdata/changes/empty_config\.golden$
       - id: fix-byte-order-marker # removes utf-8 byte order marker.
       - id: mixed-line-ending # replaces or checks mixed line ending.
       - id: trailing-whitespace # trims trailing whitespace.
+        exclude: ^testdata/changes/empty_config\.golden$
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.59.1
+    rev: v2.4.0
     hooks:
       - id: golangci-lint
         entry: golangci-lint run --fix

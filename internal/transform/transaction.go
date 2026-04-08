@@ -11,9 +11,9 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
 // TransformTransaction converts a transaction from the history archive ingestion system into a form suitable for BigQuery
@@ -163,7 +163,11 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		outputSorobanResourcesInstructions = uint32(sorobanData.Resources.Instructions)
 		outputSorobanResourcesDiskReadBytes = uint32(sorobanData.Resources.DiskReadBytes)
 		outputSorobanResourcesWriteBytes = uint32(sorobanData.Resources.WriteBytes)
-		outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		if transaction.Envelope.IsFeeBump() {
+			outputInclusionFeeBid = int64(transaction.Envelope.FeeBumpFee()) - outputResourceFee
+		} else {
+			outputInclusionFeeBid = int64(transaction.Envelope.Fee()) - outputResourceFee
+		}
 		if sorobanData.Ext.ResourceExt != nil {
 			for _, entry := range sorobanData.Ext.ResourceExt.ArchivedSorobanEntries {
 				outputSorobanArchivedEntries = append(outputSorobanArchivedEntries, uint32(entry))
@@ -188,10 +192,13 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 			}
 		}
 
-		// For P23 onwards, transaction meta v3 will be empty
+		// For P23 onwards, transaction meta v3 will be empty.
+		// In P23+, the fee refund balance change moved from TxChangesAfter to
+		// PostTxApplyFeeChanges on the LedgerTransaction, so we need to include both.
 		metav4, ok := transaction.UnsafeMeta.GetV4()
 		if ok {
-			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(metav4.TxChangesAfter, feeAccountAddress)
+			feeChanges := append(metav4.TxChangesAfter, transaction.PostTxApplyFeeChanges...)
+			accountBalanceStart, accountBalanceEnd := getAccountBalanceFromLedgerEntryChanges(feeChanges, feeAccountAddress)
 			outputResourceFeeRefund = accountBalanceEnd - accountBalanceStart
 			if metav4.SorobanMeta != nil {
 				extV1, ok := metav4.SorobanMeta.Ext.GetV1()
@@ -284,7 +291,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		transformedTransaction.FeeAccount = feeAccount.Address()
 		innerHash := transaction.Result.InnerHash()
 		transformedTransaction.InnerTransactionHash = hex.EncodeToString(innerHash[:])
-		transformedTransaction.NewMaxFee = uint32(transaction.Envelope.FeeBumpFee())
+		transformedTransaction.NewMaxFee = int64(transaction.Envelope.FeeBumpFee())
 		txSigners, err := getTxSigners(transaction.Envelope.FeeBump.Signatures)
 		if err != nil {
 			return TransactionOutput{}, err

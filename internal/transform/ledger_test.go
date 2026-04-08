@@ -7,8 +7,8 @@ import (
 
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/historyarchive"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/historyarchive"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stretchr/testify/assert"
 )
 

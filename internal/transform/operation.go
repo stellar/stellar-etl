@@ -11,13 +11,13 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/amount"
-	"github.com/stellar/go/ingest"
-	"github.com/stellar/go/protocols/horizon/base"
-	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/xdr"
+	"github.com/stellar/go-stellar-sdk/amount"
+	"github.com/stellar/go-stellar-sdk/ingest"
+	"github.com/stellar/go-stellar-sdk/protocols/horizon/base"
+	"github.com/stellar/go-stellar-sdk/strkey"
+	"github.com/stellar/go-stellar-sdk/xdr"
 
-	"github.com/stellar/go/support/contractevents"
+	"github.com/stellar/go-stellar-sdk/support/contractevents"
 )
 
 type liquidityPoolDelta struct {

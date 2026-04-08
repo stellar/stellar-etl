@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/stellar/go/support/log"
+import "github.com/stellar/go-stellar-sdk/support/log"
 
 type EtlLogger struct {
 	*log.Entry
@@ -16,8 +16,8 @@ func NewEtlLogger() *EtlLogger {
 
 func (l *EtlLogger) LogError(err error) {
 	if l.StrictExport {
-		l.Fatal(err)
+		l.Fatal(err) //nolint:typecheck
 	} else {
-		l.Error(err)
+		l.Error(err) //nolint:typecheck
 	}
 }

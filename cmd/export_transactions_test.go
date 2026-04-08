@@ -30,6 +30,18 @@ func TestExportTransactions(t *testing.T) {
 			Golden:  "ledger_no_txs.golden",
 			WantErr: nil,
 		},
+		{
+			Name:    "ledger with fee bump transaction",
+			Args:    []string{"export_transactions", "-s", "59699270", "-e", "59699271", "-o", GotTestDir(t, "ledger_fee_bump.txt")},
+			Golden:  "ledger_fee_bump.golden",
+			WantErr: nil,
+		},
+		{
+			Name:    "10 ledgers with classic and soroban txn",
+			Args:    []string{"export_transactions", "-s", "61477814", "-e", "61477824", "-o", GotTestDir(t, "classic_soroban_txs.txt")},
+			Golden:  "classic_soroban_txs.golden",
+			WantErr: nil,
+		},
 	}
 
 	for _, test := range tests {

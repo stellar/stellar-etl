@@ -6,7 +6,7 @@ import (
 
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
-	"github.com/stellar/go/historyarchive"
+	"github.com/stellar/go-stellar-sdk/historyarchive"
 )
 
 // graphPoint represents a single point in the graph. It includes the ledger sequence and close time (in UTC)

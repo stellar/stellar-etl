@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - "release-*"
   pull_request:
     branches:
       - master
+      - "release-*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_protected == 'true' && github.sha || github.ref }}-{{ github.event_name }}
@@ -35,10 +37,10 @@ jobs:
 
       - name: Create GCP Credentials File
         run: |
-          echo "$CREDS_TEST_HUBBLE" > ${{ runner.workspace }}/gcp-key.json
+          echo "$CREDS_PROD_HUBBLE" > ${{ runner.workspace }}/gcp-key.json
         shell: bash
         env:
-          CREDS_TEST_HUBBLE: ${{secrets.CREDS_TEST_HUBBLE}}
+          CREDS_PROD_HUBBLE: ${{secrets.CREDS_PROD_HUBBLE}}
 
       - name: Run tests
         run: |
