@@ -628,10 +628,12 @@ type ConfigSettingOutput struct {
 	BallotTimeoutInitialMilliseconds       uint32              `json:"ballot_timeout_initial_milliseconds"`
 	BallotTimeoutIncrementMilliseconds     uint32              `json:"ballot_timeout_increment_milliseconds"`
 	// P26 CAP-77 frozen ledger keys
-	FrozenLedgerKeys                       string              `json:"frozen_ledger_keys"`
-	FrozenLedgerKeysDelta                  string              `json:"frozen_ledger_keys_delta"`
-	FreezeBypassTxs                        string              `json:"freeze_bypass_txs"`
-	FreezeBypassTxsDelta                   string              `json:"freeze_bypass_txs_delta"`
+	FrozenLedgerKeys                       []string            `json:"frozen_ledger_keys"`
+	FrozenLedgerKeysToFreeze               []string            `json:"frozen_ledger_keys_to_freeze"`
+	FrozenLedgerKeysToUnfreeze             []string            `json:"frozen_ledger_keys_to_unfreeze"`
+	FreezeBypassTxs                        []string            `json:"freeze_bypass_txs"`
+	FreezeBypassTxsToAdd                   []string            `json:"freeze_bypass_txs_to_add"`
+	FreezeBypassTxsToRemove                []string            `json:"freeze_bypass_txs_to_remove"`
 	LastModifiedLedger                     uint32              `json:"last_modified_ledger"`
 	LedgerEntryChange                      uint32              `json:"ledger_entry_change"`
 	Deleted                                bool                `json:"deleted"`
