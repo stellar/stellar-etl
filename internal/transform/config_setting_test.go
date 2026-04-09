@@ -123,6 +123,57 @@ func makeConfigSettingTestInput() []ingest.Change {
 		},
 	}
 
+	// P26 CAP-77: FrozenLedgerKeys (ID=17)
+	// Create valid XDR-encoded LedgerKey bytes for testing
+	testLedgerKey1 := xdr.LedgerKey{
+		Type: xdr.LedgerEntryTypeAccount,
+		Account: &xdr.LedgerKeyAccount{
+			AccountId: xdr.MustAddress("GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7"),
+		},
+	}
+	testLedgerKey2 := xdr.LedgerKey{
+		Type: xdr.LedgerEntryTypeAccount,
+		Account: &xdr.LedgerKeyAccount{
+			AccountId: xdr.MustAddress("GCO2IP3MJNUOKS4PUDI4C7LGGMQDJGXG3COYX3WSB4HHNAHKYV5YL3VC"),
+		},
+	}
+	encodedKey1, _ := testLedgerKey1.MarshalBinary()
+	encodedKey2, _ := testLedgerKey2.MarshalBinary()
+	frozenKeys := xdr.FrozenLedgerKeys{
+		Keys: []xdr.EncodedLedgerKey{
+			xdr.EncodedLedgerKey(encodedKey1),
+			xdr.EncodedLedgerKey(encodedKey2),
+		},
+	}
+	frozenKeysEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 24229507,
+		Data: xdr.LedgerEntryData{
+			Type: xdr.LedgerEntryTypeConfigSetting,
+			ConfigSetting: &xdr.ConfigSettingEntry{
+				ConfigSettingId: xdr.ConfigSettingIdConfigSettingFrozenLedgerKeys,
+				FrozenLedgerKeys: &frozenKeys,
+			},
+		},
+	}
+
+	// P26 CAP-77: FreezeBypassTxs (ID=19)
+	var txHash1, txHash2 xdr.Hash
+	copy(txHash1[:], []byte("aaaabbbbccccddddeeeeffffgggghhhh"))
+	copy(txHash2[:], []byte("11112222333344445555666677778888"))
+	bypassTxs := xdr.FreezeBypassTxs{
+		TxHashes: []xdr.Hash{txHash1, txHash2},
+	}
+	bypassTxsEntry := xdr.LedgerEntry{
+		LastModifiedLedgerSeq: 24229508,
+		Data: xdr.LedgerEntryData{
+			Type: xdr.LedgerEntryTypeConfigSetting,
+			ConfigSetting: &xdr.ConfigSettingEntry{
+				ConfigSettingId: xdr.ConfigSettingIdConfigSettingFreezeBypassTxs,
+				FreezeBypassTxs: &bypassTxs,
+			},
+		},
+	}
+
 	return []ingest.Change{
 		{
 			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryUpdated,
@@ -148,12 +199,25 @@ func makeConfigSettingTestInput() []ingest.Change {
 			Pre:        nil,
 			Post:       &scpTimingEntry,
 		},
+		{
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+			Type:       xdr.LedgerEntryTypeConfigSetting,
+			Pre:        nil,
+			Post:       &frozenKeysEntry,
+		},
+		{
+			ChangeType: xdr.LedgerEntryChangeTypeLedgerEntryCreated,
+			Type:       xdr.LedgerEntryTypeConfigSetting,
+			Pre:        nil,
+			Post:       &bypassTxsEntry,
+		},
 	}
 }
 
 func makeConfigSettingTestOutput() []ConfigSettingOutput {
 	contractMapType := make([]map[string]string, 0)
 	bucket := make([]uint64, 0)
+	emptyStrSlice := make([]string, 0)
 
 	// Base output with all zero values (for ContractMaxSizeBytes test)
 	baseOutput := ConfigSettingOutput{
@@ -221,10 +285,12 @@ func makeConfigSettingTestOutput() []ConfigSettingOutput {
 		NominationTimeoutIncrementMilliseconds: 0,
 		BallotTimeoutInitialMilliseconds:       0,
 		BallotTimeoutIncrementMilliseconds:     0,
-		FrozenLedgerKeys:                       "",
-		FrozenLedgerKeysDelta:                  "",
-		FreezeBypassTxs:                        "",
-		FreezeBypassTxsDelta:                   "",
+		FrozenLedgerKeys:                       emptyStrSlice,
+		FrozenLedgerKeysToFreeze:               emptyStrSlice,
+		FrozenLedgerKeysToUnfreeze:             emptyStrSlice,
+		FreezeBypassTxs:                        emptyStrSlice,
+		FreezeBypassTxsToAdd:                   emptyStrSlice,
+		FreezeBypassTxsToRemove:                emptyStrSlice,
 		LastModifiedLedger:                     24229503,
 		LedgerEntryChange:                      1,
 		Deleted:                                false,
@@ -242,6 +308,12 @@ func makeConfigSettingTestOutput() []ConfigSettingOutput {
 	parallelComputeOutput.ContractCostParamsMemBytes = contractMapType
 	parallelComputeOutput.BucketListSizeWindow = bucket
 	parallelComputeOutput.LiveSorobanStateSizeWindow = bucket
+	parallelComputeOutput.FrozenLedgerKeys = emptyStrSlice
+	parallelComputeOutput.FrozenLedgerKeysToFreeze = emptyStrSlice
+	parallelComputeOutput.FrozenLedgerKeysToUnfreeze = emptyStrSlice
+	parallelComputeOutput.FreezeBypassTxs = emptyStrSlice
+	parallelComputeOutput.FreezeBypassTxsToAdd = emptyStrSlice
+	parallelComputeOutput.FreezeBypassTxsToRemove = emptyStrSlice
 
 	// P23: ContractLedgerCostExt output
 	ledgerCostExtOutput := baseOutput
@@ -254,6 +326,12 @@ func makeConfigSettingTestOutput() []ConfigSettingOutput {
 	ledgerCostExtOutput.ContractCostParamsMemBytes = contractMapType
 	ledgerCostExtOutput.BucketListSizeWindow = bucket
 	ledgerCostExtOutput.LiveSorobanStateSizeWindow = bucket
+	ledgerCostExtOutput.FrozenLedgerKeys = emptyStrSlice
+	ledgerCostExtOutput.FrozenLedgerKeysToFreeze = emptyStrSlice
+	ledgerCostExtOutput.FrozenLedgerKeysToUnfreeze = emptyStrSlice
+	ledgerCostExtOutput.FreezeBypassTxs = emptyStrSlice
+	ledgerCostExtOutput.FreezeBypassTxsToAdd = emptyStrSlice
+	ledgerCostExtOutput.FreezeBypassTxsToRemove = emptyStrSlice
 
 	// P23: ContractScpTiming output
 	scpTimingOutput := baseOutput
@@ -269,11 +347,54 @@ func makeConfigSettingTestOutput() []ConfigSettingOutput {
 	scpTimingOutput.ContractCostParamsMemBytes = contractMapType
 	scpTimingOutput.BucketListSizeWindow = bucket
 	scpTimingOutput.LiveSorobanStateSizeWindow = bucket
+	scpTimingOutput.FrozenLedgerKeys = emptyStrSlice
+	scpTimingOutput.FrozenLedgerKeysToFreeze = emptyStrSlice
+	scpTimingOutput.FrozenLedgerKeysToUnfreeze = emptyStrSlice
+	scpTimingOutput.FreezeBypassTxs = emptyStrSlice
+	scpTimingOutput.FreezeBypassTxsToAdd = emptyStrSlice
+	scpTimingOutput.FreezeBypassTxsToRemove = emptyStrSlice
+
+	// P26 CAP-77: FrozenLedgerKeys output (ID=17)
+	frozenKeysOutput := baseOutput
+	frozenKeysOutput.ConfigSettingId = 17
+	frozenKeysOutput.LastModifiedLedger = 24229507
+	frozenKeysOutput.LedgerEntryChange = 0
+	frozenKeysOutput.ContractCostParamsCpuInsns = contractMapType
+	frozenKeysOutput.ContractCostParamsMemBytes = contractMapType
+	frozenKeysOutput.BucketListSizeWindow = bucket
+	frozenKeysOutput.LiveSorobanStateSizeWindow = bucket
+	frozenKeysOutput.FrozenLedgerKeys = []string{"AAAAAAAAAAABlHJijueOuScU0i0DkJY8JNkn6gCZmUhuiR+sLaqcIQ==", "AAAAAAAAAACdpD9sS2jlS4+g0cF9ZjMgNJrm2J2L7tIPDnaA6sV7hQ=="}
+	frozenKeysOutput.FrozenLedgerKeysToFreeze = emptyStrSlice
+	frozenKeysOutput.FrozenLedgerKeysToUnfreeze = emptyStrSlice
+	frozenKeysOutput.FreezeBypassTxs = emptyStrSlice
+	frozenKeysOutput.FreezeBypassTxsToAdd = emptyStrSlice
+	frozenKeysOutput.FreezeBypassTxsToRemove = emptyStrSlice
+
+	// P26 CAP-77: FreezeBypassTxs output (ID=19)
+	bypassTxsOutput := baseOutput
+	bypassTxsOutput.ConfigSettingId = 19
+	bypassTxsOutput.LastModifiedLedger = 24229508
+	bypassTxsOutput.LedgerEntryChange = 0
+	bypassTxsOutput.ContractCostParamsCpuInsns = contractMapType
+	bypassTxsOutput.ContractCostParamsMemBytes = contractMapType
+	bypassTxsOutput.BucketListSizeWindow = bucket
+	bypassTxsOutput.LiveSorobanStateSizeWindow = bucket
+	bypassTxsOutput.FrozenLedgerKeys = emptyStrSlice
+	bypassTxsOutput.FrozenLedgerKeysToFreeze = emptyStrSlice
+	bypassTxsOutput.FrozenLedgerKeysToUnfreeze = emptyStrSlice
+	bypassTxsOutput.FreezeBypassTxs = []string{
+		"6161616162626262636363636464646465656565666666666767676768686868",
+		"3131313132323232333333333434343435353535363636363737373738383838",
+	}
+	bypassTxsOutput.FreezeBypassTxsToAdd = emptyStrSlice
+	bypassTxsOutput.FreezeBypassTxsToRemove = emptyStrSlice
 
 	return []ConfigSettingOutput{
 		baseOutput,
 		parallelComputeOutput,
 		ledgerCostExtOutput,
 		scpTimingOutput,
+		frozenKeysOutput,
+		bypassTxsOutput,
 	}
 }

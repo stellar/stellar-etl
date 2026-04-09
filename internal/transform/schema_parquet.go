@@ -371,9 +371,11 @@ type ConfigSettingOutputParquet struct {
 	BallotTimeoutIncrementMilliseconds     int64   `parquet:"name=ballot_timeout_increment_milliseconds, type=INT64, convertedtype=UINT_64"`
 	// P26 CAP-77 frozen ledger keys
 	FrozenLedgerKeys                       string  `parquet:"name=frozen_ledger_keys, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	FrozenLedgerKeysDelta                  string  `parquet:"name=frozen_ledger_keys_delta, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FrozenLedgerKeysToFreeze               string  `parquet:"name=frozen_ledger_keys_to_freeze, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FrozenLedgerKeysToUnfreeze             string  `parquet:"name=frozen_ledger_keys_to_unfreeze, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	FreezeBypassTxs                        string  `parquet:"name=freeze_bypass_txs, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
-	FreezeBypassTxsDelta                   string  `parquet:"name=freeze_bypass_txs_delta, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FreezeBypassTxsToAdd                   string  `parquet:"name=freeze_bypass_txs_to_add, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	FreezeBypassTxsToRemove                string  `parquet:"name=freeze_bypass_txs_to_remove, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	LastModifiedLedger                     int64   `parquet:"name=last_modified_ledger, type=INT64, convertedtype=UINT_64"`
 	LedgerEntryChange                      int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted                                bool    `parquet:"name=deleted, type=BOOLEAN"`
