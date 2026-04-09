@@ -291,7 +291,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		transformedTransaction.FeeAccount = feeAccount.Address()
 		innerHash := transaction.Result.InnerHash()
 		transformedTransaction.InnerTransactionHash = hex.EncodeToString(innerHash[:])
-		transformedTransaction.NewMaxFee = uint32(transaction.Envelope.FeeBumpFee())
+		transformedTransaction.NewMaxFee = int64(transaction.Envelope.FeeBumpFee())
 		txSigners, err := getTxSigners(transaction.Envelope.FeeBump.Signatures)
 		if err != nil {
 			return TransactionOutput{}, err
