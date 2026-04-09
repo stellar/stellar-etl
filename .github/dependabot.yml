@@ -10,7 +10,7 @@ updates:
     groups:
       all-go-deps:
         applies-to: version-updates
-        patterns: [ "*" ]
+        patterns: ["*"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -21,7 +21,7 @@ updates:
     groups:
       all-actions:
         applies-to: version-updates
-        patterns: [ "*" ]
+        patterns: ["*"]
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
@@ -32,4 +32,4 @@ updates:
     groups:
       all-docker:
         applies-to: version-updates
-        patterns: [ "*" ]
+        patterns: ["*"]
