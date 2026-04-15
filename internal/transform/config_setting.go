@@ -218,17 +218,17 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		BallotTimeoutInitialMilliseconds:       uint32(ballotTimeoutInitialMilliseconds),
 		BallotTimeoutIncrementMilliseconds:     uint32(ballotTimeoutIncrementMilliseconds),
 		// P26 CAP-77 frozen ledger keys
-		FrozenLedgerKeys:                       frozenLedgerKeysBase64,
-		FrozenLedgerKeysToFreeze:               frozenLedgerKeysToFreeze,
-		FrozenLedgerKeysToUnfreeze:             frozenLedgerKeysToUnfreeze,
-		FreezeBypassTxs:                        freezeBypassTxHashes,
-		FreezeBypassTxsToAdd:                   freezeBypassTxsToAdd,
-		FreezeBypassTxsToRemove:                freezeBypassTxsToRemove,
-		LastModifiedLedger:                     uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:                      uint32(changeType),
-		Deleted:                                outputDeleted,
-		ClosedAt:                               closedAt,
-		LedgerSequence:                         uint32(ledgerSequence),
+		FrozenLedgerKeys:           frozenLedgerKeysBase64,
+		FrozenLedgerKeysToFreeze:   frozenLedgerKeysToFreeze,
+		FrozenLedgerKeysToUnfreeze: frozenLedgerKeysToUnfreeze,
+		FreezeBypassTxs:            freezeBypassTxHashes,
+		FreezeBypassTxsToAdd:       freezeBypassTxsToAdd,
+		FreezeBypassTxsToRemove:    freezeBypassTxsToRemove,
+		LastModifiedLedger:         uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:          uint32(changeType),
+		Deleted:                    outputDeleted,
+		ClosedAt:                   closedAt,
+		LedgerSequence:             uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil
 }
