@@ -411,17 +411,17 @@ func (cso ConfigSettingOutput) ToParquet() interface{} {
 		BallotTimeoutInitialMilliseconds:       int64(cso.BallotTimeoutInitialMilliseconds),
 		BallotTimeoutIncrementMilliseconds:     int64(cso.BallotTimeoutIncrementMilliseconds),
 		// P26 CAP-77 frozen ledger keys
-		FrozenLedgerKeys:                       toJSONString(cso.FrozenLedgerKeys),
-		FrozenLedgerKeysToFreeze:               toJSONString(cso.FrozenLedgerKeysToFreeze),
-		FrozenLedgerKeysToUnfreeze:             toJSONString(cso.FrozenLedgerKeysToUnfreeze),
-		FreezeBypassTxs:                        toJSONString(cso.FreezeBypassTxs),
-		FreezeBypassTxsToAdd:                   toJSONString(cso.FreezeBypassTxsToAdd),
-		FreezeBypassTxsToRemove:                toJSONString(cso.FreezeBypassTxsToRemove),
-		LastModifiedLedger:                     int64(cso.LastModifiedLedger),
-		LedgerEntryChange:                      int64(cso.LedgerEntryChange),
-		Deleted:                                cso.Deleted,
-		ClosedAt:                               cso.ClosedAt.UnixMilli(),
-		LedgerSequence:                         int64(cso.LedgerSequence),
+		FrozenLedgerKeys:           toJSONString(cso.FrozenLedgerKeys),
+		FrozenLedgerKeysToFreeze:   toJSONString(cso.FrozenLedgerKeysToFreeze),
+		FrozenLedgerKeysToUnfreeze: toJSONString(cso.FrozenLedgerKeysToUnfreeze),
+		FreezeBypassTxs:            toJSONString(cso.FreezeBypassTxs),
+		FreezeBypassTxsToAdd:       toJSONString(cso.FreezeBypassTxsToAdd),
+		FreezeBypassTxsToRemove:    toJSONString(cso.FreezeBypassTxsToRemove),
+		LastModifiedLedger:         int64(cso.LastModifiedLedger),
+		LedgerEntryChange:          int64(cso.LedgerEntryChange),
+		Deleted:                    cso.Deleted,
+		ClosedAt:                   cso.ClosedAt.UnixMilli(),
+		LedgerSequence:             int64(cso.LedgerSequence),
 	}
 }
 

@@ -98,7 +98,7 @@ func makeConfigSettingTestInput() []ingest.Change {
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeConfigSetting,
 			ConfigSetting: &xdr.ConfigSettingEntry{
-				ConfigSettingId:     xdr.ConfigSettingIdConfigSettingContractLedgerCostExtV0,
+				ConfigSettingId:       xdr.ConfigSettingIdConfigSettingContractLedgerCostExtV0,
 				ContractLedgerCostExt: &ledgerCostExt,
 			},
 		},
@@ -150,7 +150,7 @@ func makeConfigSettingTestInput() []ingest.Change {
 		Data: xdr.LedgerEntryData{
 			Type: xdr.LedgerEntryTypeConfigSetting,
 			ConfigSetting: &xdr.ConfigSettingEntry{
-				ConfigSettingId: xdr.ConfigSettingIdConfigSettingFrozenLedgerKeys,
+				ConfigSettingId:  xdr.ConfigSettingIdConfigSettingFrozenLedgerKeys,
 				FrozenLedgerKeys: &frozenKeys,
 			},
 		},
