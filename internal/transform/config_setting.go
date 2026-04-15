@@ -106,6 +106,45 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		liveSorobanStateSizeWindow = append(liveSorobanStateSizeWindow, uint64(sizeWindow))
 	}
 
+	// P23: ContractParallelCompute (ID=14)
+	contractParallelCompute, _ := configSetting.GetContractParallelCompute()
+	ledgerMaxDependentTxClusters := contractParallelCompute.LedgerMaxDependentTxClusters
+
+	// P23: ContractLedgerCostExt (ID=15) - TxMaxFootprintEntries
+	txMaxFootprintEntries := contractLedgerCostV0.TxMaxFootprintEntries
+
+	// P23: ContractScpTiming (ID=16)
+	contractScpTiming, _ := configSetting.GetContractScpTiming()
+	ledgerTargetCloseTimeMilliseconds := contractScpTiming.LedgerTargetCloseTimeMilliseconds
+	nominationTimeoutInitialMilliseconds := contractScpTiming.NominationTimeoutInitialMilliseconds
+	nominationTimeoutIncrementMilliseconds := contractScpTiming.NominationTimeoutIncrementMilliseconds
+	ballotTimeoutInitialMilliseconds := contractScpTiming.BallotTimeoutInitialMilliseconds
+	ballotTimeoutIncrementMilliseconds := contractScpTiming.BallotTimeoutIncrementMilliseconds
+
+	// P26 CAP-77: Frozen ledger keys (IDs 17-20)
+	frozenLedgerKeys, _ := configSetting.GetFrozenLedgerKeys()
+	frozenLedgerKeysBase64, err := marshalEncodedLedgerKeys(frozenLedgerKeys.Keys)
+	if err != nil {
+		return ConfigSettingOutput{}, err
+	}
+
+	frozenLedgerKeysDelta, _ := configSetting.GetFrozenLedgerKeysDelta()
+	frozenLedgerKeysToFreeze, err := marshalEncodedLedgerKeys(frozenLedgerKeysDelta.KeysToFreeze)
+	if err != nil {
+		return ConfigSettingOutput{}, err
+	}
+	frozenLedgerKeysToUnfreeze, err := marshalEncodedLedgerKeys(frozenLedgerKeysDelta.KeysToUnfreeze)
+	if err != nil {
+		return ConfigSettingOutput{}, err
+	}
+
+	freezeBypassTxs, _ := configSetting.GetFreezeBypassTxs()
+	freezeBypassTxHashes := hashesToHexStrings(freezeBypassTxs.TxHashes)
+
+	freezeBypassTxsDelta, _ := configSetting.GetFreezeBypassTxsDelta()
+	freezeBypassTxsToAdd := hashesToHexStrings(freezeBypassTxsDelta.AddTxs)
+	freezeBypassTxsToRemove := hashesToHexStrings(freezeBypassTxsDelta.RemoveTxs)
+
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
 	if err != nil {
 		return ConfigSettingOutput{}, err
@@ -170,11 +209,26 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		LedgerMaxTxCount:                       uint32(ledgerMaxTxCount),
 		BucketListSizeWindow:                   bucketListSizeWindow,
 		LiveSorobanStateSizeWindow:             liveSorobanStateSizeWindow,
-		LastModifiedLedger:                     uint32(ledgerEntry.LastModifiedLedgerSeq),
-		LedgerEntryChange:                      uint32(changeType),
-		Deleted:                                outputDeleted,
-		ClosedAt:                               closedAt,
-		LedgerSequence:                         uint32(ledgerSequence),
+		// P23 config settings
+		LedgerMaxDependentTxClusters:           uint32(ledgerMaxDependentTxClusters),
+		TxMaxFootprintEntries:                  uint32(txMaxFootprintEntries),
+		LedgerTargetCloseTimeMilliseconds:      uint32(ledgerTargetCloseTimeMilliseconds),
+		NominationTimeoutInitialMilliseconds:   uint32(nominationTimeoutInitialMilliseconds),
+		NominationTimeoutIncrementMilliseconds: uint32(nominationTimeoutIncrementMilliseconds),
+		BallotTimeoutInitialMilliseconds:       uint32(ballotTimeoutInitialMilliseconds),
+		BallotTimeoutIncrementMilliseconds:     uint32(ballotTimeoutIncrementMilliseconds),
+		// P26 CAP-77 frozen ledger keys
+		FrozenLedgerKeys:           frozenLedgerKeysBase64,
+		FrozenLedgerKeysToFreeze:   frozenLedgerKeysToFreeze,
+		FrozenLedgerKeysToUnfreeze: frozenLedgerKeysToUnfreeze,
+		FreezeBypassTxs:            freezeBypassTxHashes,
+		FreezeBypassTxsToAdd:       freezeBypassTxsToAdd,
+		FreezeBypassTxsToRemove:    freezeBypassTxsToRemove,
+		LastModifiedLedger:         uint32(ledgerEntry.LastModifiedLedgerSeq),
+		LedgerEntryChange:          uint32(changeType),
+		Deleted:                    outputDeleted,
+		ClosedAt:                   closedAt,
+		LedgerSequence:             uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil
 }
@@ -190,4 +244,33 @@ func serializeParams(costParams xdr.ContractCostParams) []map[string]string {
 	}
 
 	return params
+}
+
+// marshalEncodedLedgerKeys converts a slice of EncodedLedgerKey (XDR-encoded opaque bytes)
+// to a slice of base64 strings using xdr.MarshalBase64, matching the format used
+// by transformLedgerKeys in ledger.go.
+func marshalEncodedLedgerKeys(keys []xdr.EncodedLedgerKey) ([]string, error) {
+	result := make([]string, 0, len(keys))
+	for _, key := range keys {
+		var ledgerKey xdr.LedgerKey
+		if err := xdr.SafeUnmarshal(key, &ledgerKey); err != nil {
+			return nil, fmt.Errorf("could not unmarshal encoded ledger key: %v", err)
+		}
+		b64, err := xdr.MarshalBase64(ledgerKey)
+		if err != nil {
+			return nil, fmt.Errorf("could not marshal ledger key to base64: %v", err)
+		}
+		result = append(result, b64)
+	}
+	return result, nil
+}
+
+// hashesToHexStrings converts a slice of xdr.Hash to a slice of hex-encoded strings,
+// matching the format used by utils.HashToHexString for transaction hashes.
+func hashesToHexStrings(hashes []xdr.Hash) []string {
+	result := make([]string, 0, len(hashes))
+	for _, h := range hashes {
+		result = append(result, utils.HashToHexString(h))
+	}
+	return result
 }

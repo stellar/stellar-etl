@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.17.0
-	github.com/stellar/go-stellar-sdk v0.0.0-20251211085638-ba09a6a91775
+	github.com/stellar/go-stellar-sdk v0.0.0-20260325174035-031e5bfdc4bd
 	github.com/stellar/go-stellar-xdr-json v0.0.0-20250826185517-ee4033414d38
 	github.com/stretchr/testify v1.11.1
 	github.com/xitongsys/parquet-go v1.6.2
@@ -91,7 +91,7 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
-	github.com/stellar/go-xdr v0.0.0-20231122183749-b53fb00bcac2 // indirect
+	github.com/stellar/go-xdr v0.0.0-20260312225820-cc2b0611aabf // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.opencensus.io v0.24.0 // indirect

@@ -402,11 +402,26 @@ func (cso ConfigSettingOutput) ToParquet() interface{} {
 		LedgerMaxTxCount:                       int64(cso.LedgerMaxTxCount),
 		BucketListSizeWindow:                   BucketListSizeWindowInt,
 		LiveSorobanStateSizeWindow:             BucketListSizeWindowInt,
-		LastModifiedLedger:                     int64(cso.LastModifiedLedger),
-		LedgerEntryChange:                      int64(cso.LedgerEntryChange),
-		Deleted:                                cso.Deleted,
-		ClosedAt:                               cso.ClosedAt.UnixMilli(),
-		LedgerSequence:                         int64(cso.LedgerSequence),
+		// P23 config settings
+		LedgerMaxDependentTxClusters:           int64(cso.LedgerMaxDependentTxClusters),
+		TxMaxFootprintEntries:                  int64(cso.TxMaxFootprintEntries),
+		LedgerTargetCloseTimeMilliseconds:      int64(cso.LedgerTargetCloseTimeMilliseconds),
+		NominationTimeoutInitialMilliseconds:   int64(cso.NominationTimeoutInitialMilliseconds),
+		NominationTimeoutIncrementMilliseconds: int64(cso.NominationTimeoutIncrementMilliseconds),
+		BallotTimeoutInitialMilliseconds:       int64(cso.BallotTimeoutInitialMilliseconds),
+		BallotTimeoutIncrementMilliseconds:     int64(cso.BallotTimeoutIncrementMilliseconds),
+		// P26 CAP-77 frozen ledger keys
+		FrozenLedgerKeys:           toJSONString(cso.FrozenLedgerKeys),
+		FrozenLedgerKeysToFreeze:   toJSONString(cso.FrozenLedgerKeysToFreeze),
+		FrozenLedgerKeysToUnfreeze: toJSONString(cso.FrozenLedgerKeysToUnfreeze),
+		FreezeBypassTxs:            toJSONString(cso.FreezeBypassTxs),
+		FreezeBypassTxsToAdd:       toJSONString(cso.FreezeBypassTxsToAdd),
+		FreezeBypassTxsToRemove:    toJSONString(cso.FreezeBypassTxsToRemove),
+		LastModifiedLedger:         int64(cso.LastModifiedLedger),
+		LedgerEntryChange:          int64(cso.LedgerEntryChange),
+		Deleted:                    cso.Deleted,
+		ClosedAt:                   cso.ClosedAt.UnixMilli(),
+		LedgerSequence:             int64(cso.LedgerSequence),
 	}
 }
 
