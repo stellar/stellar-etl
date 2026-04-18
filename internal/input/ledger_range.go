@@ -29,13 +29,15 @@ func GetLedgerRange(startTime, endTime time.Time, env utils.EnvironmentDetails) 
 	}
 	defer ds.Close()
 
-	// Prefer the on-disk schema (written by ledgerexporter) so key generation and
-	// FindOldestLedgerSequence agree with the bucket's actual layout. Fall back to the
-	// hardcoded schema in dsCfg when no manifest is present — matches the tolerance in
-	// utils.CreateLedgerBackend.
-	if loaded, loadErr := datastore.LoadSchema(ctx, ds, dsCfg); loadErr == nil {
-		dsCfg.Schema = loaded
+	// Use the on-disk schema (written by ledgerexporter) so key generation and
+	// FindOldestLedgerSequence agree with the bucket's actual layout. LoadSchema also
+	// surfaces mismatches between the bucket's manifest and the local config, which we
+	// want to fail on rather than silently paper over with wrong object keys.
+	schema, err := datastore.LoadSchema(ctx, ds, dsCfg)
+	if err != nil {
+		return 0, 0, fmt.Errorf("unable to load datastore schema: %w", err)
 	}
+	dsCfg.Schema = schema
 
 	finder := &ledgerFinder{
 		ds:     ds,
