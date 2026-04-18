@@ -178,6 +178,32 @@ func TestLedgerFinderFindLedgerForTime(t *testing.T) {
 			target:   closeAt(5),
 			expected: 5,
 		},
+		{
+			// Two-element range where target equals start's close time. Under the old recursive
+			// search mid == start.seq caused the boundary check to be skipped and the algorithm
+			// fell through to pointAt(mid+1), returning end instead of start.
+			name:     "two-element range with target at start",
+			start:    5,
+			end:      6,
+			target:   closeAt(5),
+			expected: 5,
+		},
+		{
+			name:     "two-element range with target at end",
+			start:    5,
+			end:      6,
+			target:   closeAt(6),
+			expected: 6,
+		},
+		{
+			// Target strictly between start and end in a two-element range — the only satisfying
+			// seq is end, since end.closeTime is the first >= target.
+			name:     "two-element range with target between",
+			start:    5,
+			end:      6,
+			target:   closeAt(5).Add(500 * time.Millisecond).Add(time.Second),
+			expected: 6,
+		},
 	}
 
 	for _, tt := range tests {

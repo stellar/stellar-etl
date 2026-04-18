@@ -216,12 +216,12 @@ func (g graph) limitLedgerRange(start, end *time.Time) error {
 func (g graph) getGraphPoint(sequence int64) (graphPoint, error) {
 	ledger, err := g.Client.GetLedgerHeader(uint32(sequence))
 	if err != nil {
-		return graphPoint{}, fmt.Errorf(fmt.Sprintf("unable to get ledger %d: ", sequence), err)
+		return graphPoint{}, fmt.Errorf("unable to get ledger %d: %w", sequence, err)
 	}
 
 	closeTime, err := utils.ExtractLedgerCloseTime(ledger)
 	if err != nil {
-		return graphPoint{}, fmt.Errorf(fmt.Sprintf("unable to extract close time from ledger %d: ", sequence), err)
+		return graphPoint{}, fmt.Errorf("unable to extract close time from ledger %d: %w", sequence, err)
 	}
 
 	return graphPoint{

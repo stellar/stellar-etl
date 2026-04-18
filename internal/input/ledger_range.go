@@ -29,6 +29,14 @@ func GetLedgerRange(startTime, endTime time.Time, env utils.EnvironmentDetails) 
 	}
 	defer ds.Close()
 
+	// Prefer the on-disk schema (written by ledgerexporter) so key generation and
+	// FindOldestLedgerSequence agree with the bucket's actual layout. Fall back to the
+	// hardcoded schema in dsCfg when no manifest is present — matches the tolerance in
+	// utils.CreateLedgerBackend.
+	if loaded, loadErr := datastore.LoadSchema(ctx, ds, dsCfg); loadErr == nil {
+		dsCfg.Schema = loaded
+	}
+
 	finder := &ledgerFinder{
 		ds:     ds,
 		schema: dsCfg.Schema,
@@ -124,42 +132,24 @@ func (f *ledgerFinder) pointAt(ctx context.Context, seq uint32) (ledgerPoint, er
 	return pt, nil
 }
 
-// findLedgerForTime returns the first ledger whose close time is >= target, assuming
-// start.seq <= end.seq and close times are monotonically non-decreasing. The boundary
-// predicate (prev.Unix() < target && curr.Unix() >= target) matches the existing
-// findLedgerForTimeBinary in the history-archive implementation, so golden outputs align.
+// findLedgerForTime returns the smallest ledger sequence in [start.seq, end.seq] whose close
+// time is >= target. Assumes close times are monotonically non-decreasing with sequence, and
+// that the caller has clamped target to [start.closeTime, end.closeTime] so a satisfying seq
+// exists in the range. Uses an iterative lower-bound binary search — it only probes sequences
+// in [start.seq+1, end.seq-1], so it never underflows start.seq or overshoots end.seq.
 func (f *ledgerFinder) findLedgerForTime(ctx context.Context, target time.Time, start, end ledgerPoint) (uint32, error) {
-	if start.seq >= end.seq {
-		return start.seq, nil
-	}
-
-	mid := start.seq + (end.seq-start.seq)/2
-	midPt, err := f.pointAt(ctx, mid)
-	if err != nil {
-		return 0, err
-	}
-
-	if mid > start.seq {
-		prevPt, err := f.pointAt(ctx, mid-1)
+	lo, hi := start.seq, end.seq
+	for lo < hi {
+		mid := lo + (hi-lo)/2
+		midPt, err := f.pointAt(ctx, mid)
 		if err != nil {
 			return 0, err
 		}
-		if prevPt.closeTime.Unix() < target.Unix() && midPt.closeTime.Unix() >= target.Unix() {
-			return mid, nil
+		if midPt.closeTime.Unix() >= target.Unix() {
+			hi = mid
+		} else {
+			lo = mid + 1
 		}
 	}
-
-	if midPt.closeTime.Unix() > target.Unix() {
-		newEnd, err := f.pointAt(ctx, mid-1)
-		if err != nil {
-			return 0, err
-		}
-		return f.findLedgerForTime(ctx, target, start, newEnd)
-	}
-
-	newStart, err := f.pointAt(ctx, mid+1)
-	if err != nil {
-		return 0, err
-	}
-	return f.findLedgerForTime(ctx, target, newStart, end)
+	return lo, nil
 }
