@@ -63,6 +63,10 @@ func GetLedgerRange(startTime, endTime time.Time, env utils.EnvironmentDetails) 
 		return 0, 0, err
 	}
 
+	if err := checkTimesWithinDatastore(startTime, endTime, latestPt); err != nil {
+		return 0, 0, err
+	}
+
 	// Clamp requested times to the datastore's available range (same semantics as the
 	// history-archive-backed implementation's limitLedgerRange).
 	if startTime.Before(oldestPt.closeTime) {
@@ -86,6 +90,26 @@ func GetLedgerRange(startTime, endTime time.Time, env utils.EnvironmentDetails) 
 	}
 
 	return int64(startLedger), int64(endLedger), nil
+}
+
+// maxFutureTolerance bounds how far past the datastore's latest ledger close time a requested
+// start/end time may be before we treat the request as bogus. Ledgers close roughly every 5s,
+// so 10s is one ledger plus a safety margin for close-time jitter.
+const maxFutureTolerance = 10 * time.Second
+
+// checkTimesWithinDatastore rejects requests whose start or end time is more than
+// maxFutureTolerance past the latest ledger's close time. Returning an error here means a
+// caller asking for "now" against a stale datastore fails loudly instead of silently getting
+// clamped to the last available ledger.
+func checkTimesWithinDatastore(startTime, endTime time.Time, latest ledgerPoint) error {
+	cutoff := latest.closeTime.Add(maxFutureTolerance)
+	if startTime.After(cutoff) {
+		return fmt.Errorf("start time %s is more than %s past the latest ledger close time %s", startTime, maxFutureTolerance, latest.closeTime)
+	}
+	if endTime.After(cutoff) {
+		return fmt.Errorf("end time %s is more than %s past the latest ledger close time %s", endTime, maxFutureTolerance, latest.closeTime)
+	}
+	return nil
 }
 
 type ledgerPoint struct {

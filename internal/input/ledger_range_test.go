@@ -230,6 +230,73 @@ func TestLedgerFinderFindLedgerForTime(t *testing.T) {
 	}
 }
 
+// checkTimesWithinDatastore guards against requests that reach more than maxFutureTolerance
+// past the latest ledger's close time. The tolerance is inclusive of the cutoff instant
+// (comparison uses .After), so a time exactly at latest+10s is still accepted.
+func TestCheckTimesWithinDatastore(t *testing.T) {
+	latest := ledgerPoint{
+		seq:       100,
+		closeTime: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+	}
+	withinTolerance := latest.closeTime.Add(5 * time.Second)
+	atCutoff := latest.closeTime.Add(maxFutureTolerance)
+	pastCutoff := latest.closeTime.Add(maxFutureTolerance + time.Second)
+
+	tests := []struct {
+		name       string
+		startTime  time.Time
+		endTime    time.Time
+		wantErr    bool
+		wantErrSub string
+	}{
+		{
+			name:      "both times before latest close time",
+			startTime: latest.closeTime.Add(-time.Hour),
+			endTime:   latest.closeTime.Add(-time.Minute),
+			wantErr:   false,
+		},
+		{
+			name:      "both times within tolerance",
+			startTime: withinTolerance,
+			endTime:   withinTolerance,
+			wantErr:   false,
+		},
+		{
+			name:      "both times exactly at cutoff are accepted",
+			startTime: atCutoff,
+			endTime:   atCutoff,
+			wantErr:   false,
+		},
+		{
+			name:       "start time past cutoff returns error naming start",
+			startTime:  pastCutoff,
+			endTime:    pastCutoff,
+			wantErr:    true,
+			wantErrSub: "start time",
+		},
+		{
+			name:       "only end time past cutoff returns error naming end",
+			startTime:  withinTolerance,
+			endTime:    pastCutoff,
+			wantErr:    true,
+			wantErrSub: "end time",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := checkTimesWithinDatastore(tt.startTime, tt.endTime, latest)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErrSub)
+				assert.Contains(t, err.Error(), maxFutureTolerance.String())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestLedgerFinderFindLedgerForTimePropagatesDatastoreError(t *testing.T) {
 	ds := &datastore.MockDataStore{}
 	defer ds.AssertExpectations(t)
