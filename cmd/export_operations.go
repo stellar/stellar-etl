@@ -1,10 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
 	"github.com/stellar/stellar-etl/v2/internal/input"
 	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
@@ -12,57 +16,91 @@ import (
 
 var operationsCmd = &cobra.Command{
 	Use:   "export_operations",
-	Short: "Exports the operations data over a specified range",
-	Long:  `Exports the operations data over a specified range. Each operation is an individual command that mutates the Stellar ledger.`,
+	Short: "Exports the operations data over a specified range.",
+	Long: `Exports the operations data over a specified range. Ledgers are
+processed in batches of batch-size; each batch produces one file named
+{start}-{end}-operations.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdLogger.SetLevel(logrus.InfoLevel)
 		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
+		startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustHistoryArchiveFlags(cmd.Flags(), cmdLogger)
 		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 		env := utils.GetEnvironmentDetails(commonArgs)
 
-		operations, err := input.GetOperations(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
-		if err != nil {
-			cmdLogger.Fatal("could not read operations: ", err)
+		if err := os.MkdirAll(outputFolder, os.ModePerm); err != nil {
+			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
 		}
-
-		outFile := MustOutFile(path)
-		numFailures := 0
-		totalNumBytes := 0
-		var transformedOps []transform.SchemaParquet
-		for _, transformInput := range operations {
-			transformed, err := transform.TransformOperation(transformInput.Operation, transformInput.OperationIndex, transformInput.Transaction, transformInput.LedgerSeqNum, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
-			if err != nil {
-				txIndex := transformInput.Transaction.Index
-				cmdLogger.LogError(fmt.Errorf("could not transform operation %d in transaction %d in ledger %d: %v", transformInput.OperationIndex, txIndex, transformInput.LedgerSeqNum, err))
-				numFailures += 1
-				continue
-			}
-
-			numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
-			if err != nil {
-				cmdLogger.LogError(fmt.Errorf("could not export operation: %v", err))
-				numFailures += 1
-				continue
-			}
-			totalNumBytes += numBytes
-
-			if commonArgs.WriteParquet {
-				transformedOps = append(transformedOps, transformed)
-			}
-		}
-
-		outFile.Close()
-		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
-
-		PrintTransformStats(len(operations), numFailures)
-
-		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
-
 		if commonArgs.WriteParquet {
-			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-			WriteParquet(transformedOps, parquetPath, new(transform.OperationOutputParquet))
+			if err := os.MkdirAll(parquetOutputFolder, os.ModePerm); err != nil {
+				cmdLogger.Fatalf("unable to mkdir %s: %v", parquetOutputFolder, err)
+			}
+		}
+		if batchSize == 0 {
+			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
+		}
+
+		ctx := context.Background()
+		backend, err := utils.CreateLedgerBackend(ctx, commonArgs.UseCaptiveCore, env)
+		if err != nil {
+			cmdLogger.Fatal("could not create ledger backend: ", err)
+		}
+		if err := backend.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, commonArgs.EndNum)); err != nil {
+			cmdLogger.Fatal("could not prepare ledger range: ", err)
+		}
+
+		batchChan := make(chan input.LedgerBatch)
+		closeChan := make(chan int)
+		go input.StreamLedgerBatches(&backend, startNum, commonArgs.EndNum, batchSize, batchChan, closeChan, cmdLogger)
+
+		totalAttempts, totalFailures := 0, 0
+		for {
+			select {
+			case <-closeChan:
+				PrintTransformStats(totalAttempts, totalFailures)
+				return
+			case batch, ok := <-batchChan:
+				if !ok {
+					continue
+				}
+
+				path := filepath.Join(outputFolder, exportFilename(batch.BatchStart, batch.BatchEnd+1, "operations"))
+				parquetPath := filepath.Join(parquetOutputFolder, exportParquetFilename(batch.BatchStart, batch.BatchEnd+1, "operations"))
+				outFile := MustOutFile(path)
+				var transformedOperations []transform.SchemaParquet
+
+				for _, lcm := range batch.Ledgers {
+					opInputs, err := input.OperationsFromLedger(lcm, env.NetworkPassphrase)
+					if err != nil {
+						cmdLogger.LogError(fmt.Errorf("could not read operations from ledger %d: %v", lcm.LedgerSequence(), err))
+						continue
+					}
+					for _, opInput := range opInputs {
+						totalAttempts++
+						transformed, err := transform.TransformOperation(opInput.Operation, opInput.OperationIndex, opInput.Transaction, opInput.LedgerSeqNum, opInput.LedgerCloseMeta, env.NetworkPassphrase)
+						if err != nil {
+							cmdLogger.LogError(fmt.Errorf("could not transform operation %d in transaction %d of ledger %d: %v", opInput.OperationIndex, opInput.Transaction.Index, opInput.LedgerSeqNum, err))
+							totalFailures++
+							continue
+						}
+						if _, err := ExportEntry(transformed, outFile, commonArgs.Extra); err != nil {
+							cmdLogger.LogError(fmt.Errorf("could not export operation: %v", err))
+							totalFailures++
+							continue
+						}
+						if commonArgs.WriteParquet {
+							transformedOperations = append(transformedOperations, transformed)
+						}
+					}
+				}
+
+				outFile.Close()
+				MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+				if commonArgs.WriteParquet {
+					WriteParquet(transformedOperations, parquetPath, new(transform.OperationOutputParquet))
+					MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+				}
+			}
 		}
 	},
 }
@@ -70,24 +108,7 @@ var operationsCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(operationsCmd)
 	utils.AddCommonFlags(operationsCmd.Flags())
-	utils.AddArchiveFlags("operations", operationsCmd.Flags())
+	utils.AddHistoryArchiveFlags("operations", operationsCmd.Flags(), "exported_operations/")
 	utils.AddCloudStorageFlags(operationsCmd.Flags())
 	operationsCmd.MarkFlagRequired("end-ledger")
-
-	/*
-		Current flags:
-			start-ledger: the ledger sequence number for the beginning of the export period
-			end-ledger: the ledger sequence number for the end of the export range (required)
-
-			limit: maximum number of operations to export; default to 6,000,000
-				each transaction can have up to 100 operations
-				each ledger can have up to 1000 transactions
-				there are 60 new ledgers in a 5 minute period
-
-			output-file: filename of the output file
-
-		TODO: implement extra flags if possible
-			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
-			start and end time as a replacement for start and end sequence numbers
-	*/
 }
