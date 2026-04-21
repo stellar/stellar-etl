@@ -20,38 +20,39 @@ var tradesCmd = &cobra.Command{
 processed in batches of batch-size; each batch produces one file named
 {start}-{end}-trades.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runLedgerBatchExport(cmd, "trades", new(transform.TradeOutputParquet),
-			func(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
-				tradeInputs, err := input.TradesFromLedger(lcm, env.NetworkPassphrase)
-				if err != nil {
-					cmdLogger.LogError(fmt.Errorf("could not read trades from ledger %d: %v", lcm.LedgerSequence(), err))
-					return nil, 0, 0
-				}
-				var rows []transform.SchemaParquet
-				attempts, failures := 0, 0
-				for _, tradeInput := range tradeInputs {
-					attempts++
-					trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
-					if err != nil {
-						parsedID := toid.Parse(tradeInput.OperationHistoryID)
-						cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))
-						failures++
-						continue
-					}
-					for _, trade := range trades {
-						if _, err := ExportEntry(trade, outFile, extra); err != nil {
-							cmdLogger.LogError(fmt.Errorf("could not export trade: %v", err))
-							failures++
-							continue
-						}
-						if writeParquet {
-							rows = append(rows, trade)
-						}
-					}
-				}
-				return rows, attempts, failures
-			})
+		runLedgerBatchExport(cmd, "trades", new(transform.TradeOutputParquet), processTrades)
 	},
+}
+
+func processTrades(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+	tradeInputs, err := input.TradesFromLedger(lcm, env.NetworkPassphrase)
+	if err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not read trades from ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 0, 0
+	}
+	var rows []transform.SchemaParquet
+	attempts, failures := 0, 0
+	for _, tradeInput := range tradeInputs {
+		attempts++
+		trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
+		if err != nil {
+			parsedID := toid.Parse(tradeInput.OperationHistoryID)
+			cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))
+			failures++
+			continue
+		}
+		for _, trade := range trades {
+			if _, err := ExportEntry(trade, outFile, extra); err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export trade: %v", err))
+				failures++
+				continue
+			}
+			if writeParquet {
+				rows = append(rows, trade)
+			}
+		}
+	}
+	return rows, attempts, failures
 }
 
 func init() {

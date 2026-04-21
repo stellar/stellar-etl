@@ -18,24 +18,25 @@ var ledgersCmd = &cobra.Command{
 processed in batches of batch-size; each batch produces one file named
 {start}-{end}-ledgers.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runLedgerBatchExport(cmd, "ledgers", new(transform.LedgerOutputParquet),
-			func(lcm xdr.LedgerCloseMeta, _ utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
-				ledger := input.HistoryArchiveLedgerFromLCM(lcm)
-				transformed, err := transform.TransformLedger(ledger, lcm)
-				if err != nil {
-					cmdLogger.LogError(fmt.Errorf("could not transform ledger %d: %v", lcm.LedgerSequence(), err))
-					return nil, 1, 1
-				}
-				if _, err := ExportEntry(transformed, outFile, extra); err != nil {
-					cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %v", lcm.LedgerSequence(), err))
-					return nil, 1, 1
-				}
-				if writeParquet {
-					return []transform.SchemaParquet{transformed}, 1, 0
-				}
-				return nil, 1, 0
-			})
+		runLedgerBatchExport(cmd, "ledgers", new(transform.LedgerOutputParquet), processLedger)
 	},
+}
+
+func processLedger(lcm xdr.LedgerCloseMeta, _ utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+	ledger := input.HistoryArchiveLedgerFromLCM(lcm)
+	transformed, err := transform.TransformLedger(ledger, lcm)
+	if err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not transform ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 1, 1
+	}
+	if _, err := ExportEntry(transformed, outFile, extra); err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not export ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 1, 1
+	}
+	if writeParquet {
+		return []transform.SchemaParquet{transformed}, 1, 0
+	}
+	return nil, 1, 0
 }
 
 func init() {

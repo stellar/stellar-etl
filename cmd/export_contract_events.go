@@ -18,38 +18,39 @@ var contractEventsCmd = &cobra.Command{
 processed in batches of batch-size; each batch produces one file named
 {start}-{end}-contract_events.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runLedgerBatchExport(cmd, "contract_events", new(transform.ContractEventOutputParquet),
-			func(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
-				txInputs, err := input.TransactionsFromLedger(lcm, env.NetworkPassphrase)
-				if err != nil {
-					cmdLogger.LogError(fmt.Errorf("could not read transactions from ledger %d: %v", lcm.LedgerSequence(), err))
-					return nil, 0, 0
-				}
-				var rows []transform.SchemaParquet
-				attempts, failures := 0, 0
-				for _, txInput := range txInputs {
-					attempts++
-					events, err := transform.TransformContractEvent(txInput.Transaction, txInput.LedgerHistory)
-					if err != nil {
-						ledgerSeq := txInput.LedgerHistory.Header.LedgerSeq
-						cmdLogger.LogError(fmt.Errorf("could not transform contract events for transaction %d in ledger %d: %v", txInput.Transaction.Index, ledgerSeq, err))
-						failures++
-						continue
-					}
-					for _, event := range events {
-						if _, err := ExportEntry(event, outFile, extra); err != nil {
-							cmdLogger.LogError(fmt.Errorf("could not export contract event: %v", err))
-							failures++
-							continue
-						}
-						if writeParquet {
-							rows = append(rows, event)
-						}
-					}
-				}
-				return rows, attempts, failures
-			})
+		runLedgerBatchExport(cmd, "contract_events", new(transform.ContractEventOutputParquet), processContractEvents)
 	},
+}
+
+func processContractEvents(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+	txInputs, err := input.TransactionsFromLedger(lcm, env.NetworkPassphrase)
+	if err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not read transactions from ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 0, 0
+	}
+	var rows []transform.SchemaParquet
+	attempts, failures := 0, 0
+	for _, txInput := range txInputs {
+		attempts++
+		events, err := transform.TransformContractEvent(txInput.Transaction, txInput.LedgerHistory)
+		if err != nil {
+			ledgerSeq := txInput.LedgerHistory.Header.LedgerSeq
+			cmdLogger.LogError(fmt.Errorf("could not transform contract events for transaction %d in ledger %d: %v", txInput.Transaction.Index, ledgerSeq, err))
+			failures++
+			continue
+		}
+		for _, event := range events {
+			if _, err := ExportEntry(event, outFile, extra); err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export contract event: %v", err))
+				failures++
+				continue
+			}
+			if writeParquet {
+				rows = append(rows, event)
+			}
+		}
+	}
+	return rows, attempts, failures
 }
 
 func init() {

@@ -19,37 +19,41 @@ specified ledger range. Ledgers are processed in batches of batch-size; each
 batch produces one file named {start}-{end}-assets.txt in the output folder.
 Duplicate assets are deduplicated across the entire run.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// seenIDs persists across batches so the same asset never appears in
-		// two different output files within a single run.
-		seenIDs := map[int64]bool{}
-		runLedgerBatchExport(cmd, "assets", new(transform.AssetOutputParquet),
-			func(lcm xdr.LedgerCloseMeta, _ utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
-				var rows []transform.SchemaParquet
-				attempts, failures := 0, 0
-				for _, assetInput := range input.PaymentOperationsFromLedger(lcm) {
-					attempts++
-					transformed, err := transform.TransformAsset(assetInput.Operation, assetInput.OperationIndex, assetInput.TransactionIndex, assetInput.LedgerSeqNum, assetInput.LedgerCloseMeta)
-					if err != nil {
-						cmdLogger.LogError(fmt.Errorf("could not transform asset from operation %d transaction %d ledger %d: %v", assetInput.OperationIndex, assetInput.TransactionIndex, assetInput.LedgerSeqNum, err))
-						failures++
-						continue
-					}
-					if seenIDs[transformed.AssetID] {
-						continue
-					}
-					seenIDs[transformed.AssetID] = true
-					if _, err := ExportEntry(transformed, outFile, extra); err != nil {
-						cmdLogger.LogError(fmt.Errorf("could not export asset: %v", err))
-						failures++
-						continue
-					}
-					if writeParquet {
-						rows = append(rows, transformed)
-					}
-				}
-				return rows, attempts, failures
-			})
+		runLedgerBatchExport(cmd, "assets", new(transform.AssetOutputParquet), newAssetsProcessor())
 	},
+}
+
+// newAssetsProcessor returns a processor closure that dedupes by AssetID across
+// every batch of a single run, so the same asset never appears in two different
+// output files.
+func newAssetsProcessor() processLedgerFunc {
+	seenIDs := map[int64]bool{}
+	return func(lcm xdr.LedgerCloseMeta, _ utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+		var rows []transform.SchemaParquet
+		attempts, failures := 0, 0
+		for _, assetInput := range input.PaymentOperationsFromLedger(lcm) {
+			attempts++
+			transformed, err := transform.TransformAsset(assetInput.Operation, assetInput.OperationIndex, assetInput.TransactionIndex, assetInput.LedgerSeqNum, assetInput.LedgerCloseMeta)
+			if err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not transform asset from operation %d transaction %d ledger %d: %v", assetInput.OperationIndex, assetInput.TransactionIndex, assetInput.LedgerSeqNum, err))
+				failures++
+				continue
+			}
+			if seenIDs[transformed.AssetID] {
+				continue
+			}
+			seenIDs[transformed.AssetID] = true
+			if _, err := ExportEntry(transformed, outFile, extra); err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export asset: %v", err))
+				failures++
+				continue
+			}
+			if writeParquet {
+				rows = append(rows, transformed)
+			}
+		}
+		return rows, attempts, failures
+	}
 }
 
 func init() {
