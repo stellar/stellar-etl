@@ -231,7 +231,7 @@ func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr
 // AddCommonFlags adds the flags common to all commands: start-ledger, end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
-	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
+	flags.Bool("strict-export", true, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
