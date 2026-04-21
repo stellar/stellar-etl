@@ -1,14 +1,11 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/stellar/go-stellar-sdk/ingest/ledgerbackend"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/input"
 	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
@@ -22,88 +19,35 @@ processed in batches of batch-size. Each batch produces one file named
 {start}-{end}-transactions.txt (and .parquet when --write-parquet is set) in
 the output folder, which is uploaded before the next batch is processed.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmdLogger.SetLevel(logrus.InfoLevel)
-		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustHistoryArchiveFlags(cmd.Flags(), cmdLogger)
-		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(commonArgs)
-
-		if err := os.MkdirAll(outputFolder, os.ModePerm); err != nil {
-			cmdLogger.Fatalf("unable to mkdir %s: %v", outputFolder, err)
-		}
-		if commonArgs.WriteParquet {
-			if err := os.MkdirAll(parquetOutputFolder, os.ModePerm); err != nil {
-				cmdLogger.Fatalf("unable to mkdir %s: %v", parquetOutputFolder, err)
-			}
-		}
-		if batchSize == 0 {
-			cmdLogger.Fatalf("batch-size (%d) must be greater than 0", batchSize)
-		}
-
-		ctx := context.Background()
-		backend, err := utils.CreateLedgerBackend(ctx, commonArgs.UseCaptiveCore, env)
-		if err != nil {
-			cmdLogger.Fatal("could not create ledger backend: ", err)
-		}
-		if err := backend.PrepareRange(ctx, ledgerbackend.BoundedRange(startNum, commonArgs.EndNum)); err != nil {
-			cmdLogger.Fatal("could not prepare ledger range: ", err)
-		}
-
-		batchChan := make(chan input.LedgerBatch)
-		closeChan := make(chan int)
-		go input.StreamLedgerBatches(&backend, startNum, commonArgs.EndNum, batchSize, batchChan, closeChan, cmdLogger)
-
-		totalAttempts, totalFailures := 0, 0
-		for {
-			select {
-			case <-closeChan:
-				PrintTransformStats(totalAttempts, totalFailures)
-				return
-			case batch, ok := <-batchChan:
-				if !ok {
-					continue
+		runLedgerBatchExport(cmd, "transactions", new(transform.TransactionOutputParquet),
+			func(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+				txInputs, err := input.TransactionsFromLedger(lcm, env.NetworkPassphrase)
+				if err != nil {
+					cmdLogger.LogError(fmt.Errorf("could not read transactions from ledger %d: %v", lcm.LedgerSequence(), err))
+					return nil, 0, 0
 				}
-
-				path := filepath.Join(outputFolder, exportFilename(batch.BatchStart, batch.BatchEnd+1, "transactions"))
-				parquetPath := filepath.Join(parquetOutputFolder, exportParquetFilename(batch.BatchStart, batch.BatchEnd+1, "transactions"))
-				outFile := MustOutFile(path)
-				var transformedTransactions []transform.SchemaParquet
-
-				for _, lcm := range batch.Ledgers {
-					txInputs, err := input.TransactionsFromLedger(lcm, env.NetworkPassphrase)
+				var rows []transform.SchemaParquet
+				attempts, failures := 0, 0
+				for _, txInput := range txInputs {
+					attempts++
+					transformed, err := transform.TransformTransaction(txInput.Transaction, txInput.LedgerHistory)
 					if err != nil {
-						cmdLogger.LogError(fmt.Errorf("could not read transactions from ledger %d: %v", lcm.LedgerSequence(), err))
+						ledgerSeq := txInput.LedgerHistory.Header.LedgerSeq
+						cmdLogger.LogError(fmt.Errorf("could not transform transaction %d in ledger %d: %v", txInput.Transaction.Index, ledgerSeq, err))
+						failures++
 						continue
 					}
-					for _, txInput := range txInputs {
-						totalAttempts++
-						transformed, err := transform.TransformTransaction(txInput.Transaction, txInput.LedgerHistory)
-						if err != nil {
-							ledgerSeq := txInput.LedgerHistory.Header.LedgerSeq
-							cmdLogger.LogError(fmt.Errorf("could not transform transaction %d in ledger %d: %v", txInput.Transaction.Index, ledgerSeq, err))
-							totalFailures++
-							continue
-						}
-						if _, err := ExportEntry(transformed, outFile, commonArgs.Extra); err != nil {
-							cmdLogger.LogError(fmt.Errorf("could not export transaction: %v", err))
-							totalFailures++
-							continue
-						}
-						if commonArgs.WriteParquet {
-							transformedTransactions = append(transformedTransactions, transformed)
-						}
+					if _, err := ExportEntry(transformed, outFile, extra); err != nil {
+						cmdLogger.LogError(fmt.Errorf("could not export transaction: %v", err))
+						failures++
+						continue
+					}
+					if writeParquet {
+						rows = append(rows, transformed)
 					}
 				}
-
-				outFile.Close()
-				MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
-				if commonArgs.WriteParquet {
-					WriteParquet(transformedTransactions, parquetPath, new(transform.TransactionOutputParquet))
-					MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-				}
-			}
-		}
+				return rows, attempts, failures
+			})
 	},
 }
 
