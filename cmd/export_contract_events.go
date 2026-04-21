@@ -55,7 +55,7 @@ processed in batches of batch-size; each batch produces one file named
 func init() {
 	rootCmd.AddCommand(contractEventsCmd)
 	utils.AddCommonFlags(contractEventsCmd.Flags())
-	utils.AddHistoryArchiveFlags("contract_events", contractEventsCmd.Flags(), "exported_contract_events/")
+	utils.AddLedgerBatchFlags("contract_events", contractEventsCmd.Flags(), "exported_contract_events/")
 	utils.AddCloudStorageFlags(contractEventsCmd.Flags())
 	contractEventsCmd.MarkFlagRequired("start-ledger")
 	contractEventsCmd.MarkFlagRequired("end-ledger")

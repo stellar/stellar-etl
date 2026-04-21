@@ -55,7 +55,7 @@ processed in batches of batch-size; each batch produces one file named
 func init() {
 	rootCmd.AddCommand(effectsCmd)
 	utils.AddCommonFlags(effectsCmd.Flags())
-	utils.AddHistoryArchiveFlags("effects", effectsCmd.Flags(), "exported_effects/")
+	utils.AddLedgerBatchFlags("effects", effectsCmd.Flags(), "exported_effects/")
 	utils.AddCloudStorageFlags(effectsCmd.Flags())
 	effectsCmd.MarkFlagRequired("end-ledger")
 }

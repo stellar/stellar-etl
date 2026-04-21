@@ -52,7 +52,7 @@ processed in batches of batch-size; each batch produces one file named
 func init() {
 	rootCmd.AddCommand(operationsCmd)
 	utils.AddCommonFlags(operationsCmd.Flags())
-	utils.AddHistoryArchiveFlags("operations", operationsCmd.Flags(), "exported_operations/")
+	utils.AddLedgerBatchFlags("operations", operationsCmd.Flags(), "exported_operations/")
 	utils.AddCloudStorageFlags(operationsCmd.Flags())
 	operationsCmd.MarkFlagRequired("end-ledger")
 }

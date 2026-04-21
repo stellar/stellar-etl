@@ -25,8 +25,8 @@ type processLedgerFunc func(
 	extra map[string]string,
 ) (parquetRows []transform.SchemaParquet, attempts int, failures int)
 
-// runLedgerBatchExport drives the shared pipeline used by every history-archive
-// export command: parse flags, prepare the ledger backend, stream batches, and
+// runLedgerBatchExport drives the shared pipeline used by every streaming
+// batch export command: parse flags, prepare the ledger backend, stream batches, and
 // for each batch open an output file, fan the batch's ledgers through process,
 // then close, upload, and optionally write Parquet. Pass nil for parquetSchema
 // if the export has no Parquet output.
@@ -39,7 +39,7 @@ func runLedgerBatchExport(
 	cmdLogger.SetLevel(logrus.InfoLevel)
 	commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 	cmdLogger.StrictExport = commonArgs.StrictExport
-	startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustHistoryArchiveFlags(cmd.Flags(), cmdLogger)
+	startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustLedgerBatchFlags(cmd.Flags(), cmdLogger)
 	cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
 	env := utils.GetEnvironmentDetails(commonArgs)
 

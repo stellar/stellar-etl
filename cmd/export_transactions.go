@@ -54,7 +54,7 @@ the output folder, which is uploaded before the next batch is processed.`,
 func init() {
 	rootCmd.AddCommand(transactionsCmd)
 	utils.AddCommonFlags(transactionsCmd.Flags())
-	utils.AddHistoryArchiveFlags("transactions", transactionsCmd.Flags(), "exported_transactions/")
+	utils.AddLedgerBatchFlags("transactions", transactionsCmd.Flags(), "exported_transactions/")
 	utils.AddCloudStorageFlags(transactionsCmd.Flags())
 	transactionsCmd.MarkFlagRequired("end-ledger")
 }

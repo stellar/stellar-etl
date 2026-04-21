@@ -57,7 +57,7 @@ processed in batches of batch-size; each batch produces one file named
 func init() {
 	rootCmd.AddCommand(tradesCmd)
 	utils.AddCommonFlags(tradesCmd.Flags())
-	utils.AddHistoryArchiveFlags("trades", tradesCmd.Flags(), "exported_trades/")
+	utils.AddLedgerBatchFlags("trades", tradesCmd.Flags(), "exported_trades/")
 	utils.AddCloudStorageFlags(tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
 }

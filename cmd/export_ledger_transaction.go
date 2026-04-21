@@ -49,7 +49,7 @@ are processed in batches of batch-size; each batch produces one file named
 func init() {
 	rootCmd.AddCommand(ledgerTransactionCmd)
 	utils.AddCommonFlags(ledgerTransactionCmd.Flags())
-	utils.AddHistoryArchiveFlags("ledger_transaction", ledgerTransactionCmd.Flags(), "exported_ledger_transaction/")
+	utils.AddLedgerBatchFlags("ledger_transaction", ledgerTransactionCmd.Flags(), "exported_ledger_transaction/")
 	utils.AddCloudStorageFlags(ledgerTransactionCmd.Flags())
 	ledgerTransactionCmd.MarkFlagRequired("end-ledger")
 }

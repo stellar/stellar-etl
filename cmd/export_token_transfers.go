@@ -40,7 +40,7 @@ named {start}-{end}-token_transfer.txt in the output folder.`,
 func init() {
 	rootCmd.AddCommand(tokenTransfersCmd)
 	utils.AddCommonFlags(tokenTransfersCmd.Flags())
-	utils.AddHistoryArchiveFlags("token_transfer", tokenTransfersCmd.Flags(), "exported_token_transfer/")
+	utils.AddLedgerBatchFlags("token_transfer", tokenTransfersCmd.Flags(), "exported_token_transfer/")
 	utils.AddCloudStorageFlags(tokenTransfersCmd.Flags())
 	tokenTransfersCmd.MarkFlagRequired("end-ledger")
 }

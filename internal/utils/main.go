@@ -254,11 +254,11 @@ func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 }
 
-// AddHistoryArchiveFlags adds the flags used by the streaming history export
+// AddLedgerBatchFlags adds the flags used by the streaming batch export
 // commands: start-ledger, output (folder), parquet-output (folder),
 // batch-size. Use in place of AddArchiveFlags for commands that stream
 // batches via input.StreamLedgerBatches.
-func AddHistoryArchiveFlags(objectName string, flags *pflag.FlagSet, defaultFolder string) {
+func AddLedgerBatchFlags(objectName string, flags *pflag.FlagSet, defaultFolder string) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
 	flags.StringP("output", "o", defaultFolder, "Folder that will contain the "+objectName+" output files")
 	flags.String("parquet-output", defaultFolder, "Folder that will contain the "+objectName+" parquet output files")
@@ -573,9 +573,9 @@ func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32,
 	return
 }
 
-// MustHistoryArchiveFlags gets the values of the history archive streaming
-// flags: start-ledger, output (folder), parquet-output (folder), batch-size.
-func MustHistoryArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum, batchSize uint32, outputFolder, parquetOutputFolder string) {
+// MustLedgerBatchFlags gets the values of the streaming batch export flags:
+// start-ledger, output (folder), parquet-output (folder), batch-size.
+func MustLedgerBatchFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum, batchSize uint32, outputFolder, parquetOutputFolder string) {
 	startNum, err := flags.GetUint32("start-ledger")
 	if err != nil {
 		logger.Fatal("could not get start sequence number: ", err)

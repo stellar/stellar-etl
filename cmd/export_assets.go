@@ -55,7 +55,7 @@ Duplicate assets are deduplicated across the entire run.`,
 func init() {
 	rootCmd.AddCommand(assetsCmd)
 	utils.AddCommonFlags(assetsCmd.Flags())
-	utils.AddHistoryArchiveFlags("assets", assetsCmd.Flags(), "exported_assets/")
+	utils.AddLedgerBatchFlags("assets", assetsCmd.Flags(), "exported_assets/")
 	utils.AddCloudStorageFlags(assetsCmd.Flags())
 	assetsCmd.MarkFlagRequired("end-ledger")
 }

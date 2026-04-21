@@ -41,7 +41,7 @@ processed in batches of batch-size; each batch produces one file named
 func init() {
 	rootCmd.AddCommand(ledgersCmd)
 	utils.AddCommonFlags(ledgersCmd.Flags())
-	utils.AddHistoryArchiveFlags("ledgers", ledgersCmd.Flags(), "exported_ledgers/")
+	utils.AddLedgerBatchFlags("ledgers", ledgersCmd.Flags(), "exported_ledgers/")
 	utils.AddCloudStorageFlags(ledgersCmd.Flags())
 	ledgersCmd.MarkFlagRequired("end-ledger")
 }
