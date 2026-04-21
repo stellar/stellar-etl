@@ -67,40 +67,30 @@ func runLedgerBatchExport(
 	}
 
 	batchChan := make(chan input.LedgerBatch)
-	closeChan := make(chan int)
-	go input.StreamLedgerBatches(&backend, startNum, commonArgs.EndNum, batchSize, batchChan, closeChan, cmdLogger)
+	go input.StreamLedgerBatches(&backend, startNum, commonArgs.EndNum, batchSize, batchChan, cmdLogger)
 
 	totalAttempts, totalFailures := 0, 0
-	for {
-		select {
-		case <-closeChan:
-			PrintTransformStats(totalAttempts, totalFailures)
-			return
-		case batch, ok := <-batchChan:
-			if !ok {
-				continue
-			}
+	for batch := range batchChan {
+		path := filepath.Join(outputFolder, exportFilename(batch.BatchStart, batch.BatchEnd+1, exportName))
+		outFile := MustOutFile(path)
+		var parquetRows []transform.SchemaParquet
 
-			path := filepath.Join(outputFolder, exportFilename(batch.BatchStart, batch.BatchEnd+1, exportName))
-			outFile := MustOutFile(path)
-			var parquetRows []transform.SchemaParquet
-
-			for _, lcm := range batch.Ledgers {
-				rows, attempts, failures := process(lcm, env, outFile, writeParquet, commonArgs.Extra)
-				totalAttempts += attempts
-				totalFailures += failures
-				if writeParquet {
-					parquetRows = append(parquetRows, rows...)
-				}
-			}
-
-			outFile.Close()
-			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		for _, lcm := range batch.Ledgers {
+			rows, attempts, failures := process(lcm, env, outFile, writeParquet, commonArgs.Extra)
+			totalAttempts += attempts
+			totalFailures += failures
 			if writeParquet {
-				parquetPath := filepath.Join(parquetOutputFolder, exportParquetFilename(batch.BatchStart, batch.BatchEnd+1, exportName))
-				WriteParquet(parquetRows, parquetPath, parquetSchema)
-				MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+				parquetRows = append(parquetRows, rows...)
 			}
 		}
+
+		outFile.Close()
+		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
+		if writeParquet {
+			parquetPath := filepath.Join(parquetOutputFolder, exportParquetFilename(batch.BatchStart, batch.BatchEnd+1, exportName))
+			WriteParquet(parquetRows, parquetPath, parquetSchema)
+			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
+		}
 	}
+	PrintTransformStats(totalAttempts, totalFailures)
 }

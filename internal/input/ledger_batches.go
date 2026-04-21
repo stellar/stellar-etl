@@ -17,9 +17,9 @@ type LedgerBatch struct {
 }
 
 // StreamLedgerBatches fetches ledgers in batch-size increments from the given
-// backend and sends each batch on batchChan. When done, it closes batchChan
-// and sends on closeChan. The caller owns the backend and is responsible for
-// PrepareRange.
+// backend and sends each batch on batchChan, which it closes when done. The
+// caller owns the backend and is responsible for PrepareRange, and should
+// range over batchChan to consume batches and detect completion.
 //
 // Unlike the batch loop in StreamChanges (which skips single-ledger ranges),
 // StreamLedgerBatches iterates inclusively and always emits at least one
@@ -28,7 +28,6 @@ func StreamLedgerBatches(
 	backend *ledgerbackend.LedgerBackend,
 	start, end, batchSize uint32,
 	batchChan chan LedgerBatch,
-	closeChan chan int,
 	logger *utils.EtlLogger,
 ) {
 	ctx := context.Background()
@@ -60,5 +59,4 @@ func StreamLedgerBatches(
 		batchStart = batchEnd + 1
 	}
 	close(batchChan)
-	closeChan <- 1
 }
