@@ -19,6 +19,34 @@ type LedgerTransformInput struct {
 	LedgerCloseMeta xdr.LedgerCloseMeta
 }
 
+// TransactionsFromLedger extracts all transactions from a single ledger close
+// meta, returning one LedgerTransformInput per transaction.
+func TransactionsFromLedger(lcm xdr.LedgerCloseMeta, networkPassphrase string) ([]LedgerTransformInput, error) {
+	txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(networkPassphrase, lcm)
+	if err != nil {
+		return nil, err
+	}
+	defer txReader.Close()
+
+	lhe := txReader.GetHeader()
+	var txs []LedgerTransformInput
+	for {
+		tx, err := txReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "error reading transaction")
+		}
+		txs = append(txs, LedgerTransformInput{
+			Transaction:     tx,
+			LedgerHistory:   lhe,
+			LedgerCloseMeta: lcm,
+		})
+	}
+	return txs, nil
+}
+
 // GetTransactions returns a slice of transactions for the ledgers in the provided range (inclusive on both ends)
 func GetTransactions(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]LedgerTransformInput, error) {
 	ctx := context.Background()

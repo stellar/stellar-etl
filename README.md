@@ -158,7 +158,7 @@ These commands export information using the [Ledger Exporter](https://github.com
 | -------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
 | start-ledger   | The ledger sequence number for the beginning of the export period. Defaults to genesis ledger | 2                       |
 | end-ledger     | The ledger sequence number for the end of the export range                                    | 0                       |
-| strict-export  | If set, transform errors will be fatal                                                        | false                   |
+| strict-export  | If set, transform errors will be fatal                                                        | true                    |
 | testnet        | If set, will connect to Testnet instead of Pubnet                                             | false                   |
 | futurenet      | If set, will connect to Futurenet instead of Pubnet                                           | false                   |
 | extra-fields   | Additional fields to append to output jsons. Used for appending metadata                      | ---                     |

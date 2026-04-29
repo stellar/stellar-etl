@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
-
-	"github.com/sirupsen/logrus"
-	"github.com/stellar/stellar-etl/v2/internal/toid"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/input"
+	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
@@ -15,73 +15,50 @@ import (
 // tradesCmd represents the trades command
 var tradesCmd = &cobra.Command{
 	Use:   "export_trades",
-	Short: "Exports the trade data",
-	Long:  `Exports trade data within the specified range to an output file`,
+	Short: "Exports the trade data over a specified range.",
+	Long: `Exports trade data within the specified range. Ledgers are
+processed in batches of batch-size; each batch produces one file named
+{start}-{end}-trades.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmdLogger.SetLevel(logrus.InfoLevel)
-		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(commonArgs)
-		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
+		runLedgerBatchExport(cmd, "trades", new(transform.TradeOutputParquet), processTrades)
+	},
+}
 
-		trades, err := input.GetTrades(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
+func processTrades(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+	tradeInputs, err := input.TradesFromLedger(lcm, env.NetworkPassphrase)
+	if err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not read trades from ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 0, 0
+	}
+	var rows []transform.SchemaParquet
+	attempts, failures := 0, 0
+	for _, tradeInput := range tradeInputs {
+		attempts++
+		trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
 		if err != nil {
-			cmdLogger.Fatal("could not read trades ", err)
+			parsedID := toid.Parse(tradeInput.OperationHistoryID)
+			cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))
+			failures++
+			continue
 		}
-
-		outFile := MustOutFile(path)
-		numFailures := 0
-		totalNumBytes := 0
-		var transformedTrades []transform.SchemaParquet
-		for _, tradeInput := range trades {
-			trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
-			if err != nil {
-				parsedID := toid.Parse(tradeInput.OperationHistoryID)
-				cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))
-				numFailures += 1
+		for _, trade := range trades {
+			if _, err := ExportEntry(trade, outFile, extra); err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export trade: %v", err))
+				failures++
 				continue
 			}
-
-			for _, transformed := range trades {
-				numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
-				if err != nil {
-					cmdLogger.LogError(err)
-					numFailures += 1
-					continue
-				}
-				totalNumBytes += numBytes
-
-				if commonArgs.WriteParquet {
-					transformedTrades = append(transformedTrades, transformed)
-				}
+			if writeParquet {
+				rows = append(rows, trade)
 			}
 		}
-
-		outFile.Close()
-		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
-
-		PrintTransformStats(len(trades), numFailures)
-
-		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
-
-		if commonArgs.WriteParquet {
-			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-			WriteParquet(transformedTrades, parquetPath, new(transform.TradeOutputParquet))
-		}
-	},
+	}
+	return rows, attempts, failures
 }
 
 func init() {
 	rootCmd.AddCommand(tradesCmd)
 	utils.AddCommonFlags(tradesCmd.Flags())
-	utils.AddArchiveFlags("trades", tradesCmd.Flags())
+	utils.AddLedgerBatchFlags("trades", tradesCmd.Flags(), "exported_trades/")
 	utils.AddCloudStorageFlags(tradesCmd.Flags())
 	tradesCmd.MarkFlagRequired("end-ledger")
-
-	/*
-		TODO: implement extra flags if possible
-			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
-			start and end time as a replacement for start and end sequence numbers
-	*/
 }

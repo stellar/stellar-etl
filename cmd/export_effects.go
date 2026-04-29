@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/input"
 	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
@@ -12,85 +13,50 @@ import (
 
 var effectsCmd = &cobra.Command{
 	Use:   "export_effects",
-	Short: "Exports the effects data over a specified range",
-	Long:  "Exports the effects data over a specified range to an output file.",
+	Short: "Exports the effects data over a specified range.",
+	Long: `Exports the effects data over a specified range. Ledgers are
+processed in batches of batch-size; each batch produces one file named
+{start}-{end}-effects.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmdLogger.SetLevel(logrus.InfoLevel)
-		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		cmdLogger.StrictExport = commonArgs.StrictExport
-		startNum, path, parquetPath, limit := utils.MustArchiveFlags(cmd.Flags(), cmdLogger)
-		cloudStorageBucket, cloudCredentials, cloudProvider := utils.MustCloudStorageFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(commonArgs)
+		runLedgerBatchExport(cmd, "effects", new(transform.EffectOutputParquet), processEffects)
+	},
+}
 
-		transactions, err := input.GetTransactions(startNum, commonArgs.EndNum, limit, env, commonArgs.UseCaptiveCore)
+func processEffects(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+	txInputs, err := input.TransactionsFromLedger(lcm, env.NetworkPassphrase)
+	if err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not read transactions from ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 0, 0
+	}
+	var rows []transform.SchemaParquet
+	attempts, failures := 0, 0
+	for _, txInput := range txInputs {
+		attempts++
+		ledgerSeq := uint32(txInput.LedgerHistory.Header.LedgerSeq)
+		effects, err := transform.TransformEffect(txInput.Transaction, ledgerSeq, txInput.LedgerCloseMeta, env.NetworkPassphrase)
 		if err != nil {
-			cmdLogger.Fatalf("could not read transactions in [%d, %d] (limit=%d): %v", startNum, commonArgs.EndNum, limit, err)
+			cmdLogger.LogError(fmt.Errorf("could not transform effects for transaction %d in ledger %d: %v", txInput.Transaction.Index, ledgerSeq, err))
+			failures++
+			continue
 		}
-
-		outFile := MustOutFile(path)
-		numFailures := 0
-		totalNumBytes := 0
-		var transformedEffects []transform.SchemaParquet
-		for _, transformInput := range transactions {
-			LedgerSeq := uint32(transformInput.LedgerHistory.Header.LedgerSeq)
-			effects, err := transform.TransformEffect(transformInput.Transaction, LedgerSeq, transformInput.LedgerCloseMeta, env.NetworkPassphrase)
-			if err != nil {
-				txIndex := transformInput.Transaction.Index
-				cmdLogger.LogError(fmt.Errorf("could not transform transaction %d in ledger %d: %v", txIndex, LedgerSeq, err))
-				numFailures += 1
+		for _, effect := range effects {
+			if _, err := ExportEntry(effect, outFile, extra); err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export effect: %v", err))
+				failures++
 				continue
 			}
-
-			for _, transformed := range effects {
-				numBytes, err := ExportEntry(transformed, outFile, commonArgs.Extra)
-				if err != nil {
-					cmdLogger.LogError(err)
-					numFailures += 1
-					continue
-				}
-				totalNumBytes += numBytes
-
-				if commonArgs.WriteParquet {
-					transformedEffects = append(transformedEffects, transformed)
-				}
+			if writeParquet {
+				rows = append(rows, effect)
 			}
 		}
-
-		outFile.Close()
-		cmdLogger.Info("Number of bytes written: ", totalNumBytes)
-
-		PrintTransformStats(len(transactions), numFailures)
-
-		MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, path)
-
-		if commonArgs.WriteParquet {
-			WriteParquet(transformedEffects, parquetPath, new(transform.EffectOutputParquet))
-			MaybeUpload(cloudCredentials, cloudStorageBucket, cloudProvider, parquetPath)
-		}
-	},
+	}
+	return rows, attempts, failures
 }
 
 func init() {
 	rootCmd.AddCommand(effectsCmd)
 	utils.AddCommonFlags(effectsCmd.Flags())
-	utils.AddArchiveFlags("effects", effectsCmd.Flags())
+	utils.AddLedgerBatchFlags("effects", effectsCmd.Flags(), "exported_effects/")
 	utils.AddCloudStorageFlags(effectsCmd.Flags())
 	effectsCmd.MarkFlagRequired("end-ledger")
-
-	/*
-		Current flags:
-			start-ledger: the ledger sequence number for the beginning of the export period
-			end-ledger: the ledger sequence number for the end of the export range (required)
-
-			limit: maximum number of effects to export; default to 6,000,000
-				each transaction can have up to 100 effects
-				each ledger can have up to 1000 transactions
-				there are 60 new ledgers in a 5 minute period
-
-			output-file: filename of the output file
-
-		TODO: implement extra flags if possible
-			serialize-method: the method for serialization of the output data (JSON, XDR, etc)
-			start and end time as a replacement for start and end sequence numbers
-	*/
 }
