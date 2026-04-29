@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stellar/stellar-etl/v2/internal/input"
+	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -49,6 +50,11 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get futurenet boolean: ", err)
 		}
 
+		datastorePath, err := cmd.Flags().GetString("datastore-path")
+		if err != nil {
+			cmdLogger.Fatal("could not get datastore path: ", err)
+		}
+
 		formatString := "2006-01-02T15:04:05-07:00"
 		startTime, err := time.Parse(formatString, startString)
 		if err != nil {
@@ -60,7 +66,13 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not parse end time: ", err)
 		}
 
-		startLedger, endLedger, err := input.GetLedgerRange(startTime, endTime, isTest, isFuture)
+		env := utils.GetEnvironmentDetails(utils.CommonFlagValues{
+			IsTest:        isTest,
+			IsFuture:      isFuture,
+			DatastorePath: datastorePath,
+		})
+
+		startLedger, endLedger, err := input.GetLedgerRange(startTime, endTime, env)
 		if err != nil {
 			cmdLogger.Fatal("could not calculate ledger range: ", err)
 		}
@@ -90,6 +102,7 @@ func init() {
 	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
 	getLedgerRangeFromTimesCmd.Flags().Bool("testnet", false, "If set, the batch job will connect to testnet instead of mainnet.")
 	getLedgerRangeFromTimesCmd.Flags().Bool("futurenet", false, "If set, the batch job will connect to futurenet instead of mainnet.")
+	getLedgerRangeFromTimesCmd.Flags().String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "GCS datastore path containing LedgerCloseMetaBatch files used for the binary search over close times.")
 
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("start-time")
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("end-time")
