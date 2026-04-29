@@ -17,6 +17,28 @@ type AssetTransformInput struct {
 	LedgerCloseMeta  xdr.LedgerCloseMeta
 }
 
+// PaymentOperationsFromLedger extracts payment and manage-sell-offer
+// operations from a single ledger close meta. These operations can introduce
+// new assets.
+func PaymentOperationsFromLedger(lcm xdr.LedgerCloseMeta) []AssetTransformInput {
+	seq := lcm.LedgerSequence()
+	var assets []AssetTransformInput
+	for txIndex, transaction := range lcm.TransactionEnvelopes() {
+		for opIndex, op := range transaction.Operations() {
+			if op.Body.Type == xdr.OperationTypePayment || op.Body.Type == xdr.OperationTypeManageSellOffer {
+				assets = append(assets, AssetTransformInput{
+					Operation:        op,
+					OperationIndex:   int32(opIndex),
+					TransactionIndex: int32(txIndex),
+					LedgerSeqNum:     int32(seq),
+					LedgerCloseMeta:  lcm,
+				})
+			}
+		}
+	}
+	return assets
+}
+
 // GetPaymentOperations returns a slice of payment operations that can include new assets from the ledgers in the provided range (inclusive on both ends)
 func GetPaymentOperations(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]AssetTransformInput, error) {
 	ctx := context.Background()

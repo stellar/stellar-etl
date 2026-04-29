@@ -26,6 +26,39 @@ func panicIf(err error) {
 	}
 }
 
+// OperationsFromLedger extracts all operations from a single ledger close
+// meta, returning one OperationTransformInput per operation.
+func OperationsFromLedger(lcm xdr.LedgerCloseMeta, networkPassphrase string) ([]OperationTransformInput, error) {
+	txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(networkPassphrase, lcm)
+	if err != nil {
+		return nil, err
+	}
+	defer txReader.Close()
+
+	seq := lcm.LedgerSequence()
+	var ops []OperationTransformInput
+	for {
+		tx, err := txReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("error reading transaction from ledger %d: %v", seq, err)
+		}
+
+		for index, op := range tx.Envelope.Operations() {
+			ops = append(ops, OperationTransformInput{
+				Operation:       op,
+				OperationIndex:  int32(index),
+				Transaction:     tx,
+				LedgerSeqNum:    int32(seq),
+				LedgerCloseMeta: lcm,
+			})
+		}
+	}
+	return ops, nil
+}
+
 // GetOperations returns a slice of operations for the ledgers in the provided range (inclusive on both ends)
 func GetOperations(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]OperationTransformInput, error) {
 	ctx := context.Background()

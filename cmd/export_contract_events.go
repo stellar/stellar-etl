@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/input"
 	"github.com/stellar/stellar-etl/v2/internal/transform"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
@@ -13,67 +14,50 @@ import (
 var contractEventsCmd = &cobra.Command{
 	Use:   "export_contract_events",
 	Short: "Exports the contract events over a specified range.",
-	Long:  `Exports the contract events over a specified range to an output file.`,
+	Long: `Exports the contract events over a specified range. Ledgers are
+processed in batches of batch-size; each batch produces one file named
+{start}-{end}-contract_events.txt in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmdLogger.SetLevel(logrus.InfoLevel)
-		cmdArgs := utils.MustFlags(cmd.Flags(), cmdLogger)
+		runLedgerBatchExport(cmd, "contract_events", new(transform.ContractEventOutputParquet), processContractEvents)
+	},
+}
 
-		// TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 GetEnvironmentDetails should be refactored
-		commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
-		env := utils.GetEnvironmentDetails(commonArgs)
-
-		transactions, err := input.GetTransactions(cmdArgs.StartNum, cmdArgs.EndNum, cmdArgs.Limit, env, cmdArgs.UseCaptiveCore)
+func processContractEvents(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFile *os.File, writeParquet bool, extra map[string]string) ([]transform.SchemaParquet, int, int) {
+	txInputs, err := input.TransactionsFromLedger(lcm, env.NetworkPassphrase)
+	if err != nil {
+		cmdLogger.LogError(fmt.Errorf("could not read transactions from ledger %d: %v", lcm.LedgerSequence(), err))
+		return nil, 0, 0
+	}
+	var rows []transform.SchemaParquet
+	attempts, failures := 0, 0
+	for _, txInput := range txInputs {
+		attempts++
+		events, err := transform.TransformContractEvent(txInput.Transaction, txInput.LedgerHistory)
 		if err != nil {
-			cmdLogger.Fatal("could not read transactions: ", err)
+			ledgerSeq := txInput.LedgerHistory.Header.LedgerSeq
+			cmdLogger.LogError(fmt.Errorf("could not transform contract events for transaction %d in ledger %d: %v", txInput.Transaction.Index, ledgerSeq, err))
+			failures++
+			continue
 		}
-
-		outFile := MustOutFile(cmdArgs.Path)
-		numFailures := 0
-		var transformedEvents []transform.SchemaParquet
-		for _, transformInput := range transactions {
-			transformed, err := transform.TransformContractEvent(transformInput.Transaction, transformInput.LedgerHistory)
-			if err != nil {
-				ledgerSeq := transformInput.LedgerHistory.Header.LedgerSeq
-				cmdLogger.LogError(fmt.Errorf("could not transform contract events in transaction %d in ledger %d: ", transformInput.Transaction.Index, ledgerSeq))
-				numFailures += 1
+		for _, event := range events {
+			if _, err := ExportEntry(event, outFile, extra); err != nil {
+				cmdLogger.LogError(fmt.Errorf("could not export contract event: %v", err))
+				failures++
 				continue
 			}
-
-			for _, contractEvent := range transformed {
-				_, err := ExportEntry(contractEvent, outFile, cmdArgs.Extra)
-				if err != nil {
-					cmdLogger.LogError(fmt.Errorf("could not export contract event: %v", err))
-					numFailures += 1
-					continue
-				}
-
-				if commonArgs.WriteParquet {
-					transformedEvents = append(transformedEvents, contractEvent)
-				}
+			if writeParquet {
+				rows = append(rows, event)
 			}
-
 		}
-
-		outFile.Close()
-
-		PrintTransformStats(len(transactions), numFailures)
-
-		MaybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.Path)
-
-		if commonArgs.WriteParquet {
-			WriteParquet(transformedEvents, cmdArgs.ParquetPath, new(transform.ContractEventOutputParquet))
-			MaybeUpload(cmdArgs.Credentials, cmdArgs.Bucket, cmdArgs.Provider, cmdArgs.ParquetPath)
-		}
-
-	},
+	}
+	return rows, attempts, failures
 }
 
 func init() {
 	rootCmd.AddCommand(contractEventsCmd)
 	utils.AddCommonFlags(contractEventsCmd.Flags())
-	utils.AddArchiveFlags("contract_events", contractEventsCmd.Flags())
+	utils.AddLedgerBatchFlags("contract_events", contractEventsCmd.Flags(), "exported_contract_events/")
 	utils.AddCloudStorageFlags(contractEventsCmd.Flags())
-
 	contractEventsCmd.MarkFlagRequired("start-ledger")
 	contractEventsCmd.MarkFlagRequired("end-ledger")
 }
