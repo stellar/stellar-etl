@@ -7,11 +7,29 @@ repos:
       - id: check-merge-conflict # checks for files that contain merge conflict strings.
       - id: detect-private-key # detects the presence of private keys.
       - id: end-of-file-fixer # ensures that a file is either empty, or ends with one newline.
-        exclude: ^testdata/changes/empty_config\.golden$
+        # Golden files for empty-result CLI tests are a single "\n" because
+        # test_utils.go's SortForComparison force-appends "\n" to actual output.
+        exclude: |
+          (?x)^(
+            testdata/changes/empty_config\.golden|
+            testdata/trades/ledger_no_trades\.golden|
+            testdata/operations/ledger_no_ops\.golden|
+            testdata/transactions/ledger_no_txs\.golden|
+            testdata/effects/ledger_no_effects\.golden|
+            testdata/assets/ledger_no_assets\.golden
+          )$
       - id: fix-byte-order-marker # removes utf-8 byte order marker.
       - id: mixed-line-ending # replaces or checks mixed line ending.
       - id: trailing-whitespace # trims trailing whitespace.
-        exclude: ^testdata/changes/empty_config\.golden$
+        exclude: |
+          (?x)^(
+            testdata/changes/empty_config\.golden|
+            testdata/trades/ledger_no_trades\.golden|
+            testdata/operations/ledger_no_ops\.golden|
+            testdata/transactions/ledger_no_txs\.golden|
+            testdata/effects/ledger_no_effects\.golden|
+            testdata/assets/ledger_no_assets\.golden
+          )$
 
   - repo: https://github.com/golangci/golangci-lint
     rev: v2.4.0

@@ -231,7 +231,7 @@ func AddLPOperations(txMeta []xdr.OperationMeta, AssetA, AssetB xdr.Asset) []xdr
 // AddCommonFlags adds the flags common to all commands: start-ledger, end-ledger, stdout, and strict-export
 func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Uint32P("end-ledger", "e", 0, "The ledger sequence number for the end of the export range")
-	flags.Bool("strict-export", false, "If set, transform errors will be fatal.")
+	flags.Bool("strict-export", true, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
 	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
@@ -252,6 +252,17 @@ func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
 	flags.String("parquet-output", "exported_"+objectName+".parquet", "Filename of the parquet output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
+}
+
+// AddLedgerBatchFlags adds the flags used by the streaming batch export
+// commands: start-ledger, output (folder), parquet-output (folder),
+// batch-size. Use in place of AddArchiveFlags for commands that stream
+// batches via input.StreamLedgerBatches.
+func AddLedgerBatchFlags(objectName string, flags *pflag.FlagSet, defaultFolder string) {
+	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
+	flags.StringP("output", "o", defaultFolder, "Folder that will contain the "+objectName+" output files")
+	flags.String("parquet-output", defaultFolder, "Folder that will contain the "+objectName+" parquet output files")
+	flags.Uint32P("batch-size", "b", 64, "Number of ledgers to export per batch")
 }
 
 // AddCloudStorageFlags adds the cloud storage releated flags: cloud-storage-bucket, cloud-credentials
@@ -557,6 +568,32 @@ func MustArchiveFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum uint32,
 	limit, err = flags.GetInt64("limit")
 	if err != nil {
 		logger.Fatal("could not get limit: ", err)
+	}
+
+	return
+}
+
+// MustLedgerBatchFlags gets the values of the streaming batch export flags:
+// start-ledger, output (folder), parquet-output (folder), batch-size.
+func MustLedgerBatchFlags(flags *pflag.FlagSet, logger *EtlLogger) (startNum, batchSize uint32, outputFolder, parquetOutputFolder string) {
+	startNum, err := flags.GetUint32("start-ledger")
+	if err != nil {
+		logger.Fatal("could not get start sequence number: ", err)
+	}
+
+	outputFolder, err = flags.GetString("output")
+	if err != nil {
+		logger.Fatal("could not get output folder: ", err)
+	}
+
+	parquetOutputFolder, err = flags.GetString("parquet-output")
+	if err != nil {
+		logger.Fatal("could not get parquet-output folder: ", err)
+	}
+
+	batchSize, err = flags.GetUint32("batch-size")
+	if err != nil {
+		logger.Fatal("could not get batch-size: ", err)
 	}
 
 	return

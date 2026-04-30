@@ -22,6 +22,43 @@ type TradeTransformInput struct {
 	OperationHistoryID int64
 }
 
+// TradesFromLedger extracts all trade-producing operations from a single
+// ledger close meta. Only successful transactions and operations that can
+// result in trades are included; TransformTrade still filters out ops that
+// happened to produce no trade.
+func TradesFromLedger(lcm xdr.LedgerCloseMeta, networkPassphrase string) ([]TradeTransformInput, error) {
+	txReader, err := ingest.NewLedgerTransactionReaderFromLedgerCloseMeta(networkPassphrase, lcm)
+	if err != nil {
+		return nil, err
+	}
+	defer txReader.Close()
+
+	seq := lcm.LedgerSequence()
+	closeTime, _ := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
+
+	var trades []TradeTransformInput
+	for {
+		tx, err := txReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "error reading transaction")
+		}
+		for index, op := range tx.Envelope.Operations() {
+			if operationResultsInTrade(op) && tx.Result.Successful() {
+				trades = append(trades, TradeTransformInput{
+					OperationIndex:     int32(index),
+					Transaction:        tx,
+					CloseTime:          closeTime,
+					OperationHistoryID: toid.New(int32(seq), int32(tx.Index), int32(index)).ToInt64(),
+				})
+			}
+		}
+	}
+	return trades, nil
+}
+
 // GetTrades returns a slice of trades for the ledgers in the provided range (inclusive on both ends)
 func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]TradeTransformInput, error) {
 	ctx := context.Background()

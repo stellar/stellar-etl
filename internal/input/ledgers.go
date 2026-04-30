@@ -10,6 +10,61 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+// HistoryArchiveLedgerFromLCM builds a historyarchive.Ledger view of a ledger
+// close meta, mirroring the shape returned by the history archive ingestion
+// path. Used by commands that still need to call transforms expecting the
+// legacy type (e.g. TransformLedger).
+func HistoryArchiveLedgerFromLCM(lcm xdr.LedgerCloseMeta) historyarchive.Ledger {
+	var ext xdr.TransactionHistoryEntryExt
+	var transactionResultPair []xdr.TransactionResultPair
+
+	switch lcm.V {
+	case 0:
+		ext = xdr.TransactionHistoryEntryExt{
+			V:                0,
+			GeneralizedTxSet: nil,
+		}
+		for _, transactionResultMeta := range lcm.V0.TxProcessing {
+			transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
+		}
+	case 1:
+		ext = xdr.TransactionHistoryEntryExt{
+			V:                1,
+			GeneralizedTxSet: &lcm.V1.TxSet,
+		}
+		for _, transactionResultMeta := range lcm.V1.TxProcessing {
+			transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
+		}
+	case 2:
+		ext = xdr.TransactionHistoryEntryExt{
+			V:                1,
+			GeneralizedTxSet: &lcm.V2.TxSet,
+		}
+		for _, transactionResultMeta := range lcm.V2.TxProcessing {
+			transactionResultPair = append(transactionResultPair, transactionResultMeta.Result)
+		}
+	}
+
+	return historyarchive.Ledger{
+		Header: lcm.LedgerHeaderHistoryEntry(),
+		Transaction: xdr.TransactionHistoryEntry{
+			LedgerSeq: lcm.LedgerHeaderHistoryEntry().Header.LedgerSeq,
+			TxSet: xdr.TransactionSet{
+				PreviousLedgerHash: lcm.LedgerHeaderHistoryEntry().Header.PreviousLedgerHash,
+				Txs:                lcm.TransactionEnvelopes(),
+			},
+			Ext: ext,
+		},
+		TransactionResult: xdr.TransactionHistoryResultEntry{
+			LedgerSeq: lcm.LedgerHeaderHistoryEntry().Header.LedgerSeq,
+			TxResultSet: xdr.TransactionResultSet{
+				Results: transactionResultPair,
+			},
+			Ext: xdr.TransactionHistoryResultEntryExt{},
+		},
+	}
+}
+
 // GetLedgers returns a slice of ledger close metas for the ledgers in the provided range (inclusive on both ends)
 func GetLedgers(start, end uint32, limit int64, env utils.EnvironmentDetails, useCaptiveCore bool) ([]utils.HistoryArchiveLedgerAndLCM, error) {
 	ctx := context.Background()
