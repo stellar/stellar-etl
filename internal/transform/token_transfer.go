@@ -19,10 +19,10 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 		return []TokenTransferOutput{}, err
 	}
 
-	err = token_transfer.VerifyEvents(ledgerCloseMeta, networkPassphrase, true)
-	if err != nil {
-		return []TokenTransferOutput{}, err
-	}
+	// err = token_transfer.VerifyEvents(ledgerCloseMeta, networkPassphrase, true)
+	// if err != nil {
+	// 	return []TokenTransferOutput{}, err
+	// }
 
 	var transformedTTP []TokenTransferOutput
 
