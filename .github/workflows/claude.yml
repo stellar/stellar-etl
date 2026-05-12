@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Resolve checkout target
         id: checkout-target
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const eventName = context.eventName;
