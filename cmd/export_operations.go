@@ -16,7 +16,7 @@ var operationsCmd = &cobra.Command{
 	Short: "Exports the operations data over a specified range.",
 	Long: `Exports the operations data over a specified range. Ledgers are
 processed in batches of batch-size; each batch produces one file named
-{start}-{end}-operations.txt in the output folder.`,
+{start}-{end}-operations.json in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "operations", new(transform.OperationOutputParquet), processOperations)
 	},

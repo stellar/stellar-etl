@@ -249,7 +249,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Rename AddArchiveFlags to something more relevant
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
-	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
+	flags.StringP("output", "o", "exported_"+objectName+".json", "Filename of the output file")
 	flags.String("parquet-output", "exported_"+objectName+".parquet", "Filename of the parquet output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 }

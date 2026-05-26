@@ -59,7 +59,7 @@ $ docker run --platform linux/amd64 -it stellar/stellar-etl:latest /bin/bash
    Example command to export ledger data
 
 ```sh
-root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.txt
+root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.json
 ```
 
 > _*Note:*_ If using the GCS datastore, you can run the following to set GCP credentials to use in your shell
@@ -185,7 +185,7 @@ These commands export information using the [Ledger Exporter](https://github.com
 
 ```bash
 > stellar-etl export_ledgers --start-ledger 1000 \
---end-ledger 500000 --output exported_ledgers.txt
+--end-ledger 500000 --output exported_ledgers.json
 ```
 
 This command exports ledgers within the provided range.
@@ -198,7 +198,7 @@ This command exports ledgers within the provided range.
 
 ```bash
 > stellar-etl export_transactions --start-ledger 1000 \
---end-ledger 500000 --output exported_transactions.txt
+--end-ledger 500000 --output exported_transactions.json
 ```
 
 This command exports transactions within the provided range.
@@ -211,7 +211,7 @@ This command exports transactions within the provided range.
 
 ```bash
 > stellar-etl export_operations --start-ledger 1000 \
---end-ledger 500000 --output exported_operations.txt
+--end-ledger 500000 --output exported_operations.json
 ```
 
 This command exports operations within the provided range.
@@ -224,7 +224,7 @@ This command exports operations within the provided range.
 
 ```bash
 > stellar-etl export_effects --start-ledger 1000 \
---end-ledger 500000 --output exported_effects.txt
+--end-ledger 500000 --output exported_effects.json
 ```
 
 This command exports effects within the provided range.
@@ -238,7 +238,7 @@ This command exports effects within the provided range.
 ```bash
 > stellar-etl export_assets \
 --start-ledger 1000 \
---end-ledger 500000 --output exported_assets.txt
+--end-ledger 500000 --output exported_assets.json
 ```
 
 Exports the assets that are created from payment operations over a specified ledger range.
@@ -252,7 +252,7 @@ Exports the assets that are created from payment operations over a specified led
 ```bash
 > stellar-etl export_trades \
 --start-ledger 1000 \
---end-ledger 500000 --output exported_trades.txt
+--end-ledger 500000 --output exported_trades.json
 ```
 
 Exports trade data within the specified range to an output file
@@ -266,7 +266,7 @@ Exports trade data within the specified range to an output file
 ```bash
 > stellar-etl export_diagnostic_events \
 --start-ledger 1000 \
---end-ledger 500000 --output export_diagnostic_events.txt
+--end-ledger 500000 --output export_diagnostic_events.json
 ```
 
 Exports diagnostic events data within the specified range to an output file

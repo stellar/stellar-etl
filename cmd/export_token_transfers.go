@@ -15,7 +15,7 @@ var tokenTransfersCmd = &cobra.Command{
 	Short: "Exports the token transfer event data over a specified range.",
 	Long: `Exports the token transfer event data over a specified range.
 Ledgers are processed in batches of batch-size; each batch produces one file
-named {start}-{end}-token_transfer.txt in the output folder.`,
+named {start}-{end}-token_transfer.json in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "token_transfer", nil, processTokenTransfers)
 	},

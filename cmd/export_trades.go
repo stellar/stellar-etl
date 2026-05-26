@@ -18,7 +18,7 @@ var tradesCmd = &cobra.Command{
 	Short: "Exports the trade data over a specified range.",
 	Long: `Exports trade data within the specified range. Ledgers are
 processed in batches of batch-size; each batch produces one file named
-{start}-{end}-trades.txt in the output folder.`,
+{start}-{end}-trades.json in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "trades", new(transform.TradeOutputParquet), processTrades)
 	},

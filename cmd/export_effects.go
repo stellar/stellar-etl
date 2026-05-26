@@ -16,7 +16,7 @@ var effectsCmd = &cobra.Command{
 	Short: "Exports the effects data over a specified range.",
 	Long: `Exports the effects data over a specified range. Ledgers are
 processed in batches of batch-size; each batch produces one file named
-{start}-{end}-effects.txt in the output folder.`,
+{start}-{end}-effects.json in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "effects", new(transform.EffectOutputParquet), processEffects)
 	},

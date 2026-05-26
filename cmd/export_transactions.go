@@ -16,7 +16,7 @@ var transactionsCmd = &cobra.Command{
 	Short: "Exports the transaction data over a specified range.",
 	Long: `Exports the transaction data over a specified range. Ledgers are
 processed in batches of batch-size. Each batch produces one file named
-{start}-{end}-transactions.txt (and .parquet when --write-parquet is set) in
+{start}-{end}-transactions.json (and .parquet when --write-parquet is set) in
 the output folder, which is uploaded before the next batch is processed.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "transactions", new(transform.TransactionOutputParquet), processTransactions)
