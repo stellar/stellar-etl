@@ -148,6 +148,8 @@ Commands have the option to read from testnet with the `--testnet` flag, from fu
 
 ## **Export Commands**
 
+Export commands write newline-delimited JSON: each `.json` output file contains one JSON object per line, not a single JSON array.
+
 These commands export information using the [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md) output files within a specified datastore (currently [datastore](https://github.com/stellar/go/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
 
 > _*NOTE:*_ The datastore must contain the expected compressed LedgerCloseMetaBatch XDR binary files as exported from [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md#exported-files).
@@ -161,7 +163,7 @@ These commands export information using the [Ledger Exporter](https://github.com
 | strict-export  | If set, transform errors will be fatal                                                        | true                    |
 | testnet        | If set, will connect to Testnet instead of Pubnet                                             | false                   |
 | futurenet      | If set, will connect to Futurenet instead of Pubnet                                           | false                   |
-| extra-fields   | Additional fields to append to output jsons. Used for appending metadata                      | ---                     |
+| extra-fields   | Additional fields to append to output JSON rows. Used for appending metadata                  | ---                     |
 | captive-core   | If set, run captive core to retrieve data. Otherwise use TxMeta file datastore                | false                   |
 | datastore-path | Datastore bucket path to read txmeta files from                                               | ledger-exporter/ledgers |
 | buffer-size    | Buffer size sets the max limit for the number of txmeta files that can be held in memory      | 1000                    |

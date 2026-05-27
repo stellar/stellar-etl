@@ -14,9 +14,9 @@ import (
 var contractEventsCmd = &cobra.Command{
 	Use:   "export_contract_events",
 	Short: "Exports the contract events over a specified range.",
-	Long: `Exports the contract events over a specified range. Ledgers are
-processed in batches of batch-size; each batch produces one file named
-{start}-{end}-contract_events.json in the output folder.`,
+Long: `Exports the contract events over a specified range. Ledgers are
+processed in batches of batch-size; each batch produces one newline-delimited
+JSON file named {start}-{end}-contract_events.json in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "contract_events", new(transform.ContractEventOutputParquet), processContractEvents)
 	},
