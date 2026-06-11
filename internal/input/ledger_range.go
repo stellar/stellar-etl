@@ -132,7 +132,7 @@ func (f *ledgerFinder) pointAt(ctx context.Context, seq uint32) (ledgerPoint, er
 		return pt, nil
 	}
 	key := f.schema.GetObjectKeyFromSequenceNumber(seq)
-	rc, err := f.ds.GetFile(ctx, key)
+	rc, _, err := f.ds.GetFile(ctx, key)
 	if err != nil {
 		return ledgerPoint{}, fmt.Errorf("unable to fetch ledger %d (%s) from datastore: %w", seq, key, err)
 	}
