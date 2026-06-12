@@ -57,7 +57,7 @@ func expectGetFile(t *testing.T, ds *datastore.MockDataStore, seq uint32, closeT
 	payload := encodedBatch(t, seq, closeTime)
 	key := testSchema.GetObjectKeyFromSequenceNumber(seq)
 	return ds.On("GetFile", mock.Anything, key).Return(
-		io.NopCloser(bytes.NewReader(payload)), nil,
+		io.NopCloser(bytes.NewReader(payload)), int64(len(payload)), nil,
 	)
 }
 
@@ -103,7 +103,7 @@ func TestLedgerFinderPointAtGetFileError(t *testing.T) {
 	defer ds.AssertExpectations(t)
 
 	key := testSchema.GetObjectKeyFromSequenceNumber(42)
-	ds.On("GetFile", mock.Anything, key).Return(nil, errors.New("object not found")).Once()
+	ds.On("GetFile", mock.Anything, key).Return(nil, int64(0), errors.New("object not found")).Once()
 
 	_, err := newFinder(ds).pointAt(context.Background(), 42)
 	require.Error(t, err)
@@ -118,7 +118,7 @@ func TestLedgerFinderPointAtDecodeError(t *testing.T) {
 	key := testSchema.GetObjectKeyFromSequenceNumber(7)
 	// Garbage bytes — not a valid zstd stream, so the decoder must fail and the error must surface.
 	ds.On("GetFile", mock.Anything, key).Return(
-		io.NopCloser(bytes.NewReader([]byte("not a real zstd batch"))), nil,
+		io.NopCloser(bytes.NewReader([]byte("not a real zstd batch"))), int64(0), nil,
 	).Once()
 
 	_, err := newFinder(ds).pointAt(context.Background(), 7)
@@ -306,7 +306,7 @@ func TestLedgerFinderFindLedgerForTimePropagatesDatastoreError(t *testing.T) {
 	end := ledgerPoint{seq: 10, closeTime: base.Add(10 * time.Second)}
 
 	// Any GetFile call (the search will probe at least one interior seq) returns an error.
-	ds.On("GetFile", mock.Anything, mock.Anything).Return(nil, errors.New("transient failure"))
+	ds.On("GetFile", mock.Anything, mock.Anything).Return(nil, int64(0), errors.New("transient failure"))
 
 	finder := newFinder(ds)
 	finder.cache[start.seq] = start
