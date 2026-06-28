@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Resolve checkout target
         id: checkout-target
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const eventName = context.eventName;
@@ -74,7 +74,7 @@ jobs:
             core.setOutput('ref', '');
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ steps.checkout-target.outputs.repository || github.repository }}
           ref: ${{ steps.checkout-target.outputs.ref || github.ref }}
