@@ -1,8 +1,5 @@
 {
   "includeCoAuthoredBy": false,
-  "enabledPlugins": {
-    "cc-skills-golang@samber": true
-  },
   "hooks": {
     "PreToolUse": [
       {
