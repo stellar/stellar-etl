@@ -696,8 +696,8 @@ github.com/spiffe/go-spiffe/v2 v2.6.0 h1:l+DolpxNWYgruGQVV0xsfeya3CsC7m8iBzDnMps
 github.com/spiffe/go-spiffe/v2 v2.6.0/go.mod h1:gm2SeUoMZEtpnzPNs2Csc0D/gX33k1xIx7lEzqblHEs=
 github.com/stellar/go-stellar-sdk v0.7.2 h1:LTO860ulPKRmsKgxGTAf8APL2nFtVvRKClhw2unGhyY=
 github.com/stellar/go-stellar-sdk v0.7.2/go.mod h1:YTYl7/zFt7oIX5Y4WRgL+3d2upWQDLywlHunZ4fOxvc=
-github.com/stellar/go-stellar-xdr-json v0.0.0-20260803164018-7e0ff8a2e72a h1:W7XW2nL3+QWgLpkrIw0I5JyiCfybFRIGMs3o6Qybp9k=
-github.com/stellar/go-stellar-xdr-json v0.0.0-20260803164018-7e0ff8a2e72a/go.mod h1:UEZ6EvdC3Cou6N46OJ5SXvbWTlod8gOUI/CvhY1JVaM=
+github.com/stellar/go-stellar-xdr-json v0.0.0-20260818190510-707287dd9837 h1:umMplbEsw2B2kGuAyGclAn6BIqzhDopnrRN7L32Waqc=
+github.com/stellar/go-stellar-xdr-json v0.0.0-20260818190510-707287dd9837/go.mod h1:UEZ6EvdC3Cou6N46OJ5SXvbWTlod8gOUI/CvhY1JVaM=
 github.com/stellar/go-xdr v0.0.0-20260806060815-dc590f17552a h1:40YIhQusSioBKDW5Tr+YdjoXphcVeu7eXUS2ibMQBTs=
 github.com/stellar/go-xdr v0.0.0-20260806060815-dc590f17552a/go.mod h1:If+U9Z1W5xU97VrOgJandQT+2dN7/iOpkCrxBJEyF80=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

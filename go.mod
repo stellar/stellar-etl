@@ -14,7 +14,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stellar/go-stellar-sdk v0.7.2
-	github.com/stellar/go-stellar-xdr-json v0.0.0-20260803164018-7e0ff8a2e72a
+	github.com/stellar/go-stellar-xdr-json v0.0.0-20260818190510-707287dd9837
 	github.com/stretchr/testify v1.11.1
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20240122235623-d6294584ab18
