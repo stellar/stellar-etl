@@ -1,5 +1,25 @@
 # CLAUDE.md
 
+## Critical rules — read these first
+
+- **Run lint, unit tests, and integration tests before considering a task complete**: `golangci-lint run`, `go test -v -cover ./internal/transform`, `make int-test`.
+- **Run pre-commit before committing or creating a PR.**
+- Use the GCS datastore and its default settings for `LedgerCloseMetaBatch` files.
+- `uint32` fields must be converted to `int64` in all `ToParquet()` implementations (parquet-go restriction).
+- Never commit secrets, API keys, or credentials. Prefer small focused changes; keep PRs scoped to the request.
+
+## Skills — load the matching one BEFORE starting
+
+Skills live in the data-platform monorepo checkout under `.claude/skills/` — `../.claude/skills/` when this repo sits inside that checkout. They are readable as plain files from anywhere; they load as skills when the session starts at the monorepo root.
+
+| Task                                                     | Skill                          |
+| -------------------------------------------------------- | ------------------------------ |
+| Build, test, or debug a failing test in this repo        | `stellar-etl-build-and-test`   |
+| Add or change an export command / output field           | `stellar-etl-export-change`    |
+| Propagate a field across etl → BQ schema → dbt → airflow | `etl-schema-change`            |
+| Protocol upgrade work (new XDR, new ledger entry types)  | `stellar-etl-protocol-upgrade` |
+| Shipping a change that Airflow must consume (image bump) | `cross-repo-release`           |
+
 ## What This Project Does
 
 Stellar-ETL is a Go CLI that extracts data from the Stellar blockchain and exports it as newline-delimited JSON or Parquet files for ingestion into BigQuery. Reads from a GCS-hosted datastore of `LedgerCloseMetaBatch` XDR binary files.
@@ -71,21 +91,8 @@ Four files are required:
 3. `internal/input/<name>.go` — extraction logic (channel-based for streaming)
 4. `internal/transform/<name>.go` — transformation logic; add the output struct to `schema.go` (and `schema_parquet.go` + `parquet_converter.go` if Parquet output is needed)
 
-### Parquet Type Constraint
-
-`uint32` fields must be converted to `int64` in all `ToParquet()` implementations due to a restriction in the `parquet-go` library.
-
 ### Output Format
 
 - JSON files: newline-delimited, written via `ExportEntry` in `cmd/command_utils.go`
 - Parquet files: written via `WriteParquet`; each schema struct must implement `SchemaParquet` (`ToParquet() interface{}`)
 - Filenames follow the pattern `{start}-{end-1}-{export_type}.{txt|parquet}`
-
-### Rules
-
-- Use GCS datastore and its default settings for `LedgerCloseMetaBatch` files
-- Run lint, tests, and intergration tests before considering a task complete
-- Run pre-commit before creating a PR and committing changes
-- Prefer small and focused changes over large rewrites
-- Keep PRs scoped to only the request
-- Never commit secrets, API keys, or credentials
