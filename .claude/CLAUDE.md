@@ -12,13 +12,13 @@
 
 Skills live in the data-platform monorepo checkout under `.claude/skills/` — `../.claude/skills/` when this repo sits inside that checkout. They are readable as plain files from anywhere; they load as skills when the session starts at the monorepo root.
 
-| Task | Skill |
-|---|---|
-| Build, test, or debug a failing test in this repo | `stellar-etl-build-and-test` |
-| Add or change an export command / output field | `stellar-etl-export-change` |
-| Propagate a field across etl → BQ schema → dbt → airflow | `etl-schema-change` |
-| Protocol upgrade work (new XDR, new ledger entry types) | `stellar-etl-protocol-upgrade` |
-| Shipping a change that Airflow must consume (image bump) | `cross-repo-release` |
+| Task                                                     | Skill                          |
+| -------------------------------------------------------- | ------------------------------ |
+| Build, test, or debug a failing test in this repo        | `stellar-etl-build-and-test`   |
+| Add or change an export command / output field           | `stellar-etl-export-change`    |
+| Propagate a field across etl → BQ schema → dbt → airflow | `etl-schema-change`            |
+| Protocol upgrade work (new XDR, new ledger entry types)  | `stellar-etl-protocol-upgrade` |
+| Shipping a change that Airflow must consume (image bump) | `cross-repo-release`           |
 
 ## What This Project Does
 
