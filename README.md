@@ -5,6 +5,19 @@
 
 The Stellar-ETL is a data pipeline that allows users to extract data from the history of the Stellar network.
 
+## **Documentation**
+
+| Document                           | Contents                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| This README                        | Installing the ETL and a reference for every command it exposes          |
+| [DEVELOPING.md](DEVELOPING.md)     | Building, running, and testing the ETL locally, and adding a new command |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Branch naming, pull request etiquette, release mechanics, and Go style   |
+
+For background on the Stellar network and the data this pipeline extracts, see
+the [Stellar developer documentation](https://developers.stellar.org/). For the
+BigQuery datasets built on top of this ETL, see
+[Hubble](https://developers.stellar.org/docs/data/analytics/hubble).
+
 ## **Table of Contents**
 
 - [Install](#install)
@@ -21,8 +34,6 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
   - [Utility Commands](#utility-commands)
     - [get_ledger_range_from_times](#get_ledger_range_from_times)
 - [Schemas](#schemas)
-- [Extensions](#extensions)
-  - [Adding New Commands](#adding-new-commands)
 
 <br>
 
@@ -38,87 +49,17 @@ The Stellar-ETL is a data pipeline that allows users to extract data from the hi
 
 ## **Manual Installation**
 
-1. Install Golang v1.23.0 or later: https://golang.org/dl/
+1. Install Golang at the version pinned in [go.mod](go.mod) or later: https://golang.org/dl/
 2. Ensure that your Go bin has been added to the PATH env variable: `export PATH=$PATH:$(go env GOPATH)/bin`
 3. If using captive-core, download and install Stellar-Core v20.0.0 or later: https://github.com/stellar/stellar-core/blob/master/INSTALL.md
 4. Run `go install github.com/stellar/stellar-etl/v2@latest` to install the ETL
 5. Run export commands to export information about the legder
 
-## **Manual build for local development**
+## **Building from source**
 
-1. Clone this repo `git clone https://github.com/stellar/stellar-etl`
-2. Build stellar-etl with `go build`
-3. Build the docker image locally with `make docker-build`
-4. Run the docker container in interactive mode to run export commands.
-
-```sh
-$ docker run --platform linux/amd64 -it stellar/stellar-etl:latest /bin/bash
-```
-
-5. Run export commands to export information about the legder
-   Example command to export ledger data
-
-```sh
-root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.txt
-```
-
-> _*Note:*_ If using the GCS datastore, you can run the following to set GCP credentials to use in your shell
-
-```
-gcloud auth login
-gcloud config set project dev-hubble
-gcloud auth application-default login
-```
-
-Add following to docker run command to pass gcloud credentials to docker container
-
-```
--e GOOGLE_APPLICATION_CREDENTIALS=/.config/gcp/credentials.json -v "$HOME/.config/gcloud/application_default_credentials.json":/.config/gcp/credentials.json:ro
-```
-
-> _*Note:*_ Instructions for installing gcloud can be found [here](https://cloud.google.com/sdk/docs/install-sdk)
+To build, run, and test the ETL locally, see [DEVELOPING.md](DEVELOPING.md).
 
 <br>
-
-## **Running Tests**
-
-### Unit tests
-
-```sh
-# Running all unit tests
-go test -v -cover ./internal/transform
-
-# Running an individual test
-go test -v -run ^TestTransformAsset$ ./internal/transform
-```
-
-### Integration tests
-
-```sh
-# Running all integration tests
-make int-test
-
-# Running all integration tests and update golden files
-make int-test-update
-
-# Above essentially runs following:
-docker-compose build
-docker-compose run \
--v $(HOME)/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro \
--v $(PWD)/testdata:/usr/src/etl/testdata \
--e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
-integration-tests \
-go test -v ./cmd -timeout 30m -args -update=true
-
-# Running an individual test
-docker-compose build
-docker-compose run \
--v $(HOME)/.config/gcloud/application_default_credentials.json:/usr/credential.json:ro \
--v $(PWD)/testdata:/usr/src/etl/testdata \
--e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
-integration-tests \
-go test -v -run ^TestExportAssets$ ./cmd -timeout 30m -args -update=true
-```
 
 ---
 
@@ -148,9 +89,9 @@ Commands have the option to read from testnet with the `--testnet` flag, from fu
 
 ## **Export Commands**
 
-These commands export information using the [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md) output files within a specified datastore (currently [datastore](https://github.com/stellar/go/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
+These commands export information using the [Galexie](https://developers.stellar.org/docs/data/indexers/build-your-own/galexie) output files within a specified datastore (currently [datastore](https://github.com/stellar/go-stellar-sdk/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
 
-> _*NOTE:*_ The datastore must contain the expected compressed LedgerCloseMetaBatch XDR binary files as exported from [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md#exported-files).
+> _*NOTE:*_ The datastore must contain the expected compressed LedgerCloseMetaBatch XDR binary files as exported from [Galexie](https://developers.stellar.org/docs/data/indexers/build-your-own/galexie).
 
 #### Common Flags
 
@@ -346,23 +287,5 @@ See https://github.com/stellar/stellar-etl/blob/master/internal/transform/schema
 
 # Extensions
 
-This section covers some possible extensions or further work that can be done.
-
-## **Adding New Commands**
-
-In general, in order to add new commands, you need to add these files:
-
-- `export_new_data_structure.go` in the `cmd` folder
-  - This file can be generated with cobra by calling: `cobra add {command}`
-  - This file will parse flags, create output files, get the transformed data from the input package, and then export the data.
-- `export_new_data_structure_test.go` in the `cmd` folder
-  - This file will contain some tests for the newly added command. The `runCLI` function does most of the heavy lifting. All the tests need is the command arguments to test and the desired output.
-  - Test data should be stored in the `testdata/new_data_structure` folder
-- `new_data_structure.go` in the `internal/input` folder
-  - This file will contain the methods needed to extract the new data structure from wherever it is located. This may be the history archives, the bucket list, a captive core instance, or a datastore.
-  - If working with captive core, the methods need to work in the background. There should be methods that export batches of data and send them to a channel. There should be other methods that read from the channel and transform the data so it can be exported.
-- `new_data_structure.go` in the `internal/transform` folder
-  - This file will contain the methods needed to transform the extracted data into a form that is suitable for BigQuery.
-  - The struct definition for the transformed object should be stored in `schemas.go` in the `internal/transform` folder.
-
-A good number of common methods are already written and stored in the `util` package.
+To add a new export command, see
+[Adding a new command](DEVELOPING.md#adding-a-new-command).
