@@ -89,3 +89,17 @@ Four files are required:
 - Prefer small and focused changes over large rewrites
 - Keep PRs scoped to only the request
 - Never commit secrets, API keys, or credentials
+
+## Pull requests
+
+Write the PR body as a cover note for a reviewer, not a changelog or a file-by-file summary.
+Use the smallest shape that makes the change easier to review:
+
+- Small or obvious change: one paragraph, no headings.
+- Transform, input, or command change: what changed and its effect. Add root cause or the non-obvious approach only when the diff does not already show it.
+- Output schema change (a new, renamed, retyped, or dropped field in `internal/transform/schema.go`): name the field and the exported table, and say whether a re-export or backfill is needed.
+- Cross-repo change: an output schema change also needs a schema JSON in stellar-etl-airflow and a source YAML plus staging model in the dbt repos. Link the companion PRs, or say in Data impact that they do not exist yet.
+
+IMPORTANT: do not add Summary, Changes, Test Plan, or Files Changed sections. Do not paste commands, test output, CI logs, commit logs, or file lists. No emoji. No step-by-step narration of what you did.
+
+Fill the headings in `.github/pull_request_template.md` and no others. Treat the HTML comments in that template as instructions: follow them, then delete them from the final body. Leave the footer checkboxes unticked; they are the author's to tick.
