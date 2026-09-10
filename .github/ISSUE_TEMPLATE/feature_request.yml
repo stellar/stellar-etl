@@ -1,0 +1,41 @@
+name: Feature request
+description: A new export, a new field, a change to an existing command, or tooling work
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - New export command
+        - New or changed output field
+        - Change to an existing command
+        - Tooling or CI
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve
+      description: The question someone cannot answer today, or the failure this would have caught.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to see
+      description: The field, type, and source XDR path if you know them. A rough shape is fine.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: downstream
+    attributes:
+      label: Downstream work this implies
+      description: An output schema change is never just this repo. Tick what you think is needed.
+      options:
+        - label: Schema JSON in stellar-etl-airflow
+        - label: Source YAML and staging model in stellar-dbt-public or stellar-dbt
+        - label: Backfill or re-export of historical data
