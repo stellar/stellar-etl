@@ -14,9 +14,9 @@ import (
 var ledgersCmd = &cobra.Command{
 	Use:   "export_ledgers",
 	Short: "Exports the ledger data over a specified range.",
-	Long: `Exports ledger data within the specified range. Ledgers are
-processed in batches of batch-size; each batch produces one file named
-{start}-{end}-ledgers.txt in the output folder.`,
+Long: `Exports ledger data within the specified range. Ledgers are
+processed in batches of batch-size; each batch produces one newline-delimited
+JSON file named {start}-{end}-ledgers.json in the output folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "ledgers", new(transform.LedgerOutputParquet), processLedger)
 	},

@@ -234,7 +234,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("strict-export", true, "If set, transform errors will be fatal.")
 	flags.Bool("testnet", false, "If set, will connect to Testnet instead of Mainnet.")
 	flags.Bool("futurenet", false, "If set, will connect to Futurenet instead of Mainnet.")
-	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output jsons. Used for appending metadata")
+	flags.StringToStringP("extra-fields", "u", map[string]string{}, "Additional fields to append to output JSON rows. Used for appending metadata")
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
 	flags.String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "Datastore bucket path to read txmeta files from.")
@@ -249,7 +249,7 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 Rename AddArchiveFlags to something more relevant
 func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
-	flags.StringP("output", "o", "exported_"+objectName+".txt", "Filename of the output file")
+	flags.StringP("output", "o", "exported_"+objectName+".json", "Filename of the newline-delimited JSON output file")
 	flags.String("parquet-output", "exported_"+objectName+".parquet", "Filename of the parquet output file")
 	flags.Int64P("limit", "l", -1, "Maximum number of "+objectName+" to export. If the limit is set to a negative number, all the objects in the provided range are exported")
 }
@@ -260,7 +260,7 @@ func AddArchiveFlags(objectName string, flags *pflag.FlagSet) {
 // batches via input.StreamLedgerBatches.
 func AddLedgerBatchFlags(objectName string, flags *pflag.FlagSet, defaultFolder string) {
 	flags.Uint32P("start-ledger", "s", 2, "The ledger sequence number for the beginning of the export period. Defaults to genesis ledger")
-	flags.StringP("output", "o", defaultFolder, "Folder that will contain the "+objectName+" output files")
+	flags.StringP("output", "o", defaultFolder, "Folder that will contain the "+objectName+" newline-delimited JSON output files")
 	flags.String("parquet-output", defaultFolder, "Folder that will contain the "+objectName+" parquet output files")
 	flags.Uint32P("batch-size", "b", 64, "Number of ledgers to export per batch")
 }

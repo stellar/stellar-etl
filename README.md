@@ -59,7 +59,7 @@ $ docker run --platform linux/amd64 -it stellar/stellar-etl:latest /bin/bash
    Example command to export ledger data
 
 ```sh
-root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.txt
+root@71890b878fca:/etl/data# stellar-etl export_ledgers --start-ledger 1000 --end-ledger 500000 --output exported_ledgers.json
 ```
 
 > _*Note:*_ If using the GCS datastore, you can run the following to set GCP credentials to use in your shell
@@ -148,6 +148,8 @@ Commands have the option to read from testnet with the `--testnet` flag, from fu
 
 ## **Export Commands**
 
+Export commands write newline-delimited JSON: each `.json` output file contains one JSON object per line, not a single JSON array.
+
 These commands export information using the [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md) output files within a specified datastore (currently [datastore](https://github.com/stellar/go/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
 
 > _*NOTE:*_ The datastore must contain the expected compressed LedgerCloseMetaBatch XDR binary files as exported from [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md#exported-files).
@@ -161,7 +163,7 @@ These commands export information using the [Ledger Exporter](https://github.com
 | strict-export  | If set, transform errors will be fatal                                                        | true                    |
 | testnet        | If set, will connect to Testnet instead of Pubnet                                             | false                   |
 | futurenet      | If set, will connect to Futurenet instead of Pubnet                                           | false                   |
-| extra-fields   | Additional fields to append to output jsons. Used for appending metadata                      | ---                     |
+| extra-fields   | Additional fields to append to output JSON rows. Used for appending metadata                  | ---                     |
 | captive-core   | If set, run captive core to retrieve data. Otherwise use TxMeta file datastore                | false                   |
 | datastore-path | Datastore bucket path to read txmeta files from                                               | ledger-exporter/ledgers |
 | buffer-size    | Buffer size sets the max limit for the number of txmeta files that can be held in memory      | 1000                    |
@@ -185,7 +187,7 @@ These commands export information using the [Ledger Exporter](https://github.com
 
 ```bash
 > stellar-etl export_ledgers --start-ledger 1000 \
---end-ledger 500000 --output exported_ledgers.txt
+--end-ledger 500000 --output exported_ledgers.json
 ```
 
 This command exports ledgers within the provided range.
@@ -198,7 +200,7 @@ This command exports ledgers within the provided range.
 
 ```bash
 > stellar-etl export_transactions --start-ledger 1000 \
---end-ledger 500000 --output exported_transactions.txt
+--end-ledger 500000 --output exported_transactions.json
 ```
 
 This command exports transactions within the provided range.
@@ -211,7 +213,7 @@ This command exports transactions within the provided range.
 
 ```bash
 > stellar-etl export_operations --start-ledger 1000 \
---end-ledger 500000 --output exported_operations.txt
+--end-ledger 500000 --output exported_operations.json
 ```
 
 This command exports operations within the provided range.
@@ -224,7 +226,7 @@ This command exports operations within the provided range.
 
 ```bash
 > stellar-etl export_effects --start-ledger 1000 \
---end-ledger 500000 --output exported_effects.txt
+--end-ledger 500000 --output exported_effects.json
 ```
 
 This command exports effects within the provided range.
@@ -238,7 +240,7 @@ This command exports effects within the provided range.
 ```bash
 > stellar-etl export_assets \
 --start-ledger 1000 \
---end-ledger 500000 --output exported_assets.txt
+--end-ledger 500000 --output exported_assets.json
 ```
 
 Exports the assets that are created from payment operations over a specified ledger range.
@@ -252,7 +254,7 @@ Exports the assets that are created from payment operations over a specified led
 ```bash
 > stellar-etl export_trades \
 --start-ledger 1000 \
---end-ledger 500000 --output exported_trades.txt
+--end-ledger 500000 --output exported_trades.json
 ```
 
 Exports trade data within the specified range to an output file
@@ -266,7 +268,7 @@ Exports trade data within the specified range to an output file
 ```bash
 > stellar-etl export_diagnostic_events \
 --start-ledger 1000 \
---end-ledger 500000 --output export_diagnostic_events.txt
+--end-ledger 500000 --output export_diagnostic_events.json
 ```
 
 Exports diagnostic events data within the specified range to an output file
