@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -238,6 +239,9 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
 	flags.String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.String("datastore-type", "GCS", "Datastore type to read txmeta files from. Accepted values: GCS, S3.")
+	flags.String("datastore-region", "", "Datastore region. Required when --datastore-type is S3.")
+	flags.String("datastore-endpoint-url", "", "Optional datastore endpoint URL. Used with --datastore-type S3.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
@@ -304,25 +308,28 @@ func AddExportTypeFlags(flags *pflag.FlagSet) {
 // TODO: https://stellarorg.atlassian.net/browse/HUBBLE-386 better flags/params
 // Some flags should be named better
 type FlagValues struct {
-	StartNum       uint32
-	EndNum         uint32
-	StrictExport   bool
-	IsTest         bool
-	IsFuture       bool
-	Extra          map[string]string
-	UseCaptiveCore bool
-	DatastorePath  string
-	BufferSize     uint32
-	NumWorkers     uint32
-	RetryLimit     uint32
-	RetryWait      uint32
-	Path           string
-	ParquetPath    string
-	Limit          int64
-	Bucket         string
-	Credentials    string
-	Provider       string
-	WriteParquet   bool
+	StartNum             uint32
+	EndNum               uint32
+	StrictExport         bool
+	IsTest               bool
+	IsFuture             bool
+	Extra                map[string]string
+	UseCaptiveCore       bool
+	DatastorePath        string
+	DatastoreType        string
+	DatastoreRegion      string
+	DatastoreEndpointURL string
+	BufferSize           uint32
+	NumWorkers           uint32
+	RetryLimit           uint32
+	RetryWait            uint32
+	Path                 string
+	ParquetPath          string
+	Limit                int64
+	Bucket               string
+	Credentials          string
+	Provider             string
+	WriteParquet         bool
 }
 
 // MustFlags gets the values of the the flags for all commands.
@@ -366,6 +373,21 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 	datastorePath, err := flags.GetString("datastore-path")
 	if err != nil {
 		logger.Fatal("could not get datastore-bucket-path string: ", err)
+	}
+
+	datastoreType, err := flags.GetString("datastore-type")
+	if err != nil {
+		logger.Fatal("could not get datastore-type string: ", err)
+	}
+
+	datastoreRegion, err := flags.GetString("datastore-region")
+	if err != nil {
+		logger.Fatal("could not get datastore-region string: ", err)
+	}
+
+	datastoreEndpointURL, err := flags.GetString("datastore-endpoint-url")
+	if err != nil {
+		logger.Fatal("could not get datastore-endpoint-url string: ", err)
 	}
 
 	bufferSize, err := flags.GetUint32("buffer-size")
@@ -429,41 +451,47 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 	}
 
 	return FlagValues{
-		StartNum:       startNum,
-		EndNum:         endNum,
-		StrictExport:   strictExport,
-		IsTest:         isTest,
-		IsFuture:       isFuture,
-		Extra:          extra,
-		UseCaptiveCore: useCaptiveCore,
-		DatastorePath:  datastorePath,
-		BufferSize:     bufferSize,
-		NumWorkers:     numWorkers,
-		RetryLimit:     retryLimit,
-		RetryWait:      retryWait,
-		Path:           path,
-		ParquetPath:    parquetPath,
-		Limit:          limit,
-		Bucket:         bucket,
-		Credentials:    credentials,
-		Provider:       provider,
-		WriteParquet:   WriteParquet,
+		StartNum:             startNum,
+		EndNum:               endNum,
+		StrictExport:         strictExport,
+		IsTest:               isTest,
+		IsFuture:             isFuture,
+		Extra:                extra,
+		UseCaptiveCore:       useCaptiveCore,
+		DatastorePath:        datastorePath,
+		DatastoreType:        datastoreType,
+		DatastoreRegion:      datastoreRegion,
+		DatastoreEndpointURL: datastoreEndpointURL,
+		BufferSize:           bufferSize,
+		NumWorkers:           numWorkers,
+		RetryLimit:           retryLimit,
+		RetryWait:            retryWait,
+		Path:                 path,
+		ParquetPath:          parquetPath,
+		Limit:                limit,
+		Bucket:               bucket,
+		Credentials:          credentials,
+		Provider:             provider,
+		WriteParquet:         WriteParquet,
 	}
 }
 
 type CommonFlagValues struct {
-	EndNum         uint32
-	StrictExport   bool
-	IsTest         bool
-	IsFuture       bool
-	Extra          map[string]string
-	UseCaptiveCore bool
-	DatastorePath  string
-	BufferSize     uint32
-	NumWorkers     uint32
-	RetryLimit     uint32
-	RetryWait      uint32
-	WriteParquet   bool
+	EndNum               uint32
+	StrictExport         bool
+	IsTest               bool
+	IsFuture             bool
+	Extra                map[string]string
+	UseCaptiveCore       bool
+	DatastorePath        string
+	DatastoreType        string
+	DatastoreRegion      string
+	DatastoreEndpointURL string
+	BufferSize           uint32
+	NumWorkers           uint32
+	RetryLimit           uint32
+	RetryWait            uint32
+	WriteParquet         bool
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
@@ -507,6 +535,21 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		logger.Fatal("could not get datastore-bucket-path string: ", err)
 	}
 
+	datastoreType, err := flags.GetString("datastore-type")
+	if err != nil {
+		logger.Fatal("could not get datastore-type string: ", err)
+	}
+
+	datastoreRegion, err := flags.GetString("datastore-region")
+	if err != nil {
+		logger.Fatal("could not get datastore-region string: ", err)
+	}
+
+	datastoreEndpointURL, err := flags.GetString("datastore-endpoint-url")
+	if err != nil {
+		logger.Fatal("could not get datastore-endpoint-url string: ", err)
+	}
+
 	bufferSize, err := flags.GetUint32("buffer-size")
 	if err != nil {
 		logger.Fatal("could not get buffer-size uint32: ", err)
@@ -533,18 +576,21 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 	}
 
 	return CommonFlagValues{
-		EndNum:         endNum,
-		StrictExport:   strictExport,
-		IsTest:         isTest,
-		IsFuture:       isFuture,
-		Extra:          extra,
-		UseCaptiveCore: useCaptiveCore,
-		DatastorePath:  datastorePath,
-		BufferSize:     bufferSize,
-		NumWorkers:     numWorkers,
-		RetryLimit:     retryLimit,
-		RetryWait:      retryWait,
-		WriteParquet:   WriteParquet,
+		EndNum:               endNum,
+		StrictExport:         strictExport,
+		IsTest:               isTest,
+		IsFuture:             isFuture,
+		Extra:                extra,
+		UseCaptiveCore:       useCaptiveCore,
+		DatastorePath:        datastorePath,
+		DatastoreType:        datastoreType,
+		DatastoreRegion:      datastoreRegion,
+		DatastoreEndpointURL: datastoreEndpointURL,
+		BufferSize:           bufferSize,
+		NumWorkers:           numWorkers,
+		RetryLimit:           retryLimit,
+		RetryWait:            retryWait,
+		WriteParquet:         WriteParquet,
 	}
 }
 
@@ -1021,15 +1067,34 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	return ledgerKeyHash
 }
 
-// CreateDatastore creates the datastore to interface with GCS
-// TODO: this can be updated to use different cloud storage services in the future.
-// For now only GCS works datastore.Datastore.
-func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
-	// These params are specific for GCS
-	params := make(map[string]string)
-	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath + "/" + env.Network
-	dataStoreConfig := datastore.DataStoreConfig{
-		Type:   "GCS",
+func BuildDatastoreConfig(env EnvironmentDetails) (datastore.DataStoreConfig, error) {
+	datastoreType := strings.ToUpper(strings.TrimSpace(env.CommonFlagValues.DatastoreType))
+	if datastoreType == "" {
+		datastoreType = "GCS"
+	}
+
+	params := map[string]string{
+		"destination_bucket_path": env.CommonFlagValues.DatastorePath + "/" + env.Network,
+	}
+
+	switch datastoreType {
+	case "GCS":
+	case "S3":
+		region := strings.TrimSpace(env.CommonFlagValues.DatastoreRegion)
+		if region == "" {
+			return datastore.DataStoreConfig{}, fmt.Errorf("datastore type S3 requires --datastore-region to be set")
+		}
+		params["region"] = region
+		endpointURL := strings.TrimSpace(env.CommonFlagValues.DatastoreEndpointURL)
+		if endpointURL != "" {
+			params["endpoint_url"] = endpointURL
+		}
+	default:
+		return datastore.DataStoreConfig{}, fmt.Errorf("unsupported datastore type %q, accepted values are GCS and S3", env.CommonFlagValues.DatastoreType)
+	}
+
+	return datastore.DataStoreConfig{
+		Type:   datastoreType,
 		Params: params,
 		// TODO: In the future these will come from a config file written by ledgerexporter
 		// Hard code DataStoreSchema values for now
@@ -1037,10 +1102,18 @@ func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.Dat
 			LedgersPerFile:    1,
 			FilesPerPartition: 64000,
 		},
+	}, nil
+}
+
+// CreateDatastore creates the datastore to interface with supported cloud datastores.
+func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
+	dataStoreConfig, err := BuildDatastoreConfig(env)
+	if err != nil {
+		return nil, datastore.DataStoreConfig{}, err
 	}
 
-	datastore, error := datastore.NewDataStore(ctx, dataStoreConfig)
-	return datastore, dataStoreConfig, error
+	ds, err := datastore.NewDataStore(ctx, dataStoreConfig)
+	return ds, dataStoreConfig, err
 }
 
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
