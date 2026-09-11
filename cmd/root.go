@@ -37,6 +37,13 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	// Stamp the running subcommand onto every log line. Root's PersistentPreRun
+	// covers every subcommand because none of them define their own; if one ever
+	// does, it has to call SetComponent itself or its lines lose the field.
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		cmdLogger.SetComponent(cmd.Name())
+	}
+
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.

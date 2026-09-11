@@ -36,7 +36,7 @@ func runLedgerBatchExport(
 	parquetSchema interface{},
 	process processLedgerFunc,
 ) {
-	cmdLogger.SetLevel(logrus.InfoLevel)
+	cmdLogger.SetDefaultLevel(logrus.InfoLevel)
 	commonArgs := utils.MustCommonFlags(cmd.Flags(), cmdLogger)
 	cmdLogger.StrictExport = commonArgs.StrictExport
 	startNum, batchSize, outputFolder, parquetOutputFolder := utils.MustLedgerBatchFlags(cmd.Flags(), cmdLogger)

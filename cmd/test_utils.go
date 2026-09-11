@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -125,10 +126,30 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 	})
 }
 
+// extractErrorMsg pulls the human-readable error out of a command's output.
+//
+// The CLI logs one JSON envelope per line (see internal/gcplog), so this reads
+// the first line that parses and carries a message. That matches what the old
+// text-format version did when it took the first msg= it found, which matters
+// because a non-strict export logs every failed record before the run ends and
+// the tests assert on the first one.
 func extractErrorMsg(loggerOutput string) string {
-	errIndex := strings.Index(loggerOutput, "msg=") + 5
-	endIndex := strings.Index(loggerOutput[errIndex:], "\"")
-	return loggerOutput[errIndex : errIndex+endIndex]
+	for _, line := range strings.Split(loggerOutput, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var entry struct {
+			Message string `json:"message"`
+		}
+		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			continue
+		}
+		if entry.Message != "" {
+			return entry.Message
+		}
+	}
+	return ""
 }
 
 func getGolden(t *testing.T, GoldenFile string, actual string, update bool) (string, error) {
