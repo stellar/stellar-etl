@@ -11,11 +11,13 @@
 // The envelope:
 //
 //	{
-//	  "severity":  "ERROR",                         // GCP LogSeverity, read natively
-//	  "message":   "could not transform ledger 58231044",
-//	  "service":   "stellar-etl",                   // which workload emitted the line
-//	  "component": "export_ledgers",                // sub-unit: CLI subcommand, dbt node, dlt resource
-//	  "context":   {"strict_export": true}          // service-specific, no cross-service meaning
+//	  "severity":    "ERROR",                       // GCP LogSeverity, read natively
+//	  "message":     "could not transform ledger 58231044",
+//	  "service":     "stellar-etl",                 // which workload emitted the line
+//	  "component":   "export_ledgers",              // sub-unit: CLI subcommand, dbt node, dlt resource
+//	  "project":     "hubble-261722",               // the GCP project the run belongs to
+//	  "environment": "prod",                        // the deployment: prod, staging, dev_pubnet, test
+//	  "context":     {"strict_export": true}        // service-specific, no cross-service meaning
 //	}
 //
 // Only severity and message are interpreted by Cloud Logging; the rest are
@@ -24,6 +26,11 @@
 // service, which is what lets a filter span services without knowing who wrote
 // the line. Anything that does not generalise belongs under context, where it
 // stays queryable without claiming a shared meaning it does not have.
+//
+// project and environment earn the top level because the same image runs
+// everywhere: without them a filter that spans services also spans deployments,
+// and a prod incident cannot be told apart from a dev_pubnet one. They come from
+// the environment rather than from the build for the same reason.
 //
 // Correlation back to Airflow is deliberately absent: Airflow already stamps
 // dag_id, task_id, run_id and try_number as pod labels on every
@@ -47,11 +54,43 @@ const (
 	ServiceField   = "service"
 	ComponentField = "component"
 	ContextField   = "context"
+
+	ProjectField     = "project"
+	EnvironmentField = "environment"
 )
 
 // LogLevelEnvVar overrides the level for a single run, so an operator can put a
 // pod in debug from an Airflow variable rather than rebuilding the image.
 const LogLevelEnvVar = "LOG_LEVEL"
+
+// Deployment env vars. One image runs in every environment, so these values
+// come from the pod rather than the build; Airflow sets them per environment
+// the same way it sets any other pod variable.
+const (
+	ProjectEnvVar     = "GCP_PROJECT"
+	EnvironmentEnvVar = "ENVIRONMENT"
+)
+
+// Deployment returns the project and environment fields, omitting either one
+// whose variable is unset or blank.
+//
+// Omitting is deliberate. A placeholder such as "unknown" would sort alongside
+// real values in a group-by and quietly widen an environment-scoped filter,
+// whereas an absent key simply drops the line out of a filter that was never
+// meant to reach it. A laptop run therefore carries neither field, and a pod
+// carries both.
+func Deployment() logrus.Fields {
+	fields := logrus.Fields{}
+	for field, envVar := range map[string]string{
+		ProjectField:     ProjectEnvVar,
+		EnvironmentField: EnvironmentEnvVar,
+	} {
+		if value := strings.TrimSpace(os.Getenv(envVar)); value != "" {
+			fields[field] = value
+		}
+	}
+	return fields
+}
 
 // Severity maps a logrus level onto the LogSeverity strings Cloud Logging
 // recognises. Panic and Fatal both collapse to CRITICAL: GCP has no level

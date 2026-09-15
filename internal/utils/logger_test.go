@@ -178,3 +178,44 @@ func TestSDKDefaultLoggerUsesSharedEnvelope(t *testing.T) {
 	assert.Equal(t, sdkComponent, entry[gcplog.ComponentField],
 		"SDK lines stay distinguishable from this binary's own")
 }
+
+// TestLogError_CarriesDeployment covers the pair that keeps a cross-service
+// query from also being a cross-environment one. Both loggers are checked
+// because the SDK's is configured separately and is the one that carries the
+// archive failures worth reading during an incident.
+func TestLogError_CarriesDeployment(t *testing.T) {
+	t.Setenv(gcplog.ProjectEnvVar, "hubble-261722")
+	t.Setenv(gcplog.EnvironmentEnvVar, "prod")
+
+	logger, buf := captureLogger(t)
+	logger.LogError(errors.New("could not transform ledger 58231044"))
+
+	entry := decodeOneLine(t, buf)
+	assert.Equal(t, "hubble-261722", entry[gcplog.ProjectField])
+	assert.Equal(t, "prod", entry[gcplog.EnvironmentField])
+
+	sdkBuf := &bytes.Buffer{}
+	log.DefaultLogger.SetOutput(sdkBuf)
+	log.DefaultLogger.SetLevel(logrus.WarnLevel)
+	log.Error("Error getting root HAS from archive")
+
+	sdkEntry := decodeOneLine(t, sdkBuf)
+	assert.Equal(t, "hubble-261722", sdkEntry[gcplog.ProjectField])
+	assert.Equal(t, "prod", sdkEntry[gcplog.EnvironmentField])
+}
+
+// TestLogError_OmitsUnsetDeployment pins the laptop case: no pod variables, so
+// no keys, rather than a placeholder that a filter would treat as a real value.
+func TestLogError_OmitsUnsetDeployment(t *testing.T) {
+	t.Setenv(gcplog.ProjectEnvVar, "")
+	t.Setenv(gcplog.EnvironmentEnvVar, "")
+	require.NoError(t, os.Unsetenv(gcplog.ProjectEnvVar))
+	require.NoError(t, os.Unsetenv(gcplog.EnvironmentEnvVar))
+
+	logger, buf := captureLogger(t)
+	logger.LogError(errors.New("could not transform ledger 58231044"))
+
+	entry := decodeOneLine(t, buf)
+	assert.NotContains(t, entry, gcplog.ProjectField)
+	assert.NotContains(t, entry, gcplog.EnvironmentField)
+}

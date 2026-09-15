@@ -156,3 +156,46 @@ func TestParseLevel(t *testing.T) {
 		assert.False(t, ok)
 	})
 }
+
+// TestDeployment covers the two fields that separate a prod incident from a
+// dev_pubnet one. They come from the pod because one image runs everywhere, so
+// the interesting cases are the ones where the pod did not set them.
+func TestDeployment(t *testing.T) {
+	t.Run("both set", func(t *testing.T) {
+		t.Setenv(ProjectEnvVar, "hubble-261722")
+		t.Setenv(EnvironmentEnvVar, "prod")
+
+		assert.Equal(t, logrus.Fields{
+			ProjectField:     "hubble-261722",
+			EnvironmentField: "prod",
+		}, Deployment())
+	})
+
+	t.Run("unset keys are omitted rather than filled in", func(t *testing.T) {
+		// A placeholder value would join real ones in a group-by and widen an
+		// environment-scoped filter; an absent key just drops the line out.
+		t.Setenv(ProjectEnvVar, "")
+		t.Setenv(EnvironmentEnvVar, "")
+		require.NoError(t, os.Unsetenv(ProjectEnvVar))
+		require.NoError(t, os.Unsetenv(EnvironmentEnvVar))
+
+		assert.Empty(t, Deployment())
+	})
+
+	t.Run("blank value counts as unset", func(t *testing.T) {
+		t.Setenv(ProjectEnvVar, "   ")
+		t.Setenv(EnvironmentEnvVar, "dev_pubnet")
+
+		assert.Equal(t, logrus.Fields{EnvironmentField: "dev_pubnet"}, Deployment())
+	})
+
+	t.Run("surrounding whitespace is trimmed", func(t *testing.T) {
+		t.Setenv(ProjectEnvVar, " test-hubble-319619\n")
+		t.Setenv(EnvironmentEnvVar, "\ttest ")
+
+		assert.Equal(t, logrus.Fields{
+			ProjectField:     "test-hubble-319619",
+			EnvironmentField: "test",
+		}, Deployment())
+	})
+}

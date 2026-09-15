@@ -30,7 +30,9 @@ func NewEtlLogger() *EtlLogger {
 	entry.AddHook(gcplog.Hook{})
 
 	logger := &EtlLogger{
-		Entry:        entry.WithField(gcplog.ServiceField, serviceName),
+		Entry: entry.
+			WithField(gcplog.ServiceField, serviceName).
+			WithFields(log.F(gcplog.Deployment())),
 		StrictExport: false,
 	}
 
@@ -66,15 +68,17 @@ const sdkComponent = "go-stellar-sdk"
 // the line actually said, so exactly the lines worth reading would have survived
 // this change untouched.
 //
-// They carry service and component but never the running subcommand: this
-// logger is a process global, configured before cobra has parsed anything.
+// They carry service, component, project and environment but never the running
+// subcommand: this logger is a process global, configured before cobra has
+// parsed anything.
 func configureSDKDefaultLogger(level logrus.Level, levelPinned bool) {
 	log.DefaultLogger.UseJSONFormatter()
 	log.DefaultLogger.SetOutput(gcplog.Output())
 	log.DefaultLogger.AddHook(gcplog.Hook{})
 	log.DefaultLogger = log.DefaultLogger.
 		WithField(gcplog.ServiceField, serviceName).
-		WithField(gcplog.ComponentField, sdkComponent)
+		WithField(gcplog.ComponentField, sdkComponent).
+		WithFields(log.F(gcplog.Deployment()))
 
 	if levelPinned {
 		log.DefaultLogger.SetLevel(level)

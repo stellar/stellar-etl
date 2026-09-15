@@ -12,17 +12,21 @@ repo. The Go implementation is `internal/gcplog`.
   "message": "could not transform ledger 58231044",
   "service": "stellar-etl",
   "component": "export_ledgers",
+  "project": "hubble-261722",
+  "environment": "prod",
   "context": { "strict_export": false }
 }
 ```
 
-| Key         | Meaning                                                                   |
-| ----------- | ------------------------------------------------------------------------- |
-| `severity`  | Cloud Logging `LogSeverity`. One of DEBUG, INFO, WARNING, ERROR, CRITICAL. |
-| `message`   | The human-readable line.                                                   |
-| `service`   | Which workload emitted it: `stellar-etl`, `dbt`, a dlt pipeline name.      |
-| `component` | The sub-unit inside that service: a CLI subcommand, dbt node, dlt resource.|
-| `context`   | Service-specific detail. No meaning shared across services.                |
+| Key           | Meaning                                                                     |
+| ------------- | --------------------------------------------------------------------------- |
+| `severity`    | Cloud Logging `LogSeverity`. One of DEBUG, INFO, WARNING, ERROR, CRITICAL.  |
+| `message`     | The human-readable line.                                                    |
+| `service`     | Which workload emitted it: `stellar-etl`, `dbt`, a dlt pipeline name.       |
+| `component`   | The sub-unit inside that service: a CLI subcommand, dbt node, dlt resource. |
+| `project`     | The GCP project the run belongs to.                                         |
+| `environment` | The deployment: `prod`, `staging`, `dev_pubnet`, `test`.                    |
+| `context`     | Service-specific detail. No meaning shared across services.                 |
 
 Only `severity` and `message` are interpreted by Cloud Logging. The rest are
 ordinary `jsonPayload` fields that a Logs Explorer filter can select on.
@@ -32,8 +36,32 @@ thing in every service, because that is what lets one filter span services
 without knowing who wrote the line. Anything else goes in `context`, where it
 stays queryable without claiming a shared meaning it does not have.
 
+`project` and `environment` earn the top level for the same reason `service`
+does: one image runs in every deployment, so without them a filter that spans
+services also spans environments and a prod incident cannot be told apart from a
+dev_pubnet one.
+
 `stellar-etl` currently puts one thing in `context`: `strict_export`, which says
 whether an error halted the export or was counted and carried past.
+
+## Deployment fields
+
+`project` and `environment` come from the pod, not the build:
+
+| Env var       | Envelope key  | Example                               |
+| ------------- | ------------- | ------------------------------------- |
+| `GCP_PROJECT` | `project`     | `hubble-261722`, `test-hubble-319619` |
+| `ENVIRONMENT` | `environment` | `prod`, `staging`, `dev_pubnet`       |
+
+Either key is **omitted** when its variable is unset or blank, rather than
+filled with a placeholder. A value like `unknown` would sort alongside real ones
+in a group-by and quietly widen an environment-scoped filter; an absent key
+simply drops the line out of a filter it was never meant to match. A laptop run
+therefore carries neither field and a pod carries both.
+
+Setting them is an Airflow-side change: both belong in the `env_vars` the
+`KubernetesPodOperator` passes, sourced per environment from
+`airflow_variables_*.json`.
 
 ## Why stdout
 
