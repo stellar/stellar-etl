@@ -51,8 +51,9 @@ Open pull requests against `master`, or against the active `release-*` branch if
 the change belongs to a release already in flight.
 
 The [pull request template](.github/pull_request_template.md) asks you to fill
-in **What**, **Why**, and **Known limitations**. The "Why" matters most — include
-enough context that a reviewer who has not seen the issue can follow the change.
+in **What & why**, **Data impact**, **Known limitations**, and **What feedback do
+you want**. The "why" matters most: include enough context that a reviewer who
+has not seen the issue can follow the change.
 
 - Keep scope narrow. Aim for something a reviewer can get through in about 20
   minutes; break bigger work into a series of pull requests.
@@ -68,7 +69,7 @@ enough context that a reviewer who has not seen the issue can follow the change.
 
 ## Issues
 
-- Label issues with `bug` if they are clearly a bug, and `feature request` if
+- Label issues with `bug` if they are clearly a bug, and `enhancement` if
   they are a feature request.
 - For a bug, include the command you ran, the flags, the network, and the
   ledger range, along with the error output.
