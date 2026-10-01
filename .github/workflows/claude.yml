@@ -82,7 +82,16 @@ jobs:
         with:
           repository: ${{ steps.checkout-target.outputs.repository || github.repository }}
           ref: ${{ steps.checkout-target.outputs.ref || github.ref }}
-          fetch-depth: 1
+          # Full history. The agent routinely has to decide whether a ticket is
+          # already done, and a depth-1 checkout leaves it with no `git log`,
+          # `git blame` or `git log -S` to answer that with. It then infers
+          # history from HEAD and gets it wrong: on stellar-dbt#1101 it
+          # correctly found the models already present, but attributed them to
+          # the commit at HEAD -- which touched only this workflow file --
+          # implying a repo-hygiene problem that did not exist. A wrong
+          # justification for a right answer is harder to catch than a wrong
+          # answer, so pay the clone cost and give it real history.
+          fetch-depth: 0
 
       - name: Exchange GitHub OIDC token for Anthropic access token
         id: anthropic-auth
