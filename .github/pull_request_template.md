@@ -21,4 +21,4 @@
 - [ ] I reviewed the diff myself and ran the relevant unit and integration tests, or N/A.
 - [ ] I ran a Claude review (e.g. `/code-review`) before requesting review, or N/A for outside contributors.
 - [ ] Golden files regenerated, or N/A.
-- [ ] Branch is named `major/*`, `minor/*`, or `patch/*` (the release workflow reads it to pick the version bump).
+- [ ] Branch is named `major/*`, `minor/*`, or `patch/*`, or N/A for release and hotfix branches (the release workflow reads it to pick the version bump).
