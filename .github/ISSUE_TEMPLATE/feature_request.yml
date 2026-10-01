@@ -34,8 +34,9 @@ body:
     id: downstream
     attributes:
       label: Downstream work this implies
-      description: An output schema change is never just this repo. Tick what you think is needed.
+      description: An output schema change is never just this repo. Tick what you think is needed, or None, so a blank section means not yet considered.
       options:
         - label: Schema JSON in stellar-etl-airflow
         - label: Source YAML and staging model in stellar-dbt-public or stellar-dbt
         - label: Backfill or re-export of historical data
+        - label: None, the output does not change
