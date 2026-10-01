@@ -30,13 +30,23 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: output-change
+    attributes:
+      label: Does this change exported output?
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: true
+
   - type: checkboxes
     id: downstream
     attributes:
       label: Downstream work this implies
-      description: An output schema change is never just this repo. Tick what you think is needed, or None, so a blank section means not yet considered.
+      description: If the output changes, tick what you think is needed.
       options:
         - label: Schema JSON in stellar-etl-airflow
         - label: Source YAML and staging model in stellar-dbt-public or stellar-dbt
         - label: Backfill or re-export of historical data
-        - label: None, the output does not change
