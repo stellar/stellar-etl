@@ -1,0 +1,12 @@
+{
+  "workspace": ".",
+  "go_sast_enabled": true,
+  "go_disabled_rules": "go-error-not-checked",
+  "sast_ignore_overrides": "go-command-execution:cmd/test_utils.go,go-file-path-traversal:cmd/test_utils.go,go-file-path-traversal:cmd/command_utils.go,go-file-path-traversal:cmd/upload_to_gcs.go",
+  "secret_scanning_enabled": true,
+  "console_tabular_enabled": true,
+  "dockerfiles": "docker/Dockerfile,docker/Dockerfile.test",
+  "socket_tier_1_enabled": false,
+  "trivy_vuln_enabled": false,
+  "trufflehog_exclude_dir": "vendor,.git,yarn.lock,package-lock.json,pnpm-lock.yaml,Cargo.lock,go.sum,poetry.lock,Gemfile.lock,composer.lock,testdata/transactions/classic_soroban_txs.golden"
+}
