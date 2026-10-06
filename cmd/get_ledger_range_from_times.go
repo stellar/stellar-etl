@@ -55,6 +55,21 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 			cmdLogger.Fatal("could not get datastore path: ", err)
 		}
 
+		datastoreType, err := cmd.Flags().GetString("datastore-type")
+		if err != nil {
+			cmdLogger.Fatal("could not get datastore type: ", err)
+		}
+
+		datastoreRegion, err := cmd.Flags().GetString("datastore-region")
+		if err != nil {
+			cmdLogger.Fatal("could not get datastore region: ", err)
+		}
+
+		datastoreEndpointURL, err := cmd.Flags().GetString("datastore-endpoint-url")
+		if err != nil {
+			cmdLogger.Fatal("could not get datastore endpoint url: ", err)
+		}
+
 		formatString := "2006-01-02T15:04:05-07:00"
 		startTime, err := time.Parse(formatString, startString)
 		if err != nil {
@@ -67,9 +82,12 @@ var getLedgerRangeFromTimesCmd = &cobra.Command{
 		}
 
 		env := utils.GetEnvironmentDetails(utils.CommonFlagValues{
-			IsTest:        isTest,
-			IsFuture:      isFuture,
-			DatastorePath: datastorePath,
+			IsTest:               isTest,
+			IsFuture:             isFuture,
+			DatastorePath:        datastorePath,
+			DatastoreType:        datastoreType,
+			DatastoreRegion:      datastoreRegion,
+			DatastoreEndpointURL: datastoreEndpointURL,
 		})
 
 		startLedger, endLedger, err := input.GetLedgerRange(startTime, endTime, env)
@@ -102,7 +120,10 @@ func init() {
 	getLedgerRangeFromTimesCmd.Flags().StringP("output", "o", "exported_range.txt", "Filename of the output file")
 	getLedgerRangeFromTimesCmd.Flags().Bool("testnet", false, "If set, the batch job will connect to testnet instead of mainnet.")
 	getLedgerRangeFromTimesCmd.Flags().Bool("futurenet", false, "If set, the batch job will connect to futurenet instead of mainnet.")
-	getLedgerRangeFromTimesCmd.Flags().String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "GCS datastore path containing LedgerCloseMetaBatch files used for the binary search over close times.")
+	getLedgerRangeFromTimesCmd.Flags().String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "Datastore bucket path containing LedgerCloseMetaBatch files used for the binary search over close times.")
+	getLedgerRangeFromTimesCmd.Flags().String("datastore-type", "GCS", "Datastore type used for LedgerCloseMetaBatch ingestion. Accepted values: GCS, S3.")
+	getLedgerRangeFromTimesCmd.Flags().String("datastore-region", "", "Datastore region. Required when --datastore-type is S3.")
+	getLedgerRangeFromTimesCmd.Flags().String("datastore-endpoint-url", "", "Optional datastore endpoint URL. Only used when --datastore-type is S3.")
 
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("start-time")
 	getLedgerRangeFromTimesCmd.MarkFlagRequired("end-time")
