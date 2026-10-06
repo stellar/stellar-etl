@@ -148,7 +148,7 @@ Commands have the option to read from testnet with the `--testnet` flag, from fu
 
 ## **Export Commands**
 
-These commands export information using the [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md) output files within a specified datastore (currently [datastore](https://github.com/stellar/go/tree/master/support/datastore) only supports GCS). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
+These commands export information using the [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md) output files within a specified [datastore](https://github.com/stellar/go/tree/master/support/datastore). This allows users to provide a start and end ledger range. The commands in this category export a list of everything that occurred within the provided range. All of the ranges are inclusive.
 
 > _*NOTE:*_ The datastore must contain the expected compressed LedgerCloseMetaBatch XDR binary files as exported from [Ledger Exporter](https://github.com/stellar/go/blob/master/exp/services/ledgerexporter/README.md#exported-files).
 
@@ -164,6 +164,9 @@ These commands export information using the [Ledger Exporter](https://github.com
 | extra-fields   | Additional fields to append to output jsons. Used for appending metadata                      | ---                     |
 | captive-core   | If set, run captive core to retrieve data. Otherwise use TxMeta file datastore                | false                   |
 | datastore-path | Datastore bucket path to read txmeta files from                                               | ledger-exporter/ledgers |
+| datastore-type | Datastore type to read txmeta files from. Accepted values: GCS, S3                            | GCS                     |
+| datastore-region | Datastore region. Required when `--datastore-type` is S3                                    | ---                     |
+| datastore-endpoint-url | Optional datastore endpoint URL. Used with `--datastore-type` S3                     | ---                     |
 | buffer-size    | Buffer size sets the max limit for the number of txmeta files that can be held in memory      | 1000                    |
 | num-workers    | Number of workers to spawn that read txmeta files from the datastore                          | 5                       |
 | retry-limit    | Datastore GetLedger retry limit                                                               | 3                       |
@@ -189,6 +192,14 @@ These commands export information using the [Ledger Exporter](https://github.com
 ```
 
 This command exports ledgers within the provided range.
+
+Example reading from Goldsky's public S3 bucket:
+
+```bash
+> stellar-etl export_ledgers --start-ledger 64334800 --end-ledger 64334810 \
+--datastore-type S3 --datastore-region us-east-2 \
+--datastore-path aws-public-blockchain/v1.1/stellar/ledgers --output exported_ledgers.txt
+```
 
 <br>
 
