@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -238,6 +239,9 @@ func AddCommonFlags(flags *pflag.FlagSet) {
 	flags.Bool("captive-core", false, "(Deprecated; Will be removed in the Protocol 23 update) If set, run captive core to retrieve data. Otherwise use TxMeta file datastore.")
 	// TODO: This should be changed back to sdf-ledger-close-meta/ledgers when P23 is released and data lake is updated
 	flags.String("datastore-path", "sdf-ledger-close-meta/v1/ledgers", "Datastore bucket path to read txmeta files from.")
+	flags.String("datastore-type", "GCS", "Datastore type to read txmeta files from. Accepted types are GCS and S3 (case-insensitive). Defaults to GCS.")
+	flags.String("datastore-region", "", "Datastore region. Required when --datastore-type is S3; ignored for GCS.")
+	flags.String("datastore-endpoint-url", "", "Optional custom datastore endpoint URL. Only used for S3-compatible datastores.")
 	flags.Uint32("buffer-size", 200, "Buffer size sets the max limit for the number of txmeta files that can be held in memory.")
 	flags.Uint32("num-workers", 10, "Number of workers to spawn that read txmeta files from the datastore.")
 	flags.Uint32("retry-limit", 3, "Datastore GetLedger retry limit.")
@@ -452,18 +456,21 @@ func MustFlags(flags *pflag.FlagSet, logger *EtlLogger) FlagValues {
 }
 
 type CommonFlagValues struct {
-	EndNum         uint32
-	StrictExport   bool
-	IsTest         bool
-	IsFuture       bool
-	Extra          map[string]string
-	UseCaptiveCore bool
-	DatastorePath  string
-	BufferSize     uint32
-	NumWorkers     uint32
-	RetryLimit     uint32
-	RetryWait      uint32
-	WriteParquet   bool
+	EndNum               uint32
+	StrictExport         bool
+	IsTest               bool
+	IsFuture             bool
+	Extra                map[string]string
+	UseCaptiveCore       bool
+	DatastorePath        string
+	DatastoreType        string
+	DatastoreRegion      string
+	DatastoreEndpointURL string
+	BufferSize           uint32
+	NumWorkers           uint32
+	RetryLimit           uint32
+	RetryWait            uint32
+	WriteParquet         bool
 }
 
 // MustCommonFlags gets the values of the the flags common to all commands: end-ledger and strict-export.
@@ -532,19 +539,37 @@ func MustCommonFlags(flags *pflag.FlagSet, logger *EtlLogger) CommonFlagValues {
 		logger.Fatal("could not get write-parquet flag: ", err)
 	}
 
+	datastoreType, err := flags.GetString("datastore-type")
+	if err != nil {
+		logger.Fatal("could not get datastore-type string: ", err)
+	}
+
+	datastoreRegion, err := flags.GetString("datastore-region")
+	if err != nil {
+		logger.Fatal("could not get datastore-region string: ", err)
+	}
+
+	datastoreEndpointURL, err := flags.GetString("datastore-endpoint-url")
+	if err != nil {
+		logger.Fatal("could not get datastore-endpoint-url string: ", err)
+	}
+
 	return CommonFlagValues{
-		EndNum:         endNum,
-		StrictExport:   strictExport,
-		IsTest:         isTest,
-		IsFuture:       isFuture,
-		Extra:          extra,
-		UseCaptiveCore: useCaptiveCore,
-		DatastorePath:  datastorePath,
-		BufferSize:     bufferSize,
-		NumWorkers:     numWorkers,
-		RetryLimit:     retryLimit,
-		RetryWait:      retryWait,
-		WriteParquet:   WriteParquet,
+		EndNum:               endNum,
+		StrictExport:         strictExport,
+		IsTest:               isTest,
+		IsFuture:             isFuture,
+		Extra:                extra,
+		UseCaptiveCore:       useCaptiveCore,
+		DatastorePath:        datastorePath,
+		DatastoreType:        datastoreType,
+		DatastoreRegion:      datastoreRegion,
+		DatastoreEndpointURL: datastoreEndpointURL,
+		BufferSize:           bufferSize,
+		NumWorkers:           numWorkers,
+		RetryLimit:           retryLimit,
+		RetryWait:            retryWait,
+		WriteParquet:         WriteParquet,
 	}
 }
 
@@ -1021,15 +1046,26 @@ func LedgerEntryToLedgerKeyHash(ledgerEntry xdr.LedgerEntry) string {
 	return ledgerKeyHash
 }
 
-// CreateDatastore creates the datastore to interface with GCS
-// TODO: this can be updated to use different cloud storage services in the future.
-// For now only GCS works datastore.Datastore.
-func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
-	// These params are specific for GCS
+// BuildDatastoreConfig builds a datastore.DataStoreConfig from the environment
+// details. It is a pure function: it performs no network calls and only
+// validates and shapes the configuration so it can be unit tested.
+//
+// The datastore type is matched case-insensitively; an empty type is treated
+// as GCS so callers that build CommonFlagValues without setting it keep
+// working. Any other non-empty value returns an error naming the value and the
+// accepted types. For S3, a region is required.
+func BuildDatastoreConfig(env EnvironmentDetails) (datastore.DataStoreConfig, error) {
+	bucketPath := env.CommonFlagValues.DatastorePath + "/" + env.Network
+
+	datastoreType := env.CommonFlagValues.DatastoreType
+	if datastoreType == "" {
+		datastoreType = "GCS"
+	}
+
 	params := make(map[string]string)
-	params["destination_bucket_path"] = env.CommonFlagValues.DatastorePath + "/" + env.Network
-	dataStoreConfig := datastore.DataStoreConfig{
-		Type:   "GCS",
+	params["destination_bucket_path"] = bucketPath
+
+	config := datastore.DataStoreConfig{
 		Params: params,
 		// TODO: In the future these will come from a config file written by ledgerexporter
 		// Hard code DataStoreSchema values for now
@@ -1039,8 +1075,36 @@ func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.Dat
 		},
 	}
 
-	datastore, error := datastore.NewDataStore(ctx, dataStoreConfig)
-	return datastore, dataStoreConfig, error
+	switch strings.ToUpper(datastoreType) {
+	case "GCS":
+		config.Type = "GCS"
+	case "S3":
+		config.Type = "S3"
+		if env.CommonFlagValues.DatastoreRegion == "" {
+			return datastore.DataStoreConfig{}, fmt.Errorf("--datastore-region is required when --datastore-type is S3")
+		}
+		params["region"] = env.CommonFlagValues.DatastoreRegion
+		if env.CommonFlagValues.DatastoreEndpointURL != "" {
+			params["endpoint_url"] = env.CommonFlagValues.DatastoreEndpointURL
+		}
+	default:
+		return datastore.DataStoreConfig{}, fmt.Errorf("unsupported datastore type %q: accepted types are GCS and S3", env.CommonFlagValues.DatastoreType)
+	}
+
+	return config, nil
+}
+
+// CreateDatastore creates the datastore used to read LedgerCloseMetaBatch files.
+// It supports GCS (the default) and S3; see BuildDatastoreConfig for the
+// configuration and validation rules.
+func CreateDatastore(ctx context.Context, env EnvironmentDetails) (datastore.DataStore, datastore.DataStoreConfig, error) {
+	dataStoreConfig, err := BuildDatastoreConfig(env)
+	if err != nil {
+		return nil, datastore.DataStoreConfig{}, err
+	}
+
+	dataStore, err := datastore.NewDataStore(ctx, dataStoreConfig)
+	return dataStore, dataStoreConfig, err
 }
 
 // CreateLedgerBackend creates a ledger backend using captive core or datastore
