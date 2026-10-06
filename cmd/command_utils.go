@@ -103,7 +103,7 @@ func PrintTransformStats(attempts, failures int) {
 }
 
 func exportFilename(start, end uint32, dataType string) string {
-	return fmt.Sprintf("%d-%d-%s.txt", start, end-1, dataType)
+	return fmt.Sprintf("%d-%d-%s.json", start, end-1, dataType)
 }
 
 func exportParquetFilename(start, end uint32, dataType string) string {

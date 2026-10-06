@@ -16,7 +16,8 @@ var assetsCmd = &cobra.Command{
 	Short: "Exports the assets data over a specified range.",
 	Long: `Exports the assets that are created from payment operations over a
 specified ledger range. Ledgers are processed in batches of batch-size; each
-batch produces one file named {start}-{end}-assets.txt in the output folder.
+batch produces one newline-delimited JSON file named
+{start}-{end}-assets.json in the output folder.
 Duplicate assets are deduplicated across the entire run.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		runLedgerBatchExport(cmd, "assets", new(transform.AssetOutputParquet), newAssetsProcessor())
