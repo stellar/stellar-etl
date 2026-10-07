@@ -1,0 +1,52 @@
+name: Bug report
+description: An export command produces wrong, missing, or malformed data
+labels: ["bug"]
+body:
+  - type: input
+    id: affected
+    attributes:
+      label: Affected export command or table
+      description: The stellar-etl command, or the BigQuery table it lands in.
+      placeholder: export_operations, or crypto_stellar.history_operations
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: What you expected vs. what you got
+      placeholder: |
+        Expected: every operation row has a non-null transaction_id
+        Actual: ~3% of rows in ledger range 56100000-56110000 have transaction_id = 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Command or query that shows it
+      description: The stellar-etl invocation with its ledger range, or the query against the loaded table.
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - Blocking a stakeholder
+        - Wrong data in production
+        - Internal only
+        - Cosmetic
+    validations:
+      required: true
+
+  - type: input
+    id: started
+    attributes:
+      label: When it started
+      description: A ledger range, a date, or a release, if you know it.
+      placeholder: first seen after the Protocol 23 upgrade
+    validations:
+      required: false
