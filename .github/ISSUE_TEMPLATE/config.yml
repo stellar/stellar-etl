@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question on Stack Exchange
+    url: https://stellar.stackexchange.com/questions/ask
+    about: Ask questions, find answers.
+  - name: Join the Developer Discord
+    url: https://discord.gg/ksfVcEB4nA
+    about: Chat, collaborate, engage.
+  - name: Join the Developer mailing list
+    url: https://groups.google.com/g/stellar-dev
+    about: Discuss Core Advancement Proposals (CAPs) and Stellar Ecosystem Proposals (SEPs) and talk about development of stellar-core, Horizon, and the rest of the Stellar platform. A place for conversations that move the protocol and ecosystem forward.
+  - name: Protocol proposals
+    url: https://github.com/stellar/stellar-protocol
+    about: Propose changes to the Stellar protocol (CAPs) or ecosystem (SEPs) standards
