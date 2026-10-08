@@ -241,6 +241,7 @@ type TradeOutputParquet struct {
 	TradeType              int32   `parquet:"name=trade_type, type=INT32"`
 	RoundingSlippage       int64   `parquet:"name=rounding_slippage, type=INT64"`
 	SellerIsExact          bool    `parquet:"name=seller_is_exact, type=BOOLEAN"`
+	ClosedAt               int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
 }
 
 // EffectOutputParquet is a representation of an operation that aligns with the BigQuery table history_effects

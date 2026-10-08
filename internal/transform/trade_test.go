@@ -721,6 +721,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 	offerOneOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
+		ClosedAt:              genericCloseTime,
 		SellingAccountAddress: testAccount1Address,
 		SellingAssetCode:      "ETH",
 		SellingAssetIssuer:    testAccount3Address,
@@ -743,6 +744,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
 		LedgerClosedAt:        genericCloseTime,
+		ClosedAt:              genericCloseTime,
 		SellingAccountAddress: testAccount3Address,
 		SellingAssetCode:      "USDT",
 		SellingAssetIssuer:    testAccount4Address,
@@ -766,6 +768,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 	lPOneOutput := TradeOutput{
 		Order:                        0,
 		LedgerClosedAt:               genericCloseTime,
+		ClosedAt:                     genericCloseTime,
 		SellingAssetCode:             "WER",
 		SellingAssetIssuer:           testAccount4Address,
 		SellingAssetType:             "credit_alphanum4",
@@ -792,6 +795,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 	lPTwoOutput := TradeOutput{
 		Order:                        0,
 		LedgerClosedAt:               genericCloseTime,
+		ClosedAt:                     genericCloseTime,
 		SellingAssetCode:             "HAH",
 		SellingAssetIssuer:           testAccount1Address,
 		SellingAssetType:             "credit_alphanum4",
