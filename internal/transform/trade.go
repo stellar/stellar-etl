@@ -131,6 +131,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		trade := TradeOutput{
 			Order:                        outputOrder,
 			LedgerClosedAt:               outputLedgerClosedAt,
+			ClosedAt:                     outputLedgerClosedAt,
 			SellingAccountAddress:        outputSellingAccountAddress,
 			SellingAssetType:             outputSellingAssetType,
 			SellingAssetCode:             outputSellingAssetCode,
