@@ -271,6 +271,7 @@ func (to TradeOutput) ToParquet() interface{} {
 		TradeType:              to.TradeType,
 		RoundingSlippage:       to.RoundingSlippage.Int64,
 		SellerIsExact:          to.SellerIsExact.Bool,
+		ClosedAt:               to.ClosedAt.UnixMilli(),
 	}
 }
 
