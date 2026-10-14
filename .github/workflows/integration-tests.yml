@@ -16,24 +16,19 @@ concurrency:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
       - name: Build Docker Image
         run: |
-          docker-compose build
+          docker compose build
 
       - name: Build and start services
         run: |
-          docker-compose up -d
+          docker compose up -d
 
       - name: Create GCP Credentials File
         run: |
@@ -44,7 +39,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker-compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro \
+          docker compose run -v ${{ runner.workspace }}/gcp-key.json:/usr/credential.json:ro \
             -v ${{ runner.workspace }}/coverage/:/usr/coverage/ \
             -e GOOGLE_APPLICATION_CREDENTIALS=/usr/credential.json \
             integration-tests \
@@ -66,4 +61,4 @@ jobs:
 
       - name: Stop and remove containers
         run: |
-          docker-compose down
+          docker compose down
