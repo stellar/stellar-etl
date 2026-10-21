@@ -54,11 +54,29 @@ jobs:
         with:
           script: |
             const eventName = context.eventName;
+            const thisRepo = `${context.repo.owner}/${context.repo.repo}`;
+
+            // This job holds id-token: write and repository secrets, and the
+            // PostToolUse hooks in .claude/settings.json run tools over the
+            // checkout. Pointing that checkout at a fork would run
+            // fork-controlled code with those, so refuse instead. Team PRs in
+            // this repo come from branches on the repo itself.
+            const setPrTarget = (headRepo, headRef) => {
+              if (headRepo !== thisRepo) {
+                core.setFailed(
+                  `Refusing to check out a pull request head from ${headRepo}. ` +
+                  `This job holds secrets and can mint OIDC tokens, so it must ` +
+                  `only run against refs in ${thisRepo}.`
+                );
+                return;
+              }
+              core.setOutput('repository', headRepo);
+              core.setOutput('ref', headRef);
+            };
 
             if (eventName === 'pull_request_review' || eventName === 'pull_request_review_comment') {
               const pr = context.payload.pull_request;
-              core.setOutput('repository', pr.head.repo.full_name);
-              core.setOutput('ref', pr.head.ref);
+              setPrTarget(pr.head.repo.full_name, pr.head.ref);
               return;
             }
 
@@ -69,8 +87,7 @@ jobs:
                 pull_number: context.payload.issue.number,
               });
 
-              core.setOutput('repository', pr.data.head.repo.full_name);
-              core.setOutput('ref', pr.data.head.ref);
+              setPrTarget(pr.data.head.repo.full_name, pr.data.head.ref);
               return;
             }
 
