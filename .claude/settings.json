@@ -33,7 +33,10 @@
             "type": "command",
             "command": "[ -n \"$CLAUDE_FILE_PATHS\" ] && golangci-lint run $CLAUDE_FILE_PATHS || true"
           },
-          { "type": "command", "command": "go test ./... 2>&1 | tail -20" }
+          {
+            "type": "command",
+            "command": "[ -n \"$GITHUB_ACTIONS\" ] || go test ./... 2>&1 | tail -20"
+          }
         ]
       }
     ]
