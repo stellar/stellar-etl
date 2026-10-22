@@ -99,9 +99,8 @@ func addExtraFields(marshalled []byte, extra map[string]string) ([]byte, error) 
 	if len(marshalled) == 2 {
 		return extraJSON, nil
 	}
-	out := make([]byte, 0, len(marshalled)+len(extraJSON))
-	out = append(out, marshalled[:len(marshalled)-1]...)
-	out = append(out, ',')
+	// Overwrite the closing brace; marshalled is our own buffer from json.Marshal.
+	out := append(marshalled[:len(marshalled)-1], ',')
 	return append(out, extraJSON[1:]...), nil
 }
 
