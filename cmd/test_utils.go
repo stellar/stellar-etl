@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -110,7 +111,7 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 		}
 
 		assert.Equal(t, test.WantErr, actualError)
-		actualString := string(testOutput)
+		actualString := sortJSONKeys(string(testOutput))
 		if test.SortForComparison {
 			trimmed := strings.Trim(actualString, "\n")
 			lines := strings.Split(trimmed, "\n")
@@ -121,8 +122,28 @@ func RunCLITest(t *testing.T, test CliTest, GoldenFolder string, executableName 
 
 		wantString, err := getGolden(t, GoldenFolder+test.Golden, actualString, *update)
 		assert.NoError(t, err)
-		assert.Equal(t, wantString, actualString)
+		assert.Equal(t, sortJSONKeys(wantString), actualString)
 	})
+}
+
+// sortJSONKeys re-encodes each line that holds a JSON object with its keys in
+// sorted order, so the golden comparison does not depend on key order.
+func sortJSONKeys(output string) string {
+	lines := strings.Split(output, "\n")
+	for idx, line := range lines {
+		obj := map[string]interface{}{}
+		decoder := json.NewDecoder(strings.NewReader(line))
+		decoder.UseNumber()
+		if err := decoder.Decode(&obj); err != nil || decoder.More() {
+			continue
+		}
+		sorted, err := json.Marshal(obj)
+		if err != nil {
+			continue
+		}
+		lines[idx] = string(sorted)
+	}
+	return strings.Join(lines, "\n")
 }
 
 func extractErrorMsg(loggerOutput string) string {

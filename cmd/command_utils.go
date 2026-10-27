@@ -52,38 +52,72 @@ func MustOutFile(path string) *os.File {
 	return outFile
 }
 
+// ExportEntry writes entry to outFile as one line of JSON, with the extra
+// fields added as top-level keys.
 func ExportEntry(entry interface{}, outFile *os.File, extra map[string]string) (int, error) {
-	// This extra marshalling/unmarshalling is silly, but it's required to properly handle the null.[String|Int*] types, and add the extra fields.
-	m, err := json.Marshal(entry)
+	marshalled, err := json.Marshal(entry)
 	if err != nil {
-		cmdLogger.Errorf("Error marshalling %+v: %v ", entry, err)
+		return 0, fmt.Errorf("could not json encode %+v: %s", entry, err)
 	}
-	i := map[string]interface{}{}
-	// Use a decoder here so that 'UseNumber' ensures large ints are properly decoded
-	decoder := json.NewDecoder(bytes.NewReader(m))
-	decoder.UseNumber()
-	err = decoder.Decode(&i)
+	marshalled, err = addExtraFields(marshalled, extra)
 	if err != nil {
-		cmdLogger.Errorf("Error unmarshalling %+v: %v ", i, err)
+		return 0, fmt.Errorf("could not add extra fields to %+v: %s", entry, err)
+	}
+
+	cmdLogger.Debugf("Writing entry to %s", outFile.Name())
+	numBytes, err := outFile.Write(append(marshalled, '\n'))
+	if err != nil {
+		cmdLogger.Errorf("Error writing %+v to file: %s", entry, err)
+	}
+	return numBytes, nil
+}
+
+// addExtraFields splices extra into the JSON object in marshalled without
+// decoding it. An extra key that may already be present must override the
+// entry's value, so those objects take the slower decode-and-merge path.
+func addExtraFields(marshalled []byte, extra map[string]string) ([]byte, error) {
+	if len(extra) == 0 {
+		return marshalled, nil
+	}
+	if len(marshalled) < 2 || marshalled[0] != '{' || marshalled[len(marshalled)-1] != '}' {
+		return nil, fmt.Errorf("entry is not a JSON object: %s", marshalled)
+	}
+	for k := range extra {
+		quotedKey, err := json.Marshal(k)
+		if err != nil {
+			return nil, err
+		}
+		if bytes.Contains(marshalled, append(quotedKey, ':')) {
+			return mergeExtraFields(marshalled, extra)
+		}
+	}
+
+	extraJSON, err := json.Marshal(extra)
+	if err != nil {
+		return nil, err
+	}
+	if len(marshalled) == 2 {
+		return extraJSON, nil
+	}
+	// Overwrite the closing brace; marshalled is our own buffer from json.Marshal.
+	out := append(marshalled[:len(marshalled)-1], ',')
+	return append(out, extraJSON[1:]...), nil
+}
+
+// mergeExtraFields decodes marshalled into a map, sets the extra fields over
+// it, and re-encodes it.
+func mergeExtraFields(marshalled []byte, extra map[string]string) ([]byte, error) {
+	i := map[string]interface{}{}
+	// UseNumber keeps large ints from being rounded through float64
+	decoder := json.NewDecoder(bytes.NewReader(marshalled))
+	decoder.UseNumber()
+	if err := decoder.Decode(&i); err != nil {
+		return nil, err
 	}
 	for k, v := range extra {
 		i[k] = v
 	}
-
-	marshalled, err := json.Marshal(i)
-	if err != nil {
-		return 0, fmt.Errorf("could not json encode %+v: %s", entry, err)
-	}
-	cmdLogger.Debugf("Writing entry to %s", outFile.Name())
-	numBytes, err := outFile.Write(marshalled)
-	if err != nil {
-		cmdLogger.Errorf("Error writing %+v to file: %s", entry, err)
-	}
-	newLineNumBytes, err := outFile.WriteString("\n")
-	if err != nil {
-		cmdLogger.Errorf("Error writing new line to file %s: %s", outFile.Name(), err)
-	}
-	return numBytes + newLineNumBytes, nil
+	return json.Marshal(i)
 }
 
 // Prints the number of attempted, failed, and successful transformations as a JSON object
