@@ -112,3 +112,24 @@ func TestEncodeMuxedDestinationErrors(t *testing.T) {
 		assert.ErrorContains(t, err, "unknown muxed info variant")
 	})
 }
+
+// TestEncodeMuxedDestinationNullAccount pins the one production case that the
+// fail-loud rewrite would otherwise have turned into an outage.
+//
+// GAAAA…WHF is the null account: a valid G strkey whose ed25519 key is 32 zero
+// bytes. strkey.MuxedAccount.SetAccountID accepts it, then Address() rejects it
+// with "muxed account has no ed25519 key". Transfers to it are burns that carry
+// a memo, so they populate ToMuxedInfo and reach this function. Returning that
+// error would abort transformEvents and drop every token transfer in the
+// ledger, and with --strict-export always set by Airflow that is a fatal export
+// that retries cannot clear.
+func TestEncodeMuxedDestinationNullAccount(t *testing.T) {
+	const nullAccount = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
+
+	address, id, err := encodeMuxedDestination(nullAccount, muxedInfoID(muxedTestID))
+	require.NoError(t, err, "a transfer to the null account must not fail the export")
+
+	// Byte-identical to what the previous implementation wrote for these rows.
+	assert.Equal(t, "", address)
+	assert.Equal(t, "7", id)
+}

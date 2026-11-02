@@ -46,7 +46,7 @@ func TransformLedgerTransaction(transaction ingest.LedgerTransaction, lhe xdr.Le
 
 	scpValueInfo, err := utils.ScpValueInfoFromHeader(lhe)
 	if err != nil {
-		return LedgerTransactionOutput{}, fmt.Errorf("could not convert close time to UTC timestamp: %v", err)
+		return LedgerTransactionOutput{}, fmt.Errorf("could not read scp value from ledger header: %v", err)
 	}
 
 	transformedLedgerTransaction := LedgerTransactionOutput{

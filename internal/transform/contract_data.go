@@ -100,6 +100,12 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		contractDataBalance = dataBalance.String()
 	}
 
+	// GetContractId matches on the arm name, the same shape as the CAP-88 bug,
+	// and CAP-84 gave ScAddress a sixth arm (SC_ADDRESS_TYPE_MUXED_CONTRACT)
+	// that would return ok=false here. It is unreachable: CAP-84 has the
+	// Soroban host reject a muxed contract address anywhere in a contract data
+	// key, instance storage included, and .contract is the executing contract,
+	// which is never muxed.
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
 		return ContractDataOutput{}, fmt.Errorf("could not extract contractId data information from contractData"), false

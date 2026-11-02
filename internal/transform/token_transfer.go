@@ -204,6 +204,17 @@ func encodeMuxedDestination(to string, muxedInfo *token_transfer.MuxedInfo) (str
 		if err = muxedAccount.SetAccountID(to); err == nil {
 			muxedAccount.SetID(id)
 			address, err = muxedAccount.Address()
+
+			// The null account G A A A…W H F is a structurally valid strkey
+			// whose ed25519 key is 32 zero bytes, so SetAccountID accepts it
+			// and Address() then rejects it: there is no meaningful
+			// multiplexed form of an account that is not a key. Transfers to
+			// it are burns, and they carry a memo often enough to reach here.
+			// Report no muxed address, exactly as this code always has, rather
+			// than failing the whole ledger's export.
+			if err != nil && muxedAccount.Ed25519() == [32]byte{} {
+				return "", strconv.FormatUint(id, 10), nil
+			}
 		}
 	}
 	if err != nil {
