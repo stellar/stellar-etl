@@ -1,7 +1,6 @@
 package transform
 
 import (
-	"encoding/base64"
 	"fmt"
 	"strconv"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/stellar/go-stellar-sdk/historyarchive"
-	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -90,15 +88,9 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 	}
 
-	var outputNodeID string
-	var outputSignature string
-	LedgerCloseValueSignature, ok := ledgerHeader.ScpValue.Ext.GetLcValueSignature()
-	if ok {
-		outputNodeID, err = getAddress(LedgerCloseValueSignature.NodeId)
-		if err != nil {
-			return LedgerOutput{}, err
-		}
-		outputSignature = base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature)
+	scpValueInfo, err := utils.ScpValueInfoFromHeader(inputLedger.Header)
+	if err != nil {
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 	}
 
 	transformedLedger := LedgerOutput{
@@ -120,8 +112,8 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		MaxTxSetSize:                    outputMaxTxSetSize,
 		ProtocolVersion:                 outputProtocolVersion,
 		SorobanFeeWrite1Kb:              outputSorobanFeeWrite1Kb,
-		NodeID:                          outputNodeID,
-		Signature:                       outputSignature,
+		NodeID:                          scpValueInfo.NodeID,
+		Signature:                       scpValueInfo.Signature,
 		TotalByteSizeOfBucketList:       outputTotalByteSizeOfLiveSorobanState,
 		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfLiveSorobanState,
 		EvictedLedgerKeysType:           outputEvictedKeysType,
@@ -222,21 +214,4 @@ func transformLedgerKeys(ledgerKeys []xdr.LedgerKey) ([]string, []string, error)
 		ledgerKeysType[i] = key.Type.String()
 	}
 	return ledgerKeysHash, ledgerKeysType, nil
-}
-
-// TODO: This should be moved into the go monorepo xdr functions
-// Or nodeID should just be an xdr.AccountId but the error message would be incorrect
-func getAddress(nodeID xdr.NodeId) (string, error) {
-	switch nodeID.Type {
-	case xdr.PublicKeyTypePublicKeyTypeEd25519:
-		ed, ok := nodeID.GetEd25519()
-		if !ok {
-			return "", fmt.Errorf("could not get Ed25519")
-		}
-		raw := make([]byte, 32)
-		copy(raw, ed[:])
-		return strkey.Encode(strkey.VersionByteAccountID, raw)
-	default:
-		return "", fmt.Errorf("unknown node id type: %v", nodeID.Type)
-	}
 }
