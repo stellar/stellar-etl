@@ -74,6 +74,11 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 		return OfferOutput{}, err
 	}
 
+	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	if err != nil {
+		return OfferOutput{}, err
+	}
+
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedOffer := OfferOutput{
@@ -97,6 +102,7 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 		Deleted:            outputDeleted,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 		ClosedAt:           closedAt,
+		ClosedAtMs:         scpValueInfo.CloseTimeMs,
 		LedgerSequence:     uint32(ledgerSequence),
 	}
 	return transformedOffer, nil

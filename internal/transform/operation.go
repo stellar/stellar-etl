@@ -66,6 +66,11 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
+	scpValueInfo, err := utils.ScpValueInfoFromLedgerCloseMeta(ledgerCloseMeta)
+	if err != nil {
+		return OperationOutput{}, err
+	}
+
 	var outputOperationResultCode string
 	var outputOperationTraceCode string
 	outputOperationResults, ok := transaction.Result.Result.OperationResults()
@@ -91,6 +96,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		OperationID:          outputOperationID,
 		OperationDetails:     outputDetails,
 		ClosedAt:             outputCloseTime,
+		ClosedAtMs:           scpValueInfo.CloseTimeMs,
 		OperationResultCode:  outputOperationResultCode,
 		OperationTraceCode:   outputOperationTraceCode,
 		LedgerSequence:       outputLedgerSequence,
@@ -1180,6 +1186,7 @@ type transactionOperationWrapper struct {
 	ledgerSequence uint32
 	network        string
 	ledgerClosed   time.Time
+	ledgerClosedMs int64
 }
 
 // ID returns the ID for the operation.

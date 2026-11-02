@@ -28,6 +28,11 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, led
 		return effects, err
 	}
 
+	scpValueInfo, err := utils.ScpValueInfoFromLedgerCloseMeta(ledgerCloseMeta)
+	if err != nil {
+		return effects, err
+	}
+
 	for opi, op := range transaction.Envelope.Operations() {
 		operation := transactionOperationWrapper{
 			index:          uint32(opi),
@@ -36,6 +41,7 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, led
 			ledgerSequence: ledgerSeq,
 			network:        networkPassphrase,
 			ledgerClosed:   outputCloseTime,
+			ledgerClosedMs: scpValueInfo.CloseTimeMs,
 		}
 
 		p, err := operation.effects()
@@ -160,6 +166,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 
 	for i := range wrapper.effects {
 		wrapper.effects[i].LedgerClosed = operation.ledgerClosed
+		wrapper.effects[i].ClosedAtMs = operation.ledgerClosedMs
 		wrapper.effects[i].LedgerSequence = operation.ledgerSequence
 		wrapper.effects[i].EffectIndex = uint32(i)
 		wrapper.effects[i].EffectId = fmt.Sprintf("%d-%d", wrapper.effects[i].OperationID, wrapper.effects[i].EffectIndex)

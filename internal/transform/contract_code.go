@@ -49,6 +49,11 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		return ContractCodeOutput{}, err
 	}
 
+	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	if err != nil {
+		return ContractCodeOutput{}, err
+	}
+
 	ledgerSequence := header.Header.LedgerSeq
 
 	var outputNInstructions uint32
@@ -83,6 +88,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		LedgerEntryChange:   uint32(changeType),
 		Deleted:             outputDeleted,
 		ClosedAt:            closedAt,
+		ClosedAtMs:          scpValueInfo.CloseTimeMs,
 		LedgerSequence:      uint32(ledgerSequence),
 		LedgerKeyHash:       ledgerKeyHash,
 		NInstructions:       outputNInstructions,

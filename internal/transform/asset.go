@@ -46,7 +46,14 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 	if err != nil {
 		return AssetOutput{}, err
 	}
+
+	scpValueInfo, err := utils.ScpValueInfoFromLedgerCloseMeta(lcm)
+	if err != nil {
+		return AssetOutput{}, err
+	}
+
 	outputAsset.ClosedAt = outputCloseTime
+	outputAsset.ClosedAtMs = scpValueInfo.CloseTimeMs
 	outputAsset.LedgerSequence = utils.GetLedgerSequence(lcm)
 
 	return outputAsset, nil

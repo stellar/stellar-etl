@@ -107,6 +107,13 @@ func ScpValueInfoFromLedgerCloseMeta(lcm xdr.LedgerCloseMeta) (ScpValueInfo, err
 func getNodeAddress(nodeID xdr.NodeId) (string, error) {
 	switch nodeID.Type {
 	case xdr.PublicKeyTypePublicKeyTypeEd25519:
+		// PublicKeyTypeEd25519 is 0, so a zero-valued NodeId selects this arm
+		// with a nil key, and the generated GetEd25519() dereferences it
+		// without checking. Fail with an error rather than panicking the
+		// whole export.
+		if nodeID.Ed25519 == nil {
+			return "", fmt.Errorf("node id is typed Ed25519 but carries no key")
+		}
 		ed, ok := nodeID.GetEd25519()
 		if !ok {
 			return "", fmt.Errorf("could not get Ed25519")

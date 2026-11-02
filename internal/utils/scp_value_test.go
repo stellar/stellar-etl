@@ -199,6 +199,16 @@ func TestScpValueInfoFromHeaderErrors(t *testing.T) {
 			ext:     xdr.StellarValueExt{V: xdr.StellarValueTypeStellarValueEmptyTxSetMs},
 			wantErr: "STELLAR_VALUE_EMPTY_TX_SET_MS with no proposedMsValue",
 		},
+		{
+			// PublicKeyTypeEd25519 is 0, so a zero NodeId selects the Ed25519
+			// arm with a nil key and the generated accessor dereferences it.
+			name: "signature with a zero node id",
+			ext: xdr.StellarValueExt{
+				V:             xdr.StellarValueTypeStellarValueSignedMs,
+				SignedMsValue: &xdr.StellarValueSignedMsValue{},
+			},
+			wantErr: "node id is typed Ed25519 but carries no key",
+		},
 	}
 
 	for _, test := range tests {
