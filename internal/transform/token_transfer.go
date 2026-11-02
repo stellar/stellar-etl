@@ -102,13 +102,12 @@ func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMet
 		var toMuxed null.String
 
 		if event.Meta.ToMuxedInfo != nil {
-			muxedID := event.Meta.ToMuxedInfo.GetId()
-			muxedAccount := strkey.MuxedAccount{}
-			muxedAccount.SetAccountID(to.String)
-			muxedAccount.SetID(muxedID)
-			muxedAccountString, _ := muxedAccount.Address()
-			toMuxed = null.StringFrom(muxedAccountString)
-			toMuxedID = null.StringFrom(strconv.FormatUint(muxedID, 10))
+			muxedAddress, muxedID, err := encodeMuxedDestination(to.String, event.Meta.ToMuxedInfo)
+			if err != nil {
+				return []TokenTransferOutput{}, err
+			}
+			toMuxed = null.StringFrom(muxedAddress)
+			toMuxedID = null.StringFrom(muxedID)
 		}
 
 		transformedTTP = append(transformedTTP, TokenTransferOutput{
@@ -155,4 +154,61 @@ func getAssetFromEvent(event *token_transfer.TokenTransferEvent) (assetConcat, a
 	}
 
 	return assetConcat, assetType, assetCode, assetIssuer
+}
+
+// encodeMuxedDestination rebuilds the multiplexed destination address that the
+// event reported in two separate pieces.
+//
+// A transfer to a multiplexed destination never travels as one address. The
+// Stellar Asset Contract puts the plain underlying address in the event topics
+// and the multiplexing id in the data map under to_muxed_id, so the muxed form
+// only exists if we reassemble it. That makes this the one place in the repo
+// that has to know which kind of address it is holding.
+//
+// CAP-67 gave accounts an M strkey (G plus a uint64). CAP-84 gives contracts a
+// W strkey (C plus a uint64) with an identical 40 byte layout. The builders are
+// not interchangeable: strkey.MuxedAccount.SetAccountID rejects a C address, so
+// before this branch existed a muxed contract destination produced an empty
+// to_muxed and two discarded errors.
+func encodeMuxedDestination(to string, muxedInfo *token_transfer.MuxedInfo) (string, string, error) {
+	var id uint64
+	switch info := muxedInfo.Content.(type) {
+	case *token_transfer.MuxedInfo_Id:
+		id = info.Id
+
+	case *token_transfer.MuxedInfo_Text, *token_transfer.MuxedInfo_Hash:
+		// A memo, not a multiplexing id. MuxedInfo.GetId() reports 0 for these
+		// variants, and 0 is what every text and hash memo has been written as
+		// since this column existed. That is wrong, but it is deliberately left
+		// alone here: changing it would silently restate millions of rows a day
+		// as a side effect of a dated protocol release. stellar/hubble#726 owns
+		// the fix and the backfill decision.
+		id = 0
+
+	default:
+		return "", "", fmt.Errorf("unknown muxed info variant %T for destination %q", info, to)
+	}
+
+	var address string
+	var err error
+	if strkey.IsValidContractAddress(to) {
+		// CAP-84: a contract destination multiplexes into a W strkey.
+		muxedContract := strkey.MuxedContract{}
+		if err = muxedContract.SetContractID(to); err == nil {
+			muxedContract.SetID(id)
+			address, err = muxedContract.Address()
+		}
+	} else {
+		// CAP-67: an account destination multiplexes into an M strkey.
+		muxedAccount := strkey.MuxedAccount{}
+		if err = muxedAccount.SetAccountID(to); err == nil {
+			muxedAccount.SetID(id)
+			address, err = muxedAccount.Address()
+		}
+	}
+	if err != nil {
+		return "", "", fmt.Errorf("could not encode muxed destination %q: %w", to, err)
+	}
+
+	return address, strconv.FormatUint(id, 10), nil
 }
