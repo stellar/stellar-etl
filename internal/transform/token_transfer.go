@@ -186,40 +186,64 @@ func encodeMuxedDestination(to string, muxedInfo *token_transfer.MuxedInfo) (str
 		id = 0
 
 	default:
+		// Unreachable with the current pin: every MuxedInfo the SDK builds sets
+		// Content, and NewMuxedInfoFromMemo returns nil rather than an empty
+		// one for MEMO_NONE. It is an error rather than a fallback because an
+		// unrecognised variant means a multiplexing scheme whose meaning we do
+		// not know, and guessing would write a plausible wrong id. That is the
+		// opposite of the destination switch below, where "cannot be
+		// multiplexed" is a known and benign shape with no value to lose.
 		return "", "", fmt.Errorf("unknown muxed info variant %T for destination %q", info, to)
 	}
 
-	var address string
-	var err error
-	if strkey.IsValidContractAddress(to) {
-		// CAP-84: a contract destination multiplexes into a W strkey.
+	idString := strconv.FormatUint(id, 10)
+
+	switch {
+	case strkey.IsValidContractAddress(to):
+		// CAP-84: a contract destination multiplexes into a W strkey. This is
+		// the case the event splits apart and only we can put back together,
+		// so a failure here is a real loss and is reported. Encode has no
+		// failure mode for a 40 byte payload, so it should not be reachable.
 		muxedContract := strkey.MuxedContract{}
-		if err = muxedContract.SetContractID(to); err == nil {
-			muxedContract.SetID(id)
-			address, err = muxedContract.Address()
+		if err := muxedContract.SetContractID(to); err != nil {
+			return "", "", fmt.Errorf("could not encode muxed contract destination %q: %w", to, err)
 		}
-	} else {
+		muxedContract.SetID(id)
+		address, err := muxedContract.Address()
+		if err != nil {
+			return "", "", fmt.Errorf("could not encode muxed contract destination %q: %w", to, err)
+		}
+		return address, idString, nil
+
+	case strkey.IsValidEd25519PublicKey(to):
 		// CAP-67: an account destination multiplexes into an M strkey.
 		muxedAccount := strkey.MuxedAccount{}
-		if err = muxedAccount.SetAccountID(to); err == nil {
-			muxedAccount.SetID(id)
-			address, err = muxedAccount.Address()
-
-			// The null account G A A A…W H F is a structurally valid strkey
-			// whose ed25519 key is 32 zero bytes, so SetAccountID accepts it
-			// and Address() then rejects it: there is no meaningful
-			// multiplexed form of an account that is not a key. Transfers to
-			// it are burns, and they carry a memo often enough to reach here.
-			// Report no muxed address, exactly as this code always has, rather
-			// than failing the whole ledger's export.
-			if err != nil && muxedAccount.Ed25519() == [32]byte{} {
-				return "", strconv.FormatUint(id, 10), nil
-			}
+		if err := muxedAccount.SetAccountID(to); err != nil {
+			return "", "", fmt.Errorf("could not encode muxed account destination %q: %w", to, err)
 		}
-	}
-	if err != nil {
-		return "", "", fmt.Errorf("could not encode muxed destination %q: %w", to, err)
-	}
+		muxedAccount.SetID(id)
+		address, err := muxedAccount.Address()
+		if err != nil {
+			// The null account GAAAA...WHF is a valid strkey whose ed25519 key
+			// is 32 zero bytes, which Address rejects: an account that is not a
+			// key has no multiplexed form. 446 rows in production history are
+			// transfers to it, across 296 separate days.
+			return "", idString, nil
+		}
+		return address, idString, nil
 
-	return address, strconv.FormatUint(id, 10), nil
+	default:
+		// Not a destination that can be multiplexed. Reached by an empty "to",
+		// which burn, clawback and fee events produce because the SDK attaches
+		// ToMuxedInfo before it knows the event type while those events never
+		// carry a destination, and by a liquidity pool, claimable balance or
+		// already muxed strkey from a custom token contract.
+		//
+		// No multiplexed form exists for any of them, so report none, which is
+		// what this code has always written. Returning an error instead would
+		// abort transformEvents and drop every token transfer in the ledger,
+		// and Airflow always passes --strict-export, so that is a fatal export
+		// that a retry cannot clear.
+		return "", idString, nil
+	}
 }

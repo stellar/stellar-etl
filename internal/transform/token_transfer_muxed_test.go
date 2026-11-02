@@ -63,8 +63,9 @@ func TestEncodeMuxedDestinationAccount(t *testing.T) {
 
 // TestEncodeMuxedDestinationMemoVariantsUnchanged pins the behaviour this
 // release deliberately does not fix. MuxedInfo.GetId() reports 0 for the Text
-// and Hash variants, and 0 is what roughly 3.33 million rows a day are written
-// as. stellar/hubble#726 owns that bug; changing it here would restate those
+// and Hash variants, and 0 is what the overwhelming majority of muxed rows are
+// written as: 3,333,860 of 3,337,675 on 2026-10-25, a single measured day.
+// stellar/hubble#726 owns that bug; changing it here would restate those
 // rows as a side effect of a dated protocol release.
 func TestEncodeMuxedDestinationMemoVariantsUnchanged(t *testing.T) {
 	for _, test := range []struct {
@@ -92,25 +93,62 @@ func TestEncodeMuxedDestinationMemoVariantsUnchanged(t *testing.T) {
 	}
 }
 
-// TestEncodeMuxedDestinationErrors asserts the failure modes are loud. The bug
-// this replaces discarded two errors on consecutive lines and wrote an empty
-// string, which is indistinguishable downstream from having no muxed info at
-// all once int_token_transfer_enrichment coalesces it.
-func TestEncodeMuxedDestinationErrors(t *testing.T) {
-	t.Run("undecodable destination", func(t *testing.T) {
-		_, _, err := encodeMuxedDestination("not-an-address", muxedInfoID(muxedTestID))
-		assert.ErrorContains(t, err, "could not encode muxed destination")
-	})
+// TestEncodeMuxedDestinationUnmultiplexable covers every destination that has
+// no multiplexed form. All of them must report no muxed address rather than
+// returning an error.
+//
+// The reason is blast radius, not tidiness: an error here aborts
+// transformEvents and drops every token transfer in the ledger, and Airflow
+// passes --strict-export unconditionally, so a retry reprocesses the same
+// ledger and fails identically. The previous implementation discarded its
+// errors and wrote an empty string for all of these, and that tolerance turned
+// out to be load bearing.
+func TestEncodeMuxedDestinationUnmultiplexable(t *testing.T) {
+	muxedAccount := strkey.MuxedAccount{}
+	require.NoError(t, muxedAccount.SetAccountID(muxedTestAccount))
+	muxedAccount.SetID(1)
+	mAddress, err := muxedAccount.Address()
+	require.NoError(t, err)
 
-	t.Run("empty destination", func(t *testing.T) {
-		_, _, err := encodeMuxedDestination("", muxedInfoID(muxedTestID))
-		assert.ErrorContains(t, err, "could not encode muxed destination")
-	})
+	muxedContract := strkey.MuxedContract{}
+	require.NoError(t, muxedContract.SetContractID(muxedTestContract))
+	muxedContract.SetID(1)
+	wAddress, err := muxedContract.Address()
+	require.NoError(t, err)
 
-	t.Run("unset variant", func(t *testing.T) {
-		_, _, err := encodeMuxedDestination(muxedTestAccount, &token_transfer.MuxedInfo{})
-		assert.ErrorContains(t, err, "unknown muxed info variant")
-	})
+	for _, test := range []struct {
+		name string
+		to   string
+	}{
+		{
+			// Burn, clawback and fee events reach here with no destination:
+			// the SDK attaches ToMuxedInfo from the data map before it knows
+			// the event type, and those events never set "to". A custom SEP-41
+			// token emitting a burn with a to_muxed_id key hits this.
+			name: "empty destination",
+			to:   "",
+		},
+		{"not an address at all", "not-an-address"},
+		{"liquidity pool", strkey.MustEncode(strkey.VersionByteLiquidityPool, make([]byte, 32))},
+		{"claimable balance", strkey.MustEncode(strkey.VersionByteClaimableBalance, make([]byte, 33))},
+		{"already a muxed account", mAddress},
+		{"already a muxed contract", wAddress},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			address, id, err := encodeMuxedDestination(test.to, muxedInfoID(muxedTestID))
+			require.NoError(t, err, "an unmultiplexable destination must not fail the export")
+			assert.Equal(t, "", address)
+			assert.Equal(t, "7", id, "the multiplexing id is still reported")
+		})
+	}
+}
+
+// TestEncodeMuxedDestinationUnknownVariant is the one case that still errors:
+// a MuxedInfo oneof carrying something this code has never seen means the SDK
+// gained a variant, which is a pin-level change we control.
+func TestEncodeMuxedDestinationUnknownVariant(t *testing.T) {
+	_, _, err := encodeMuxedDestination(muxedTestAccount, &token_transfer.MuxedInfo{})
+	assert.ErrorContains(t, err, "unknown muxed info variant")
 }
 
 // TestEncodeMuxedDestinationNullAccount pins the one production case that the
@@ -118,7 +156,8 @@ func TestEncodeMuxedDestinationErrors(t *testing.T) {
 //
 // GAAAA…WHF is the null account: a valid G strkey whose ed25519 key is 32 zero
 // bytes. strkey.MuxedAccount.SetAccountID accepts it, then Address() rejects it
-// with "muxed account has no ed25519 key". Transfers to it are burns that carry
+// with "muxed account has no ed25519 key". Sending to it is how value is
+// destroyed without a burn event, and those transfers carry
 // a memo, so they populate ToMuxedInfo and reach this function. Returning that
 // error would abort transformEvents and drop every token transfer in the
 // ledger, and with --strict-export always set by Airflow that is a fatal export

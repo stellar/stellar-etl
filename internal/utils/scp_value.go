@@ -73,12 +73,18 @@ func ScpValueInfoFromHeader(lhe xdr.LedgerHeaderHistoryEntry) (ScpValueInfo, err
 		if scpValue.Ext.SignedMsValue == nil {
 			return ScpValueInfo{}, fmt.Errorf("STELLAR_VALUE_SIGNED_MS with no signedMsValue")
 		}
+		if scpValue.Ext.SignedMsValue.CloseTimeMs > math.MaxInt64 {
+			return ScpValueInfo{}, fmt.Errorf("close time in ms out of range: %d", scpValue.Ext.SignedMsValue.CloseTimeMs)
+		}
 		info.CloseTimeMs = int64(scpValue.Ext.SignedMsValue.CloseTimeMs)
 		signature = scpValue.Ext.SignedMsValue.LcValueSignature
 
 	case xdr.StellarValueTypeStellarValueEmptyTxSetMs:
 		if scpValue.Ext.ProposedMsValue == nil {
 			return ScpValueInfo{}, fmt.Errorf("STELLAR_VALUE_EMPTY_TX_SET_MS with no proposedMsValue")
+		}
+		if scpValue.Ext.ProposedMsValue.CloseTimeMs > math.MaxInt64 {
+			return ScpValueInfo{}, fmt.Errorf("close time in ms out of range: %d", scpValue.Ext.ProposedMsValue.CloseTimeMs)
 		}
 		info.CloseTimeMs = int64(scpValue.Ext.ProposedMsValue.CloseTimeMs)
 		signature = scpValue.Ext.ProposedMsValue.LcValueSignature

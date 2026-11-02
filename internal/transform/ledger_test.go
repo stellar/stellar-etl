@@ -326,6 +326,12 @@ func TestTransformLedgerScpValueArms(t *testing.T) {
 			assert.Equal(t, test.wantNodeID, output.NodeID)
 			assert.Equal(t, test.wantSignature, output.Signature)
 
+			// The _MS arms carry a value ending in 123, which no derivation
+			// from the whole-second closeTime can produce. This is the only
+			// assertion in the repo that distinguishes the helper from
+			// outputCloseTime.UnixMilli() on history_ledgers itself.
+			assert.Equal(t, test.wantCloseTimeMs, output.ClosedAtMs)
+
 			// closed_at stays whole seconds on every arm: CAP-88 left the
 			// top-level closeTime field alone on purpose.
 			assert.Equal(t, int64(1594584547), output.ClosedAt.Unix())
