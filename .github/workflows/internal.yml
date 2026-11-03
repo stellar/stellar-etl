@@ -17,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: 1
+          go-version-file: go.mod
       - name: Build Internal
         working-directory: internal
         run: go build ./...
@@ -30,7 +30,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: 1
+          go-version-file: go.mod
       - name: Run Internal Unit Tests
         working-directory: internal
         run: go test -v -cover ./...
