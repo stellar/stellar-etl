@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -93,7 +92,15 @@ func ScpValueInfoFromHeader(lhe xdr.LedgerHeaderHistoryEntry) (ScpValueInfo, err
 		return ScpValueInfo{}, fmt.Errorf("unknown StellarValue.ext arm: %d", scpValue.Ext.V)
 	}
 
-	nodeID, err := getNodeAddress(signature.NodeId)
+	// xdr.NodeId.GetAddress does the strkey encoding, but PublicKeyTypeEd25519
+	// is 0, so a zero-valued NodeId selects that arm with a nil key and the
+	// generated GetEd25519 dereferences it without checking. Guard first
+	// rather than panicking the whole export.
+	if signature.NodeId.Type == xdr.PublicKeyTypePublicKeyTypeEd25519 && signature.NodeId.Ed25519 == nil {
+		return ScpValueInfo{}, fmt.Errorf("node id is typed Ed25519 but carries no key")
+	}
+
+	nodeID, err := signature.NodeId.GetAddress()
 	if err != nil {
 		return ScpValueInfo{}, err
 	}
@@ -107,27 +114,4 @@ func ScpValueInfoFromHeader(lhe xdr.LedgerHeaderHistoryEntry) (ScpValueInfo, err
 // the whole ledger rather than just its header.
 func ScpValueInfoFromLedgerCloseMeta(lcm xdr.LedgerCloseMeta) (ScpValueInfo, error) {
 	return ScpValueInfoFromHeader(lcm.LedgerHeaderHistoryEntry())
-}
-
-// getNodeAddress encodes a validator node id as a strkey account address.
-func getNodeAddress(nodeID xdr.NodeId) (string, error) {
-	switch nodeID.Type {
-	case xdr.PublicKeyTypePublicKeyTypeEd25519:
-		// PublicKeyTypeEd25519 is 0, so a zero-valued NodeId selects this arm
-		// with a nil key, and the generated GetEd25519() dereferences it
-		// without checking. Fail with an error rather than panicking the
-		// whole export.
-		if nodeID.Ed25519 == nil {
-			return "", fmt.Errorf("node id is typed Ed25519 but carries no key")
-		}
-		ed, ok := nodeID.GetEd25519()
-		if !ok {
-			return "", fmt.Errorf("could not get Ed25519")
-		}
-		raw := make([]byte, 32)
-		copy(raw, ed[:])
-		return strkey.Encode(strkey.VersionByteAccountID, raw)
-	default:
-		return "", fmt.Errorf("unknown node id type: %v", nodeID.Type)
-	}
 }

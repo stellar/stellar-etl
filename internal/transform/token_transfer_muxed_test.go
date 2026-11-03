@@ -10,6 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: add a token_transfers integration test golden ledger with a SAC transfer
+// to a muxed contract (W) destination once Protocol 30 is live on pubnet. These
+// tests drive encodeMuxedDestination with hand-built inputs, so nothing here runs
+// a real CAP-84 event through TransformTokenTransfer and no golden contains a W.
+
 // A real pubnet account and a valid contract address, so the tests exercise the
 // strkey decoders rather than agreeing with whatever the encoder produced.
 const (
@@ -89,6 +94,29 @@ func TestEncodeMuxedDestinationMemoVariantsUnchanged(t *testing.T) {
 			wantAddress, err := want.Address()
 			require.NoError(t, err)
 			assert.Equal(t, wantAddress, address)
+		})
+
+		// A contract destination is the one case where this deliberately
+		// diverges from the previous implementation. That code called
+		// SetAccountID with a C address, which failed, and wrote an empty
+		// string. Taking the contract branch instead yields W(contract, 0).
+		//
+		// The id is still wrong, in exactly the way #726 describes, but it is
+		// no more wrong than the M(account, 0) written for the account case,
+		// and it avoids a second code path. Pinned here so the divergence is a
+		// recorded decision rather than something a later reader reverts.
+		t.Run(test.name+" to a contract destination", func(t *testing.T) {
+			address, id, err := encodeMuxedDestination(muxedTestContract, test.info)
+			require.NoError(t, err)
+			assert.Equal(t, "0", id, "see stellar/hubble#726")
+
+			want := strkey.MuxedContract{}
+			require.NoError(t, want.SetContractID(muxedTestContract))
+			want.SetID(0)
+			wantAddress, err := want.Address()
+			require.NoError(t, err)
+			assert.Equal(t, wantAddress, address)
+			assert.True(t, strings.HasPrefix(address, "W"))
 		})
 	}
 }
