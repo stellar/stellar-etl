@@ -239,6 +239,16 @@ func encodeMuxedDestination(to string, muxedInfo *token_transfer.MuxedInfo) (str
 		// carry a destination, and by a liquidity pool, claimable balance or
 		// already muxed strkey from a custom token contract.
 		//
+		// The already muxed case is worth spelling out, because it leaves the
+		// same destination in two different shapes in token_transfers_raw
+		// depending only on which contract emitted the event. The Stellar
+		// Asset Contract always splits a muxed destination, so it reaches this
+		// function as to = C... and is reassembled above into to_muxed = W....
+		// A custom SEP-41 token is free to put the finished W or M strkey
+		// straight into the topic, and that lands in to verbatim with to_muxed
+		// left empty. from is never reassembled in either case, because there
+		// is no from_muxed column to hold the id.
+		//
 		// No multiplexed form exists for any of them, so report none, which is
 		// what this code has always written. Returning an error instead would
 		// abort transformEvents and drop every token transfer in the ledger,
