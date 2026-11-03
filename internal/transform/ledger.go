@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strconv"
 
@@ -88,9 +89,26 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(inputLedger.Header)
+	outputCloseTimeMs, err := ledgerHeader.ScpValue.CloseTimeMs()
 	if err != nil {
 		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
+	}
+
+	// The SDK reads the signature from all four arms that carry one, which is
+	// the CAP-88 fix: before it, only STELLAR_VALUE_SIGNED was matched and
+	// every Protocol 30 ledger wrote an empty node id.
+	//
+	// ok is false for STELLAR_VALUE_BASIC, which has no signature by design and
+	// is correctly empty here, and also for an arm the SDK does not recognise,
+	// which is not. stellar/hubble#736 separates those two upstream, after
+	// which this becomes one call that can return an error.
+	var outputNodeID, outputSignature string
+	if signature, ok := ledgerHeader.ScpValue.Ext.LedgerCloseValueSignature(); ok {
+		outputNodeID, err = signature.NodeId.GetAddress()
+		if err != nil {
+			return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
+		}
+		outputSignature = base64.StdEncoding.EncodeToString(signature.Signature)
 	}
 
 	transformedLedger := LedgerOutput{
@@ -105,7 +123,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		FailedTransactionCount:          outputFailedCount,
 		TxSetOperationCount:             outputTxSetOperationCount,
 		ClosedAt:                        outputCloseTime,
-		ClosedAtMs:                      scpValueInfo.CloseTimeMs,
+		ClosedAtMs:                      outputCloseTimeMs,
 		TotalCoins:                      outputTotalCoins,
 		FeePool:                         outputFeePool,
 		BaseFee:                         outputBaseFee,
@@ -113,8 +131,8 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		MaxTxSetSize:                    outputMaxTxSetSize,
 		ProtocolVersion:                 outputProtocolVersion,
 		SorobanFeeWrite1Kb:              outputSorobanFeeWrite1Kb,
-		NodeID:                          scpValueInfo.NodeID,
-		Signature:                       scpValueInfo.Signature,
+		NodeID:                          outputNodeID,
+		Signature:                       outputSignature,
 		TotalByteSizeOfBucketList:       outputTotalByteSizeOfLiveSorobanState,
 		TotalByteSizeOfLiveSorobanState: outputTotalByteSizeOfLiveSorobanState,
 		EvictedLedgerKeysType:           outputEvictedKeysType,

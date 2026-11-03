@@ -9,7 +9,6 @@ import (
 	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stellar/stellar-etl/v2/internal/toid"
-	"github.com/stellar/stellar-etl/v2/internal/utils"
 )
 
 func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphrase string) ([]TokenTransferOutput, error) {
@@ -38,7 +37,7 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMeta xdr.LedgerCloseMeta) ([]TokenTransferOutput, error) {
 	var transformedTTP []TokenTransferOutput
 
-	scpValueInfo, err := utils.ScpValueInfoFromLedgerCloseMeta(ledgerCloseMeta)
+	closedAtMs, err := ledgerCloseMeta.LedgerCloseTimeMs()
 	if err != nil {
 		return []TokenTransferOutput{}, err
 	}
@@ -126,7 +125,7 @@ func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMet
 			ContractID:      eventMeta.ContractAddress,
 			LedgerSequence:  ledgerSequence,
 			ClosedAt:        ledgerCloseMeta.ClosedAt(),
-			ClosedAtMs:      scpValueInfo.CloseTimeMs,
+			ClosedAtMs:      closedAtMs,
 			ToMuxed:         toMuxed,
 			ToMuxedID:       toMuxedID,
 		})

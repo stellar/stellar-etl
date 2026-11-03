@@ -81,7 +81,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		return AccountOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return AccountOutput{}, err
 	}
@@ -111,7 +111,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
 		ClosedAt:             closedAt,
-		ClosedAtMs:           scpValueInfo.CloseTimeMs,
+		ClosedAtMs:           closedAtMs,
 		LedgerSequence:       uint32(ledgerSequence),
 	}
 	return transformedAccount, nil

@@ -48,9 +48,9 @@ func msArmHeader() xdr.LedgerHeaderHistoryEntry {
 	}
 }
 
-// TestTtlClosedAtMsUsesScpValueInfo covers the eleven state-table transforms,
+// TestTtlClosedAtMsFromScpValue covers the eleven state-table transforms,
 // which all receive xdr.LedgerHeaderHistoryEntry and were changed the same way.
-func TestTtlClosedAtMsUsesScpValueInfo(t *testing.T) {
+func TestTtlClosedAtMsFromScpValue(t *testing.T) {
 	changes := makeTtlTestInput()
 	assert.NotEmpty(t, changes)
 
@@ -67,11 +67,11 @@ func TestTtlClosedAtMsUsesScpValueInfo(t *testing.T) {
 	assert.Equal(t, int64(msArmCloseTime), output.ClosedAt.Unix())
 }
 
-// TestTradeClosedAtMsUsesScpValueInfo covers TransformTrade, the one transform
+// TestTradeClosedAtMsFromScpValue covers TransformTrade, the one transform
 // that could not previously reach the ext arms: it took an already-collapsed
 // time.Time, so sub-second precision was gone before it was called. It now
 // takes the header, which is what the TradeTransformInput change is for.
-func TestTradeClosedAtMsUsesScpValueInfo(t *testing.T) {
+func TestTradeClosedAtMsFromScpValue(t *testing.T) {
 	trades, err := TransformTrade(0, 100, makeTradeTestInput(), msArmHeader())
 	assert.NoError(t, err)
 	assert.NotEmpty(t, trades, "fixture should produce at least one trade")

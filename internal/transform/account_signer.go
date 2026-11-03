@@ -28,7 +28,7 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		return signers, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return signers, err
 	}
@@ -52,7 +52,7 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 			LedgerEntryChange:  uint32(changeType),
 			Deleted:            outputDeleted,
 			ClosedAt:           closedAt,
-			ClosedAtMs:         scpValueInfo.CloseTimeMs,
+			ClosedAtMs:         closedAtMs,
 			LedgerSequence:     uint32(ledgerSequence),
 		})
 	}
@@ -87,7 +87,7 @@ func TransformSigners(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 				LedgerEntryChange:  uint32(xdr.LedgerEntryChangeTypeLedgerEntryRemoved),
 				Deleted:            true,
 				ClosedAt:           closedAt,
-				ClosedAtMs:         scpValueInfo.CloseTimeMs,
+				ClosedAtMs:         closedAtMs,
 				LedgerSequence:     uint32(ledgerSequence),
 			})
 		}

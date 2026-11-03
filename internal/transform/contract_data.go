@@ -125,7 +125,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		return ContractDataOutput{}, err, false
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return ContractDataOutput{}, err, false
 	}
@@ -159,7 +159,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
 		ClosedAt:                  closedAt,
-		ClosedAtMs:                scpValueInfo.CloseTimeMs,
+		ClosedAtMs:                closedAtMs,
 		LedgerSequence:            uint32(ledgerSequence),
 		LedgerKeyHash:             ledgerKeyHash,
 		Key:                       outputKey,

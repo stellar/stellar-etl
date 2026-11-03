@@ -34,7 +34,7 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 		return RestoredKeyOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return RestoredKeyOutput{}, err
 	}
@@ -47,7 +47,7 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 		LedgerEntryType:    ledgerEntryType,
 		LastModifiedLedger: outputLastModifiedLedger,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         scpValueInfo.CloseTimeMs,
+		ClosedAtMs:         closedAtMs,
 		LedgerSequence:     uint32(ledgerSequence),
 	}
 	return transformedKey, nil

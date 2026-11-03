@@ -54,7 +54,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHead
 		return ClaimableBalanceOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return ClaimableBalanceOutput{}, err
 	}
@@ -75,7 +75,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHead
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         scpValueInfo.CloseTimeMs,
+		ClosedAtMs:         closedAtMs,
 		LedgerSequence:     uint32(ledgerSequence),
 		BalanceIDStrkey:    balanceIDStrkey,
 	}

@@ -23,7 +23,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 		return []TradeOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(lhe)
+	closedAtMs, err := lhe.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return []TradeOutput{}, err
 	}
@@ -141,7 +141,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			Order:                        outputOrder,
 			LedgerClosedAt:               outputLedgerClosedAt,
 			ClosedAt:                     outputLedgerClosedAt,
-			ClosedAtMs:                   scpValueInfo.CloseTimeMs,
+			ClosedAtMs:                   closedAtMs,
 			SellingAccountAddress:        outputSellingAccountAddress,
 			SellingAssetType:             outputSellingAssetType,
 			SellingAssetCode:             outputSellingAssetCode,

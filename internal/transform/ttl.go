@@ -33,7 +33,7 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 		return TtlOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return TtlOutput{}, err
 	}
@@ -47,7 +47,7 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         scpValueInfo.CloseTimeMs,
+		ClosedAtMs:         closedAtMs,
 		LedgerSequence:     uint32(ledgerSequence),
 	}
 

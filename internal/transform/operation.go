@@ -66,7 +66,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		return OperationOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromLedgerCloseMeta(ledgerCloseMeta)
+	closedAtMs, err := ledgerCloseMeta.LedgerCloseTimeMs()
 	if err != nil {
 		return OperationOutput{}, err
 	}
@@ -96,7 +96,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		OperationID:          outputOperationID,
 		OperationDetails:     outputDetails,
 		ClosedAt:             outputCloseTime,
-		ClosedAtMs:           scpValueInfo.CloseTimeMs,
+		ClosedAtMs:           closedAtMs,
 		OperationResultCode:  outputOperationResultCode,
 		OperationTraceCode:   outputOperationTraceCode,
 		LedgerSequence:       outputLedgerSequence,

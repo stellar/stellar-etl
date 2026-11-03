@@ -55,7 +55,7 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		return PoolOutput{}, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromHeader(header)
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return PoolOutput{}, err
 	}
@@ -88,7 +88,7 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         scpValueInfo.CloseTimeMs,
+		ClosedAtMs:         closedAtMs,
 		LedgerSequence:     uint32(ledgerSequence),
 		PoolIDStrkey:       poolIDStrkey,
 	}

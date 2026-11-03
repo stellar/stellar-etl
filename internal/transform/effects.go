@@ -28,7 +28,7 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, led
 		return effects, err
 	}
 
-	scpValueInfo, err := utils.ScpValueInfoFromLedgerCloseMeta(ledgerCloseMeta)
+	closedAtMs, err := ledgerCloseMeta.LedgerCloseTimeMs()
 	if err != nil {
 		return effects, err
 	}
@@ -41,7 +41,7 @@ func TransformEffect(transaction ingest.LedgerTransaction, ledgerSeq uint32, led
 			ledgerSequence: ledgerSeq,
 			network:        networkPassphrase,
 			ledgerClosed:   outputCloseTime,
-			ledgerClosedMs: scpValueInfo.CloseTimeMs,
+			ledgerClosedMs: closedAtMs,
 		}
 
 		p, err := operation.effects()
