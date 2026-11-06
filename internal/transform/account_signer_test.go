@@ -197,6 +197,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            true,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			}, {
 				AccountID:          testAccount1ID.Address(),
 				Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
@@ -207,6 +208,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            true,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			}, {
 				AccountID:          testAccount1ID.Address(),
 				Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
@@ -217,6 +219,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            true,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			},
 		}, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryRestored:
@@ -231,6 +234,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            false,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			}, {
 				AccountID:          testAccount1ID.Address(),
 				Signer:             "GACAKBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB3BQ",
@@ -241,6 +245,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            false,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			}, {
 				AccountID:          testAccount1ID.Address(),
 				Signer:             "GAFAWDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDC",
@@ -251,6 +256,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            false,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			},
 		}, nil
 	case xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
@@ -269,6 +275,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            true,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			}, {
 				// Master key remains: LedgerEntryChange=UPDATED, LastModifiedLedger from Post
 				AccountID:          testAccount1ID.Address(),
@@ -280,6 +287,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            false,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			}, {
 				// Signer A remains: LedgerEntryChange=UPDATED, LastModifiedLedger from Post
 				AccountID:          testAccount1ID.Address(),
@@ -291,6 +299,7 @@ func makeSignersTestOutput(changeType xdr.LedgerEntryChangeType) ([]AccountSigne
 				Deleted:            false,
 				LedgerSequence:     10,
 				ClosedAt:           closedAt,
+				ClosedAtMs:         closedAt,
 			},
 		}, nil
 	default:

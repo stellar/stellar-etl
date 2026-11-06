@@ -34,7 +34,7 @@ func processTrades(lcm xdr.LedgerCloseMeta, env utils.EnvironmentDetails, outFil
 	attempts, failures := 0, 0
 	for _, tradeInput := range tradeInputs {
 		attempts++
-		trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.CloseTime)
+		trades, err := transform.TransformTrade(tradeInput.OperationIndex, tradeInput.OperationHistoryID, tradeInput.Transaction, tradeInput.Header)
 		if err != nil {
 			parsedID := toid.Parse(tradeInput.OperationHistoryID)
 			cmdLogger.LogError(fmt.Errorf("from ledger %d, transaction %d, operation %d: %v", parsedID.LedgerSequence, parsedID.TransactionOrder, parsedID.OperationOrder, err))

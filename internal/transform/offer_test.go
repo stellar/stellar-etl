@@ -183,5 +183,6 @@ func makeOfferTestOutput() OfferOutput {
 		Sponsor:            null.StringFrom(testAccount3Address),
 		LedgerSequence:     10,
 		ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+		ClosedAtMs:         time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
 	}
 }

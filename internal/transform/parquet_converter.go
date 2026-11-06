@@ -39,6 +39,7 @@ func (lo LedgerOutput) ToParquet() interface{} {
 		FailedTransactionCount:          lo.FailedTransactionCount,
 		TxSetOperationCount:             lo.TxSetOperationCount,
 		ClosedAt:                        lo.ClosedAt.UnixMilli(),
+		ClosedAtMs:                      lo.ClosedAtMs.UnixMilli(),
 		TotalCoins:                      lo.TotalCoins,
 		FeePool:                         lo.FeePool,
 		BaseFee:                         int64(lo.BaseFee),
@@ -86,6 +87,7 @@ func (to TransactionOutput) ToParquet() interface{} {
 		MinAccountSequenceLedgerGap:          to.MinAccountSequenceLedgerGap.Int64,
 		ExtraSigners:                         to.ExtraSigners,
 		ClosedAt:                             to.ClosedAt.UnixMilli(),
+		ClosedAtMs:                           to.ClosedAtMs.UnixMilli(),
 		ResourceFee:                          to.ResourceFee,
 		SorobanResourcesInstructions:         int64(to.SorobanResourcesInstructions),
 		SorobanResourcesReadBytes:            int64(to.SorobanResourcesReadBytes),
@@ -126,6 +128,7 @@ func (ao AccountOutput) ToParquet() interface{} {
 		LedgerEntryChange:    int64(ao.LedgerEntryChange),
 		Deleted:              ao.Deleted,
 		ClosedAt:             ao.ClosedAt.UnixMilli(),
+		ClosedAtMs:           ao.ClosedAtMs.UnixMilli(),
 		LedgerSequence:       int64(ao.LedgerSequence),
 	}
 }
@@ -140,6 +143,7 @@ func (aso AccountSignerOutput) ToParquet() interface{} {
 		LedgerEntryChange:  int64(aso.LedgerEntryChange),
 		Deleted:            aso.Deleted,
 		ClosedAt:           aso.ClosedAt.UnixMilli(),
+		ClosedAtMs:         aso.ClosedAtMs.UnixMilli(),
 		LedgerSequence:     int64(aso.LedgerSequence),
 	}
 }
@@ -154,6 +158,7 @@ func (oo OperationOutput) ToParquet() interface{} {
 		TransactionID:       oo.TransactionID,
 		OperationID:         oo.OperationID,
 		ClosedAt:            oo.ClosedAt.UnixMilli(),
+		ClosedAtMs:          oo.ClosedAtMs.UnixMilli(),
 		OperationResultCode: oo.OperationResultCode,
 		OperationTraceCode:  oo.OperationTraceCode,
 		LedgerSequence:      int64(oo.LedgerSequence),
@@ -181,6 +186,7 @@ func (po PoolOutput) ToParquet() interface{} {
 		LedgerEntryChange:  int64(po.LedgerEntryChange),
 		Deleted:            po.Deleted,
 		ClosedAt:           po.ClosedAt.UnixMilli(),
+		ClosedAtMs:         po.ClosedAtMs.UnixMilli(),
 		LedgerSequence:     int64(po.LedgerSequence),
 	}
 }
@@ -192,6 +198,7 @@ func (ao AssetOutput) ToParquet() interface{} {
 		AssetType:      ao.AssetType,
 		AssetID:        ao.AssetID,
 		ClosedAt:       ao.ClosedAt.UnixMilli(),
+		ClosedAtMs:     ao.ClosedAtMs.UnixMilli(),
 		LedgerSequence: int64(ao.LedgerSequence),
 	}
 }
@@ -215,6 +222,7 @@ func (to TrustlineOutput) ToParquet() interface{} {
 		Sponsor:            to.Sponsor.String,
 		Deleted:            to.Deleted,
 		ClosedAt:           to.ClosedAt.UnixMilli(),
+		ClosedAtMs:         to.ClosedAtMs.UnixMilli(),
 		LedgerSequence:     int64(to.LedgerSequence),
 	}
 }
@@ -241,6 +249,7 @@ func (oo OfferOutput) ToParquet() interface{} {
 		Deleted:            oo.Deleted,
 		Sponsor:            oo.Sponsor.String,
 		ClosedAt:           oo.ClosedAt.UnixMilli(),
+		ClosedAtMs:         oo.ClosedAtMs.UnixMilli(),
 		LedgerSequence:     int64(oo.LedgerSequence),
 	}
 }
@@ -272,6 +281,7 @@ func (to TradeOutput) ToParquet() interface{} {
 		RoundingSlippage:       to.RoundingSlippage.Int64,
 		SellerIsExact:          to.SellerIsExact.Bool,
 		ClosedAt:               to.ClosedAt.UnixMilli(),
+		ClosedAtMs:             to.ClosedAtMs.UnixMilli(),
 	}
 }
 
@@ -284,6 +294,7 @@ func (eo EffectOutput) ToParquet() interface{} {
 		Type:           eo.Type,
 		TypeString:     eo.TypeString,
 		LedgerClosed:   eo.LedgerClosed.UnixMilli(),
+		ClosedAtMs:     eo.ClosedAtMs.UnixMilli(),
 		LedgerSequence: int64(eo.LedgerSequence),
 		EffectIndex:    int64(eo.EffectIndex),
 		EffectId:       eo.EffectId,
@@ -304,6 +315,7 @@ func (cdo ContractDataOutput) ToParquet() interface{} {
 		LedgerEntryChange:         int64(cdo.LedgerEntryChange),
 		Deleted:                   cdo.Deleted,
 		ClosedAt:                  cdo.ClosedAt.UnixMilli(),
+		ClosedAtMs:                cdo.ClosedAtMs.UnixMilli(),
 		LedgerSequence:            int64(cdo.LedgerSequence),
 		LedgerKeyHash:             cdo.LedgerKeyHash,
 		Key:                       cdo.Key,
@@ -322,6 +334,7 @@ func (cco ContractCodeOutput) ToParquet() interface{} {
 		LedgerEntryChange:  int64(cco.LedgerEntryChange),
 		Deleted:            cco.Deleted,
 		ClosedAt:           cco.ClosedAt.UnixMilli(),
+		ClosedAtMs:         cco.ClosedAtMs.UnixMilli(),
 		LedgerSequence:     int64(cco.LedgerSequence),
 		LedgerKeyHash:      cco.LedgerKeyHash,
 		NInstructions:      int64(cco.NInstructions),
@@ -422,6 +435,7 @@ func (cso ConfigSettingOutput) ToParquet() interface{} {
 		LedgerEntryChange:          int64(cso.LedgerEntryChange),
 		Deleted:                    cso.Deleted,
 		ClosedAt:                   cso.ClosedAt.UnixMilli(),
+		ClosedAtMs:                 cso.ClosedAtMs.UnixMilli(),
 		LedgerSequence:             int64(cso.LedgerSequence),
 	}
 }
@@ -434,6 +448,7 @@ func (to TtlOutput) ToParquet() interface{} {
 		LedgerEntryChange:  int64(to.LedgerEntryChange),
 		Deleted:            to.Deleted,
 		ClosedAt:           to.ClosedAt.UnixMilli(),
+		ClosedAtMs:         to.ClosedAtMs.UnixMilli(),
 		LedgerSequence:     int64(to.LedgerSequence),
 	}
 }
@@ -445,6 +460,7 @@ func (ceo ContractEventOutput) ToParquet() interface{} {
 		Successful:               ceo.Successful,
 		LedgerSequence:           int64(ceo.LedgerSequence),
 		ClosedAt:                 ceo.ClosedAt.UnixMilli(),
+		ClosedAtMs:               ceo.ClosedAtMs.UnixMilli(),
 		InSuccessfulContractCall: ceo.InSuccessfulContractCall,
 		ContractId:               ceo.ContractId,
 		Type:                     ceo.Type,

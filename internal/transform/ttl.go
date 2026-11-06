@@ -33,6 +33,11 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 		return TtlOutput{}, err
 	}
 
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return TtlOutput{}, err
+	}
+
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedPool := TtlOutput{
@@ -42,6 +47,7 @@ func TransformTtl(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEntr
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
+		ClosedAtMs:         closedAtMsToTime(closedAtMs),
 		LedgerSequence:     uint32(ledgerSequence),
 	}
 

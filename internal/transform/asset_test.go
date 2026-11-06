@@ -109,6 +109,7 @@ func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 			AssetType:      "credit_alphanum4",
 			AssetID:        -8205667356306085451,
 			ClosedAt:       time.Date(1970, time.January, 1, 0, 0, 10, 0, time.UTC),
+			ClosedAtMs:     time.Date(1970, time.January, 1, 0, 0, 10, 0, time.UTC),
 			LedgerSequence: 2,
 		},
 		{
@@ -117,6 +118,7 @@ func makeAssetTestOutput() (transformedAssets []AssetOutput) {
 			AssetType:      "native",
 			AssetID:        -5706705804583548011,
 			ClosedAt:       time.Date(1970, time.January, 1, 0, 0, 10, 0, time.UTC),
+			ClosedAtMs:     time.Date(1970, time.January, 1, 0, 0, 10, 0, time.UTC),
 			LedgerSequence: 2,
 		},
 	}

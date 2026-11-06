@@ -3,7 +3,6 @@ package transform
 import (
 	"fmt"
 	"math"
-	"time"
 
 	"github.com/guregu/null"
 	"github.com/pkg/errors"
@@ -18,7 +17,17 @@ import (
 )
 
 // TransformTrade converts a relevant operation from the history archive ingestion system into a form suitable for BigQuery
-func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, ledgerCloseTime time.Time) ([]TradeOutput, error) {
+func TransformTrade(operationIndex int32, operationID int64, transaction ingest.LedgerTransaction, lhe xdr.LedgerHeaderHistoryEntry) ([]TradeOutput, error) {
+	ledgerCloseTime, err := utils.ExtractLedgerCloseTime(lhe)
+	if err != nil {
+		return []TradeOutput{}, err
+	}
+
+	closedAtMs, err := lhe.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return []TradeOutput{}, err
+	}
+
 	operationResults, ok := transaction.Result.OperationResults()
 	if !ok {
 		return []TradeOutput{}, fmt.Errorf("could not get any results from this transaction")
@@ -132,6 +141,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			Order:                        outputOrder,
 			LedgerClosedAt:               outputLedgerClosedAt,
 			ClosedAt:                     outputLedgerClosedAt,
+			ClosedAtMs:                   closedAtMsToTime(closedAtMs),
 			SellingAccountAddress:        outputSellingAccountAddress,
 			SellingAssetType:             outputSellingAssetType,
 			SellingAssetCode:             outputSellingAssetCode,

@@ -100,6 +100,15 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		contractDataBalance = dataBalance.String()
 	}
 
+	// GetContractId matches on the arm name, the same shape as the CAP-88 bug,
+	// and CAP-84 gave ScAddress a sixth arm (SC_ADDRESS_TYPE_MUXED_CONTRACT)
+	// that would return ok=false here. It is unreachable on this field:
+	// .contract is the contract that owns the entry, and CAP-84 only lets a
+	// muxed contract address be the destination of a transfer, with the host
+	// rejecting one passed anywhere an AddressObject is expected.
+	//
+	// The separate CAP-84 rule about muxed addresses in contract data keys is
+	// what protects the Key read further down, not this line.
 	contractDataContractId, ok := contractData.Contract.GetContractId()
 	if !ok {
 		return ContractDataOutput{}, fmt.Errorf("could not extract contractId data information from contractData"), false
@@ -112,6 +121,11 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 	contractDataDurability := contractData.Durability.String()
 
 	closedAt, err := utils.TimePointToUTCTimeStamp(header.Header.ScpValue.CloseTime)
+	if err != nil {
+		return ContractDataOutput{}, err, false
+	}
+
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
 	if err != nil {
 		return ContractDataOutput{}, err, false
 	}
@@ -145,6 +159,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
 		ClosedAt:                  closedAt,
+		ClosedAtMs:                closedAtMsToTime(closedAtMs),
 		LedgerSequence:            uint32(ledgerSequence),
 		LedgerKeyHash:             ledgerKeyHash,
 		Key:                       outputKey,

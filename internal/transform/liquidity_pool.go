@@ -55,6 +55,11 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		return PoolOutput{}, err
 	}
 
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return PoolOutput{}, err
+	}
+
 	ledgerSequence := header.Header.LedgerSeq
 
 	var poolIDStrkey string
@@ -83,6 +88,7 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
+		ClosedAtMs:         closedAtMsToTime(closedAtMs),
 		LedgerSequence:     uint32(ledgerSequence),
 		PoolIDStrkey:       poolIDStrkey,
 	}
