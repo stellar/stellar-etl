@@ -159,7 +159,7 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 		LedgerEntryChange:         uint32(changeType),
 		Deleted:                   outputDeleted,
 		ClosedAt:                  closedAt,
-		ClosedAtMs:                closedAtMs,
+		ClosedAtMs:                closedAtMsToTime(closedAtMs),
 		LedgerSequence:            uint32(ledgerSequence),
 		LedgerKeyHash:             ledgerKeyHash,
 		Key:                       outputKey,

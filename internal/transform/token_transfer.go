@@ -125,7 +125,7 @@ func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMet
 			ContractID:      eventMeta.ContractAddress,
 			LedgerSequence:  ledgerSequence,
 			ClosedAt:        ledgerCloseMeta.ClosedAt(),
-			ClosedAtMs:      closedAtMs,
+			ClosedAtMs:      closedAtMsToTime(closedAtMs),
 			ToMuxed:         toMuxed,
 			ToMuxedID:       toMuxedID,
 		})

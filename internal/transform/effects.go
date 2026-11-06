@@ -166,7 +166,7 @@ func (operation *transactionOperationWrapper) effects() ([]EffectOutput, error) 
 
 	for i := range wrapper.effects {
 		wrapper.effects[i].LedgerClosed = operation.ledgerClosed
-		wrapper.effects[i].ClosedAtMs = operation.ledgerClosedMs
+		wrapper.effects[i].ClosedAtMs = closedAtMsToTime(operation.ledgerClosedMs)
 		wrapper.effects[i].LedgerSequence = operation.ledgerSequence
 		wrapper.effects[i].EffectIndex = uint32(i)
 		wrapper.effects[i].EffectId = fmt.Sprintf("%d-%d", wrapper.effects[i].OperationID, wrapper.effects[i].EffectIndex)

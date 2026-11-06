@@ -47,7 +47,7 @@ func TransformRestoredKey(ledgerChange ingest.Change, header xdr.LedgerHeaderHis
 		LedgerEntryType:    ledgerEntryType,
 		LastModifiedLedger: outputLastModifiedLedger,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         closedAtMs,
+		ClosedAtMs:         closedAtMsToTime(closedAtMs),
 		LedgerSequence:     uint32(ledgerSequence),
 	}
 	return transformedKey, nil
