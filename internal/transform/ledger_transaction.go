@@ -57,7 +57,7 @@ func TransformLedgerTransaction(transaction ingest.LedgerTransaction, lhe xdr.Le
 		TxFeeMeta:       outputTxFeeMeta,
 		TxLedgerHistory: outputTxLedgerHistory,
 		ClosedAt:        outputCloseTime,
-		ClosedAtMs:      closedAtMs,
+		ClosedAtMs:      closedAtMsToTime(closedAtMs),
 	}
 
 	return transformedLedgerTransaction, nil

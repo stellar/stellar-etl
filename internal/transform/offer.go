@@ -102,7 +102,7 @@ func TransformOffer(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEn
 		Deleted:            outputDeleted,
 		Sponsor:            ledgerEntrySponsorToNullString(ledgerEntry),
 		ClosedAt:           closedAt,
-		ClosedAtMs:         closedAtMs,
+		ClosedAtMs:         closedAtMsToTime(closedAtMs),
 		LedgerSequence:     uint32(ledgerSequence),
 	}
 	return transformedOffer, nil

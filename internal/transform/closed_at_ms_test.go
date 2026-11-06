@@ -1,6 +1,8 @@
 package transform
 
 import (
+	"time"
+
 	"testing"
 
 	"github.com/stellar/go-stellar-sdk/xdr"
@@ -57,10 +59,10 @@ func TestTtlClosedAtMsFromScpValue(t *testing.T) {
 	output, err := TransformTtl(changes[0], msArmHeader())
 	assert.NoError(t, err)
 
-	assert.Equal(t, int64(msArmCloseTimeMs), output.ClosedAtMs)
-	assert.NotEqual(t, int64(0), output.ClosedAtMs%1000,
+	assert.Equal(t, time.UnixMilli(int64(msArmCloseTimeMs)).UTC(), output.ClosedAtMs)
+	assert.NotEqual(t, int64(0), output.ClosedAtMs.UnixMilli()%1000,
 		"closed_at_ms must keep sub-second precision, so it cannot come from closeTime")
-	assert.NotEqual(t, output.ClosedAt.UnixMilli(), output.ClosedAtMs,
+	assert.NotEqual(t, output.ClosedAt, output.ClosedAtMs,
 		"closed_at_ms must not be derived from the closed_at timestamp")
 
 	// closed_at itself is unchanged: CAP-88 left the whole-second field alone.
@@ -77,10 +79,10 @@ func TestTradeClosedAtMsFromScpValue(t *testing.T) {
 	assert.NotEmpty(t, trades, "fixture should produce at least one trade")
 
 	for _, trade := range trades {
-		assert.Equal(t, int64(msArmCloseTimeMs), trade.ClosedAtMs)
-		assert.NotEqual(t, int64(0), trade.ClosedAtMs%1000,
+		assert.Equal(t, time.UnixMilli(int64(msArmCloseTimeMs)).UTC(), trade.ClosedAtMs)
+		assert.NotEqual(t, int64(0), trade.ClosedAtMs.UnixMilli()%1000,
 			"closed_at_ms must keep sub-second precision")
-		assert.NotEqual(t, trade.ClosedAt.UnixMilli(), trade.ClosedAtMs,
+		assert.NotEqual(t, trade.ClosedAt, trade.ClosedAtMs,
 			"closed_at_ms must not be derived from the closed_at timestamp")
 
 		// Both existing timestamp columns stay whole seconds.

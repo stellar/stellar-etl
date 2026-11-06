@@ -88,7 +88,7 @@ func TransformTrustline(ledgerChange ingest.Change, header xdr.LedgerHeaderHisto
 		Sponsor:               ledgerEntrySponsorToNullString(ledgerEntry),
 		Deleted:               outputDeleted,
 		ClosedAt:              closedAt,
-		ClosedAtMs:            closedAtMs,
+		ClosedAtMs:            closedAtMsToTime(closedAtMs),
 		LedgerSequence:        uint32(ledgerSequence),
 		LiquidityPoolIDStrkey: poolIDStrkey,
 	}

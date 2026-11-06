@@ -232,7 +232,7 @@ func parseDiagnosticEvent(
 		Successful:               outputSuccessful,
 		LedgerSequence:           outputLedgerSequence,
 		ClosedAt:                 outputCloseTime,
-		ClosedAtMs:               closedAtMs,
+		ClosedAtMs:               closedAtMsToTime(closedAtMs),
 		InSuccessfulContractCall: outputInSuccessfulContractCall,
 		ContractId:               outputContractId,
 		Type:                     int32(outputType),

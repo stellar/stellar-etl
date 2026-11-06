@@ -253,7 +253,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		MinAccountSequenceLedgerGap:          outputMinSequenceLedgerGap,
 		ExtraSigners:                         formatSigners(transaction.Envelope.ExtraSigners()),
 		ClosedAt:                             outputCloseTime,
-		ClosedAtMs:                           closedAtMs,
+		ClosedAtMs:                           closedAtMsToTime(closedAtMs),
 		ResourceFee:                          outputResourceFee,
 		SorobanResourcesInstructions:         outputSorobanResourcesInstructions,
 		SorobanResourcesReadBytes:            outputSorobanResourcesDiskReadBytes,

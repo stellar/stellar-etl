@@ -123,7 +123,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		FailedTransactionCount:          outputFailedCount,
 		TxSetOperationCount:             outputTxSetOperationCount,
 		ClosedAt:                        outputCloseTime,
-		ClosedAtMs:                      outputCloseTimeMs,
+		ClosedAtMs:                      closedAtMsToTime(outputCloseTimeMs),
 		TotalCoins:                      outputTotalCoins,
 		FeePool:                         outputFeePool,
 		BaseFee:                         outputBaseFee,

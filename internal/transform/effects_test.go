@@ -401,6 +401,7 @@ func TestOperationEffects(t *testing.T) {
 					Type:           int32(EffectAccountCreated),
 					TypeString:     EffectTypeNames[EffectAccountCreated],
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 57,
 				},
 				{
@@ -413,6 +414,7 @@ func TestOperationEffects(t *testing.T) {
 					Type:           int32(EffectAccountDebited),
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 57,
 				},
 				{
@@ -425,6 +427,7 @@ func TestOperationEffects(t *testing.T) {
 					Type:           int32(EffectSignerCreated),
 					TypeString:     EffectTypeNames[EffectSignerCreated],
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 57,
 				},
 				{
@@ -436,6 +439,7 @@ func TestOperationEffects(t *testing.T) {
 					Type:           int32(EffectAccountSponsorshipRemoved),
 					TypeString:     EffectTypeNames[EffectAccountSponsorshipRemoved],
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 57,
 				},
 				{
@@ -448,6 +452,7 @@ func TestOperationEffects(t *testing.T) {
 					Type:           int32(EffectAccountSponsorshipUpdated),
 					TypeString:     EffectTypeNames[EffectAccountSponsorshipUpdated],
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 57,
 				},
 				{
@@ -459,6 +464,7 @@ func TestOperationEffects(t *testing.T) {
 					Type:           int32(EffectAccountSponsorshipCreated),
 					TypeString:     EffectTypeNames[EffectAccountSponsorshipCreated],
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 57,
 				},
 			},
@@ -483,6 +489,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -495,6 +502,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 			},
@@ -522,6 +530,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -536,6 +545,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -556,6 +566,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -576,6 +587,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -596,6 +608,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -616,6 +629,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -636,6 +650,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -656,6 +671,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 			},
@@ -683,6 +699,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -698,6 +715,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -719,6 +737,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -741,6 +760,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -762,6 +782,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -784,6 +805,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -805,6 +827,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 				{
@@ -827,6 +850,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(85899350017),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 20,
 				},
 			},
@@ -868,6 +892,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -886,6 +911,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -904,6 +930,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -922,6 +949,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -940,6 +968,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -958,6 +987,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -976,6 +1006,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -994,6 +1025,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 			},
@@ -1024,6 +1056,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1042,6 +1075,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1060,6 +1094,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1078,6 +1113,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1096,6 +1132,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1114,6 +1151,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1132,6 +1170,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1150,6 +1189,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 			},
@@ -1180,6 +1220,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1198,6 +1239,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectTrade],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1216,6 +1258,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1234,6 +1277,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1252,6 +1296,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1270,6 +1315,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferRemoved],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1288,6 +1334,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1306,6 +1353,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectOfferCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 			},
@@ -1329,6 +1377,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountHomeDomainUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1342,6 +1391,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountThresholdsUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1354,6 +1404,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountFlagsUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1365,6 +1416,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectAccountInflationDestinationUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1377,6 +1429,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectSignerUpdated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 				{
@@ -1389,6 +1442,7 @@ func TestOperationEffects(t *testing.T) {
 					TypeString:     EffectTypeNames[EffectSignerCreated],
 					OperationID:    int64(240518172673),
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 56,
 				},
 			},
@@ -1415,6 +1469,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GD4SMOE3VPSF7ZR3CTEQ3P5UNTBMEJDA2GLXTHR7MMARANKKJDZ7RPGF",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 40,
 				},
 			},
@@ -1441,6 +1496,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GBE4L76HUCHCQ2B7IIWBXRAJDBDPIY6MGWX7VZHUZD2N5RO7XI4J6GTJ",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 40,
 				},
 			},
@@ -1467,6 +1523,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GA5SKSJEB7VWACRNWFGVZBDSZYLGK44A2JPPBWUK3GB7NYEFOOQJAC2B",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 40,
 				},
 			},
@@ -1493,6 +1550,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_issuer": "GD4SMOE3VPSF7ZR3CTEQ3P5UNTBMEJDA2GLXTHR7MMARANKKJDZ7RPGF",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 41,
 				},
 				{
@@ -1508,6 +1566,7 @@ func TestOperationEffects(t *testing.T) {
 						"trustor":         "GCVW5LCRZFP7PENXTAGOVIQXADDNUXXZJCNKF4VQB2IK7W2LPJWF73UG",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 41,
 				},
 			},
@@ -1532,6 +1591,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type": "native",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 44,
 				},
 				{
@@ -1544,6 +1604,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type": "native",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 44,
 				},
 				{
@@ -1553,6 +1614,7 @@ func TestOperationEffects(t *testing.T) {
 					OperationID:    int64(188978565121),
 					Details:        map[string]interface{}{},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 44,
 				},
 			},
@@ -1577,6 +1639,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type": "native",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 47,
 				},
 				{
@@ -1589,6 +1652,7 @@ func TestOperationEffects(t *testing.T) {
 						"asset_type": "native",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 47,
 				},
 			},
@@ -1613,6 +1677,7 @@ func TestOperationEffects(t *testing.T) {
 						"value": "NTY3OA==",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 49,
 				},
 			},
@@ -1636,6 +1701,7 @@ func TestOperationEffects(t *testing.T) {
 						"name": xdr.String64("hello"),
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 49,
 				},
 			},
@@ -1660,6 +1726,7 @@ func TestOperationEffects(t *testing.T) {
 						"value": "MTU3ODUyMTIwNF8yOTMyOTAyNzg=",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 49,
 				},
 			},
@@ -1707,6 +1774,7 @@ func TestOperationEffects(t *testing.T) {
 						"new_seq": xdr.SequenceNumber(300000000000),
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 58,
 				},
 			},
@@ -1865,6 +1933,7 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 			Type:           int32(EffectSignerUpdated),
 			TypeString:     EffectTypeNames[EffectSignerUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 		{
@@ -1877,6 +1946,7 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 			Type:           int32(EffectSignerUpdated),
 			TypeString:     EffectTypeNames[EffectSignerUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 		{
@@ -1889,6 +1959,7 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 			Type:           int32(EffectSignerCreated),
 			TypeString:     EffectTypeNames[EffectSignerCreated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 		{
@@ -1901,6 +1972,7 @@ func TestOperationEffectsSetOptionsSignersOrder(t *testing.T) {
 			Type:           int32(EffectSignerCreated),
 			TypeString:     EffectTypeNames[EffectSignerCreated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 	}
@@ -2008,6 +2080,7 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 			Type:           int32(EffectSignerRemoved),
 			TypeString:     EffectTypeNames[EffectSignerRemoved],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 		{
@@ -2020,6 +2093,7 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 			Type:           int32(EffectSignerUpdated),
 			TypeString:     EffectTypeNames[EffectSignerUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 		{
@@ -2032,6 +2106,7 @@ func TestOperationEffectsSetOptionsSignersNoUpdated(t *testing.T) {
 			Type:           int32(EffectSignerCreated),
 			TypeString:     EffectTypeNames[EffectSignerCreated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 46,
 		},
 	}
@@ -2126,6 +2201,7 @@ func TestOperationEffectsAllowTrustAuthorizedToMaintainLiabilities(t *testing.T)
 			Type:           int32(EffectTrustlineFlagsUpdated),
 			TypeString:     EffectTypeNames[EffectTrustlineFlagsUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2141,6 +2217,7 @@ func TestOperationEffectsAllowTrustAuthorizedToMaintainLiabilities(t *testing.T)
 			Type:           int32(EffectTrustlineFlagsUpdated),
 			TypeString:     EffectTypeNames[EffectTrustlineFlagsUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 	}
@@ -2197,6 +2274,7 @@ func TestOperationEffectsClawback(t *testing.T) {
 			Type:           int32(EffectAccountCredited),
 			TypeString:     EffectTypeNames[EffectAccountCredited],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2211,6 +2289,7 @@ func TestOperationEffectsClawback(t *testing.T) {
 			Type:           int32(EffectAccountDebited),
 			TypeString:     EffectTypeNames[EffectAccountDebited],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 	}
@@ -2264,6 +2343,7 @@ func TestOperationEffectsClawbackClaimableBalance(t *testing.T) {
 			Type:           int32(EffectClaimableBalanceClawedBack),
 			TypeString:     EffectTypeNames[EffectClaimableBalanceClawedBack],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 	}
@@ -2327,6 +2407,7 @@ func TestOperationEffectsSetTrustLineFlags(t *testing.T) {
 			Type:           int32(EffectTrustlineFlagsUpdated),
 			TypeString:     EffectTypeNames[EffectTrustlineFlagsUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 	}
@@ -2466,6 +2547,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"sponsor": "GDMQUXK7ZUCWM5472ZU3YLDP4BMJLQQ76DEMNYDEY2ODEEGGRKLEWGW2",
 			},
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2480,6 +2562,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"new_sponsor":    "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2493,6 +2576,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"former_sponsor": "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2506,6 +2590,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"sponsor":           "GDMQUXK7ZUCWM5472ZU3YLDP4BMJLQQ76DEMNYDEY2ODEEGGRKLEWGW2",
 			},
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2520,6 +2605,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"new_sponsor":       "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 		{
@@ -2533,6 +2619,7 @@ func TestTrustlineSponsorhipEffects(t *testing.T) {
 				"former_sponsor":    "GDRW375MAYR46ODGF2WGANQC2RRZL7O246DYHHCGWTV2RE7IHE2QUQLD",
 			},
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 1,
 		},
 	}
@@ -2699,6 +2786,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"liquidity_pool_id_strkey": poolIDStrkey,
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -2726,6 +2814,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -2796,6 +2885,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"shares_received": "0.0000010",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -2859,6 +2949,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"shares_redeemed": "0.0000010",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -2928,6 +3019,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"asset_type":   "credit_alphanum4",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -2940,6 +3032,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"asset_type": "native",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -2975,6 +3068,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						},
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3118,6 +3212,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"trustor":         "GAUJETIZVEP2NRYLUESJ3LS66NVCEGMON4UDCBCSBEVPIID773P2W6AY",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -3131,6 +3226,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"balance_id": "000000000a0b000000000000000000000000000000000000000000000000000000000000",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -3145,6 +3241,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"predicate":  xdr.ClaimPredicate{},
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -3180,6 +3277,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"shares_revoked": "0.0001000",
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 				{
@@ -3191,6 +3289,7 @@ func TestLiquidityPoolEffects(t *testing.T) {
 						"liquidity_pool_id": poolIDStr,
 					},
 					LedgerClosed:   genericCloseTime.UTC(),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3336,6 +3435,7 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 			Type:           int32(EffectSignerSponsorshipCreated),
 			TypeString:     EffectTypeNames[EffectSignerSponsorshipCreated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 58,
 		},
 		{
@@ -3349,6 +3449,7 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 			Type:           int32(EffectSignerSponsorshipUpdated),
 			TypeString:     EffectTypeNames[EffectSignerSponsorshipUpdated],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 58,
 		},
 		{
@@ -3361,6 +3462,7 @@ func getRevokeSponsorshipMeta(t *testing.T) (string, []EffectOutput) {
 			Type:           int32(EffectSignerSponsorshipRemoved),
 			TypeString:     EffectTypeNames[EffectSignerSponsorshipRemoved],
 			LedgerClosed:   genericCloseTime.UTC(),
+			ClosedAtMs:     genericCloseTime.UTC(),
 			LedgerSequence: 58,
 		},
 	}
@@ -3544,6 +3646,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountDebited),
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				}, {
 					Address:     to,
@@ -3558,6 +3661,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountCredited),
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3582,6 +3686,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectContractDebited),
 					TypeString:     EffectTypeNames[EffectContractDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				}, {
 					Address:     admin,
@@ -3597,6 +3702,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectContractCredited),
 					TypeString:     EffectTypeNames[EffectContractCredited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3618,6 +3724,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountCredited),
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3639,6 +3746,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountDebited),
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3662,6 +3770,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectContractDebited),
 					TypeString:     EffectTypeNames[EffectContractDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3683,6 +3792,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountDebited),
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3706,6 +3816,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectContractDebited),
 					TypeString:     EffectTypeNames[EffectContractDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3725,6 +3836,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountDebited),
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				}, {
 					Address:     to,
@@ -3737,6 +3849,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountCredited),
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3759,6 +3872,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountDebited),
 					TypeString:     EffectTypeNames[EffectAccountDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				}, {
 					Address:     admin,
@@ -3774,6 +3888,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectContractCredited),
 					TypeString:     EffectTypeNames[EffectContractCredited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -3797,6 +3912,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectContractDebited),
 					TypeString:     EffectTypeNames[EffectContractDebited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				}, {
 					Address:     to,
@@ -3811,6 +3927,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 					Type:           int32(EffectAccountCredited),
 					TypeString:     EffectTypeNames[EffectAccountCredited],
 					LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+					ClosedAtMs:     genericCloseTime.UTC(),
 					LedgerSequence: 1,
 				},
 			},
@@ -4042,6 +4159,7 @@ func TestBumpFootprintExpirationEffects(t *testing.T) {
 				Type:           int32(EffectExtendFootprintTtl),
 				TypeString:     EffectTypeNames[EffectExtendFootprintTtl],
 				LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				ClosedAtMs:     genericCloseTime.UTC(),
 				LedgerSequence: 1,
 				EffectIndex:    0,
 				EffectId:       fmt.Sprintf("%d-%d", toid.New(1, 0, 1).ToInt64(), 0),
@@ -4159,6 +4277,7 @@ func TestAddRestoreFootprintExpirationEffect(t *testing.T) {
 				Type:           int32(EffectRestoreFootprint),
 				TypeString:     EffectTypeNames[EffectRestoreFootprint],
 				LedgerClosed:   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+				ClosedAtMs:     genericCloseTime.UTC(),
 				LedgerSequence: 1,
 				EffectIndex:    0,
 				EffectId:       fmt.Sprintf("%d-%d", toid.New(1, 0, 1).ToInt64(), 0),

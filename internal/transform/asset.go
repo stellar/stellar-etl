@@ -53,7 +53,7 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 	}
 
 	outputAsset.ClosedAt = outputCloseTime
-	outputAsset.ClosedAtMs = closedAtMs
+	outputAsset.ClosedAtMs = closedAtMsToTime(closedAtMs)
 	outputAsset.LedgerSequence = utils.GetLedgerSequence(lcm)
 
 	return outputAsset, nil
