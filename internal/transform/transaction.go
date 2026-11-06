@@ -12,7 +12,6 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/stellar/go-stellar-sdk/ingest"
-	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -224,11 +223,6 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 
 	outputTxResultCode := transaction.Result.Result.Result.Code.String()
 
-	txSigners, err := getTxSigners(transaction.Envelope.Signatures())
-	if err != nil {
-		return TransactionOutput{}, err
-	}
-
 	outputSuccessful := transaction.Result.Successful()
 	transformedTransaction := TransactionOutput{
 		TransactionHash:                      outputTransactionHash,
@@ -267,7 +261,6 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		TotalNonRefundableResourceFeeCharged: outputTotalNonRefundableResourceFeeCharged,
 		TotalRefundableResourceFeeCharged:    outputTotalRefundableResourceFeeCharged,
 		RentFeeCharged:                       outputRentFeeCharged,
-		TxSigners:                            txSigners,
 	}
 
 	// Add Muxed Account Details, if exists
@@ -292,12 +285,6 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		innerHash := transaction.Result.InnerHash()
 		transformedTransaction.InnerTransactionHash = hex.EncodeToString(innerHash[:])
 		transformedTransaction.NewMaxFee = int64(transaction.Envelope.FeeBumpFee())
-		txSigners, err := getTxSigners(transaction.Envelope.FeeBump.Signatures)
-		if err != nil {
-			return TransactionOutput{}, err
-		}
-
-		transformedTransaction.TxSigners = txSigners
 	}
 
 	return transformedTransaction, nil
@@ -344,18 +331,4 @@ func formatSigners(s []xdr.SignerKey) pq.StringArray {
 	}
 
 	return signers
-}
-
-func getTxSigners(xdrSignatures []xdr.DecoratedSignature) ([]string, error) {
-	signers := make([]string, len(xdrSignatures))
-
-	for i, sig := range xdrSignatures {
-		signerAccount, err := strkey.Encode(strkey.VersionByteAccountID, sig.Signature)
-		if err != nil {
-			return nil, err
-		}
-		signers[i] = signerAccount
-	}
-
-	return signers, nil
 }
