@@ -21,6 +21,7 @@ type LedgerOutput struct {
 	FailedTransactionCount          int32     `json:"failed_transaction_count"`
 	TxSetOperationCount             string    `json:"tx_set_operation_count"` // counts all operations, even those that are part of failed transactions
 	ClosedAt                        time.Time `json:"closed_at"`              // UTC timestamp
+	ClosedAtMs                      int64     `json:"closed_at_ms"`
 	TotalCoins                      int64     `json:"total_coins"`
 	FeePool                         int64     `json:"fee_pool"`
 	BaseFee                         uint32    `json:"base_fee"`
@@ -67,6 +68,7 @@ type TransactionOutput struct {
 	MinAccountSequenceLedgerGap          null.Int       `json:"min_account_sequence_ledger_gap"`
 	ExtraSigners                         pq.StringArray `json:"extra_signers"`
 	ClosedAt                             time.Time      `json:"closed_at"`
+	ClosedAtMs                           int64          `json:"closed_at_ms"`
 	ResourceFee                          int64          `json:"resource_fee"`
 	SorobanResourcesInstructions         uint32         `json:"soroban_resources_instructions"`
 	SorobanResourcesReadBytes            uint32         `json:"soroban_resources_read_bytes"`
@@ -90,6 +92,7 @@ type LedgerTransactionOutput struct {
 	TxFeeMeta       string    `json:"tx_fee_meta"`
 	TxLedgerHistory string    `json:"tx_ledger_history"`
 	ClosedAt        time.Time `json:"closed_at"`
+	ClosedAtMs      int64     `json:"closed_at_ms"`
 }
 
 // AccountOutput is a representation of an account that aligns with the BigQuery table accounts
@@ -116,6 +119,7 @@ type AccountOutput struct {
 	LedgerEntryChange    uint32      `json:"ledger_entry_change"`
 	Deleted              bool        `json:"deleted"`
 	ClosedAt             time.Time   `json:"closed_at"`
+	ClosedAtMs           int64       `json:"closed_at_ms"`
 	LedgerSequence       uint32      `json:"ledger_sequence"`
 }
 
@@ -129,6 +133,7 @@ type AccountSignerOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	ClosedAtMs         int64       `json:"closed_at_ms"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
 }
 
@@ -142,6 +147,7 @@ type OperationOutput struct {
 	TransactionID        int64                  `json:"transaction_id"`
 	OperationID          int64                  `json:"id"`
 	ClosedAt             time.Time              `json:"closed_at"`
+	ClosedAtMs           int64                  `json:"closed_at_ms"`
 	OperationResultCode  string                 `json:"operation_result_code"`
 	OperationTraceCode   string                 `json:"operation_trace_code"`
 	LedgerSequence       uint32                 `json:"ledger_sequence"`
@@ -163,6 +169,7 @@ type ClaimableBalanceOutput struct {
 	LedgerEntryChange  uint32      `json:"ledger_entry_change"`
 	Deleted            bool        `json:"deleted"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	ClosedAtMs         int64       `json:"closed_at_ms"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
 	BalanceIDStrkey    string      `json:"balance_id_strkey"`
 }
@@ -219,6 +226,7 @@ type PoolOutput struct {
 	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
+	ClosedAtMs         int64     `json:"closed_at_ms"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 	PoolIDStrkey       string    `json:"liquidity_pool_id_strkey"`
 }
@@ -230,6 +238,7 @@ type AssetOutput struct {
 	AssetType      string    `json:"asset_type"`
 	AssetID        int64     `json:"asset_id"`
 	ClosedAt       time.Time `json:"closed_at"`
+	ClosedAtMs     int64     `json:"closed_at_ms"`
 	LedgerSequence uint32    `json:"ledger_sequence"`
 }
 
@@ -252,6 +261,7 @@ type TrustlineOutput struct {
 	Sponsor               null.String `json:"sponsor"`
 	Deleted               bool        `json:"deleted"`
 	ClosedAt              time.Time   `json:"closed_at"`
+	ClosedAtMs            int64       `json:"closed_at_ms"`
 	LedgerSequence        uint32      `json:"ledger_sequence"`
 	LiquidityPoolIDStrkey string      `json:"liquidity_pool_id_strkey"`
 }
@@ -278,6 +288,7 @@ type OfferOutput struct {
 	Deleted            bool        `json:"deleted"`
 	Sponsor            null.String `json:"sponsor"`
 	ClosedAt           time.Time   `json:"closed_at"`
+	ClosedAtMs         int64       `json:"closed_at_ms"`
 	LedgerSequence     uint32      `json:"ledger_sequence"`
 }
 
@@ -309,6 +320,7 @@ type TradeOutput struct {
 	SellerIsExact                null.Bool   `json:"seller_is_exact"`
 	SellingLiquidityPoolIDStrkey null.String `json:"selling_liquidity_pool_id_strkey"`
 	ClosedAt                     time.Time   `json:"closed_at"`
+	ClosedAtMs                   int64       `json:"closed_at_ms"`
 }
 
 // DimAccount is a representation of an account that aligns with the BigQuery table dim_accounts
@@ -366,6 +378,7 @@ type EffectOutput struct {
 	Type           int32                  `json:"type"`
 	TypeString     string                 `json:"type_string"`
 	LedgerClosed   time.Time              `json:"closed_at"`
+	ClosedAtMs     int64                  `json:"closed_at_ms"`
 	LedgerSequence uint32                 `json:"ledger_sequence"`
 	EffectIndex    uint32                 `json:"index"`
 	EffectId       string                 `json:"id"`
@@ -526,6 +539,7 @@ type ContractDataOutput struct {
 	LedgerEntryChange         uint32      `json:"ledger_entry_change"`
 	Deleted                   bool        `json:"deleted"`
 	ClosedAt                  time.Time   `json:"closed_at"`
+	ClosedAtMs                int64       `json:"closed_at_ms"`
 	LedgerSequence            uint32      `json:"ledger_sequence"`
 	LedgerKeyHash             string      `json:"ledger_key_hash"`
 	Key                       interface{} `json:"key"`
@@ -544,6 +558,7 @@ type ContractCodeOutput struct {
 	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
+	ClosedAtMs         int64     `json:"closed_at_ms"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 	LedgerKeyHash      string    `json:"ledger_key_hash"`
 	//ContractCodeCode                string `json:"contract_code"`
@@ -638,6 +653,7 @@ type ConfigSettingOutput struct {
 	LedgerEntryChange          uint32    `json:"ledger_entry_change"`
 	Deleted                    bool      `json:"deleted"`
 	ClosedAt                   time.Time `json:"closed_at"`
+	ClosedAtMs                 int64     `json:"closed_at_ms"`
 	LedgerSequence             uint32    `json:"ledger_sequence"`
 }
 
@@ -649,6 +665,7 @@ type TtlOutput struct {
 	LedgerEntryChange  uint32    `json:"ledger_entry_change"`
 	Deleted            bool      `json:"deleted"`
 	ClosedAt           time.Time `json:"closed_at"`
+	ClosedAtMs         int64     `json:"closed_at_ms"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 }
 
@@ -659,6 +676,7 @@ type ContractEventOutput struct {
 	Successful               bool          `json:"successful"`
 	LedgerSequence           uint32        `json:"ledger_sequence"`
 	ClosedAt                 time.Time     `json:"closed_at"`
+	ClosedAtMs               int64         `json:"closed_at_ms"`
 	InSuccessfulContractCall bool          `json:"in_successful_contract_call"`
 	ContractId               string        `json:"contract_id"`
 	Type                     int32         `json:"type"`
@@ -687,6 +705,7 @@ type TokenTransferOutput struct {
 	ContractID      string      `json:"contract_id"`
 	LedgerSequence  uint32      `json:"ledger_sequence"`
 	ClosedAt        time.Time   `json:"closed_at"`
+	ClosedAtMs      int64       `json:"closed_at_ms"`
 	ToMuxed         null.String `json:"to_muxed"`
 	ToMuxedID       null.String `json:"to_muxed_id"`
 }
@@ -697,5 +716,6 @@ type RestoredKeyOutput struct {
 	LedgerEntryType    string    `json:"ledger_entry_type"`
 	LastModifiedLedger uint32    `json:"last_modified_ledger"`
 	ClosedAt           time.Time `json:"closed_at"`
+	ClosedAtMs         int64     `json:"closed_at_ms"`
 	LedgerSequence     uint32    `json:"ledger_sequence"`
 }

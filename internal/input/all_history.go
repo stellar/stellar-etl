@@ -45,11 +45,6 @@ func GetAllHistory(start, end uint32, limit int64, env utils.EnvironmentDetails,
 			return AllHistoryTransformInput{}, fmt.Errorf("error getting ledger seq %d from the backend: %v", seq, err)
 		}
 
-		closeTime, err := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
-		if err != nil {
-			return AllHistoryTransformInput{}, err
-		}
-
 		lhe := txReader.GetHeader()
 
 		for limit < 0 {
@@ -73,7 +68,7 @@ func GetAllHistory(start, end uint32, limit int64, env utils.EnvironmentDetails,
 					tradeSlice = append(tradeSlice, TradeTransformInput{
 						OperationIndex:     int32(index),
 						Transaction:        tx,
-						CloseTime:          closeTime,
+						Header:             lhe,
 						OperationHistoryID: toid.New(int32(seq), int32(tx.Index), int32(index)).ToInt64(),
 					})
 				}

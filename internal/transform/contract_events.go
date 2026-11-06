@@ -183,6 +183,11 @@ func parseDiagnosticEvent(
 		return ContractEventOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
 	}
 
+	closedAtMs, err := lhe.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return ContractEventOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
+	}
+
 	outputSuccessful := transaction.Result.Successful()
 
 	var outputContractId string
@@ -227,6 +232,7 @@ func parseDiagnosticEvent(
 		Successful:               outputSuccessful,
 		LedgerSequence:           outputLedgerSequence,
 		ClosedAt:                 outputCloseTime,
+		ClosedAtMs:               closedAtMs,
 		InSuccessfulContractCall: outputInSuccessfulContractCall,
 		ContractId:               outputContractId,
 		Type:                     int32(outputType),
