@@ -233,7 +233,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		LedgerEntryChange:          uint32(changeType),
 		Deleted:                    outputDeleted,
 		ClosedAt:                   closedAt,
-		ClosedAtMs:                 closedAtMs,
+		ClosedAtMs:                 closedAtMsToTime(closedAtMs),
 		LedgerSequence:             uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil

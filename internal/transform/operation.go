@@ -96,7 +96,7 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 		OperationID:          outputOperationID,
 		OperationDetails:     outputDetails,
 		ClosedAt:             outputCloseTime,
-		ClosedAtMs:           closedAtMs,
+		ClosedAtMs:           closedAtMsToTime(closedAtMs),
 		OperationResultCode:  outputOperationResultCode,
 		OperationTraceCode:   outputOperationTraceCode,
 		LedgerSequence:       outputLedgerSequence,

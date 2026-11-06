@@ -88,7 +88,7 @@ func TransformContractCode(ledgerChange ingest.Change, header xdr.LedgerHeaderHi
 		LedgerEntryChange:   uint32(changeType),
 		Deleted:             outputDeleted,
 		ClosedAt:            closedAt,
-		ClosedAtMs:          closedAtMs,
+		ClosedAtMs:          closedAtMsToTime(closedAtMs),
 		LedgerSequence:      uint32(ledgerSequence),
 		LedgerKeyHash:       ledgerKeyHash,
 		NInstructions:       outputNInstructions,

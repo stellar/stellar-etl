@@ -75,7 +75,7 @@ func TransformClaimableBalance(ledgerChange ingest.Change, header xdr.LedgerHead
 		Flags:              outputFlags,
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         closedAtMs,
+		ClosedAtMs:         closedAtMsToTime(closedAtMs),
 		LedgerSequence:     uint32(ledgerSequence),
 		BalanceIDStrkey:    balanceIDStrkey,
 	}

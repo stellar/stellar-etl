@@ -88,7 +88,7 @@ func TransformPool(ledgerChange ingest.Change, header xdr.LedgerHeaderHistoryEnt
 		LedgerEntryChange:  uint32(changeType),
 		Deleted:            outputDeleted,
 		ClosedAt:           closedAt,
-		ClosedAtMs:         closedAtMs,
+		ClosedAtMs:         closedAtMsToTime(closedAtMs),
 		LedgerSequence:     uint32(ledgerSequence),
 		PoolIDStrkey:       poolIDStrkey,
 	}

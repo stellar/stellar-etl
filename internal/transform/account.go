@@ -111,7 +111,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
 		ClosedAt:             closedAt,
-		ClosedAtMs:           closedAtMs,
+		ClosedAtMs:           closedAtMsToTime(closedAtMs),
 		LedgerSequence:       uint32(ledgerSequence),
 	}
 	return transformedAccount, nil

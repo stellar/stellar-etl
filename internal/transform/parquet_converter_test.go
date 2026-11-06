@@ -1,6 +1,8 @@
 package transform
 
 import (
+	"time"
+
 	"fmt"
 	"reflect"
 	"testing"
@@ -52,7 +54,10 @@ func TestToParquetCarriesClosedAtMs(t *testing.T) {
 			if !field.IsValid() {
 				t.Fatalf("%s has no ClosedAtMs field", name)
 			}
-			field.SetInt(want)
+			if field.Type() != reflect.TypeOf(time.Time{}) {
+				t.Fatalf("%s.ClosedAtMs is %s, want time.Time", name, field.Type())
+			}
+			field.Set(reflect.ValueOf(time.UnixMilli(want).UTC()))
 
 			converted := v.Interface().(SchemaParquet).ToParquet()
 

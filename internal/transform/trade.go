@@ -141,7 +141,7 @@ func TransformTrade(operationIndex int32, operationID int64, transaction ingest.
 			Order:                        outputOrder,
 			LedgerClosedAt:               outputLedgerClosedAt,
 			ClosedAt:                     outputLedgerClosedAt,
-			ClosedAtMs:                   closedAtMs,
+			ClosedAtMs:                   closedAtMsToTime(closedAtMs),
 			SellingAccountAddress:        outputSellingAccountAddress,
 			SellingAssetType:             outputSellingAssetType,
 			SellingAssetCode:             outputSellingAssetCode,
