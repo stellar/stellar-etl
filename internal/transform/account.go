@@ -81,6 +81,11 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		return AccountOutput{}, err
 	}
 
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return AccountOutput{}, err
+	}
+
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedAccount := AccountOutput{
@@ -106,6 +111,7 @@ func TransformAccount(ledgerChange ingest.Change, header xdr.LedgerHeaderHistory
 		LedgerEntryChange:    uint32(changeType),
 		Deleted:              outputDeleted,
 		ClosedAt:             closedAt,
+		ClosedAtMs:           closedAtMs,
 		LedgerSequence:       uint32(ledgerSequence),
 	}
 	return transformedAccount, nil

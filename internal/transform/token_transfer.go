@@ -37,6 +37,11 @@ func TransformTokenTransfer(ledgerCloseMeta xdr.LedgerCloseMeta, networkPassphra
 func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMeta xdr.LedgerCloseMeta) ([]TokenTransferOutput, error) {
 	var transformedTTP []TokenTransferOutput
 
+	closedAtMs, err := ledgerCloseMeta.LedgerCloseTimeMs()
+	if err != nil {
+		return []TokenTransferOutput{}, err
+	}
+
 	for _, event := range events {
 		var assetType, asset string
 		var assetCode, assetIssuer null.String
@@ -96,13 +101,12 @@ func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMet
 		var toMuxed null.String
 
 		if event.Meta.ToMuxedInfo != nil {
-			muxedID := event.Meta.ToMuxedInfo.GetId()
-			muxedAccount := strkey.MuxedAccount{}
-			muxedAccount.SetAccountID(to.String)
-			muxedAccount.SetID(muxedID)
-			muxedAccountString, _ := muxedAccount.Address()
-			toMuxed = null.StringFrom(muxedAccountString)
-			toMuxedID = null.StringFrom(strconv.FormatUint(muxedID, 10))
+			muxedAddress, muxedID, err := encodeMuxedDestination(to.String, event.Meta.ToMuxedInfo)
+			if err != nil {
+				return []TokenTransferOutput{}, err
+			}
+			toMuxed = null.StringFrom(muxedAddress)
+			toMuxedID = null.StringFrom(muxedID)
 		}
 
 		transformedTTP = append(transformedTTP, TokenTransferOutput{
@@ -121,6 +125,7 @@ func transformEvents(events []*token_transfer.TokenTransferEvent, ledgerCloseMet
 			ContractID:      eventMeta.ContractAddress,
 			LedgerSequence:  ledgerSequence,
 			ClosedAt:        ledgerCloseMeta.ClosedAt(),
+			ClosedAtMs:      closedAtMs,
 			ToMuxed:         toMuxed,
 			ToMuxedID:       toMuxedID,
 		})
@@ -148,4 +153,106 @@ func getAssetFromEvent(event *token_transfer.TokenTransferEvent) (assetConcat, a
 	}
 
 	return assetConcat, assetType, assetCode, assetIssuer
+}
+
+// encodeMuxedDestination rebuilds the multiplexed destination address that the
+// event reported in two separate pieces.
+//
+// A transfer to a multiplexed destination never travels as one address. The
+// Stellar Asset Contract puts the plain underlying address in the event topics
+// and the multiplexing id in the data map under to_muxed_id, so the muxed form
+// only exists if we reassemble it. That makes this the one place in the repo
+// that has to know which kind of address it is holding.
+//
+// CAP-67 gave accounts an M strkey (G plus a uint64). CAP-84 gives contracts a
+// W strkey (C plus a uint64) with an identical 40 byte layout. The builders are
+// not interchangeable: strkey.MuxedAccount.SetAccountID rejects a C address, so
+// before this branch existed a muxed contract destination produced an empty
+// to_muxed and two discarded errors.
+func encodeMuxedDestination(to string, muxedInfo *token_transfer.MuxedInfo) (string, string, error) {
+	var id uint64
+	switch info := muxedInfo.Content.(type) {
+	case *token_transfer.MuxedInfo_Id:
+		id = info.Id
+
+	case *token_transfer.MuxedInfo_Text, *token_transfer.MuxedInfo_Hash:
+		// A memo, not a multiplexing id. MuxedInfo.GetId() reports 0 for these
+		// variants, and 0 is what every text and hash memo has been written as
+		// since this column existed. That is wrong, but it is deliberately left
+		// alone here: changing it would silently restate millions of rows a day
+		// as a side effect of a dated protocol release. stellar/hubble#726 owns
+		// the fix and the backfill decision.
+		id = 0
+
+	default:
+		// Unreachable with the current pin: every MuxedInfo the SDK builds sets
+		// Content, and NewMuxedInfoFromMemo returns nil rather than an empty
+		// one for MEMO_NONE. It is an error rather than a fallback because an
+		// unrecognised variant means a multiplexing scheme whose meaning we do
+		// not know, and guessing would write a plausible wrong id. That is the
+		// opposite of the destination switch below, where "cannot be
+		// multiplexed" is a known and benign shape with no value to lose.
+		return "", "", fmt.Errorf("unknown muxed info variant %T for destination %q", info, to)
+	}
+
+	idString := strconv.FormatUint(id, 10)
+
+	switch {
+	case strkey.IsValidContractAddress(to):
+		// CAP-84: a contract destination multiplexes into a W strkey. This is
+		// the case the event splits apart and only we can put back together,
+		// so a failure here is a real loss and is reported. Encode has no
+		// failure mode for a 40 byte payload, so it should not be reachable.
+		muxedContract := strkey.MuxedContract{}
+		if err := muxedContract.SetContractID(to); err != nil {
+			return "", "", fmt.Errorf("could not encode muxed contract destination %q: %w", to, err)
+		}
+		muxedContract.SetID(id)
+		address, err := muxedContract.Address()
+		if err != nil {
+			return "", "", fmt.Errorf("could not encode muxed contract destination %q: %w", to, err)
+		}
+		return address, idString, nil
+
+	case strkey.IsValidEd25519PublicKey(to):
+		// CAP-67: an account destination multiplexes into an M strkey.
+		muxedAccount := strkey.MuxedAccount{}
+		if err := muxedAccount.SetAccountID(to); err != nil {
+			return "", "", fmt.Errorf("could not encode muxed account destination %q: %w", to, err)
+		}
+		muxedAccount.SetID(id)
+		address, err := muxedAccount.Address()
+		if err != nil {
+			// The null account GAAAA...WHF is a valid strkey whose ed25519 key
+			// is 32 zero bytes, which Address rejects: an account that is not a
+			// key has no multiplexed form. 446 rows in production history are
+			// transfers to it, across 296 separate days.
+			return "", idString, nil
+		}
+		return address, idString, nil
+
+	default:
+		// Not a destination that can be multiplexed. Reached by an empty "to",
+		// which burn, clawback and fee events produce because the SDK attaches
+		// ToMuxedInfo before it knows the event type while those events never
+		// carry a destination, and by a liquidity pool, claimable balance or
+		// already muxed strkey from a custom token contract.
+		//
+		// The already muxed case is worth spelling out, because it leaves the
+		// same destination in two different shapes in token_transfers_raw
+		// depending only on which contract emitted the event. The Stellar
+		// Asset Contract always splits a muxed destination, so it reaches this
+		// function as to = C... and is reassembled above into to_muxed = W....
+		// A custom SEP-41 token is free to put the finished W or M strkey
+		// straight into the topic, and that lands in to verbatim with to_muxed
+		// left empty. from is never reassembled in either case, because there
+		// is no from_muxed column to hold the id.
+		//
+		// No multiplexed form exists for any of them, so report none, which is
+		// what this code has always written. Returning an error instead would
+		// abort transformEvents and drop every token transfer in the ledger,
+		// and Airflow always passes --strict-export, so that is a fatal export
+		// that a retry cannot clear.
+		return "", idString, nil
+	}
 }

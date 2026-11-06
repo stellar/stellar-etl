@@ -221,6 +221,11 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
 	}
 
+	closedAtMs, err := lhe.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return TransactionOutput{}, fmt.Errorf("for ledger %d; transaction %d (transaction id=%d): %v", outputLedgerSequence, transactionIndex, outputTransactionID, err)
+	}
+
 	outputTxResultCode := transaction.Result.Result.Result.Code.String()
 
 	outputSuccessful := transaction.Result.Successful()
@@ -248,6 +253,7 @@ func TransformTransaction(transaction ingest.LedgerTransaction, lhe xdr.LedgerHe
 		MinAccountSequenceLedgerGap:          outputMinSequenceLedgerGap,
 		ExtraSigners:                         formatSigners(transaction.Envelope.ExtraSigners()),
 		ClosedAt:                             outputCloseTime,
+		ClosedAtMs:                           closedAtMs,
 		ResourceFee:                          outputResourceFee,
 		SorobanResourcesInstructions:         outputSorobanResourcesInstructions,
 		SorobanResourcesReadBytes:            outputSorobanResourcesDiskReadBytes,

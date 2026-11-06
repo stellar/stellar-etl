@@ -12,6 +12,7 @@ type LedgerOutputParquet struct {
 	FailedTransactionCount          int32    `parquet:"name=failed_transaction_count, type=INT32"`
 	TxSetOperationCount             string   `parquet:"name=tx_set_operation_count, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	ClosedAt                        int64    `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs                      int64    `parquet:"name=closed_at_ms, type=INT64"`
 	TotalCoins                      int64    `parquet:"name=total_coins, type=INT64"`
 	FeePool                         int64    `parquet:"name=fee_pool, type=INT64"`
 	BaseFee                         int64    `parquet:"name=base_fee, type=INT64, convertedtype=UINT_64"`
@@ -58,6 +59,7 @@ type TransactionOutputParquet struct {
 	MinAccountSequenceLedgerGap          int64    `parquet:"name=min_account_sequence_ledger_gap, type=INT64"`
 	ExtraSigners                         []string `parquet:"name=extra_signers, type=MAP, convertedtype=LIST, valuetype=BYTE_ARRAY, valueconvertedtype=UTF8"`
 	ClosedAt                             int64    `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs                           int64    `parquet:"name=closed_at_ms, type=INT64"`
 	ResourceFee                          int64    `parquet:"name=resource_fee, type=INT64"`
 	SorobanResourcesInstructions         int64    `parquet:"name=soroban_resources_instructions, type=INT64, convertedtype=UINT_64"`
 	SorobanResourcesReadBytes            int64    `parquet:"name=soroban_resources_read_bytes, type=INT64, convertedtype=UINT_64"`
@@ -97,6 +99,7 @@ type AccountOutputParquet struct {
 	LedgerEntryChange    int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted              bool    `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt             int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs           int64   `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence       int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -110,6 +113,7 @@ type AccountSignerOutputParquet struct {
 	LedgerEntryChange  int64  `parquet:"name=ledger_entry_change, type=INT64, convertedtype=INT64, convertedtype=UINT_64"`
 	Deleted            bool   `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs         int64  `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence     int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=INT64, convertedtype=UINT_64"`
 }
 
@@ -123,6 +127,7 @@ type OperationOutputParquet struct {
 	TransactionID       int64  `parquet:"name=transaction_id, type=INT64"`
 	OperationID         int64  `parquet:"name=id, type=INT64"`
 	ClosedAt            int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs          int64  `parquet:"name=closed_at_ms, type=INT64"`
 	OperationResultCode string `parquet:"name=operation_result_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	OperationTraceCode  string `parquet:"name=operation_trace_code, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	LedgerSequence      int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=INT64, convertedtype=UINT_64"`
@@ -155,6 +160,7 @@ type PoolOutputParquet struct {
 	LedgerEntryChange  int64   `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted            bool    `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs         int64   `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence     int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -165,6 +171,7 @@ type AssetOutputParquet struct {
 	AssetType      string `parquet:"name=asset_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	AssetID        int64  `parquet:"name=asset_id, type=INT64"`
 	ClosedAt       int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs     int64  `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -187,6 +194,7 @@ type TrustlineOutputParquet struct {
 	Sponsor            string  `parquet:"name=sponsor, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Deleted            bool    `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs         int64   `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence     int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -212,6 +220,7 @@ type OfferOutputParquet struct {
 	Deleted            bool    `parquet:"name=deleted, type=BOOLEAN"`
 	Sponsor            string  `parquet:"name=sponsor, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	ClosedAt           int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs         int64   `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence     int64   `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -242,6 +251,7 @@ type TradeOutputParquet struct {
 	RoundingSlippage       int64   `parquet:"name=rounding_slippage, type=INT64"`
 	SellerIsExact          bool    `parquet:"name=seller_is_exact, type=BOOLEAN"`
 	ClosedAt               int64   `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs             int64   `parquet:"name=closed_at_ms, type=INT64"`
 }
 
 // EffectOutputParquet is a representation of an operation that aligns with the BigQuery table history_effects
@@ -253,6 +263,7 @@ type EffectOutputParquet struct {
 	Type           int32  `parquet:"name=type, type=INT32"`
 	TypeString     string `parquet:"name=type_string, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	LedgerClosed   int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs     int64  `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 	EffectIndex    int64  `parquet:"name=index, type=INT64, convertedtype=UINT_64"`
 	EffectId       string `parquet:"name=id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
@@ -272,6 +283,7 @@ type ContractDataOutputParquet struct {
 	LedgerEntryChange         int64       `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted                   bool        `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt                  int64       `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs                int64       `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence            int64       `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 	LedgerKeyHash             string      `parquet:"name=ledger_key_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Key                       interface{} `parquet:"name=key, type=MAP, convertedtype=MAP, keytype=BYTE_ARRAY, keyconvertedtype=UTF8, valuetype=STRING"`
@@ -289,6 +301,7 @@ type ContractCodeOutputParquet struct {
 	LedgerEntryChange  int64  `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted            bool   `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs         int64  `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence     int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 	LedgerKeyHash      string `parquet:"name=ledger_key_hash, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	NInstructions      int64  `parquet:"name=n_instructions, type=INT64, convertedtype=UINT_64"`
@@ -381,6 +394,7 @@ type ConfigSettingOutputParquet struct {
 	LedgerEntryChange          int64  `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted                    bool   `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt                   int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs                 int64  `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence             int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -392,6 +406,7 @@ type TtlOutputParquet struct {
 	LedgerEntryChange  int64  `parquet:"name=ledger_entry_change, type=INT64, convertedtype=UINT_64"`
 	Deleted            bool   `parquet:"name=deleted, type=BOOLEAN"`
 	ClosedAt           int64  `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs         int64  `parquet:"name=closed_at_ms, type=INT64"`
 	LedgerSequence     int64  `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 }
 
@@ -402,6 +417,7 @@ type ContractEventOutputParquet struct {
 	Successful               bool          `parquet:"name=successful, type=BOOLEAN"`
 	LedgerSequence           int64         `parquet:"name=ledger_sequence, type=INT64, convertedtype=UINT_64"`
 	ClosedAt                 int64         `parquet:"name=closed_at, type=INT64, convertedtype=TIMESTAMP_MILLIS"`
+	ClosedAtMs               int64         `parquet:"name=closed_at_ms, type=INT64"`
 	InSuccessfulContractCall bool          `parquet:"name=in_successful_contract_call, type=BOOLEAN"`
 	ContractId               string        `parquet:"name=contract_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	Type                     int32         `parquet:"name=type, type=INT32"`

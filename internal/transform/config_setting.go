@@ -150,6 +150,11 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		return ConfigSettingOutput{}, err
 	}
 
+	closedAtMs, err := header.Header.ScpValue.CloseTimeMs()
+	if err != nil {
+		return ConfigSettingOutput{}, err
+	}
+
 	ledgerSequence := header.Header.LedgerSeq
 
 	transformedConfigSetting := ConfigSettingOutput{
@@ -228,6 +233,7 @@ func TransformConfigSetting(ledgerChange ingest.Change, header xdr.LedgerHeaderH
 		LedgerEntryChange:          uint32(changeType),
 		Deleted:                    outputDeleted,
 		ClosedAt:                   closedAt,
+		ClosedAtMs:                 closedAtMs,
 		LedgerSequence:             uint32(ledgerSequence),
 	}
 	return transformedConfigSetting, nil

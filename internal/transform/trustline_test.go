@@ -145,6 +145,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			Deleted:            false,
 			LedgerSequence:     10,
 			ClosedAt:           time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+			ClosedAtMs:         time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC).UnixMilli(),
 		},
 		{
 			LedgerKey:             "AAAAAQAAAAAcR0GXGO76pFs4y38vJVAanjnLg4emNun7zAx0pHcDGAAAAAMBAwQFBwkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
@@ -162,6 +163,7 @@ func makeTrustlineTestOutput() []TrustlineOutput {
 			Deleted:               false,
 			LedgerSequence:        10,
 			ClosedAt:              time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC),
+			ClosedAtMs:            time.Date(1970, time.January, 1, 0, 16, 40, 0, time.UTC).UnixMilli(),
 			LiquidityPoolIDStrkey: "LAAQGBAFA4EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2VM",
 		},
 	}

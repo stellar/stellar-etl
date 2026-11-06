@@ -3,7 +3,6 @@ package input
 import (
 	"context"
 	"io"
-	"time"
 
 	"github.com/stellar/stellar-etl/v2/internal/toid"
 	"github.com/stellar/stellar-etl/v2/internal/utils"
@@ -18,7 +17,7 @@ import (
 type TradeTransformInput struct {
 	OperationIndex     int32
 	Transaction        ingest.LedgerTransaction
-	CloseTime          time.Time
+	Header             xdr.LedgerHeaderHistoryEntry
 	OperationHistoryID int64
 }
 
@@ -34,7 +33,7 @@ func TradesFromLedger(lcm xdr.LedgerCloseMeta, networkPassphrase string) ([]Trad
 	defer txReader.Close()
 
 	seq := lcm.LedgerSequence()
-	closeTime, _ := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
+	header := txReader.GetHeader()
 
 	var trades []TradeTransformInput
 	for {
@@ -50,7 +49,7 @@ func TradesFromLedger(lcm xdr.LedgerCloseMeta, networkPassphrase string) ([]Trad
 				trades = append(trades, TradeTransformInput{
 					OperationIndex:     int32(index),
 					Transaction:        tx,
-					CloseTime:          closeTime,
+					Header:             header,
 					OperationHistoryID: toid.New(int32(seq), int32(tx.Index), int32(index)).ToInt64(),
 				})
 			}
@@ -82,7 +81,7 @@ func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails, use
 			return []TradeTransformInput{}, err
 		}
 
-		closeTime, _ := utils.TimePointToUTCTimeStamp(txReader.GetHeader().Header.ScpValue.CloseTime)
+		header := txReader.GetHeader()
 
 		for int64(len(tradeSlice)) < limit || limit < 0 {
 			tx, err := txReader.Read()
@@ -102,7 +101,7 @@ func GetTrades(start, end uint32, limit int64, env utils.EnvironmentDetails, use
 					tradeSlice = append(tradeSlice, TradeTransformInput{
 						OperationIndex:     int32(index),
 						Transaction:        tx,
-						CloseTime:          closeTime,
+						Header:             header,
 						OperationHistoryID: toid.New(int32(seq), int32(tx.Index), int32(index)).ToInt64(),
 					})
 				}

@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"encoding/base64"
 	"fmt"
 	"testing"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/stellar/go-stellar-sdk/historyarchive"
+	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 	"github.com/stretchr/testify/assert"
 )
@@ -130,6 +132,7 @@ func makeLedgerTestOutput() (output LedgerOutput, err error) {
 		PreviousLedgerHash: "f63c15d0eaf48afbd751a4c4dfade54a3448053c47c5a71d622668ae0cc2a208",
 		LedgerHeader:       string(correctBytes),
 		ClosedAt:           correctTime,
+		ClosedAtMs:         correctTime.UnixMilli(),
 
 		TotalCoins:      1054439020873472865,
 		FeePool:         18153766209161,
@@ -237,4 +240,101 @@ func makeLedgerTestInput() (lcm []utils.HistoryArchiveLedgerAndLCM, err error) {
 	}
 
 	return lcm, nil
+}
+
+// TestTransformLedgerScpValueArms is the end-to-end regression test for CAP-88.
+// The helper has its own unit tests in internal/utils; this one proves the
+// wiring, which is the part that was broken: TransformLedger read the union
+// through a name-matched Get accessor, so on a Protocol 30 ledger it produced a
+// row with an empty node_id and no error at all.
+//
+// Golden files cannot cover this until post-Protocol-30 ledgers exist, so this
+// is the only thing standing between the release and silently empty columns.
+func TestTransformLedgerScpValueArms(t *testing.T) {
+	raw, err := strkey.Decode(strkey.VersionByteAccountID, "GBF7QOLFPTHUEDUPTT4ZTULDTA3QXDIO75JHKJN2IYD7YGQLYUTR75BT")
+	assert.NoError(t, err)
+	var ed xdr.Uint256
+	copy(ed[:], raw)
+	sig := xdr.LedgerCloseValueSignature{
+		NodeId:    xdr.NodeId{Type: xdr.PublicKeyTypePublicKeyTypeEd25519, Ed25519: &ed},
+		Signature: xdr.Signature{0xde, 0xad, 0xbe, 0xef},
+	}
+	wantSignature := base64.StdEncoding.EncodeToString(sig.Signature)
+
+	const closeTimeMs = 1594584547123
+
+	tests := []struct {
+		name            string
+		ext             xdr.StellarValueExt
+		wantNodeID      string
+		wantSignature   string
+		wantCloseTimeMs int64
+	}{
+		{
+			name:            "arm 0 BASIC keeps node_id empty without erroring",
+			ext:             xdr.StellarValueExt{V: xdr.StellarValueTypeStellarValueBasic},
+			wantCloseTimeMs: 1594584547 * 1000,
+		},
+		{
+			name: "arm 2 EMPTY_TX_SET populates node_id (live on pubnet today)",
+			ext: xdr.StellarValueExt{
+				V:             xdr.StellarValueTypeStellarValueEmptyTxSet,
+				ProposedValue: &xdr.StellarValueProposedValue{LcValueSignature: sig},
+			},
+			wantNodeID:      "GBF7QOLFPTHUEDUPTT4ZTULDTA3QXDIO75JHKJN2IYD7YGQLYUTR75BT",
+			wantSignature:   wantSignature,
+			wantCloseTimeMs: 1594584547 * 1000,
+		},
+		{
+			name: "arm 3 SIGNED_MS populates node_id (the Protocol 30 normal case)",
+			ext: xdr.StellarValueExt{
+				V: xdr.StellarValueTypeStellarValueSignedMs,
+				SignedMsValue: &xdr.StellarValueSignedMsValue{
+					CloseTimeMs:      xdr.TimePointMs(closeTimeMs),
+					LcValueSignature: sig,
+				},
+			},
+			wantNodeID:      "GBF7QOLFPTHUEDUPTT4ZTULDTA3QXDIO75JHKJN2IYD7YGQLYUTR75BT",
+			wantSignature:   wantSignature,
+			wantCloseTimeMs: closeTimeMs,
+		},
+		{
+			name: "arm 4 EMPTY_TX_SET_MS populates node_id (mandatory after the upgrade)",
+			ext: xdr.StellarValueExt{
+				V: xdr.StellarValueTypeStellarValueEmptyTxSetMs,
+				ProposedMsValue: &xdr.StellarValueProposedMsValue{
+					CloseTimeMs:      xdr.TimePointMs(closeTimeMs),
+					LcValueSignature: sig,
+				},
+			},
+			wantNodeID:      "GBF7QOLFPTHUEDUPTT4ZTULDTA3QXDIO75JHKJN2IYD7YGQLYUTR75BT",
+			wantSignature:   wantSignature,
+			wantCloseTimeMs: closeTimeMs,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			input, err := makeLedgerTestInput()
+			assert.NoError(t, err)
+
+			ledgerAndLCM := input[0]
+			ledgerAndLCM.Ledger.Header.Header.ScpValue.Ext = test.ext
+
+			output, err := TransformLedger(ledgerAndLCM.Ledger, ledgerAndLCM.LCM)
+			assert.NoError(t, err)
+			assert.Equal(t, test.wantNodeID, output.NodeID)
+			assert.Equal(t, test.wantSignature, output.Signature)
+
+			// The _MS arms carry a value ending in 123, which no derivation
+			// from the whole-second closeTime can produce. This is the only
+			// assertion in the repo that distinguishes the helper from
+			// outputCloseTime.UnixMilli() on history_ledgers itself.
+			assert.Equal(t, test.wantCloseTimeMs, output.ClosedAtMs)
+
+			// closed_at stays whole seconds on every arm: CAP-88 left the
+			// top-level closeTime field alone on purpose.
+			assert.Equal(t, int64(1594584547), output.ClosedAt.Unix())
+		})
+	}
 }

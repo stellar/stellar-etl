@@ -3,7 +3,6 @@ package transform
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/guregu/null"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ func TestTransformTrade(t *testing.T) {
 	type tradeInput struct {
 		index       int32
 		transaction ingest.LedgerTransaction
-		closeTime   time.Time
+		header      xdr.LedgerHeaderHistoryEntry
 	}
 	type transformTest struct {
 		input      tradeInput
@@ -32,7 +31,7 @@ func TestTransformTrade(t *testing.T) {
 	genericInput := tradeInput{
 		index:       0,
 		transaction: genericLedgerTransaction,
-		closeTime:   genericCloseTime,
+		header:      genericLedgerHeaderHistoryEntry,
 	}
 
 	wrongTypeInput := genericInput
@@ -162,14 +161,14 @@ func TestTransformTrade(t *testing.T) {
 
 	for i := range hardCodedInputTransaction.Envelope.Operations() {
 		tests = append(tests, transformTest{
-			input:      tradeInput{index: int32(i), transaction: hardCodedInputTransaction, closeTime: genericCloseTime},
+			input:      tradeInput{index: int32(i), transaction: hardCodedInputTransaction, header: genericLedgerHeaderHistoryEntry},
 			wantOutput: hardCodedOutputArray[i],
 			wantErr:    nil,
 		})
 	}
 
 	for _, test := range tests {
-		actualOutput, actualError := TransformTrade(test.input.index, 100, test.input.transaction, test.input.closeTime)
+		actualOutput, actualError := TransformTrade(test.input.index, 100, test.input.transaction, test.input.header)
 		assert.Equal(t, test.wantErr, actualError)
 		assert.Equal(t, test.wantOutput, actualOutput)
 	}
@@ -720,8 +719,8 @@ func makeTradeTestInput() (inputTransaction ingest.LedgerTransaction) {
 func makeTradeTestOutput() [][]TradeOutput {
 	offerOneOutput := TradeOutput{
 		Order:                 0,
-		LedgerClosedAt:        genericCloseTime,
-		ClosedAt:              genericCloseTime,
+		LedgerClosedAt:        genericCloseTime.UTC(),
+		ClosedAt:              genericCloseTime.UTC(),
 		SellingAccountAddress: testAccount1Address,
 		SellingAssetCode:      "ETH",
 		SellingAssetIssuer:    testAccount3Address,
@@ -743,8 +742,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 	}
 	offerTwoOutput := TradeOutput{
 		Order:                 0,
-		LedgerClosedAt:        genericCloseTime,
-		ClosedAt:              genericCloseTime,
+		LedgerClosedAt:        genericCloseTime.UTC(),
+		ClosedAt:              genericCloseTime.UTC(),
 		SellingAccountAddress: testAccount3Address,
 		SellingAssetCode:      "USDT",
 		SellingAssetIssuer:    testAccount4Address,
@@ -767,8 +766,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 
 	lPOneOutput := TradeOutput{
 		Order:                        0,
-		LedgerClosedAt:               genericCloseTime,
-		ClosedAt:                     genericCloseTime,
+		LedgerClosedAt:               genericCloseTime.UTC(),
+		ClosedAt:                     genericCloseTime.UTC(),
 		SellingAssetCode:             "WER",
 		SellingAssetIssuer:           testAccount4Address,
 		SellingAssetType:             "credit_alphanum4",
@@ -794,8 +793,8 @@ func makeTradeTestOutput() [][]TradeOutput {
 
 	lPTwoOutput := TradeOutput{
 		Order:                        0,
-		LedgerClosedAt:               genericCloseTime,
-		ClosedAt:                     genericCloseTime,
+		LedgerClosedAt:               genericCloseTime.UTC(),
+		ClosedAt:                     genericCloseTime.UTC(),
 		SellingAssetCode:             "HAH",
 		SellingAssetIssuer:           testAccount1Address,
 		SellingAssetType:             "credit_alphanum4",

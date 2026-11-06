@@ -9,7 +9,6 @@ import (
 	"github.com/stellar/stellar-etl/v2/internal/utils"
 
 	"github.com/stellar/go-stellar-sdk/historyarchive"
-	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -90,15 +89,26 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		}
 	}
 
-	var outputNodeID string
-	var outputSignature string
-	LedgerCloseValueSignature, ok := ledgerHeader.ScpValue.Ext.GetLcValueSignature()
-	if ok {
-		outputNodeID, err = getAddress(LedgerCloseValueSignature.NodeId)
+	outputCloseTimeMs, err := ledgerHeader.ScpValue.CloseTimeMs()
+	if err != nil {
+		return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
+	}
+
+	// The SDK reads the signature from all four arms that carry one, which is
+	// the CAP-88 fix: before it, only STELLAR_VALUE_SIGNED was matched and
+	// every Protocol 30 ledger wrote an empty node id.
+	//
+	// ok is false for STELLAR_VALUE_BASIC, which has no signature by design and
+	// is correctly empty here, and also for an arm the SDK does not recognise,
+	// which is not. stellar/hubble#736 separates those two upstream, after
+	// which this becomes one call that can return an error.
+	var outputNodeID, outputSignature string
+	if signature, ok := ledgerHeader.ScpValue.Ext.LedgerCloseValueSignature(); ok {
+		outputNodeID, err = signature.NodeId.GetAddress()
 		if err != nil {
-			return LedgerOutput{}, err
+			return LedgerOutput{}, fmt.Errorf("for ledger %d (ledger id=%d): %v", outputSequence, outputLedgerID, err)
 		}
-		outputSignature = base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature)
+		outputSignature = base64.StdEncoding.EncodeToString(signature.Signature)
 	}
 
 	transformedLedger := LedgerOutput{
@@ -113,6 +123,7 @@ func TransformLedger(inputLedger historyarchive.Ledger, lcm xdr.LedgerCloseMeta)
 		FailedTransactionCount:          outputFailedCount,
 		TxSetOperationCount:             outputTxSetOperationCount,
 		ClosedAt:                        outputCloseTime,
+		ClosedAtMs:                      outputCloseTimeMs,
 		TotalCoins:                      outputTotalCoins,
 		FeePool:                         outputFeePool,
 		BaseFee:                         outputBaseFee,
@@ -222,21 +233,4 @@ func transformLedgerKeys(ledgerKeys []xdr.LedgerKey) ([]string, []string, error)
 		ledgerKeysType[i] = key.Type.String()
 	}
 	return ledgerKeysHash, ledgerKeysType, nil
-}
-
-// TODO: This should be moved into the go monorepo xdr functions
-// Or nodeID should just be an xdr.AccountId but the error message would be incorrect
-func getAddress(nodeID xdr.NodeId) (string, error) {
-	switch nodeID.Type {
-	case xdr.PublicKeyTypePublicKeyTypeEd25519:
-		ed, ok := nodeID.GetEd25519()
-		if !ok {
-			return "", fmt.Errorf("could not get Ed25519")
-		}
-		raw := make([]byte, 32)
-		copy(raw, ed[:])
-		return strkey.Encode(strkey.VersionByteAccountID, raw)
-	default:
-		return "", fmt.Errorf("unknown node id type: %v", nodeID.Type)
-	}
 }

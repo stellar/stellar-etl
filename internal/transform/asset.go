@@ -46,7 +46,14 @@ func TransformAsset(operation xdr.Operation, operationIndex int32, transactionIn
 	if err != nil {
 		return AssetOutput{}, err
 	}
+
+	closedAtMs, err := lcm.LedgerCloseTimeMs()
+	if err != nil {
+		return AssetOutput{}, err
+	}
+
 	outputAsset.ClosedAt = outputCloseTime
+	outputAsset.ClosedAtMs = closedAtMs
 	outputAsset.LedgerSequence = utils.GetLedgerSequence(lcm)
 
 	return outputAsset, nil
