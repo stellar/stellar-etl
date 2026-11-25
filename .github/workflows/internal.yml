@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v7.1.0
         with:
           go-version-file: go.mod
       - name: Build Internal
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v7.1.0
         with:
           go-version-file: go.mod
       - name: Run Internal Unit Tests
